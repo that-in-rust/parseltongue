@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-log = "0.4"
+log = { version = "0.4", features = ["std"] }
 tokio = { version = "1.0", features = ["full"] }
 indicatif = "0.17"
 serde = { version = "1.0", features = ["derive"] }
@@ -15,7 +15,16 @@ chrono = "0.4"
 colored = "2.0"
 prost = "0.11"
 sled = "0.34"
-moka = "0.9"
+moka = { version = "0.9", features = ["sync"] }
+serde_json = "1.0"
+tree-sitter = "0.20"
+tree-sitter-rust = "0.20"
+tree-sitter-javascript = "0.20"
+tree-sitter-python = "0.20"
+tree-sitter-java = "0.20"
+tree-sitter-c = "0.20"
+tree-sitter-cpp = "0.20"
+tree-sitter-go = "0.20"
 
 [build-dependencies]
 prost-build = "0.11"
