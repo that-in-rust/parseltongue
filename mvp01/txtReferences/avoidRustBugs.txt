@@ -562,5 +562,117 @@
 - Use `std::env::current_dir()` to get the current working directory if needed.
 - Add appropriate error handling and logging for file operations in build scripts.
 
+## 92. Ensure All Necessary Imports Are Included
+
+- Always check that all required imports are present in your modules.
+- Use the compiler's suggestions when it indicates a missing import.
+- For macros like `error!`, ensure that you have imported them explicitly (e.g., `use log::error;`).
+
+## 93. Ensure All Variables Are Defined in Scope
+
+- Verify that all variables used within a function are defined in that scope.
+- Initialize variables like `language` and `content` before using them.
+- Use compiler errors as a guide to identify missing definitions.
+
+## 94. Keep Related Code Together
+
+- When adding new code, ensure that dependencies (like types and variables) are included.
+- For example, when updating `analyze_file`, include the definitions of any new variables it uses.
+
+## 95. Read Compiler Error Messages Carefully
+
+- Compiler errors often provide helpful hints to resolve issues.
+- Use the suggested fixes, such as adding an import or defining a missing type.
+
+## 96. Be Mindful of External Crate Requirements
+
+- When using external crates (like `tree-sitter`), ensure you understand their API.
+- Some methods may require additional arguments (e.g., `node.children(&mut cursor)`).
+- Refer to the crate's documentation for correct usage.
+
+## 97. Always Define the `main` Function
+
+- Ensure that your Rust application has a `main` function as the entry point.
+- For async applications using Tokio, use `#[tokio::main]` above your `main` function.
+
+## 98. Import Traits for Methods Used
+
+- If you use methods from traits, ensure the trait is in scope.
+- For example, `anyhow::Context` provides the `context` method for `Result` and `Option`.
+- Import the trait: `use anyhow::Context;`.
+
+## 99. Pay Attention to Function Signatures
+
+- Ensure that function signatures match the expected usage.
+- For example, when defining `Result<T>`, specify both `T` and `E`, like `Result<T, E>`.
+
+## 100. Keep Struct and Enum Definitions Accessible
+
+- Place struct and enum definitions in places where they are accessible to functions that need them.
+- If a struct is used in multiple modules, consider placing it in a shared module.
+
+## 101. Use Correct Tree-sitter Language Functions
+
+- Import tree-sitter language functions directly from their crates.
+- Avoid declaring `extern "C"` functions for tree-sitter languages.
+- Example:  ```rust
+  use tree_sitter_rust::language as rust_language;  ```
+
+## 102. Define Types Before Use
+
+- Ensure all structs and enums are defined before they're used in functions.
+- Rust allows forward declarations within the same module, but definitions must be in scope.
+
+## 103. Handle Name Conflicts with Aliases
+
+- When importing items with the same name from different crates, use `as` to alias them.
+- Example:  ```rust
+  use clap::Parser as ClapParser;  ```
+- This avoids conflicts and clarifies which item you're referring to.
+
+## 104. Clean Up Unused Imports
+
+- Remove unused imports to reduce warnings and potential confusion.
+- Use tools like `cargo clippy` to help identify unused code.
+
+## 105. Ensure Correct Command Usage
+
+- When using external commands, import the correct `Command`.
+- If using `std::process::Command`, ensure you're not importing `tokio::process::Command` unless needed.
+
+## 106. Implement All Necessary Functions
+
+- Ensure all functions, like `main`, are fully implemented.
+- Placeholder functions should be completed before testing.
+
 Remember to regularly review and update this guide as you encounter new challenges and learn from your Rust development experiences. Always compile and test your code after making changes, and pay close attention to compiler warnings and errors.
 
+## 86. Themed Terminal Output
+
+- Use the `colored` crate for styled terminal output.
+- Ensure styled output does not interfere with other terminal operations.
+- Test styled output on different terminal emulators for compatibility.
+
+## 87. Writing and Organizing Tests
+
+- Use `#[cfg(test)]` to separate test code from production code.
+- Write unit tests for all public functions and critical logic.
+- Cover edge cases and error scenarios in tests.
+
+## 88. Efficient File Processing
+
+- Use streaming and chunking for large file processing to reduce memory usage.
+- Implement robust error handling for file operations.
+- Profile file processing to identify and optimize bottlenecks.
+
+## 89. Using Protocol Buffers
+
+- Define `.proto` files clearly and ensure they are compiled correctly.
+- Use Protocol Buffers for efficient serialization of structured data.
+- Regularly update and version `.proto` files to maintain compatibility.
+
+## 90. Caching Strategies
+
+- Implement caching for frequently accessed data to improve performance.
+- Use appropriate cache size and eviction policies.
+- Monitor cache performance and adjust strategies as needed.
