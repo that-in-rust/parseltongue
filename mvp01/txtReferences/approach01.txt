@@ -72,6 +72,7 @@ Level 3: Key Components and Data Flow
    - Regularly runs clippy to catch and address common code issues
    - Ensures efficient use of references and borrows
    - Removes or documents unused parameters in functions
+   - Optimizes use of `PathBuf` arguments, avoiding needless borrows
 
 4. Disk Usage Management
    - Efficient use of the output directory for database and output files

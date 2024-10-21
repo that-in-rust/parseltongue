@@ -437,4 +437,10 @@
 - Let the compiler infer when to borrow and when to move, unless you have a specific reason to borrow.
 - Use clippy's suggestions to remove needless borrows.
 
+## 71. Efficient Use of PathBuf
+
+- When passing a `PathBuf` to functions like `std::fs::File::create`, prefer passing by value rather than borrowing.
+- Let the compiler handle the efficient passing of `PathBuf` arguments, as it's optimized for this use case.
+- Use Clippy's suggestions to identify and remove needless borrows of `PathBuf` arguments.
+
 Remember to regularly review and update this guide as you encounter new challenges and learn from your Rust development experiences. Always compile and test your code after making changes, and pay close attention to compiler warnings and errors.
