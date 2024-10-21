@@ -85,7 +85,7 @@ pub fn process_zip(
     mut zip: ZipArchive<File>,
     tx: mpsc::Sender<ZipEntry>,
     pb: Arc<ProgressBar>,
-    error_logger: Arc<ErrorLogger>,
+    _error_logger: Arc<ErrorLogger>,
 ) -> Result<()> {
     for i in 0..zip.len() {
         let mut file = zip.by_index(i).context("Failed to get ZIP entry")?;
@@ -222,7 +222,7 @@ impl OutputManager {
     pub fn write_summary(&self, summary: &ProjectSummary) -> Result<()> {
         let timestamp = Local::now().format("%Y%m%d%H%M%S");
         let path = self.output_dir.join(format!("LLM-ready-{}.json.gz", timestamp));
-        let file = std::fs::File::create(&path).context("Failed to create summary file")?;
+        let file = std::fs::File::create(path).context("Failed to create summary file")?;
         let encoder = GzEncoder::new(file, Compression::default());
         let mut writer = std::io::BufWriter::new(encoder);
         serde_json::to_writer(&mut writer, summary).context("Failed to write summary to file")?;

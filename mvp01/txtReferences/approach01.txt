@@ -69,6 +69,9 @@ Level 3: Key Components and Data Flow
    - Leverages Rust's type system and ownership model
    - Uses well-maintained crates to minimize custom implementations
    - Implements comprehensive unit and integration tests
+   - Regularly runs clippy to catch and address common code issues
+   - Ensures efficient use of references and borrows
+   - Removes or documents unused parameters in functions
 
 4. Disk Usage Management
    - Efficient use of the output directory for database and output files
@@ -120,6 +123,11 @@ Level 5: Implementation and Optimization
    - Handles blocking operations without blocking the async runtime
    - Ensures proper ownership and borrowing of resources in closures and async tasks
    - Uses appropriate cloning and referencing of shared resources to avoid ownership issues
+
+6. Code Cleanliness
+   - Addresses all compiler and clippy warnings
+   - Ensures all function parameters are used or properly marked as unused
+   - Optimizes use of references and borrows for better performance and readability
 
 Current Dependency Versions (as of the latest update):
 - tokio = { version = "1.28", features = ["full"] }

@@ -419,4 +419,22 @@
 - When logging errors in async contexts, ensure the logger is cloned or referenced properly.
 - Consider using a thread-safe logging mechanism that can be easily shared across async tasks.
 
+## 68. Clippy Warnings
+
+- Run `cargo clippy` regularly to catch common mistakes and non-idiomatic code.
+- Address clippy warnings promptly, as they often suggest more idiomatic or efficient code.
+- Use `#[allow(clippy::...)]` attributes judiciously when you intentionally want to ignore a clippy warning.
+
+## 69. Unused Parameters
+
+- Remove unused parameters from function signatures if they're not needed.
+- If the parameter might be used in the future, prefix it with an underscore to silence the warning.
+- Document why an unused parameter is necessary if it can't be removed.
+
+## 70. Efficient Use of References
+
+- Avoid unnecessary borrowing, especially for arguments to generic functions.
+- Let the compiler infer when to borrow and when to move, unless you have a specific reason to borrow.
+- Use clippy's suggestions to remove needless borrows.
+
 Remember to regularly review and update this guide as you encounter new challenges and learn from your Rust development experiences. Always compile and test your code after making changes, and pay close attention to compiler warnings and errors.
