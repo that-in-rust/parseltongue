@@ -3,7 +3,7 @@ Create a rust program that can
 - read the zip file of an OSS folder whose absolute path is provided by the user (terminal input call folderA)
 - place this extracted folder in a working-directory which is provided by the user (terminal input call folderB)
 - create a Rust a Rust aligned fast database (call it DatabaseA) in this folderB
-- using this DatabaseA extract all the important information regarding code files in Java, JavaScript, Python, C++, Rust, Go
+- using this DatabaseA extract all the important information regarding code files in Java, JavaScript, Python, C++, C, Rust, Go
 - using this DatabaseA extract all the paths, config files and other metadata
 - using this DatabaseA take inspiration from terdio to know what to read and what to ignore
 - using this DatabaseA encrytp all this information into a new txt file which is not human readable

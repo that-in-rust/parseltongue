@@ -1,0 +1,96 @@
+Project: OSS Code Analyzer and LLM-Ready Summarizer (MVP)
+
+1. Objective:
+Create a robust, bug-free Rust program that processes OSS projects, extracts key info, and generates an LLM-friendly summary, using idiomatic Rust patterns and optimizing for performance with available disk space.
+
+2. Core Features:
+
+2.1 Input:
+- Accept ZIP file path (folderA) and working directory path (folderB) via CLI
+
+2.2 ZIP Processing:
+- Stream and process ZIP contents without full extraction
+- Use folderB for temporary storage and caching
+
+2.3 Database:
+- Use sled for efficient storage of compressed file contents and metadata
+- Optimize database configuration for performance and disk usage
+
+2.4 Code Analysis:
+- Support Java, JavaScript, Python, C, C++, Rust, and Go
+- Extract key info: file path, language, size, basic structure
+- Implement language-specific parsers using established libraries
+
+2.5 LLM-Ready Summary:
+- Generate structured summary (JSON or binary format) for each file
+- Concatenate summaries efficiently, handling large datasets
+- Implement compression techniques for the final output
+
+2.6 Output:
+- Create LLM-ready-<timestamp>.txt in folderB
+- Maintain detailed progress tracking (processProgress.txt)
+- Comprehensive logging (log.txt) for debugging and analysis
+
+3. Technical Requirements:
+
+3.1 Code Quality:
+- Prioritize idiomatic, bug-free Rust code
+- Leverage Rust's type system and ownership model
+- Comprehensive error handling with custom error types
+- Use well-maintained crates to minimize custom implementations
+
+3.2 Performance:
+- Optimize for speed and efficient disk usage
+- Implement parallel processing for I/O and CPU-bound tasks
+- Use memory-mapped files for large datasets
+
+3.3 Error Handling:
+- Robust error handling using Result and Option types
+- Detailed error messages and context for debugging
+- Graceful handling of common failure scenarios
+
+3.4 Disk Usage:
+- Efficient use of folderB for caching and intermediate storage
+- Implement cleanup routines for temporary files
+
+4. Output Structure:
+
+4.1 folderB Contents:
+- Optimized sled database
+- LLM-ready-<timestamp>.txt (compressed summary)
+- processProgress.txt (detailed progress info)
+- log.txt (comprehensive logging)
+- Temporary and cache directories
+
+4.2 LLM-Ready Format:
+- Efficient, structured format (JSON or binary)
+- Essential file info: path, language, size, compressed_size, key metadata
+- Clear separation between entries for easy parsing
+
+5. Success Criteria:
+- Zero panics or unexpected crashes
+- 100% pass rate for unit and integration tests
+- Process 1GB ZIP file in under 8 minutes
+- Achieve 25:1 compression ratio for summary vs. original
+- 98% successful parsing rate for supported languages
+- 60% speed improvement on subsequent runs
+
+6. Development Approach:
+- Test-driven development using Rust's testing framework
+- Continuous integration with automated testing and linting
+- Regular code reviews focusing on Rust idioms and potential issues
+- Comprehensive logging and error reporting
+- Benchmarking and profiling for performance optimization
+
+7. Optimization Strategies:
+- Multi-threaded processing using rayon or tokio
+- Efficient use of memory-mapped files (memmap crate)
+- Incremental processing for faster subsequent runs
+- Intelligent caching of parsed data and intermediate results
+- Adaptive compression based on file content and size
+
+8. Future Considerations:
+- Extensibility for additional languages and file types
+- API for programmatic access to the analyzer
+- Integration with code quality and security scanning tools
+- Distributed processing for extremely large codebases

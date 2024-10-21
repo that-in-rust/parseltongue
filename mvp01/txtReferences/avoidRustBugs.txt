@@ -1,0 +1,214 @@
+# Comprehensive Guide to Avoiding Rust Bugs and Writing Idiomatic Code
+
+## 1. Ownership and Borrowing
+
+- Understand and respect Rust's ownership model
+- Use references (`&` and `&mut`) to borrow values without taking ownership
+- Be cautious with `move` semantics in closures
+- Implement `Copy` trait only for types where it makes sense (small, stack-only data)
+
+## 2. Lifetimes
+
+- Use explicit lifetime annotations when the compiler can't infer them
+- Understand the 'static lifetime and use it judiciously
+- Be careful with lifetime elision in complex scenarios
+
+## 3. Error Handling
+
+- Use `Result<T, E>` for operations that can fail
+- Create custom error types for more descriptive error handling
+- Avoid using `.unwrap()` or `.expect()` in production code
+- Use the `?` operator for concise error propagation
+
+## 4. Type System
+
+- Leverage Rust's strong type system to prevent errors at compile-time
+- Use newtype pattern to create type-safe wrappers around primitive types
+- Be explicit with type annotations when necessary for clarity
+
+## 5. Concurrency and Parallelism
+
+- Use `Arc<T>` for shared ownership across threads
+- Prefer `Arc<Mutex<T>>` over `Rc<RefCell<T>>` for shared mutable state across threads
+- Be aware of potential deadlocks when using multiple locks
+- Use `rayon` for parallel iterators, but be mindful of the overhead for small datasets
+
+## 6. API Design
+
+- Follow the "easy to use correctly, hard to use incorrectly" principle
+- Implement common traits like `Debug`, `Clone`, `PartialEq` when appropriate
+- Use builder pattern for complex object construction
+
+## 7. Testing and Debugging
+
+- Write unit tests for all public functions
+- Use `#[cfg(test)]` for test-only code
+- Leverage `proptest` or `quickcheck` for property-based testing
+- Use the `dbg!` macro for quick debugging
+
+## 8. Performance Optimization
+
+- Profile before optimizing
+- Use `criterion` for benchmarking
+- Be cautious with premature optimization
+- Understand and use zero-cost abstractions
+
+## 9. Memory Management
+
+- Prefer stack allocation over heap allocation for small, fixed-size data
+- Use `Vec::with_capacity()` when you know the size of a vector in advance
+- Be mindful of memory leaks, especially with reference cycles
+
+## 10. Unsafe Code
+
+- Minimize the use of `unsafe` code
+- Document safety invariants for `unsafe` functions
+- Encapsulate `unsafe` code in safe abstractions
+
+## 11. External Libraries
+
+- Regularly update dependencies to get bug fixes and security patches
+- Understand the API of external crates thoroughly before use
+- Be cautious when implementing traits from external crates
+
+## 12. GitHub API Specific
+
+- Always include a User-Agent header in requests
+- Handle rate limiting properly
+- Use conditional requests with ETags to reduce API usage
+- Implement proper pagination for endpoints that return multiple items
+
+## 13. Reqwest Library
+
+- Reuse `Client` instances for better performance
+- Set appropriate timeouts to prevent hanging requests
+- Use `query()` method for adding query parameters to avoid manual URL construction
+- Handle different response status codes properly
+
+## 14. Serde for Serialization/Deserialization
+
+- Use `#[derive(Serialize, Deserialize)]` for structs that match JSON structure
+- Implement custom serialization/deserialization for complex types
+- Use `#[serde(rename = "field_name")]` for fields that don't match JSON keys
+- Be cautious with `#[serde(flatten)]` as it can lead to naming conflicts
+
+## 15. Tokio for Async Programming
+
+- Use `#[tokio::main]` attribute for the main async function
+- Avoid blocking operations in async code
+- Use `tokio::spawn` for concurrent tasks
+- Be aware of task cancellation and use `select!` for timeout handling
+
+## 16. Error Propagation in Async Code
+
+- Use `?` operator in async functions that return `Result`
+- Be aware that `?` in async closures might not work as expected
+- Consider using `.await?` for clarity in complex async operations
+
+## 17. Type Consistency in API Calls
+
+- Ensure query parameters have consistent types
+- Use `.to_string()` or `String::from()` to convert string literals when necessary
+- Pay attention to compiler errors about type mismatches in API calls
+
+## 18. Handling Optional Fields
+
+- Use `Option<T>` for fields that might be missing in API responses
+- Implement `Default` trait for structs with optional fields
+
+## 19. File I/O and Error Handling
+
+- Use `BufReader` and `BufWriter` for efficient file I/O
+- Handle all possible I/O errors, including partial writes and interrupted system calls
+- Use `?` operator for concise error propagation in file operations
+
+## 20. CLI Input Handling
+
+- Validate user input thoroughly
+- Provide clear error messages for invalid inputs
+- Use a crate like `clap` for more complex CLI argument parsing
+
+## 21. Avoid Common Pitfalls
+
+- Don't use `String` when `&str` would suffice
+- Avoid unnecessary cloning of data
+- Be cautious with `mem::forget` and other memory-related functions
+- Don't implement `Clone` for mutex-guarded types
+
+## 22. Code Organization
+
+- Use modules to organize related functionality
+- Follow Rust naming conventions consistently
+- Use `pub(crate)` for items that should be private to the crate
+
+## 23. Documentation
+
+- Write clear and concise documentation for public APIs
+- Include examples in documentation comments
+- Use `rustdoc` to generate and view documentation
+
+## 24. Error Types and Logging
+
+- Create custom error types that implement `std::error::Error`
+- Use the `log` crate for consistent logging across your application
+- Configure appropriate log levels for different environments
+
+## 25. Continuous Integration and Tooling
+
+- Use `rustfmt` to maintain consistent code formatting
+- Run `clippy` regularly to catch common mistakes and non-idiomatic code
+- Set up CI to run tests, clippy, and rustfmt on every pull request
+
+## 26. Reqwest Query Parameters
+
+- Ensure all query parameters have the same type when using the `query` method.
+- When mixing string literals and `String` variables, convert all to `String`:  ```rust
+  .query(&[
+      ("q", &query),
+      ("sort", &String::from("stars")),
+      ("order", &String::from("desc"))
+  ])  ```
+- Alternatively, use a `Vec` of tuples for more flexibility:  ```rust
+  let params = vec![
+      ("q", query),
+      ("sort", String::from("stars")),
+      ("order", String::from("desc"))
+  ];
+  .query(&params)  ```
+
+## 27. Compiler Warning Vigilance
+
+- Address all compiler warnings, even those that seem minor.
+- Remove unused imports to keep the code clean and avoid potential conflicts.
+- Use `#[allow(unused_imports)]` only when absolutely necessary and document why.
+
+## 28. Continuous Integration and Testing
+
+- Implement a CI pipeline that compiles and tests the code on every commit.
+- Include `cargo clippy` in the CI process to catch common mistakes.
+- Regularly run `cargo test` locally before pushing changes.
+
+## 29. Code Review Process
+
+- Implement a thorough code review process, even for solo projects.
+- Use a checklist that includes compiling and running the code before approving changes.
+- Consider using tools like `cargo-review` for automated checks.
+
+## 30. Error Cataloging
+
+- Keep a log of encountered errors and their solutions.
+- Regularly review and update this log to prevent recurring issues.
+- Share this knowledge with team members or the community to help others avoid similar pitfalls.
+
+## 31. Embedded Database Best Practices
+
+- Use transactions for operations that need to be atomic.
+- Handle potential errors when creating directories or writing to the database.
+- Implement proper error handling for all database operations.
+- Use appropriate serialization/deserialization for storing complex types.
+- Be mindful of database size growth over time.
+- Implement periodic compaction or cleanup of the database.
+- Use separate trees for different types of data for better organization.
+- Implement proper closing of the database to prevent data corruption.
+
+Remember to regularly review and update this guide as you encounter new challenges and learn from your Rust development experiences. Always compile and test your code after making changes, and pay close attention to compiler warnings and errors.

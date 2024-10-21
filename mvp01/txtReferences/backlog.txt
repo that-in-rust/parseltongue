@@ -1,0 +1,32 @@
+Backlog items inspired by Tokei:
+
+1. Support for a wider range of languages: Tokei supports over 150 languages. Consider expanding language support in future iterations.
+
+2. Multiple output formats: Tokei can output in CBOR, JSON, and YAML. Consider adding support for multiple output formats beyond the initial JSON or binary format.
+
+3. Respect for .gitignore and .ignore files: Implement functionality to respect common ignore files for more intelligent file processing.
+
+4. Custom language definitions: Allow users to define custom language parsing rules, similar to Tokei's languages.json file.
+
+5. Verbatim string handling: Implement support for "verbatim" strings in various languages, as Tokei does for C++, C#, F#, and Rust.
+
+6. Shebang detection: Add functionality to detect languages based on shebang lines in scripts.
+
+7. Badge generation: Consider implementing a badge generation feature for easy sharing of code statistics.
+
+8. Configuration file support: Implement support for a configuration file (like .tokeirc) for project-specific settings.
+
+9. Embedded language detection: Add support for detecting and counting multiple languages within a single file (e.g., JavaScript in HTML).
+
+10. CLI improvements: Enhance CLI with more options like sorting output, excluding specific paths, and controlling output width.
+
+11. Integration with version control systems: Add features to analyze changes between commits or branches.
+
+12. Plugin system: Design a plugin architecture for extensibility, allowing custom language parsers and output formats.
+
+13. Code complexity metrics: Integrate calculation of code complexity metrics like cyclomatic complexity.
+
+14. Dockerization: Create a Dockerfile for easy containerization of the application.
+
+15. Continuous Deployment: Implement a CD pipeline for automatic releases and deployments.
+
