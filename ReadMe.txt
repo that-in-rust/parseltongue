@@ -11,3 +11,7 @@ Create a rust program that can
 - this non-human-readable but LLM understandable txt file will be placed in the folderB
 - this folderB will also contain a processProgress.txt file which will keep track of the progress of the program & have full deep statistics of the program which will help analyze the program progress for future improvements
 - this folderB will also contain a log.txt file which will contain all significant observations of the program each time it is build or run, this will help us debug the program in the future at a cumulative level
+
+
+first version worked
+second version struggling
