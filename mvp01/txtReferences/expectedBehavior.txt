@@ -1,0 +1,67 @@
+Expected Behavior of OSS Code Analyzer and LLM-Ready Summarizer
+
+When you run the program using `cargo run -- <input_zip_path> <output_directory_path>`, the following sequence of events will occur:
+
+1. Command-Line Argument Parsing:
+   - The program will use clap to parse the command-line arguments.
+   - It expects two arguments: the path to an input ZIP file and the path to an output directory.
+   - If these aren't provided correctly, it will display a help message explaining the required arguments.
+
+2. Initialization:
+   - The env_logger will be initialized for logging.
+   - An info log message "Starting OSS Code Analyzer and LLM-Ready Summarizer" will be displayed.
+
+3. Database Setup:
+   - A DatabaseManager will be created in a "db" subdirectory within the specified output directory.
+   - If this directory doesn't exist, it will be created.
+
+4. Output Manager Setup:
+   - An OutputManager will be initialized, ensuring the specified output directory exists.
+
+5. ZIP File Processing Preparation:
+   - The program will open the specified ZIP file.
+   - It will create a ZipArchive object to handle the ZIP file contents.
+   - A progress bar will be set up using indicatif to show the progress of file analysis.
+
+6. Asynchronous ZIP Processing:
+   - A new asynchronous task will be spawned using tokio to process the ZIP file.
+   - This task will iterate through each file in the ZIP archive.
+   - For each file, it will create a ZipEntry and send it through an asynchronous channel.
+
+7. File Analysis:
+   - The main thread will receive ZipEntry objects from the channel.
+   - Each file will be analyzed to:
+     a) Determine its language based on file extension.
+     b) Count the lines of code.
+   - The file content will be stored in the sled database.
+   - The progress bar will update after each file is processed.
+
+8. Summary Generation:
+   - Once all files have been processed, a summary will be generated.
+   - This summary will include:
+     a) Details about each file (name, language, LOC)
+     b) Total lines of code across all files
+     c) Breakdown of languages used in the project
+
+9. Output Writing:
+   - The generated summary will be written to a file named "summary.json" in the specified output directory.
+   - The summary will be in JSON format, written using a BufWriter for efficiency.
+
+10. Completion:
+    - A final log message "Analysis completed successfully" will be displayed.
+
+Error Handling:
+- Throughout the process, errors are handled using anyhow::Result.
+- If any errors occur (e.g., ZIP file can't be opened, file analysis fails), appropriate error messages will be logged.
+
+Performance Considerations:
+- The program uses asynchronous processing for improved performance, especially for I/O operations.
+- ZIP file contents are streamed rather than fully extracted, allowing for efficient memory usage.
+
+Output:
+- In the specified output directory, you'll find:
+  a) A "db" subdirectory containing the sled database with stored file contents.
+  b) A "summary.json" file with the analysis results.
+
+Note: This is an MVP version. Future iterations may include more advanced features like parallel processing, incremental analysis, and more sophisticated language detection.
+

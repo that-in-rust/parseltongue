@@ -211,4 +211,99 @@
 - Use separate trees for different types of data for better organization.
 - Implement proper closing of the database to prevent data corruption.
 
+## 32. Single File Organization for MVPs
+
+- For Minimum Viable Products (MVPs) or small projects, it's acceptable to keep all code in a single file (e.g., `main.rs`).
+- Organize the code within the file using clear separations between different components (e.g., structs, functions, implementations).
+- Use comments to delineate different sections of the code for better readability.
+- As the project grows, consider splitting the code into modules and separate files.
+
+## 33. Error Handling in Asynchronous Code
+
+- Use `anyhow::Result` for comprehensive error handling in async functions.
+- Propagate errors using the `?` operator in async contexts.
+- Provide context to errors using `.context()` method from `anyhow`.
+- Handle errors from spawned tasks by checking the result of `.await` on the spawned future.
+
+## 34. Progress Reporting
+
+- Use crates like `indicatif` for progress reporting in CLI applications.
+- Wrap long-running operations with progress bars to provide user feedback.
+- Handle potential errors when setting up progress bars (e.g., `expect()` on `ProgressStyle::template()`).
+
+## 35. Asynchronous Channel Usage
+
+- Use `tokio::sync::mpsc` for asynchronous communication between tasks.
+- Properly handle channel closure in receiver loops (e.g., `while let Some(item) = rx.recv().await { ... }`).
+- Consider error handling when sending on a channel, as it can fail if the receiver has been dropped.
+
+## 36. File I/O in Asynchronous Contexts
+
+- Use synchronous file I/O operations (`std::fs`) when running in asynchronous contexts, as file I/O is typically not a bottleneck.
+- If file I/O becomes a performance issue, consider using `tokio::fs` for asynchronous file operations.
+
+## 37. Database Operations
+
+- Use transactions for database operations that need to be atomic.
+- Handle potential errors when creating directories or writing to the database.
+- Implement proper error handling for all database operations.
+
+## 38. ZIP File Processing
+
+- Use streaming approaches for processing ZIP files to handle large archives efficiently.
+- Implement error handling for each file in the ZIP archive.
+- Use `anyhow::Context` to provide meaningful error messages for ZIP processing failures.
+
+## 39. Language Detection
+
+- Implement robust language detection logic, considering both file extensions and content analysis.
+- Handle edge cases like files without extensions or with misleading extensions.
+
+## 40. Summary Generation
+
+- Ensure summary generation logic can handle large numbers of files efficiently.
+- Use appropriate data structures (e.g., `HashMap`) for aggregating statistics.
+
+## 41. Output Management
+
+- Use buffered writers (`BufWriter`) for efficient file writing.
+- Implement proper error handling for file creation and writing operations.
+- Consider using atomic write operations for critical output files to prevent data corruption in case of crashes.
+
+## 42. Trait Imports for Standard Library Types
+
+- Remember to import traits for standard library types when using their methods.
+- For example, import `std::io::Write` when using `flush()` on `BufWriter`.
+- The Rust compiler often provides helpful suggestions for missing trait imports.
+
+## 43. Mutable Variables Declaration
+
+- Declare variables as mutable (`mut`) only when they need to be modified.
+- Review your code to remove unnecessary `mut` keywords, improving code clarity and preventing accidental modifications.
+
+## 44. Error Handling in Builder Patterns
+
+- When using builder patterns (like with `ProgressStyle`), handle potential errors from intermediate steps.
+- Use `expect()` or proper error handling for methods that return `Result`, even in seemingly infallible operations.
+
+## 45. Asynchronous Error Propagation
+
+- In asynchronous contexts, ensure proper error propagation through the `await` chain.
+- Use `?` operator with `await` to propagate errors in async functions.
+
+## 46. Consistent Error Handling Strategy
+
+- Choose a consistent error handling strategy throughout your project (e.g., using `anyhow::Result` for flexibility).
+- Provide context to errors using `.context()` or similar methods to enhance debugging.
+
+## 47. Modular Code Organization
+
+- Even in single-file projects, organize code into logical sections or pseudo-modules.
+- Use clear separation and comments to delineate different components of your application.
+
+## 48. Careful Type Inference
+
+- Be explicit with types when Rust's type inference might be ambiguous.
+- Pay attention to compiler warnings about type inference issues and address them promptly.
+
 Remember to regularly review and update this guide as you encounter new challenges and learn from your Rust development experiences. Always compile and test your code after making changes, and pay close attention to compiler warnings and errors.

@@ -39,7 +39,3 @@ opt-level = 1
 
 [profile.test]
 opt-level = 3
-
-[[bench]]
-name = "main_benchmark"
-harness = false
