@@ -4,14 +4,72 @@ message FileSummary {
     string name = 1;
     string language = 2;
     uint32 loc = 3;
-    uint32 code = 4;
-    uint32 comments = 5;
-    uint32 blanks = 6;
-    uint32 cyclomatic_complexity = 7;
-    uint32 cognitive_complexity = 8;
+    uint32 code_lines = 4;
+    uint32 comment_lines = 5;
+    uint32 blank_lines = 6;
+    uint32 function_count = 7;
+    uint32 class_count = 8;
+    uint32 cyclomatic_complexity = 9;
+    uint32 cognitive_complexity = 10;
+    repeated string code_smells = 11;
+    map<string, uint32> token_frequency = 12;
+    uint32 ast_depth = 13;
+    uint32 ast_node_count = 14;
+    repeated string imports = 15;
+    repeated string exported_symbols = 16;
+    uint32 max_nesting_depth = 17;
+    float comment_ratio = 18;
+    repeated Dependency dependencies = 19;
+    uint32 halstead_volume = 20;
+    uint32 halstead_difficulty = 21;
+    uint32 halstead_effort = 22;
+    float maintainability_index = 23;
+    repeated string todos = 24;
+    repeated string fixmes = 25;
+    uint32 lint_errors = 26;
+    uint32 lint_warnings = 27;
+    repeated string security_vulnerabilities = 28;
+}
+
+message Dependency {
+    string name = 1;
+    string version = 2;
 }
 
 message ProjectSummary {
     repeated FileSummary files = 1;
     uint32 total_loc = 2;
+    map<string, uint32> language_breakdown = 3;
+    uint32 total_files = 4;
+    uint32 total_functions = 5;
+    uint32 total_classes = 6;
+    float average_cyclomatic_complexity = 7;
+    float average_cognitive_complexity = 8;
+    repeated string project_wide_code_smells = 9;
+    uint64 timestamp = 10;
+    repeated Dependency project_dependencies = 11;
+    uint32 max_file_size = 12;
+    uint32 min_file_size = 13;
+    float average_file_size = 14;
+    uint32 max_function_size = 15;
+    uint32 min_function_size = 16;
+    float average_function_size = 17;
+    map<string, uint32> file_type_breakdown = 18;
+    uint32 total_unique_tokens = 19;
+    float code_duplication_percentage = 20;
+    float overall_maintainability_index = 21;
+    uint32 total_todos = 22;
+    uint32 total_fixmes = 23;
+    uint32 total_lint_errors = 24;
+    uint32 total_lint_warnings = 25;
+    repeated string project_wide_security_vulnerabilities = 26;
+    float test_coverage_percentage = 27;
+    uint32 total_test_cases = 28;
+    uint32 passed_test_cases = 29;
+    uint32 failed_test_cases = 30;
+    repeated string third_party_libraries = 31;
+    map<string, uint32> contributor_statistics = 32;
+    uint64 last_commit_timestamp = 33;
+    uint32 total_commits = 34;
+    float average_commit_frequency = 35;
 }

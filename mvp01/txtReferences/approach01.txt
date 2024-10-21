@@ -1,5 +1,7 @@
 OSS Code Analyzer and LLM-Ready Summarizer: Technical Approach (MVP)
 
+**All code for this MVP will be implemented in main.rs only.**
+
 Level 1: High-Level Architecture
 - Single-binary application with modular design using Rust modules
 - Utilizes sled for efficient database operations and caching
@@ -149,9 +151,18 @@ Level 5: Implementation and Optimization
    - Removes unused imports and dependencies promptly
 
 8. Advanced Caching Mechanisms
-   - Implements multi-level caching with in-memory (moka) and disk-based (sled) caches
+   - Implements multi-level caching with in-memory (moka with 'sync' feature) and disk-based (sled) caches
    - Develops custom eviction policies based on file size and access patterns
    - Optimizes caching strategies for frequently accessed data
+   - Ensures proper feature enablement for all crates, particularly those with optional features like moka
+
+9. Build Process and Code Generation
+    - Implement robust error handling in the build script (build.rs)
+    - Add logging to the build script to aid in debugging build-time issues
+    - Implement checks to ensure all required tools are available before attempting code generation
+    - Use conditional compilation to gracefully handle missing generated files
+    - Consider implementing a custom build step that generates stub files if the actual generation fails
+    - Ensure all generated code is correctly included and accessible in the project
 
 Current Dependency Versions (as of the latest update):
 - tokio = { version = "1.28", features = ["full"] }
@@ -166,7 +177,7 @@ Current Dependency Versions (as of the latest update):
 - indicatif = "0.17"
 - chrono = "0.4"
 - colored = "2.0"
-- moka = "0.9"
+- moka = { version = "0.12", features = ["sync"] }
 - thiserror = "1.0"
 
 Next Steps for MVP:
@@ -181,3 +192,76 @@ Next Steps for MVP:
 9. Enhance caching mechanisms with multi-level caching
 10. Run clippy and address all warnings
 11. Audit and clean up dependencies
+
+- Implement checks in the build script for all required system-level tools and libraries
+- Provide clear, actionable error messages when dependencies are missing
+- Consider automating the setup process for development environments
+
+Level 6: Advanced Improvements and Optimizations
+
+1. Enhanced Code Analysis with tree-sitter
+   - Implement language-specific AST parsing using tree-sitter
+   - Develop custom queries for each supported language to extract detailed metrics
+   - Implement more accurate function and class counting based on AST structure
+   - Calculate cyclomatic and cognitive complexity using AST traversal
+   - Detect and analyze code patterns and anti-patterns specific to each language
+
+2. Integration of Static Analysis Tools
+   - Implement rust-analyzer integration for Rust code analysis
+   - Add eslint integration for JavaScript code analysis
+   - Incorporate pylint for Python code analysis
+   - Develop a plugin system to easily add more language-specific analyzers
+   - Implement a unified interface to aggregate results from different analyzers
+
+3. Protocol Buffers Serialization
+   - Replace JSON serialization with Protocol Buffers for LLM-ready output
+   - Implement versioning for the Protocol Buffers schema
+   - Develop a custom serialization strategy for language-specific AST representations
+   - Implement backward-compatible deserialization for older versions of the schema
+   - Optimize Protocol Buffers message structure for minimal size and maximal information density
+
+4. Comprehensive Testing Suite
+   - Implement property-based testing for core algorithms using proptest
+   - Develop a suite of integration tests covering various real-world codebases
+   - Implement fuzz testing for the ZIP processing and file analysis modules
+   - Create a test coverage report and aim for >90% code coverage
+   - Implement performance benchmarks and regression tests
+
+5. Large ZIP File Optimization
+   - Implement streaming decompression to reduce memory usage for large ZIP files
+   - Develop a chunking strategy to process large files in manageable segments
+   - Implement parallel processing of ZIP contents using rayon
+   - Develop an adaptive batch size algorithm based on available system resources
+   - Implement a progress estimation algorithm for more accurate ETA on large files
+
+6. Enhanced Async Safety Measures
+   - Implement a custom Future type for CPU-bound tasks to prevent blocking the async runtime
+   - Develop a thread pool for offloading CPU-intensive tasks from the async runtime
+   - Implement fine-grained locking mechanisms to reduce contention in concurrent scenarios
+   - Develop a custom Sync wrapper for non-Send types to safely share them across async tasks
+   - Implement an async-aware caching system to reduce redundant computations
+
+7. Advanced Caching Policies
+   - Implement an LRU (Least Recently Used) eviction policy for the in-memory cache
+   - Develop a frequency-based eviction policy for the disk-based cache
+   - Implement a time-based expiration policy for cached items
+   - Develop a predictive caching algorithm based on access patterns
+   - Implement a distributed caching system for multi-node deployments
+
+8. Robust Build Process and Code Generation
+   - Implement comprehensive error handling in the build script (build.rs)
+   - Develop a custom macro for generating language-specific analysis functions
+   - Implement a code generation step for creating optimized pattern matching in AST traversal
+   - Develop a plugin system for extending the build process with custom steps
+   - Implement a caching mechanism for generated code to speed up subsequent builds
+
+9. Avengers-themed User Experience Enhancements
+   - Develop ASCII art representations of Avengers characters for key events
+   - Implement an Infinity Gauntlet-styled progress bar for long-running processes
+   - Create Avengers-themed error messages and descriptions
+   - Implement an interactive CLI mode with Avengers-themed prompts and responses
+   - Develop a "power-up" system where processing speed increases with Avengers-themed achievements
+
+Each of these improvements significantly enhances the functionality, performance, and user experience of the OSS Code Analyzer and LLM-Ready Summarizer. Implementing these advanced features will result in a more robust, efficient, and engaging tool for analyzing and summarizing code repositories.
+
+- Resolve name conflicts in imports using the `as` keyword or fully qualified paths.

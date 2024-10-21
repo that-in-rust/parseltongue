@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.28", features = ["full"] }
+tokio = { version = "1.32", features = ["full"] }
 sled = "0.34"
 zip = "0.6"
 serde = { version = "1.0", features = ["derive"] }
@@ -25,12 +25,31 @@ tree-sitter-cpp = "0.20"
 tree-sitter-go = "0.20"
 prost = "0.11"
 flate2 = "1.0"
-tonic = "0.9"
 rayon = "1.7"
 colored = "2.0"
+moka = { version = "0.12", features = ["sync"] }
+thiserror = "1.0"
+backtrace = "0.3"
+tonic = { version = "0.9", optional = true }
+regex = "1.9"
+lazy_static = "1.4"
+dashmap = "5.5"
+futures = "0.3"
+tokio-stream = "0.1"
+async-trait = "0.1"
+walkdir = "2.3"
+ignore = "0.4"
+syn = { version = "2.0", features = ["full", "extra-traits"] }
+proc-macro2 = "1.0"
+quote = "1.0"
 
 [build-dependencies]
-tonic-build = "0.9"
+prost-build = "0.11"
+tonic-build = { version = "0.9", optional = true }
 
 [dev-dependencies]
-tempfile = "3.5"
+tempfile = "3.8"
+criterion = "0.5"
+
+[features]
+proto = ["tonic", "tonic-build"]
