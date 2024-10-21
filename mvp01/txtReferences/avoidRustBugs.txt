@@ -489,6 +489,41 @@
 - Document any deviations from the approach and the reasons for them.
 - Use the technical approach as a checklist during code reviews to ensure consistency.
 
+## 79. Generated Code Verification
+
+- Ensure that all generated code is correctly included in the project.
+- Verify that build scripts are generating the expected files and that they are in the correct location.
+- Use `include!` or `mod` statements to bring generated code into scope.
+
+## 80. Import and Variable Cleanup
+
+- Regularly review and clean up unused imports and variables to avoid warnings.
+- Use `#[allow(unused_imports)]` or `#[allow(unused_variables)]` judiciously when necessary.
+- Document why an unused import or variable is necessary if it can't be removed.
+
+## 81. Code Alignment with Technical Approach
+
+- Regularly review the implementation to ensure alignment with the technical approach.
+- Document any deviations from the approach and the reasons for them.
+- Use the technical approach as a checklist during code reviews to ensure consistency.
+
+## 82. Handling Non-Send Types in Async Contexts
+
+- Use `tokio::task::spawn_blocking` for operations involving non-Send types.
+- Ensure all futures passed to `tokio::spawn` are `Send`.
+- Consider restructuring code to avoid non-Send types in async contexts.
+
+## 83. Cloning Shared Resources
+
+- Use `Arc::clone()` to share ownership of resources across async tasks.
+- Ensure that shared resources are properly cloned before moving into async blocks.
+
+## 84. Code Alignment with Technical Approach
+
+- Regularly review the implementation to ensure alignment with the technical approach.
+- Document any deviations from the approach and the reasons for them.
+- Use the technical approach as a checklist during code reviews to ensure consistency.
+
 ## Build Process and Code Generation
 
 - Ensure that build scripts (build.rs) correctly generate all required files.

@@ -1,23 +1,16 @@
 use anyhow::{Context, Result};
-use log::{error, info, warn};
+use log::{error, info};
 use std::path::{Path, PathBuf};
 use tokio::sync::mpsc;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::sync::Arc;
 use serde::{Serialize, Deserialize};
-use prost::Message;
-use flate2::write::ZlibEncoder;
-use flate2::Compression;
-use chrono::Utc;
-use colored::*;
 use std::io::{BufWriter, Write, Read}; // Added Read trait
 use std::fs::{File, create_dir_all, remove_file};
-use rayon::prelude::*;
 use zip::ZipArchive;
 
 // Use fully qualified paths for conflicting types
-use clap;
-use tree_sitter;
+use clap::Parser; // Import Parser trait
 
 // Proto generated code
 include!(concat!(env!("OUT_DIR"), "/summary.rs"));
@@ -49,7 +42,6 @@ async fn process_zip(
     zip_path: &Path,
     tx: mpsc::Sender<ZipEntry>,
     pb: Arc<ProgressBar>,
-    error_logger: Arc<ErrorLogger>,
 ) -> Result<()> {
     let file = File::open(zip_path).context("Failed to open ZIP file")?;
     let mut archive = ZipArchive::new(file).context("Failed to create ZIP archive")?;
@@ -442,10 +434,10 @@ async fn main() -> Result<()> {
 
     output_manager.write_progress("Starting ZIP processing")?;
 
-    let error_logger_clone = Arc::clone(&error_logger);
     let pb_clone = Arc::clone(&progress_bar);
+    let error_logger_clone = Arc::clone(&error_logger); // Clone error_logger
     tokio::spawn(async move {
-        if let Err(e) = process_zip(&config.input_zip, tx, pb_clone, error_logger_clone).await {
+        if let Err(e) = process_zip(&config.input_zip, tx, pb_clone).await {
             error!("Error in ZIP processing task: {:?}", e);
             if let Err(log_err) = error_logger_clone.log_error(&format!("Error in ZIP processing task: {:?}", e)) {
                 error!("Failed to log error: {:?}", log_err);
