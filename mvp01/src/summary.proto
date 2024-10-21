@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package summary;
+
 message FileSummary {
     string name = 1;
     string language = 2;

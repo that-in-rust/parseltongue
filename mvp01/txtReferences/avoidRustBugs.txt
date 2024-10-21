@@ -550,5 +550,17 @@
 - Always regenerate protobuf code after making changes to `.proto` files.
 - Include generated protobuf code in your version control to avoid build issues on systems without protoc installed.
 
+## 90. Protobuf File Management
+- Ensure that all .proto files referenced in build.rs actually exist in the specified locations.
+- Double-check the paths in build.rs to make sure they're correct relative to the project root.
+- When using protobuf, always create the necessary .proto files before attempting to build the project.
+- Consider adding a pre-build check in build.rs to verify the existence of required .proto files.
+
+## 91. Absolute Paths in Build Scripts
+- When using absolute paths in build scripts, ensure they are correct for all development environments.
+- Consider using relative paths or environment variables for better portability.
+- Use `std::env::current_dir()` to get the current working directory if needed.
+- Add appropriate error handling and logging for file operations in build scripts.
+
 Remember to regularly review and update this guide as you encounter new challenges and learn from your Rust development experiences. Always compile and test your code after making changes, and pay close attention to compiler warnings and errors.
 

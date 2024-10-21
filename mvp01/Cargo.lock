@@ -802,6 +802,7 @@ dependencies = [
  "moka",
  "prost",
  "prost-build",
+ "prost-types",
  "serde",
  "serde_json",
  "sled",

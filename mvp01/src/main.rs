@@ -164,8 +164,7 @@ fn analyze_file(entry: &ZipEntry) -> Result<ParsedFile> {
     let (loc, code_lines, comment_lines, blank_lines) = count_lines(&content);
     
     let (function_count, class_count) = count_functions_and_classes(&content, &language);
-    let cyclomatic_complexity = calculate_cyclomatic_complexity(&content, &language);
-    let cognitive_complexity = calculate_cognitive_complexity(&content, &language);
+    let (cyclomatic_complexity, cognitive_complexity) = analyze_code_complexity(&content);
 
     Ok(ParsedFile {
         name: entry.name.clone(),
@@ -229,30 +228,12 @@ fn count_functions_and_classes(content: &str, language: &LanguageType) -> (usize
     (function_count, class_count)
 }
 
-fn calculate_cyclomatic_complexity(content: &str, language: &LanguageType) -> usize {
-    // This is a simplified implementation. In a real-world scenario, you'd use tree-sitter for more accurate parsing.
-    let complexity_keywords = match language {
-        LanguageType::Rust | LanguageType::JavaScript | LanguageType::Java | LanguageType::C | LanguageType::Cpp | LanguageType::Go =>
-            vec!["if", "else", "while", "for", "&&", "||", "?", "switch", "case"],
-        LanguageType::Python =>
-            vec!["if", "elif", "else", "while", "for", "and", "or"],
-        LanguageType::Unknown => vec![],
-    };
-
-    1 + complexity_keywords.iter().map(|&kw| content.matches(kw).count()).sum::<usize>()
-}
-
-fn calculate_cognitive_complexity(content: &str, language: &LanguageType) -> usize {
-    // This is a simplified implementation. In a real-world scenario, you'd use tree-sitter for more accurate parsing.
-    let complexity_keywords = match language {
-        LanguageType::Rust | LanguageType::JavaScript | LanguageType::Java | LanguageType::C | LanguageType::Cpp | LanguageType::Go =>
-            vec!["if", "else", "while", "for", "switch", "case", "try", "catch", "&&", "||", "?:"],
-        LanguageType::Python =>
-            vec!["if", "elif", "else", "while", "for", "try", "except", "and", "or"],
-        LanguageType::Unknown => vec![],
-    };
-
-    complexity_keywords.iter().map(|&kw| content.matches(kw).count()).sum()
+fn analyze_code_complexity(content: &str) -> (usize, usize) {
+    // This is a placeholder implementation
+    // TODO: Implement actual cyclomatic and cognitive complexity analysis
+    let cyclomatic_complexity = content.lines().filter(|line| line.contains("if") || line.contains("for") || line.contains("while")).count();
+    let cognitive_complexity = content.lines().filter(|line| line.contains("if") || line.contains("for") || line.contains("while") || line.contains("switch")).count();
+    (cyclomatic_complexity, cognitive_complexity)
 }
 
 // Output Management module
