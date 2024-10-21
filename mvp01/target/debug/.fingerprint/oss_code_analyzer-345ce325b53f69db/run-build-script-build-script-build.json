@@ -1,1 +1,0 @@
-{"rustc":1059629350237521597,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[10822286326566050032,"build_script_build",false,3274740349210523112]],"local":[{"RerunIfChanged":{"output":"debug/build/oss_code_analyzer-345ce325b53f69db/output","paths":["proto/summary.proto"]}}],"rustflags":[],"metadata":0,"config":0,"compile_kind":0}
