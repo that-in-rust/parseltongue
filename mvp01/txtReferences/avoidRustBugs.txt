@@ -530,6 +530,12 @@
 - When using `spawn_blocking`, use `blocking_send` instead of `await` for channel operations.
 - Ensure that all necessary imports are present, including those from external crates like `chrono` and `colored`.
 
+## 86. Correct Cargo.toml Placement
+- Ensure that the Cargo.toml file is placed in the root of your project directory.
+- For workspace projects, each sub-project should have its own Cargo.toml file in its root directory.
+- Avoid having multiple Cargo.toml files at different levels of your project structure unless you're intentionally using a workspace.
+- Always run Cargo commands from the directory containing the Cargo.toml file for your current project or sub-project.
+
 ## Build Process and Code Generation
 
 - Ensure that build scripts (build.rs) correctly generate all required files.

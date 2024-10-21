@@ -39,12 +39,12 @@ struct ZipEntry {
 }
 
 async fn process_zip(
-    zip_path: &Path,
+    zip_path: PathBuf,
     tx: mpsc::Sender<ZipEntry>,
     pb: Arc<ProgressBar>,
 ) -> Result<()> {
     tokio::task::spawn_blocking(move || -> Result<()> {
-        let file = File::open(zip_path).context("Failed to open ZIP file")?;
+        let file = File::open(&zip_path).context("Failed to open ZIP file")?;
         let mut archive = ZipArchive::new(file).context("Failed to create ZIP archive")?;
 
         for i in 0..archive.len() {
@@ -439,7 +439,7 @@ async fn main() -> Result<()> {
     let pb_clone = Arc::clone(&progress_bar);
     let error_logger_clone = Arc::clone(&error_logger); // Clone error_logger
     tokio::spawn(async move {
-        if let Err(e) = process_zip(&config.input_zip, tx, pb_clone).await {
+        if let Err(e) = process_zip(config.input_zip, tx, pb_clone).await {
             error!("Error in ZIP processing task: {:?}", e);
             if let Err(log_err) = error_logger_clone.log_error(&format!("Error in ZIP processing task: {:?}", e)) {
                 error!("Failed to log error: {:?}", log_err);
