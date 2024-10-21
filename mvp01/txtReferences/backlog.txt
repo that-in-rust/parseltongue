@@ -30,3 +30,24 @@ Backlog items inspired by Tokei:
 
 15. Continuous Deployment: Implement a CD pipeline for automatic releases and deployments.
 
+Improvements added on 202410211634 hrs:
+
+16. Error handling for channel closure: Add proper error handling in the main loop for unexpected channel closure.
+
+17. Error propagation in ZIP processing: Modify the `process_zip` function to return a Result that includes an iterator of Results, allowing for better error propagation.
+
+18. Error handling in file analysis: Add error handling for the `db.store` call in the `analyze_file` function.
+
+19. Comprehensive testing: Expand the test suite to cover more scenarios and edge cases.
+
+20. Performance optimization: Profile the application and optimize performance bottlenecks, particularly in file processing and database operations.
+
+21. Memory usage optimization: Implement strategies to reduce memory usage, especially when processing large ZIP files.
+
+22. Logging improvements: Enhance logging throughout the application for better debugging and monitoring capabilities.
+
+23. Graceful shutdown: Implement a graceful shutdown mechanism to ensure all resources are properly released and ongoing operations are completed or rolled back.
+
+24. Progress reporting: Add a progress reporting feature to provide users with real-time updates on the analysis process.
+
+25. Parallel file analysis: Implement parallel processing of files using Rayon or similar libraries to improve performance on multi-core systems.
