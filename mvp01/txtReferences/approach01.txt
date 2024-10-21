@@ -73,6 +73,8 @@ Level 3: Key Components and Data Flow
    - Ensures efficient use of references and borrows
    - Removes or documents unused parameters in functions
    - Optimizes use of `PathBuf` arguments, avoiding needless borrows
+   - Ensures synchronization between code imports and Cargo.toml dependencies
+   - Regularly audits and removes unused dependencies and imports
 
 4. Disk Usage Management
    - Efficient use of the output directory for database and output files
@@ -129,6 +131,11 @@ Level 5: Implementation and Optimization
    - Addresses all compiler and clippy warnings
    - Ensures all function parameters are used or properly marked as unused
    - Optimizes use of references and borrows for better performance and readability
+
+7. Dependency Management
+   - Maintains a clean and minimal set of dependencies
+   - Ensures all used crates are properly declared in Cargo.toml
+   - Removes unused imports and dependencies promptly
 
 Current Dependency Versions (as of the latest update):
 - tokio = { version = "1.28", features = ["full"] }

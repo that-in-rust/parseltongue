@@ -646,7 +646,6 @@ dependencies = [
  "chrono",
  "clap",
  "env_logger",
- "flate2",
  "indicatif",
  "log",
  "serde",

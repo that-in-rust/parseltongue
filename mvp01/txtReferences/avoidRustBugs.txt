@@ -443,4 +443,11 @@
 - Let the compiler handle the efficient passing of `PathBuf` arguments, as it's optimized for this use case.
 - Use Clippy's suggestions to identify and remove needless borrows of `PathBuf` arguments.
 
+## 72. Dependency and Import Synchronization
+
+- Ensure that all crates used in the code are listed as dependencies in Cargo.toml.
+- When removing a dependency from Cargo.toml, make sure to remove all related import statements and usages from the code.
+- Use cargo check after modifying dependencies to catch any mismatches between code and Cargo.toml.
+- Consider using tools like cargo-udeps to identify and remove unused dependencies.
+
 Remember to regularly review and update this guide as you encounter new challenges and learn from your Rust development experiences. Always compile and test your code after making changes, and pay close attention to compiler warnings and errors.

@@ -223,9 +223,8 @@ impl OutputManager {
         let timestamp = Local::now().format("%Y%m%d%H%M%S");
         let path = self.output_dir.join(format!("LLM-ready-{}.txt", timestamp));
         let file = std::fs::File::create(path).context("Failed to create summary file")?;
-        let encoder = GzEncoder::new(file, Compression::default());
-        let mut writer = std::io::BufWriter::new(encoder);
-        serde_json::to_writer(&mut writer, summary).context("Failed to write summary to file")?;
+        let mut writer = std::io::BufWriter::new(file);
+        serde_json::to_writer_pretty(&mut writer, summary).context("Failed to write summary to file")?;
         writer.flush().context("Failed to flush summary file")?;
         Ok(())
     }
