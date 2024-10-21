@@ -524,6 +524,12 @@
 - Document any deviations from the approach and the reasons for them.
 - Use the technical approach as a checklist during code reviews to ensure consistency.
 
+## 85. Handling Non-Send Types in Async Contexts
+
+- Use `tokio::task::spawn_blocking` for operations involving non-Send types like `ZipFile`.
+- When using `spawn_blocking`, use `blocking_send` instead of `await` for channel operations.
+- Ensure that all necessary imports are present, including those from external crates like `chrono` and `colored`.
+
 ## Build Process and Code Generation
 
 - Ensure that build scripts (build.rs) correctly generate all required files.

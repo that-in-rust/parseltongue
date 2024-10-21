@@ -5,12 +5,12 @@ use tokio::sync::mpsc;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::sync::Arc;
 use serde::{Serialize, Deserialize};
-use std::io::{BufWriter, Write, Read}; // Added Read trait
+use std::io::{BufWriter, Write, Read};
 use std::fs::{File, create_dir_all, remove_file};
 use zip::ZipArchive;
-
-// Use fully qualified paths for conflicting types
-use clap::Parser; // Import Parser trait
+use clap::Parser;
+use chrono::Utc;
+use colored::Colorize;
 
 // Proto generated code
 include!(concat!(env!("OUT_DIR"), "/summary.rs"));
@@ -43,24 +43,26 @@ async fn process_zip(
     tx: mpsc::Sender<ZipEntry>,
     pb: Arc<ProgressBar>,
 ) -> Result<()> {
-    let file = File::open(zip_path).context("Failed to open ZIP file")?;
-    let mut archive = ZipArchive::new(file).context("Failed to create ZIP archive")?;
+    tokio::task::spawn_blocking(move || -> Result<()> {
+        let file = File::open(zip_path).context("Failed to open ZIP file")?;
+        let mut archive = ZipArchive::new(file).context("Failed to create ZIP archive")?;
 
-    for i in 0..archive.len() {
-        let mut file = archive.by_index(i).context("Failed to get ZIP entry")?;
-        if file.is_dir() {
-            continue;
+        for i in 0..archive.len() {
+            let mut file = archive.by_index(i).context("Failed to get ZIP entry")?;
+            if file.is_dir() {
+                continue;
+            }
+
+            let name = file.name().to_string();
+            let mut content = Vec::new();
+            file.read_to_end(&mut content).context("Failed to read ZIP entry content")?;
+
+            tx.blocking_send(ZipEntry { name, content }).context("Failed to send ZIP entry")?;
+            pb.inc(1);
         }
 
-        let name = file.name().to_string();
-        let mut content = Vec::new();
-        file.read_to_end(&mut content).context("Failed to read ZIP entry content")?;
-
-        tx.send(ZipEntry { name, content }).await.context("Failed to send ZIP entry")?;
-        pb.inc(1);
-    }
-
-    Ok(())
+        Ok(())
+    }).await?
 }
 
 fn count_zip_entries(zip_path: &Path) -> Result<usize> {
