@@ -13,8 +13,6 @@ use std::sync::Mutex;
 use chrono::Local;
 use std::fmt;
 use serde::Serialize;
-use flate2::write::GzEncoder;
-use flate2::Compression;
 use tokio::task;
 
 /// Configuration for the OSS Code Analyzer and LLM-Ready Summarizer
