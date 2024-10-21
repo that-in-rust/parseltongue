@@ -19,6 +19,7 @@ colored = "2.0"
 moka = { version = "0.12", features = ["sync"] }
 thiserror = "1.0"
 prost = "0.11"
+prost-types = "0.11"
 
 [build-dependencies]
 prost-build = "0.11"
@@ -26,3 +27,6 @@ prost-build = "0.11"
 [[bin]]
 name = "oss_code_analyzer"
 path = "src/main.rs"
+
+[features]
+proto = []

@@ -544,5 +544,11 @@
 - Use conditional compilation to handle cases where generated files might not exist.
 - Implement a pre-build check to ensure all necessary tools (like protoc) are installed and accessible.
 
+## 89. Protobuf and Generated Code
+- When using protobuf-generated types, ensure they are properly imported in your Rust files.
+- Verify that your `build.rs` script is correctly set up to generate Rust code from your `.proto` files.
+- Always regenerate protobuf code after making changes to `.proto` files.
+- Include generated protobuf code in your version control to avoid build issues on systems without protoc installed.
+
 Remember to regularly review and update this guide as you encounter new challenges and learn from your Rust development experiences. Always compile and test your code after making changes, and pay close attention to compiler warnings and errors.
 

@@ -11,6 +11,8 @@ use zip::ZipArchive;
 use clap::Parser;
 use chrono::Utc;
 use colored::Colorize;
+use prost::Message;
+use prost_types::{ProjectSummary, FileSummary};
 
 // Proto generated code
 include!(concat!(env!("OUT_DIR"), "/summary.rs"));
