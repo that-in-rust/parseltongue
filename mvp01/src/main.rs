@@ -12,7 +12,6 @@ use clap::Parser;
 use chrono::Utc;
 use colored::Colorize;
 use prost::Message;
-use prost_types::{ProjectSummary, FileSummary};
 
 // Proto generated code
 include!(concat!(env!("OUT_DIR"), "/summary.rs"));
@@ -153,7 +152,7 @@ struct ParsedFile {
     cognitive_complexity: usize,
 }
 
-fn analyze_file(entry: &ZipEntry) -> Result<ParsedFile> {
+fn analyze_file(entry: &ZipEntry) -> Result<FileSummary> {
     let extension = Path::new(&entry.name)
         .extension()
         .and_then(|os_str| os_str.to_str())
@@ -166,17 +165,19 @@ fn analyze_file(entry: &ZipEntry) -> Result<ParsedFile> {
     let (function_count, class_count) = count_functions_and_classes(&content, &language);
     let (cyclomatic_complexity, cognitive_complexity) = analyze_code_complexity(&content);
 
-    Ok(ParsedFile {
+    Ok(FileSummary {
         name: entry.name.clone(),
-        language,
-        loc,
-        code_lines,
-        comment_lines,
-        blank_lines,
-        function_count,
-        class_count,
-        cyclomatic_complexity,
-        cognitive_complexity,
+        language: language.to_string(),
+        loc: loc as u32,
+        code_lines: code_lines as u32,
+        comment_lines: comment_lines as u32,
+        blank_lines: blank_lines as u32,
+        function_count: function_count as u32,
+        class_count: class_count as u32,
+        cyclomatic_complexity: cyclomatic_complexity as u32,
+        cognitive_complexity: cognitive_complexity as u32,
+        // Initialize other fields as needed
+        ..Default::default()
     })
 }
 
@@ -247,7 +248,7 @@ impl OutputManager {
         Ok(Self { output_dir })
     }
 
-    fn write_llm_ready_output(&self, files: &[ParsedFile]) -> Result<()> {
+    fn write_llm_ready_output(&self, files: &[FileSummary]) -> Result<()> {
         let timestamp = Utc::now().format("%Y%m%d%H%M%S").to_string();
         let output_path = self.output_dir.join(format!("LLM-ready-{}.pb", timestamp));
 
@@ -255,24 +256,14 @@ impl OutputManager {
         let mut writer = BufWriter::new(file);
 
         let project_summary = ProjectSummary {
-            files: files.iter().map(|f| FileSummary {
-                name: f.name.clone(),
-                language: format!("{:?}", f.language),
-                loc: f.loc as u32,
-                code_lines: f.code_lines as u32,
-                comment_lines: f.comment_lines as u32,
-                blank_lines: f.blank_lines as u32,
-                function_count: f.function_count as u32,
-                class_count: f.class_count as u32,
-                cyclomatic_complexity: f.cyclomatic_complexity as u32,
-                cognitive_complexity: f.cognitive_complexity as u32,
-                ..Default::default()
-            }).collect(),
-            total_loc: files.iter().map(|f| f.loc).sum::<usize>() as u32,
+            files: files.to_vec(),
+            total_loc: files.iter().map(|f| f.loc).sum(),
             language_breakdown: files.iter().fold(std::collections::HashMap::new(), |mut acc, f| {
-                *acc.entry(format!("{:?}", f.language)).or_insert(0) += 1;
+                *acc.entry(f.language.clone()).or_insert(0) += 1;
                 acc
             }),
+            total_files: files.len() as u32,
+            // Initialize other fields as needed
             ..Default::default()
         };
 

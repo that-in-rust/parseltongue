@@ -1,17 +1,14 @@
-use std::env;
+use std::io::Result;
 use std::path::PathBuf;
 use prost_build;
-use std::fs;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let proto_file = PathBuf::from("/home/amuldotexe/Desktop/GitHub202410/parseltongue/mvp01/src/summary.proto");
+fn main() -> Result<()> {
+    let proto_file = "proto/summary.proto";
+    let out_dir = PathBuf::from(std::env::var("OUT_DIR").unwrap());
+
+    prost_build::compile_protos(&[proto_file], &["."])?;
     
-    if !proto_file.exists() {
-        return Err(format!("{} does not exist", proto_file.display()).into());
-    }
-
-    println!("cargo:rerun-if-changed={}", proto_file.display());
-
-    prost_build::compile_protos(&[proto_file], &["/home/amuldotexe/Desktop/GitHub202410/parseltongue/mvp01/src/"])?;
+    println!("cargo:rerun-if-changed={}", proto_file);
+    
     Ok(())
 }
