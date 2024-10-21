@@ -25,7 +25,7 @@ Level 2: Core Modules
 
 4. Code Analysis
    - Supports Java, JavaScript, Python, C, C++, Rust, and Go
-   - Extracts key info: file path, language, size (LOC)
+   - Extracts key info: file path, language, size (LOC), code lines, comments, and blanks
    - Implements basic language detection based on file extensions
 
 5. LLM-Ready Summary Generation
@@ -37,6 +37,10 @@ Level 2: Core Modules
    - Creates summary.json in the specified output directory
    - Uses BufWriter for efficient file writing
    - Implements error handling for file operations
+
+7. Error Logging
+   - Implements an ErrorLogger for writing errors to a log file
+   - Uses chrono for timestamping error messages
 
 Level 3: Key Components and Data Flow
 1. Error Handling
@@ -59,7 +63,7 @@ Level 3: Key Components and Data Flow
 
 5. Output Formatting
    - Implements efficient, structured JSON format using serde
-   - Includes essential file info: path, language, LOC
+   - Includes essential file info: path, language, LOC, code lines, comments, and blanks
    - Ensures clear separation between entries for easy parsing
 
 Level 4: Testing and Quality Assurance
@@ -76,7 +80,7 @@ Level 4: Testing and Quality Assurance
 Level 5: Implementation and Optimization
 1. Parallel Processing
    - Uses tokio for asynchronous tasks
-   - Potential for further optimization using rayon for parallel iterators (imported but not fully utilized)
+   - Potential for further optimization using rayon for parallel iterators (not currently used)
 
 2. Incremental Analysis
    - Not yet implemented: Store previous run results in sled database
@@ -95,28 +99,26 @@ Level 5: Implementation and Optimization
 6. Logging and Debugging
    - Implements logging using the log crate
    - Includes progress tracking using the indicatif crate
+   - Implements error logging to a separate file
 
 Current Dependency Versions (as of the latest update):
 - tokio = { version = "1.28", features = ["full"] }
 - sled = "0.34"
 - zip = "0.6"
-- rayon = "1.7"
 - serde = { version = "1.0", features = ["derive"] }
 - serde_json = "1.0"
 - anyhow = "1.0"
-- thiserror = "1.0"
 - clap = { version = "4.3", features = ["derive"] }
 - log = "0.4"
 - env_logger = "0.10"
-- crossbeam-channel = "0.5"
-- zstd = "0.12"
 - indicatif = "0.17"
+- chrono = "0.4"
 
 Note: These versions are current as of the last update. It's recommended to check for the latest versions when implementing or updating the project.
 
 Next Steps:
 1. Implement more comprehensive error handling and testing
-2. Optimize parallel processing using rayon
+2. Optimize parallel processing using rayon or tokio's parallel iterators
 3. Implement incremental analysis features
 4. Add compression for the final output
 5. Enhance the CLI with more options and better user feedback
@@ -125,3 +127,8 @@ Next Steps:
 8. Implement graceful shutdown mechanism
 9. Optimize memory usage for large ZIP files
 10. Enhance logging for better debugging and monitoring
+11. Implement more sophisticated language-specific analysis
+12. Add support for more programming languages
+13. Implement a caching mechanism to speed up repeated analyses
+14. Add a feature to generate diff reports between two codebases
+15. Implement a plugin system for extensible language support and analysis features

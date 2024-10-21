@@ -12,14 +12,19 @@ use tokio::sync::Arc;
 use walkdir::WalkDir;
 use std::sync::Mutex;
 use chrono::Local;
+use std::fmt;
 
+/// Configuration for the OSS Code Analyzer and LLM-Ready Summarizer
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
 pub struct Config {
+    /// Path to the input ZIP file
     pub input_zip: PathBuf,
+    /// Path to the output directory
     pub output_dir: PathBuf,
 }
 
+/// Manages the embedded database for storing file contents
 pub struct DatabaseManager {
     db: Db,
 }
@@ -53,6 +58,21 @@ pub enum LanguageType {
     Unknown,
 }
 
+impl fmt::Display for LanguageType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            LanguageType::Rust => write!(f, "Rust"),
+            LanguageType::JavaScript => write!(f, "JavaScript"),
+            LanguageType::Python => write!(f, "Python"),
+            LanguageType::Java => write!(f, "Java"),
+            LanguageType::C => write!(f, "C"),
+            LanguageType::Cpp => write!(f, "C++"),
+            LanguageType::Go => write!(f, "Go"),
+            LanguageType::Unknown => write!(f, "Unknown"),
+        }
+    }
+}
+
 pub struct ZipEntry {
     pub name: String,
     pub content: Vec<u8>,
@@ -65,7 +85,7 @@ pub async fn process_zip(
     error_logger: Arc<ErrorLogger>,
 ) -> Result<()> {
     for i in 0..zip.len() {
-        let result = (|| -> Result<()> {
+        let result = (async || -> Result<()> {
             let mut file = zip.by_index(i)?;
             
             if file.is_dir() {
@@ -79,7 +99,7 @@ pub async fn process_zip(
 
             tx.send(ZipEntry { name, content }).await?;
             Ok(())
-        })();
+        })().await;
 
         if let Err(e) = result {
             let error_msg = format!("Error processing ZIP entry {}: {:?}", i, e);
@@ -103,7 +123,7 @@ pub struct ParsedFile {
 
 pub fn analyze_file(entry: ZipEntry, db: &DatabaseManager) -> Result<ParsedFile> {
     let language = detect_language(&entry.name);
-    let loc = entry.content.iter().filter(|&&c| c == b'\n').count();
+    let (loc, code, comments, blanks) = count_lines(&entry.content);
 
     db.store(entry.name.as_bytes(), &entry.content)
         .context("Failed to store file content in database")?;
@@ -112,6 +132,9 @@ pub fn analyze_file(entry: ZipEntry, db: &DatabaseManager) -> Result<ParsedFile>
         name: entry.name,
         language,
         loc,
+        code,
+        comments,
+        blanks,
     })
 }
 
@@ -136,10 +159,9 @@ fn count_lines(content: &[u8]) -> (usize, usize, usize, usize) {
 
     for line in content.split(|&b| b == b'\n') {
         loc += 1;
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
+        if line.is_empty() {
             blanks += 1;
-        } else if trimmed.starts_with(b"//") || trimmed.starts_with(b"#") {
+        } else if line.starts_with(b"//") || line.starts_with(b"#") {
             comments += 1;
         } else {
             code += 1;
@@ -169,13 +191,13 @@ pub struct ProjectSummary {
 }
 
 pub fn generate_summary(files: Vec<ParsedFile>) -> ProjectSummary {
-    let mut language_breakdown = std::collections::HashMap::new();
+    let mut language_breakdown: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
     let total_loc = files.iter().map(|f| f.loc).sum();
 
     let file_summaries: Vec<FileSummary> = files
         .into_iter()
         .map(|f| {
-            *language_breakdown.entry(f.language.clone()).or_insert(0) += 1;
+            *language_breakdown.entry(f.language.to_string()).or_insert(0) += 1;
             FileSummary {
                 name: f.name,
                 language: f.language.to_string(),
@@ -232,7 +254,7 @@ impl ErrorLogger {
     }
 
     pub fn log_error(&self, message: &str) -> Result<()> {
-        let mut file = self.file.lock().unwrap();
+        let mut file = self.file.lock().map_err(|e| anyhow::anyhow!("Failed to lock file: {}", e))?;
         writeln!(file, "[{}] {}", Local::now().format("%Y-%m-%d %H:%M:%S"), message)?;
         Ok(())
     }
@@ -274,7 +296,7 @@ async fn main() -> Result<()> {
     tokio::spawn(async move {
         if let Err(e) = process_zip(archive, tx, pb_clone, Arc::clone(&error_logger_clone)).await {
             error!("Error in ZIP processing task: {:?}", e);
-            error_logger_clone.log_error(&format!("Error in ZIP processing task: {:?}", e))?;
+            error_logger_clone.log_error(&format!("Error in ZIP processing task: {:?}", e)).unwrap();
         }
     });
 
