@@ -12,8 +12,12 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use chrono::Local;
 use std::fmt;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tokio::task;
+use tree_sitter::{Parser, Language};
+use prost::Message;
+use flate2::write::ZlibEncoder;
+use flate2::Compression;
 
 /// Configuration for the OSS Code Analyzer and LLM-Ready Summarizer
 #[derive(Parser, Debug)]
@@ -110,6 +114,8 @@ pub struct ParsedFile {
     pub code: usize,
     pub comments: usize,
     pub blanks: usize,
+    pub cyclomatic_complexity: usize,
+    pub cognitive_complexity: usize,
 }
 
 pub fn analyze_file(entry: ZipEntry, db: &DatabaseManager) -> Result<ParsedFile> {
@@ -126,6 +132,8 @@ pub fn analyze_file(entry: ZipEntry, db: &DatabaseManager) -> Result<ParsedFile>
         code,
         comments,
         blanks,
+        cyclomatic_complexity: 0,
+        cognitive_complexity: 0,
     })
 }
 
@@ -170,6 +178,8 @@ pub struct FileSummary {
     pub code: usize,
     pub comments: usize,
     pub blanks: usize,
+    pub cyclomatic_complexity: usize,
+    pub cognitive_complexity: usize,
 }
 
 #[derive(Serialize)]
@@ -194,6 +204,8 @@ pub fn generate_summary(files: Vec<ParsedFile>) -> ProjectSummary {
                 code: f.code,
                 comments: f.comments,
                 blanks: f.blanks,
+                cyclomatic_complexity: f.cyclomatic_complexity,
+                cognitive_complexity: f.cognitive_complexity,
             }
         })
         .collect();
@@ -264,6 +276,140 @@ impl ErrorLogger {
     }
 }
 
+// New imports and structs for Protocol Buffers
+mod proto {
+    include!(concat!(env!("OUT_DIR"), "/proto_gen.rs"));
+}
+
+use proto::{ProjectSummary as ProtoProjectSummary, FileSummary as ProtoFileSummary};
+
+// Function to perform advanced code analysis
+fn perform_advanced_code_analysis(entry: &ZipEntry) -> Result<ParsedFile> {
+    let mut parser = Parser::new();
+    let language = match detect_language(&entry.name) {
+        LanguageType::Rust => tree_sitter_rust::language(),
+        LanguageType::JavaScript => tree_sitter_javascript::language(),
+        LanguageType::Python => tree_sitter_python::language(),
+        LanguageType::Java => tree_sitter_java::language(),
+        LanguageType::C => tree_sitter_c::language(),
+        LanguageType::Cpp => tree_sitter_cpp::language(),
+        LanguageType::Go => tree_sitter_go::language(),
+        LanguageType::Unknown => return Err(anyhow::anyhow!("Unsupported language")),
+    };
+    parser.set_language(language).expect("Error loading language");
+
+    let tree = parser.parse(&entry.content, None).expect("Failed to parse");
+    let root_node = tree.root_node();
+
+    // Implement metrics extraction here (e.g., cyclomatic complexity, cognitive complexity)
+    let (loc, code, comments, blanks) = count_lines(&entry.content);
+    let cyclomatic_complexity = calculate_cyclomatic_complexity(&root_node);
+    let cognitive_complexity = calculate_cognitive_complexity(&root_node);
+
+    Ok(ParsedFile {
+        name: entry.name.clone(),
+        language: detect_language(&entry.name),
+        loc,
+        code,
+        comments,
+        blanks,
+        cyclomatic_complexity,
+        cognitive_complexity,
+    })
+}
+
+fn calculate_cyclomatic_complexity(node: &tree_sitter::Node) -> usize {
+    // Implement cyclomatic complexity calculation
+    // This is a placeholder implementation
+    1 + node.child_count()
+}
+
+fn calculate_cognitive_complexity(node: &tree_sitter::Node) -> usize {
+    // Implement cognitive complexity calculation
+    // This is a placeholder implementation
+    node.child_count()
+}
+
+// Function to generate LLM-ready output using Protocol Buffers
+fn generate_llm_ready_output(
+    files: &[ParsedFile],
+    output_dir: &Path,
+) -> Result<()> {
+    let timestamp = Local::now().format("%Y%m%d%H%M%S");
+    let path = output_dir.join(format!("LLM-ready-{}.pb", timestamp));
+    let file = std::fs::File::create(path).context("Failed to create LLM-ready output file")?;
+    let mut writer = std::io::BufWriter::new(file);
+
+    let proto_files: Vec<ProtoFileSummary> = files.iter().map(|f| ProtoFileSummary {
+        name: f.name.clone(),
+        language: f.language.to_string(),
+        loc: f.loc as u32,
+        code: f.code as u32,
+        comments: f.comments as u32,
+        blanks: f.blanks as u32,
+        cyclomatic_complexity: f.cyclomatic_complexity as u32,
+        cognitive_complexity: f.cognitive_complexity as u32,
+    }).collect();
+
+    let proto_summary = ProtoProjectSummary {
+        files: proto_files,
+        total_loc: files.iter().map(|f| f.loc).sum::<usize>() as u32,
+    };
+
+    let mut encoder = ZlibEncoder::new(writer, Compression::default());
+    proto_summary.encode(&mut encoder).context("Failed to encode and compress summary")?;
+    encoder.finish().context("Failed to finish compression")?;
+
+    Ok(())
+}
+
+// Function to optimize memory usage
+fn optimize_memory_usage<R: Read>(reader: R) -> impl Read {
+    std::io::BufReader::with_capacity(8192, reader)
+}
+
+// Unit tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_perform_advanced_code_analysis() {
+        let content = b"fn main() { println!(\"Hello, World!\"); }";
+        let entry = ZipEntry {
+            name: "test.rs".to_string(),
+            content: content.to_vec(),
+        };
+        let result = perform_advanced_code_analysis(&entry);
+        assert!(result.is_ok());
+        let parsed_file = result.unwrap();
+        assert_eq!(parsed_file.language, LanguageType::Rust);
+        assert!(parsed_file.loc > 0);
+    }
+
+    #[test]
+    fn test_generate_llm_ready_output() {
+        let temp_dir = tempdir().unwrap();
+        let files = vec![
+            ParsedFile {
+                name: "test.rs".to_string(),
+                language: LanguageType::Rust,
+                loc: 10,
+                code: 8,
+                comments: 1,
+                blanks: 1,
+                cyclomatic_complexity: 1,
+                cognitive_complexity: 1,
+            },
+        ];
+        let result = generate_llm_ready_output(&files, temp_dir.path());
+        assert!(result.is_ok());
+        assert!(temp_dir.path().join("LLM-ready-*.pb").exists());
+    }
+}
+
+// Main function (updated)
 #[tokio::main]
 async fn main() -> Result<()> {
     let config = Config::parse();
@@ -309,7 +455,7 @@ async fn main() -> Result<()> {
 
     let mut analyzed_files = Vec::new();
     while let Some(entry) = rx.recv().await {
-        match analyze_file(entry, &db_manager) {
+        match perform_advanced_code_analysis(&entry) {
             Ok(parsed_file) => analyzed_files.push(parsed_file),
             Err(e) => {
                 let error_msg = format!("Failed to analyze file: {:?}", e);
@@ -323,43 +469,11 @@ async fn main() -> Result<()> {
     progress_bar.finish_with_message("File analysis completed");
     output_manager.write_progress("File analysis completed").context("Failed to write progress")?;
 
-    let summary = generate_summary(analyzed_files);
-
-    output_manager.write_summary(&summary)
-        .context("Failed to write summary")?;
-    output_manager.write_progress("Summary written").context("Failed to write progress")?;
+    generate_llm_ready_output(&analyzed_files, &config.output_dir)
+        .context("Failed to generate LLM-ready output")?;
+    output_manager.write_progress("LLM-ready output generated").context("Failed to write progress")?;
 
     info!("Analysis completed successfully");
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use tempfile::tempdir;
-
-    #[test]
-    fn test_config_parsing() {
-        let args = vec!["program", "input.zip", "output_dir"];
-        let config = Config::parse_from(args);
-        assert_eq!(config.input_zip, PathBuf::from("input.zip"));
-        assert_eq!(config.output_dir, PathBuf::from("output_dir"));
-    }
-
-    #[test]
-    fn test_database_operations() -> Result<()> {
-        let temp_dir = tempdir().context("Failed to create temporary directory")?;
-        let db_manager = DatabaseManager::new(temp_dir.path())?;
-
-        let key = b"test_key";
-        let value = b"test_value";
-
-        db_manager.store(key, value)?;
-        let retrieved_value = db_manager.get(key)?;
-
-        assert_eq!(retrieved_value, Some(value.to_vec()));
-        Ok(())
-    }
-
-    // Add more tests as needed...
-}

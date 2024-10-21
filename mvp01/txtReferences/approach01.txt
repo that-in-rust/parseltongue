@@ -29,12 +29,16 @@ Level 2: Core Modules
    - Supports Java, JavaScript, Python, C, C++, Rust, and Go
    - Extracts key info: file path, language, size (LOC), code lines, comments, and blanks
    - Implements basic language detection based on file extensions
+   - Utilizes `tree-sitter` for AST generation and analysis
+   - Integrates `rust-analyzer`, `eslint`, and `pylint` for static analysis
+   - Develops custom lint rules for project-specific code smells
 
 5. LLM-Ready Summary Generation
    - Generates structured summary (JSON format) for each file
    - Concatenates summaries efficiently
    - Includes project-wide statistics like total LOC and language breakdown
    - Implements compression for the final output
+   - Utilizes Protocol Buffers for serialization
 
 6. Output Management
    - Creates LLM-ready-<timestamp>.txt in the specified output directory
@@ -42,6 +46,7 @@ Level 2: Core Modules
    - Creates comprehensive log.txt file for debugging and analysis
    - Uses BufWriter for efficient file writing
    - Implements error handling for file operations
+   - Ensures proper placement of all output files in the specified directory
 
 7. Error Logging and Progress Tracking
    - Implements an ErrorLogger for writing errors to a log file
@@ -86,6 +91,12 @@ Level 3: Key Components and Data Flow
    - Includes essential file info: path, language, LOC, code lines, comments, and blanks
    - Ensures clear separation between entries for easy parsing
    - Generates LLM-ready output with appropriate formatting
+
+6. Avengers-themed Logging and User Experience
+   - Implements Avengers-themed logging using colored output
+   - Creates ASCII art representations of Avengers characters for key events
+   - Implements a progress bar styled as the Infinity Gauntlet for long-running processes
+   - Provides Avengers-themed error messages and descriptions
 
 Level 4: Testing and Quality Assurance
 1. Unit Testing
@@ -137,6 +148,11 @@ Level 5: Implementation and Optimization
    - Ensures all used crates are properly declared in Cargo.toml
    - Removes unused imports and dependencies promptly
 
+8. Advanced Caching Mechanisms
+   - Implements multi-level caching with in-memory (moka) and disk-based (sled) caches
+   - Develops custom eviction policies based on file size and access patterns
+   - Optimizes caching strategies for frequently accessed data
+
 Current Dependency Versions (as of the latest update):
 - tokio = { version = "1.28", features = ["full"] }
 - sled = "0.34"
@@ -149,6 +165,9 @@ Current Dependency Versions (as of the latest update):
 - env_logger = "0.10"
 - indicatif = "0.17"
 - chrono = "0.4"
+- colored = "2.0"
+- moka = "0.9"
+- thiserror = "1.0"
 
 Next Steps for MVP:
 1. Implement LLM-ready-<timestamp>.txt output file
@@ -158,3 +177,7 @@ Next Steps for MVP:
 5. Expand the testing suite to include more unit tests and integration tests
 6. Implement more comprehensive error handling and testing
 7. Optimize memory usage for large ZIP files
+8. Implement Avengers-themed logging and user experience
+9. Enhance caching mechanisms with multi-level caching
+10. Run clippy and address all warnings
+11. Audit and clean up dependencies

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+message FileSummary {
+    string name = 1;
+    string language = 2;
+    uint32 loc = 3;
+    uint32 code = 4;
+    uint32 comments = 5;
+    uint32 blanks = 6;
+    uint32 cyclomatic_complexity = 7;
+    uint32 cognitive_complexity = 8;
+}
+
+message ProjectSummary {
+    repeated FileSummary files = 1;
+    uint32 total_loc = 2;
+}
