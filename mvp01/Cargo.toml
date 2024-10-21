@@ -25,9 +25,10 @@ tree-sitter-c = "0.20"
 tree-sitter-cpp = "0.20"
 tree-sitter-go = "0.20"
 colored = "2.0"
+tonic = "0.8"
 
 [build-dependencies]
-prost-build = "0.11"
+tonic-build = "0.8"
 
 [[bin]]
 name = "oss_code_analyzer"
