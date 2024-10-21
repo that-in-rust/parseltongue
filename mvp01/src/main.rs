@@ -1,11 +1,17 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use log::{error, info};
+use log::{error, info, warn};
 use std::path::{Path, PathBuf};
 use tokio::sync::mpsc;
 use indicatif::{ProgressBar, ProgressStyle};
 use sled::Db;
-use std::io::Write;
+use std::io::{Read, Write};
+use zip::ZipArchive;
+use std::fs::File;
+use tokio::sync::Arc;
+use walkdir::WalkDir;
+use std::sync::Mutex;
+use chrono::Local;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
@@ -35,36 +41,64 @@ impl DatabaseManager {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum LanguageType {
+    Rust,
+    JavaScript,
+    Python,
+    Java,
+    C,
+    Cpp,
+    Go,
+    Unknown,
+}
+
 pub struct ZipEntry {
     pub name: String,
     pub content: Vec<u8>,
 }
 
-pub fn process_zip(path: &Path) -> Result<impl Iterator<Item = Result<ZipEntry>>> {
-    let file = std::fs::File::open(path)?;
-    let mut archive = zip::ZipArchive::new(file)?;
-    
-    Ok((0..archive.len()).map(move |i| {
-        let mut file = archive.by_index(i)
-            .context(format!("Failed to read file at index {}", i))?;
-        if file.is_file() {
+pub async fn process_zip(
+    mut zip: ZipArchive<File>,
+    tx: mpsc::Sender<ZipEntry>,
+    pb: Arc<ProgressBar>,
+    error_logger: Arc<ErrorLogger>,
+) -> Result<()> {
+    for i in 0..zip.len() {
+        let result = (|| -> Result<()> {
+            let mut file = zip.by_index(i)?;
+            
+            if file.is_dir() {
+                warn!("Skipping directory entry: {}", file.name());
+                return Ok(());
+            }
+
+            let name = file.name().to_string();
             let mut content = Vec::new();
-            std::io::Read::read_to_end(&mut file, &mut content)
-                .context(format!("Failed to read content of file {}", file.name()))?;
-            Ok(ZipEntry {
-                name: file.name().to_string(),
-                content,
-            })
-        } else {
-            Err(anyhow::anyhow!("Not a file: {}", file.name()))
+            file.read_to_end(&mut content)?;
+
+            tx.send(ZipEntry { name, content }).await?;
+            Ok(())
+        })();
+
+        if let Err(e) = result {
+            let error_msg = format!("Error processing ZIP entry {}: {:?}", i, e);
+            warn!("{}", error_msg);
+            error_logger.log_error(&error_msg)?;
         }
-    }))
+
+        pb.inc(1);
+    }
+    Ok(())
 }
 
 pub struct ParsedFile {
     pub name: String,
-    pub language: String,
+    pub language: LanguageType,
     pub loc: usize,
+    pub code: usize,
+    pub comments: usize,
+    pub blanks: usize,
 }
 
 pub fn analyze_file(entry: ZipEntry, db: &DatabaseManager) -> Result<ParsedFile> {
@@ -81,17 +115,38 @@ pub fn analyze_file(entry: ZipEntry, db: &DatabaseManager) -> Result<ParsedFile>
     })
 }
 
-fn detect_language(filename: &str) -> String {
+fn detect_language(filename: &str) -> LanguageType {
     match filename.split('.').last() {
-        Some("rs") => "Rust",
-        Some("js") => "JavaScript",
-        Some("py") => "Python",
-        Some("java") => "Java",
-        Some("c") | Some("h") => "C",
-        Some("cpp") | Some("hpp") => "C++",
-        Some("go") => "Go",
-        _ => "Unknown",
-    }.to_string()
+        Some("rs") => LanguageType::Rust,
+        Some("js") => LanguageType::JavaScript,
+        Some("py") => LanguageType::Python,
+        Some("java") => LanguageType::Java,
+        Some("c") | Some("h") => LanguageType::C,
+        Some("cpp") | Some("hpp") => LanguageType::Cpp,
+        Some("go") => LanguageType::Go,
+        _ => LanguageType::Unknown,
+    }
+}
+
+fn count_lines(content: &[u8]) -> (usize, usize, usize, usize) {
+    let mut loc = 0;
+    let mut code = 0;
+    let mut comments = 0;
+    let mut blanks = 0;
+
+    for line in content.split(|&b| b == b'\n') {
+        loc += 1;
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            blanks += 1;
+        } else if trimmed.starts_with(b"//") || trimmed.starts_with(b"#") {
+            comments += 1;
+        } else {
+            code += 1;
+        }
+    }
+
+    (loc, code, comments, blanks)
 }
 
 use serde::Serialize;
@@ -101,6 +156,9 @@ pub struct FileSummary {
     pub name: String,
     pub language: String,
     pub loc: usize,
+    pub code: usize,
+    pub comments: usize,
+    pub blanks: usize,
 }
 
 #[derive(Serialize)]
@@ -120,8 +178,11 @@ pub fn generate_summary(files: Vec<ParsedFile>) -> ProjectSummary {
             *language_breakdown.entry(f.language.clone()).or_insert(0) += 1;
             FileSummary {
                 name: f.name,
-                language: f.language,
+                language: f.language.to_string(),
                 loc: f.loc,
+                code: f.code,
+                comments: f.comments,
+                blanks: f.blanks,
             }
         })
         .collect();
@@ -155,6 +216,28 @@ impl OutputManager {
     }
 }
 
+pub struct ErrorLogger {
+    file: Mutex<std::fs::File>,
+}
+
+impl ErrorLogger {
+    pub fn new(path: &Path) -> Result<Self> {
+        let file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)?;
+        Ok(Self {
+            file: Mutex::new(file),
+        })
+    }
+
+    pub fn log_error(&self, message: &str) -> Result<()> {
+        let mut file = self.file.lock().unwrap();
+        writeln!(file, "[{}] {}", Local::now().format("%Y-%m-%d %H:%M:%S"), message)?;
+        Ok(())
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let config = Config::parse();
@@ -167,6 +250,9 @@ async fn main() -> Result<()> {
 
     let output_manager = OutputManager::new(&config)
         .context("Failed to initialize output manager")?;
+
+    let error_logger = ErrorLogger::new(&config.output_dir.join("progress.log"))
+        .context("Failed to create error logger")?;
 
     let (tx, mut rx) = mpsc::channel(100);
 
@@ -182,25 +268,26 @@ async fn main() -> Result<()> {
         .expect("Failed to set progress bar style")
         .progress_chars("##-"));
 
-    tokio::spawn(async move {
-        if let Err(e) = async {
-            let zip_stream = process_zip(&config.input_zip)
-                .context("Failed to process ZIP file")?;
+    let error_logger_clone = Arc::new(error_logger);
+    let pb_clone = Arc::clone(&progress_bar);
 
-            for entry in zip_stream {
-                tx.send(entry?).await?;
-            }
-            Ok::<_, anyhow::Error>(())
-        }.await {
+    tokio::spawn(async move {
+        if let Err(e) = process_zip(archive, tx, pb_clone, Arc::clone(&error_logger_clone)).await {
             error!("Error in ZIP processing task: {:?}", e);
+            error_logger_clone.log_error(&format!("Error in ZIP processing task: {:?}", e))?;
         }
     });
 
     let mut analyzed_files = Vec::new();
     while let Some(entry) = rx.recv().await {
-        let parsed_file = analyze_file(entry, &db_manager)
-            .context("Failed to analyze file")?;
-        analyzed_files.push(parsed_file);
+        match analyze_file(entry, &db_manager) {
+            Ok(parsed_file) => analyzed_files.push(parsed_file),
+            Err(e) => {
+                let error_msg = format!("Failed to analyze file: {:?}", e);
+                error!("{}", error_msg);
+                error_logger.log_error(&error_msg)?;
+            }
+        }
         progress_bar.inc(1);
     }
 
