@@ -14,10 +14,13 @@ use chrono::Local;
 use std::fmt;
 use serde::{Serialize, Deserialize};
 use tokio::task;
-use tree_sitter::{Parser, Language};
+use tree_sitter::{Parser, Language, Node};
 use prost::Message;
 use flate2::write::ZlibEncoder;
 use flate2::Compression;
+use crate::logging::{init_logger, ErrorLogger};
+use std::sync::atomic::{AtomicUsize, Ordering};
+use rayon::prelude::*;
 
 /// Configuration for the OSS Code Analyzer and LLM-Ready Summarizer
 #[derive(Parser, Debug)]
@@ -301,7 +304,6 @@ fn perform_advanced_code_analysis(entry: &ZipEntry) -> Result<ParsedFile> {
     let tree = parser.parse(&entry.content, None).expect("Failed to parse");
     let root_node = tree.root_node();
 
-    // Implement metrics extraction here (e.g., cyclomatic complexity, cognitive complexity)
     let (loc, code, comments, blanks) = count_lines(&entry.content);
     let cyclomatic_complexity = calculate_cyclomatic_complexity(&root_node);
     let cognitive_complexity = calculate_cognitive_complexity(&root_node);
@@ -318,13 +320,13 @@ fn perform_advanced_code_analysis(entry: &ZipEntry) -> Result<ParsedFile> {
     })
 }
 
-fn calculate_cyclomatic_complexity(node: &tree_sitter::Node) -> usize {
+fn calculate_cyclomatic_complexity(node: &Node) -> usize {
     // Implement cyclomatic complexity calculation
     // This is a placeholder implementation
     1 + node.child_count()
 }
 
-fn calculate_cognitive_complexity(node: &tree_sitter::Node) -> usize {
+fn calculate_cognitive_complexity(node: &Node) -> usize {
     // Implement cognitive complexity calculation
     // This is a placeholder implementation
     node.child_count()
@@ -373,24 +375,46 @@ fn optimize_memory_usage<R: Read>(reader: R) -> impl Read {
 mod tests {
     use super::*;
     use tempfile::tempdir;
+    use std::io::Write;
 
     #[test]
-    fn test_perform_advanced_code_analysis() {
-        let content = b"fn main() { println!(\"Hello, World!\"); }";
-        let entry = ZipEntry {
-            name: "test.rs".to_string(),
-            content: content.to_vec(),
-        };
-        let result = perform_advanced_code_analysis(&entry);
-        assert!(result.is_ok());
-        let parsed_file = result.unwrap();
-        assert_eq!(parsed_file.language, LanguageType::Rust);
-        assert!(parsed_file.loc > 0);
+    fn test_detect_language() {
+        assert_eq!(detect_language("test.rs"), LanguageType::Rust);
+        assert_eq!(detect_language("script.js"), LanguageType::JavaScript);
+        assert_eq!(detect_language("main.py"), LanguageType::Python);
+        assert_eq!(detect_language("unknown.txt"), LanguageType::Unknown);
     }
 
     #[test]
-    fn test_generate_llm_ready_output() {
-        let temp_dir = tempdir().unwrap();
+    fn test_count_lines() {
+        let content = b"fn main() {\n    // This is a comment\n    println!(\"Hello, World!\");\n}\n";
+        let (loc, code, comments, blanks) = count_lines(content);
+        assert_eq!(loc, 4);
+        assert_eq!(code, 2);
+        assert_eq!(comments, 1);
+        assert_eq!(blanks, 1);
+    }
+
+    #[test]
+    fn test_database_manager() -> Result<()> {
+        let temp_dir = tempdir()?;
+        let db_manager = DatabaseManager::new(temp_dir.path())?;
+
+        let key = b"test_key";
+        let value = b"test_value";
+
+        db_manager.store(key, value)?;
+        let retrieved = db_manager.get(key)?;
+
+        assert_eq!(retrieved, Some(value.to_vec()));
+        Ok(())
+    }
+
+    #[test]
+    fn test_output_manager() -> Result<()> {
+        let temp_dir = tempdir()?;
+        let output_manager = OutputManager::new(temp_dir.path().to_path_buf())?;
+
         let files = vec![
             ParsedFile {
                 name: "test.rs".to_string(),
@@ -399,13 +423,54 @@ mod tests {
                 code: 8,
                 comments: 1,
                 blanks: 1,
-                cyclomatic_complexity: 1,
-                cognitive_complexity: 1,
+                cyclomatic_complexity: 2,
+                cognitive_complexity: 3,
             },
         ];
-        let result = generate_llm_ready_output(&files, temp_dir.path());
-        assert!(result.is_ok());
-        assert!(temp_dir.path().join("LLM-ready-*.pb").exists());
+
+        output_manager.write_llm_ready_output(&files)?;
+
+        // Check if the output file was created
+        let output_files: Vec<_> = std::fs::read_dir(temp_dir.path())?.filter_map(|entry| {
+            entry.ok().and_then(|e| {
+                let name = e.file_name().into_string().ok()?;
+                if name.starts_with("LLM-ready-") && name.ends_with(".pb.gz") {
+                    Some(name)
+                } else {
+                    None
+                }
+            })
+        }).collect();
+
+        assert_eq!(output_files.len(), 1);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_process_zip() -> Result<()> {
+        let temp_dir = tempdir()?;
+        let zip_path = temp_dir.path().join("test.zip");
+        let mut zip = zip::ZipWriter::new(File::create(&zip_path)?);
+
+        zip.start_file("test.rs", Default::default())?;
+        zip.write_all(b"fn main() {\n    println!(\"Hello, World!\");\n}\n")?;
+        zip.finish()?;
+
+        let (tx, mut rx) = mpsc::channel(100);
+        let pb = Arc::new(ProgressBar::new(1));
+        let error_logger = Arc::new(ErrorLogger::new(temp_dir.path().join("error.log"))?);
+
+        let zip_file = File::open(&zip_path)?;
+        let archive = zip::ZipArchive::new(zip_file)?;
+
+        process_zip(archive, tx, pb, error_logger)?;
+
+        let entry = rx.try_recv()?;
+        assert_eq!(entry.name, "test.rs");
+        assert_eq!(entry.content, b"fn main() {\n    println!(\"Hello, World!\");\n}\n");
+
+        Ok(())
     }
 }
 
@@ -414,13 +479,13 @@ mod tests {
 async fn main() -> Result<()> {
     let config = Config::parse();
     
-    env_logger::init();
+    init_logger(&config.output_dir.join("log.txt"))?;
     info!("Starting OSS Code Analyzer and LLM-Ready Summarizer");
 
     let db_manager = DatabaseManager::new(&config.output_dir.join("db"))
         .context("Failed to initialize database")?;
 
-    let output_manager = OutputManager::new(&config)
+    let output_manager = OutputManager::new(config.output_dir.clone())
         .context("Failed to initialize output manager")?;
 
     let error_logger = Arc::new(ErrorLogger::new(&config.output_dir.join("error.log"))
@@ -473,7 +538,91 @@ async fn main() -> Result<()> {
         .context("Failed to generate LLM-ready output")?;
     output_manager.write_progress("LLM-ready output generated").context("Failed to write progress")?;
 
+    // Cleanup old files, keeping only the last 5
+    output_manager.cleanup_old_files(5).context("Failed to cleanup old files")?;
+
     info!("Analysis completed successfully");
     Ok(())
 }
 
+mod cli;
+mod zip_processing;
+mod database;
+mod code_analysis;
+mod output;
+mod logging;
+
+use cli::Config;
+use zip_processing::process_zip;
+use database::DatabaseManager;
+use code_analysis::{analyze_file, calculate_cyclomatic_complexity, calculate_cognitive_complexity};
+use output::OutputManager;
+use logging::ErrorLogger;
+
+async fn process_files(
+    mut rx: mpsc::Receiver<ZipEntry>,
+    db_manager: Arc<DatabaseManager>,
+    output_manager: Arc<OutputManager>,
+    error_logger: Arc<ErrorLogger>,
+) -> Result<Vec<ParsedFile>> {
+    let batch_size = AtomicUsize::new(100); // Initial batch size
+    let mut analyzed_files = Vec::new();
+
+    while let Some(entries) = receive_batch(&mut rx, batch_size.load(Ordering::Relaxed)).await {
+        let start_time = std::time::Instant::now();
+
+        let batch_results: Vec<Result<ParsedFile>> = entries.par_iter()
+            .map(|entry| {
+                let result = analyze_file(entry);
+                if let Ok(parsed_file) = &result {
+                    if let Err(e) = db_manager.store(entry.name.as_bytes(), &entry.content) {
+                        error_logger.log_error(&format!("Failed to store file content: {:?}", e))?;
+                    }
+                }
+                result
+            })
+            .collect();
+
+        for result in batch_results {
+            match result {
+                Ok(parsed_file) => analyzed_files.push(parsed_file),
+                Err(e) => {
+                    let error_msg = format!("Failed to analyze file: {:?}", e);
+                    error!("{}", error_msg);
+                    error_logger.log_error(&error_msg)?;
+                }
+            }
+        }
+
+        let elapsed = start_time.elapsed();
+        adjust_batch_size(&batch_size, elapsed);
+
+        output_manager.write_progress(&format!("Processed {} files", analyzed_files.len()))?;
+    }
+
+    Ok(analyzed_files)
+}
+
+async fn receive_batch(rx: &mut mpsc::Receiver<ZipEntry>, batch_size: usize) -> Option<Vec<ZipEntry>> {
+    let mut batch = Vec::with_capacity(batch_size);
+    while let Ok(entry) = rx.try_recv() {
+        batch.push(entry);
+        if batch.len() >= batch_size {
+            break;
+        }
+    }
+    if batch.is_empty() {
+        None
+    } else {
+        Some(batch)
+    }
+}
+
+fn adjust_batch_size(batch_size: &AtomicUsize, elapsed: std::time::Duration) {
+    const TARGET_DURATION: std::time::Duration = std::time::Duration::from_millis(100);
+    if elapsed > TARGET_DURATION {
+        batch_size.fetch_max(batch_size.load(Ordering::Relaxed) / 2, Ordering::Relaxed);
+    } else {
+        batch_size.fetch_min(batch_size.load(Ordering::Relaxed) * 2, Ordering::Relaxed);
+    }
+}
