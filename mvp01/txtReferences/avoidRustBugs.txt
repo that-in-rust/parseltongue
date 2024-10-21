@@ -306,4 +306,117 @@
 - Be explicit with types when Rust's type inference might be ambiguous.
 - Pay attention to compiler warnings about type inference issues and address them promptly.
 
+## 49. Import Verification
+
+- Double-check all imports, especially for common types like `Arc`.
+- Use an IDE with good Rust support that can suggest correct imports.
+- Run `cargo check` after modifying imports to catch any issues immediately.
+
+## 50. Dependency Management
+
+- Always update `Cargo.toml` when adding new dependencies.
+- Use `cargo add <crate-name>` to automatically add dependencies to `Cargo.toml`.
+- Regularly review and clean up unused dependencies in `Cargo.toml`.
+
+## 51. Async Rust Best Practices
+
+- Stick to stable Rust features unless absolutely necessary.
+- Use async blocks instead of async closures when possible.
+- Be aware of the stability status of async features you're using.
+
+## 52. Incremental Development and Testing
+
+- Make smaller, incremental changes and test after each change.
+- Run `cargo check` and `cargo clippy` frequently during development.
+- Implement a self-review process before considering a change "done".
+
+## 53. IDE and Tooling Usage
+
+- Utilize IDE features that can automatically suggest and apply import corrections.
+- Set up your IDE to run `cargo check` on save.
+- Use `rust-analyzer` or a similar language server for real-time error checking.
+
+## 54. Change Management Process
+
+- Implement a checklist for code changes, including a step to verify all imports.
+- Keep a "lessons learned" document to track issues and prevent them in the future.
+- Consider implementing a more rigorous change management process, even for small projects.
+
+## 55. Continuous Integration Practices
+
+- Set up a CI pipeline that runs `cargo check`, `cargo clippy`, and `cargo test` on every commit.
+- Include a step in your CI to verify that all used dependencies are declared in `Cargo.toml`.
+- Use CI to catch issues that might be missed during local development.
+
+## 56. Code Review Practices
+
+- Implement a thorough code review process, even for solo projects.
+- Use a checklist during code reviews that includes checking imports and dependencies.
+- Pay special attention to changes in async code and error handling.
+
+## 57. Error Handling in Async Contexts
+
+- Be mindful of error propagation in async functions and closures.
+- Use `.await?` for error propagation in async contexts.
+- Ensure that errors from spawned tasks are properly handled and logged.
+
+## 58. Dependency Versioning
+
+- Use version ranges in `Cargo.toml` to allow for minor updates (e.g., `^1.0` instead of `1.0`).
+- Regularly update dependencies to get bug fixes and security patches.
+- Use `cargo update` to update dependencies within the specified version constraints.
+
+## 59. Feature Flags and Conditional Compilation
+
+- Use feature flags to manage optional dependencies and functionality.
+- Be cautious when using unstable features and clearly document their usage.
+- Use conditional compilation (`#[cfg(...)]`) to handle platform-specific code.
+
+## 60. Documentation Practices
+
+- Document any non-obvious import choices or dependency usage.
+- Keep a changelog to track significant changes, including dependency updates.
+- Use doc comments (`///`) to explain the purpose and usage of public items.
+
+## 61. Ownership in Async Contexts
+
+- Be cautious when moving values into async blocks or tasks.
+- Ensure all types used in async contexts implement `Send` if they're to be used across await points.
+- Use `Arc` for sharing ownership across threads, but remember that the original value is moved.
+
+## 62. Working with External Crates in Async Contexts
+
+- Check if types from external crates implement `Send` before using them in async tasks.
+- Consider wrapping non-Send types in a mutex or creating a separate thread for blocking operations.
+- Be aware that some operations (like file I/O) might not be async-friendly in all crates.
+
+## 63. Tokio Task Spawning
+
+- Ensure that futures passed to `tokio::spawn` are `Send`.
+- Use `tokio::task::spawn_blocking` for operations that aren't `Send` or are CPU-intensive.
+- Consider using `tokio::sync::Mutex` instead of `std::sync::Mutex` in async code.
+
+## 64. Arc and Ownership
+
+- Remember that wrapping a value in `Arc::new()` moves the value into the `Arc`.
+- Use `Arc::clone()` to create new references to the same data.
+- When passing an `Arc` to a function, consider passing a reference to the `Arc` instead of moving it.
+
+## 65. Closure Ownership
+
+- Be aware that closures capture their environment by default.
+- Use the `move` keyword judiciously in closures to take ownership of captured variables.
+- Consider using `Rc` or `Arc` for shared ownership in closures that outlive the current scope.
+
+## 66. Unused Variables
+
+- Prefix unused variables with an underscore to silence warnings.
+- Remove unused parameters if they're not needed in the function implementation.
+- Consider using `#[allow(unused_variables)]` attribute if the unused variable is intentional.
+
+## 67. Error Logging in Async Contexts
+
+- When logging errors in async contexts, ensure the logger is cloned or referenced properly.
+- Consider using a thread-safe logging mechanism that can be easily shared across async tasks.
+
 Remember to regularly review and update this guide as you encounter new challenges and learn from your Rust development experiences. Always compile and test your code after making changes, and pay close attention to compiler warnings and errors.

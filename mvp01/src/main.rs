@@ -8,11 +8,14 @@ use sled::Db;
 use std::io::{Read, Write};
 use zip::ZipArchive;
 use std::fs::File;
-use tokio::sync::Arc;
-use walkdir::WalkDir;
+use std::sync::Arc;
 use std::sync::Mutex;
 use chrono::Local;
 use std::fmt;
+use serde::Serialize;
+use flate2::write::GzEncoder;
+use flate2::Compression;
+use tokio::task;
 
 /// Configuration for the OSS Code Analyzer and LLM-Ready Summarizer
 #[derive(Parser, Debug)]
@@ -31,18 +34,18 @@ pub struct DatabaseManager {
 
 impl DatabaseManager {
     pub fn new(path: &Path) -> Result<Self> {
-        std::fs::create_dir_all(path)?;
-        let db = sled::open(path)?;
+        std::fs::create_dir_all(path).context("Failed to create database directory")?;
+        let db = sled::open(path).context("Failed to open sled database")?;
         Ok(Self { db })
     }
 
     pub fn store(&self, key: &[u8], value: &[u8]) -> Result<()> {
-        self.db.insert(key, value)?;
+        self.db.insert(key, value).context("Failed to insert into database")?;
         Ok(())
     }
 
     pub fn get(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
-        Ok(self.db.get(key)?.map(|ivec| ivec.to_vec()))
+        Ok(self.db.get(key).context("Failed to retrieve from database")?.map(|ivec| ivec.to_vec()))
     }
 }
 
@@ -78,35 +81,25 @@ pub struct ZipEntry {
     pub content: Vec<u8>,
 }
 
-pub async fn process_zip(
+pub fn process_zip(
     mut zip: ZipArchive<File>,
     tx: mpsc::Sender<ZipEntry>,
     pb: Arc<ProgressBar>,
     error_logger: Arc<ErrorLogger>,
 ) -> Result<()> {
     for i in 0..zip.len() {
-        let result = (async || -> Result<()> {
-            let mut file = zip.by_index(i)?;
-            
-            if file.is_dir() {
-                warn!("Skipping directory entry: {}", file.name());
-                return Ok(());
-            }
-
-            let name = file.name().to_string();
-            let mut content = Vec::new();
-            file.read_to_end(&mut content)?;
-
-            tx.send(ZipEntry { name, content }).await?;
-            Ok(())
-        })().await;
-
-        if let Err(e) = result {
-            let error_msg = format!("Error processing ZIP entry {}: {:?}", i, e);
-            warn!("{}", error_msg);
-            error_logger.log_error(&error_msg)?;
+        let mut file = zip.by_index(i).context("Failed to get ZIP entry")?;
+        
+        if file.is_dir() {
+            warn!("Skipping directory entry: {}", file.name());
+            continue;
         }
 
+        let name = file.name().to_string();
+        let mut content = Vec::new();
+        file.read_to_end(&mut content).context("Failed to read ZIP entry content")?;
+
+        tx.blocking_send(ZipEntry { name, content }).context("Failed to send ZIP entry")?;
         pb.inc(1);
     }
     Ok(())
@@ -171,8 +164,6 @@ fn count_lines(content: &[u8]) -> (usize, usize, usize, usize) {
     (loc, code, comments, blanks)
 }
 
-use serde::Serialize;
-
 #[derive(Serialize)]
 pub struct FileSummary {
     pub name: String,
@@ -222,18 +213,32 @@ pub struct OutputManager {
 
 impl OutputManager {
     pub fn new(config: &Config) -> Result<Self> {
-        std::fs::create_dir_all(&config.output_dir)?;
+        std::fs::create_dir_all(&config.output_dir).context("Failed to create output directory")?;
         Ok(Self {
             output_dir: config.output_dir.clone(),
         })
     }
 
     pub fn write_summary(&self, summary: &ProjectSummary) -> Result<()> {
-        let path = self.output_dir.join("summary.json");
-        let file = std::fs::File::create(path)?;
-        let mut writer = std::io::BufWriter::new(file);
-        serde_json::to_writer_pretty(&mut writer, summary)?;
-        writer.flush()?;
+        let timestamp = Local::now().format("%Y%m%d%H%M%S");
+        let path = self.output_dir.join(format!("LLM-ready-{}.json.gz", timestamp));
+        let file = std::fs::File::create(&path).context("Failed to create summary file")?;
+        let encoder = GzEncoder::new(file, Compression::default());
+        let mut writer = std::io::BufWriter::new(encoder);
+        serde_json::to_writer(&mut writer, summary).context("Failed to write summary to file")?;
+        writer.flush().context("Failed to flush summary file")?;
+        Ok(())
+    }
+
+    pub fn write_progress(&self, message: &str) -> Result<()> {
+        let path = self.output_dir.join("processProgress.txt");
+        let mut file = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)
+            .context("Failed to open progress file")?;
+        writeln!(file, "[{}] {}", Local::now().format("%Y-%m-%d %H:%M:%S"), message)
+            .context("Failed to write to progress file")?;
         Ok(())
     }
 }
@@ -247,15 +252,17 @@ impl ErrorLogger {
         let file = std::fs::OpenOptions::new()
             .create(true)
             .append(true)
-            .open(path)?;
+            .open(path)
+            .context("Failed to create or open error log file")?;
         Ok(Self {
             file: Mutex::new(file),
         })
     }
 
     pub fn log_error(&self, message: &str) -> Result<()> {
-        let mut file = self.file.lock().map_err(|e| anyhow::anyhow!("Failed to lock file: {}", e))?;
-        writeln!(file, "[{}] {}", Local::now().format("%Y-%m-%d %H:%M:%S"), message)?;
+        let mut file = self.file.lock().map_err(|e| anyhow::anyhow!("Failed to lock error log file: {}", e))?;
+        writeln!(file, "[{}] {}", Local::now().format("%Y-%m-%d %H:%M:%S"), message)
+            .context("Failed to write to error log file")?;
         Ok(())
     }
 }
@@ -273,8 +280,8 @@ async fn main() -> Result<()> {
     let output_manager = OutputManager::new(&config)
         .context("Failed to initialize output manager")?;
 
-    let error_logger = ErrorLogger::new(&config.output_dir.join("progress.log"))
-        .context("Failed to create error logger")?;
+    let error_logger = Arc::new(ErrorLogger::new(&config.output_dir.join("error.log"))
+        .context("Failed to create error logger")?);
 
     let (tx, mut rx) = mpsc::channel(100);
 
@@ -284,19 +291,22 @@ async fn main() -> Result<()> {
         .context("Failed to create ZIP archive")?;
     let total_files = archive.len();
 
-    let progress_bar = ProgressBar::new(total_files as u64);
+    let progress_bar = Arc::new(ProgressBar::new(total_files as u64));
     progress_bar.set_style(ProgressStyle::default_bar()
         .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
-        .expect("Failed to set progress bar style")
+        .context("Failed to set progress bar style")?
         .progress_chars("##-"));
 
-    let error_logger_clone = Arc::new(error_logger);
-    let pb_clone = Arc::clone(&progress_bar);
+    output_manager.write_progress("Starting ZIP processing").context("Failed to write progress")?;
 
-    tokio::spawn(async move {
-        if let Err(e) = process_zip(archive, tx, pb_clone, Arc::clone(&error_logger_clone)).await {
+    let error_logger_clone = Arc::clone(&error_logger);
+    let pb_clone = Arc::clone(&progress_bar);
+    task::spawn_blocking(move || {
+        if let Err(e) = process_zip(archive, tx, pb_clone, error_logger_clone.clone()) {
             error!("Error in ZIP processing task: {:?}", e);
-            error_logger_clone.log_error(&format!("Error in ZIP processing task: {:?}", e)).unwrap();
+            if let Err(log_err) = error_logger_clone.log_error(&format!("Error in ZIP processing task: {:?}", e)) {
+                error!("Failed to log error: {:?}", log_err);
+            }
         }
     });
 
@@ -307,18 +317,20 @@ async fn main() -> Result<()> {
             Err(e) => {
                 let error_msg = format!("Failed to analyze file: {:?}", e);
                 error!("{}", error_msg);
-                error_logger.log_error(&error_msg)?;
+                error_logger.log_error(&error_msg).context("Failed to log error")?;
             }
         }
         progress_bar.inc(1);
     }
 
     progress_bar.finish_with_message("File analysis completed");
+    output_manager.write_progress("File analysis completed").context("Failed to write progress")?;
 
     let summary = generate_summary(analyzed_files);
 
     output_manager.write_summary(&summary)
         .context("Failed to write summary")?;
+    output_manager.write_progress("Summary written").context("Failed to write progress")?;
 
     info!("Analysis completed successfully");
     Ok(())
@@ -339,7 +351,7 @@ mod tests {
 
     #[test]
     fn test_database_operations() -> Result<()> {
-        let temp_dir = tempdir()?;
+        let temp_dir = tempdir().context("Failed to create temporary directory")?;
         let db_manager = DatabaseManager::new(temp_dir.path())?;
 
         let key = b"test_key";
