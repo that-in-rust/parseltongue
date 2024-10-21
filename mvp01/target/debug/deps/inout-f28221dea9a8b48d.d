@@ -1,0 +1,11 @@
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/mvp01/target/debug/deps/libinout-f28221dea9a8b48d.rmeta: /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/lib.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/errors.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/inout.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/inout_buf.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/reserved.rs
+
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/mvp01/target/debug/deps/libinout-f28221dea9a8b48d.rlib: /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/lib.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/errors.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/inout.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/inout_buf.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/reserved.rs
+
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/mvp01/target/debug/deps/inout-f28221dea9a8b48d.d: /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/lib.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/errors.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/inout.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/inout_buf.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/reserved.rs
+
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/lib.rs:
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/errors.rs:
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/inout.rs:
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/inout_buf.rs:
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/inout-0.1.3/src/reserved.rs:

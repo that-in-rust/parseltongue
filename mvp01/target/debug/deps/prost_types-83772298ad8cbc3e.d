@@ -1,0 +1,10 @@
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/mvp01/target/debug/deps/libprost_types-83772298ad8cbc3e.rmeta: /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/lib.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/datetime.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/compiler.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/protobuf.rs
+
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/mvp01/target/debug/deps/libprost_types-83772298ad8cbc3e.rlib: /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/lib.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/datetime.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/compiler.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/protobuf.rs
+
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/mvp01/target/debug/deps/prost_types-83772298ad8cbc3e.d: /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/lib.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/datetime.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/compiler.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/protobuf.rs
+
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/lib.rs:
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/datetime.rs:
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/compiler.rs:
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/prost-types-0.11.9/src/protobuf.rs:
