@@ -1,17 +1,13 @@
-use std::fs::OpenOptions;
-use std::io::{Write, BufReader, BufWriter};
-use sled::Db;
-use log::{info, error, debug, warn};
+use std::fs::File;
+use std::io::{Read, Write, BufWriter};
+use log::{info, error, debug};
 use anyhow::{Context, Result, bail};
-use clap::Parser;
-use std::sync::mpsc;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use serde::{Serialize, Deserialize};
-use std::time::Duration;
-use chrono::Local;
 use indicatif::{ProgressBar, ProgressStyle};
 use flate2::write::GzEncoder;
+use flate2::read::GzDecoder;
 use flate2::Compression;
 use regex::Regex;
 use std::collections::HashSet;
@@ -20,9 +16,9 @@ mod logger {
     use std::fs::OpenOptions;
     use std::io::{Write, BufWriter};
     use std::time::{SystemTime, UNIX_EPOCH};
-    use log::{info, error, debug, warn};
+    use log::{debug};
     use anyhow::{Result, Context};
-    use std::path::{Path, PathBuf};
+    use std::path::PathBuf;
     use chrono::Local;
 
     pub struct Logger {
@@ -64,8 +60,11 @@ mod database {
     use anyhow::{Result, Context};
     use sled::Db;
     use std::path::Path;
-    use std::sync::Arc;
-    use log::{debug, error};
+    use log::debug;
+    use flate2::write::GzEncoder;
+    use flate2::read::GzDecoder;
+    use flate2::Compression;
+    use std::io::{Read, Write};
 
     pub struct DatabaseManager {
         db: Db,
@@ -117,13 +116,6 @@ mod database {
             Ok(())
         }
 
-        pub fn close(self) -> Result<()> {
-            self.flush()?;
-            self.db.close().context("Failed to close database")?;
-            debug!("Database closed");
-            Ok(())
-        }
-
         pub fn store_compressed_ast(&self, key: &[u8], ast: &[u8]) -> Result<()> {
             let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
             encoder.write_all(ast)?;
@@ -133,7 +125,7 @@ mod database {
 
         pub fn get_compressed_ast(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
             if let Some(compressed_ast) = self.get(key)? {
-                let mut decoder = flate2::read::GzDecoder::new(&compressed_ast[..]);
+                let mut decoder = GzDecoder::new(&compressed_ast[..]);
                 let mut ast = Vec::new();
                 decoder.read_to_end(&mut ast)?;
                 Ok(Some(ast))
@@ -169,7 +161,7 @@ mod cli {
 }
 
 mod zip_processing {
-    use anyhow::Result;
+    use anyhow::{Result, Context};
     use std::path::PathBuf;
     use zip::ZipArchive;
     use std::fs::File;
@@ -283,8 +275,6 @@ mod code_analysis {
     }
 
     fn detect_from_content(content: &[u8]) -> LanguageType {
-        // Implement content-based detection here
-        // This is a placeholder implementation
         if content.starts_with(b"fn ") || content.starts_with(b"use ") {
             LanguageType::Rust
         } else if content.starts_with(b"def ") || content.starts_with(b"import ") {
@@ -317,7 +307,7 @@ mod code_analysis {
     fn calculate_cognitive_complexity(content: &[u8]) -> Result<usize> {
         let text = std::str::from_utf8(content).context("Failed to convert content to UTF-8")?;
         let mut complexity = 0;
-        let mut nesting_level = 0;
+        let mut nesting_level: usize = 0;
 
         for line in text.lines() {
             if line.contains("if ") || line.contains("for ") || line.contains("while ") {
@@ -350,7 +340,7 @@ mod code_analysis {
 
         let program_vocabulary = n1 + n2;
         let program_length = N1 + N2;
-        let calculated_length = (n1 as f64 * n2.log2() + n2 as f64 * n1.log2()) as f64;
+        let calculated_length = (n1 as f64 * (n2 as f64).log2() + n2 as f64 * (n1 as f64).log2()) as f64;
         let volume = (program_length as f64) * (program_vocabulary as f64).log2();
         let difficulty = (n1 as f64 / 2.0) * (N2 as f64 / n2 as f64);
         let effort = difficulty * volume;
@@ -409,7 +399,7 @@ mod code_analysis {
 
 mod summary {
     use super::code_analysis::ParsedFile;
-    use anyhow::{Result, Context};
+    use anyhow::Result;
     use serde::{Serialize, Deserialize};
     use std::collections::HashMap;
 
@@ -425,7 +415,7 @@ mod summary {
         let total_files = files.len();
         let total_loc: usize = files.iter().map(|f| f.loc).sum();
         let mut language_breakdown = HashMap::new();
-        let total_complexity: usize = files.iter().map(|f| f.complexity).sum();
+        let total_complexity: usize = files.iter().map(|f| f.cyclomatic_complexity).sum();
 
         for file in &files {
             *language_breakdown.entry(format!("{:?}", file.language)).or_insert(0) += 1;
@@ -479,7 +469,7 @@ mod output_manager {
         pub fn new(config: &Config) -> Result<Self> {
             std::fs::create_dir_all(&config.output)?;
             let timestamp = Local::now().format("%Y%m%d%H%M%S").to_string();
-            let progress_file_name = format!("progress-{}-{}.txt", config.input_file_name, timestamp);
+            let progress_file_name = format!("progress-{}-{}.txt", config.input, timestamp);
             let progress_file_path = std::path::Path::new(&config.output).join(progress_file_name);
             let progress_file = File::create(progress_file_path)?;
             Ok(Self {
@@ -522,8 +512,8 @@ fn main() -> Result<()> {
     let progress_bar: ProgressBar = ProgressBar::new(total_files as u64);
     progress_bar.set_style(ProgressStyle::default_bar()
         .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} {msg}")
-        .progress_chars("🛡⚡🔨")
-        .expect("Failed to set progress bar style"));
+        .expect("Failed to set progress bar style")
+        .progress_chars("🛡⚡🔨"));
 
     let mut output_manager: output_manager::OutputManager = output_manager::OutputManager::new(&config)?;
     output_manager.write_progress("Starting analysis")?;
@@ -556,11 +546,6 @@ fn main() -> Result<()> {
 
     info!("Summary written to: {:?}", output_path);
 
-    match Arc::try_unwrap(db_manager) {
-        Ok(manager) => manager.close().context("Failed to close database")?,
-        Err(_) => error!("Failed to unwrap Arc, database may not be properly closed"),
-    }
-
     logger.log("Application finished").context("Failed to log finish message")?;
     Ok(())
 }
@@ -569,8 +554,6 @@ fn main() -> Result<()> {
 mod tests {
     use super::*;
     use tempfile::TempDir;
-
-    // ... (keep existing tests)
 
     #[test]
     fn test_database_operations() -> Result<()> {
