@@ -6,7 +6,7 @@ Most important objective:
 
 OSS Code Analyzer and LLM-Ready Summarizer - Technical Approach
 
-This document outlines the technical approach for the OSS Code Analyzer and LLM-Ready Summarizer, an application for processing ZIP archives of OSS projects, analyzing code, and generating a compressed, LLM-friendly summary.
+This document outlines the technical approach for the OSS Code Analyzer and LLM-Ready Summarizer, an application for processing ZIP archives of OSS projects, analyzing code, and generating an LLM-friendly summary.
 
 1. CLI (Command-Line Interface) Module
 
@@ -86,7 +86,7 @@ Data Structures:
     OutputManager struct: Manages file output operations.
 Functions:
     OutputManager::new(config: &Config) -> Result<Self, anyhow::Error>: Creates a new OutputManager, creates output directory if it doesn't exist.
-    OutputManager::write_summary(summary: &ProjectSummary) -> Result<(), anyhow::Error>: Writes the compressed summary to the LLM-ready output file.
+    OutputManager::write_summary(summary: &ProjectSummary) -> Result<(), anyhow::Error>: Writes the summary to the LLM-ready output file.
     OutputManager::write_progress(message: &str) -> Result<(), anyhow::Error>: Writes a progress message to the progress tracking file with a timestamp.
     OutputManager::log_message(level: Level, message: &str) -> Result<(), anyhow::Error>: Logs a message to the log file with timestamp and log level. Uses colored output for console.
 

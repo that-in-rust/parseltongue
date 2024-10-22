@@ -11,8 +11,6 @@ use flate2::read::GzDecoder;
 use flate2::Compression;
 use regex::Regex;
 use std::collections::HashSet;
-use aes_gcm::{Aes256Gcm, Key, Nonce};
-use aes_gcm::aead::{Aead, NewAead};
 
 mod logger {
     use std::fs::OpenOptions;
@@ -476,14 +474,6 @@ mod output {
         writer.write_all(json.as_bytes()).context("Failed to write summary to file")?;
         writer.flush().context("Failed to flush output file")?;
         Ok(())
-    }
-
-    pub fn encrypt_summary(summary: &str, key: &[u8; 32]) -> Result<Vec<u8>> {
-        let cipher = Aes256Gcm::new(Key::from_slice(key));
-        let nonce = Nonce::from_slice(b"unique nonce"); // In practice, use a unique nonce for each encryption
-        let encrypted = cipher.encrypt(nonce, summary.as_bytes())
-            .map_err(|e| anyhow::anyhow!("Encryption failed: {:?}", e))?;
-        Ok(encrypted)
     }
 }
 
