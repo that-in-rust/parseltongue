@@ -4,6 +4,9 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use indicatif::{ProgressBar, ProgressStyle};
 use serde_json;
+use chrono::Local;
+use clap::Parser;
+use encoding_rs::WINDOWS_1252;
 
 mod logger {
     use std::fs::OpenOptions;
@@ -118,6 +121,7 @@ mod code_analysis {
     use serde::{Serialize, Deserialize};
     use regex::Regex;
     use std::collections::HashSet;
+    use encoding_rs::WINDOWS_1252;
 
     #[derive(Debug, Serialize, Deserialize)]
     pub struct ParsedFile {
@@ -157,13 +161,20 @@ mod code_analysis {
     }
 
     pub fn analyze_file(name: &str, content: &[u8]) -> Result<ParsedFile> {
-        let language = detect_language(name, content);
-        let loc = count_lines(content).context("Failed to count lines")?;
-        let cyclomatic_complexity = calculate_cyclomatic_complexity(content).context("Failed to calculate cyclomatic complexity")?;
-        let cognitive_complexity = calculate_cognitive_complexity(content).context("Failed to calculate cognitive complexity")?;
-        let halstead_metrics = calculate_halstead_metrics(content).context("Failed to calculate Halstead metrics")?;
-        let functions = find_functions(content).context("Failed to find functions")?;
-        let ast = parse_expression(content).ok();
+        let (cow, _, had_errors) = WINDOWS_1252.decode(content);
+        let text = cow.into_owned();
+        
+        if had_errors {
+            log::warn!("File {} had encoding errors, some characters may be incorrect", name);
+        }
+
+        let language = detect_language(name, &text);
+        let loc = count_lines(&text).context("Failed to count lines")?;
+        let cyclomatic_complexity = calculate_cyclomatic_complexity(&text).context("Failed to calculate cyclomatic complexity")?;
+        let cognitive_complexity = calculate_cognitive_complexity(&text).context("Failed to calculate cognitive complexity")?;
+        let halstead_metrics = calculate_halstead_metrics(&text).context("Failed to calculate Halstead metrics")?;
+        let functions = find_functions(&text).context("Failed to find functions")?;
+        let ast = parse_expression(&text).ok();
 
         Ok(ParsedFile {
             name: name.to_string(),
@@ -177,7 +188,7 @@ mod code_analysis {
         })
     }
 
-    fn detect_language(filename: &str, content: &[u8]) -> LanguageType {
+    fn detect_language(filename: &str, content: &str) -> LanguageType {
         if let Some(lang) = detect_from_extension(filename) {
             return lang;
         }
@@ -193,42 +204,37 @@ mod code_analysis {
         }
     }
 
-    fn detect_from_content(content: &[u8]) -> LanguageType {
-        if content.starts_with(b"fn ") || content.starts_with(b"use ") {
+    fn detect_from_content(content: &str) -> LanguageType {
+        if content.starts_with("fn ") || content.starts_with("use ") {
             LanguageType::Rust
-        } else if content.starts_with(b"def ") || content.starts_with(b"import ") {
+        } else if content.starts_with("def ") || content.starts_with("import ") {
             LanguageType::Python
-        } else if content.starts_with(b"function ") || content.starts_with(b"var ") {
+        } else if content.starts_with("function ") || content.starts_with("var ") {
             LanguageType::JavaScript
         } else {
             LanguageType::Unknown
         }
     }
 
-    fn count_lines(content: &[u8]) -> Result<usize> {
-        Ok(std::str::from_utf8(content)
-            .context("Failed to convert content to UTF-8")?
-            .lines()
-            .count())
+    fn count_lines(content: &str) -> Result<usize> {
+        Ok(content.lines().count())
     }
 
-    fn calculate_cyclomatic_complexity(content: &[u8]) -> Result<usize> {
-        let text = std::str::from_utf8(content).context("Failed to convert content to UTF-8")?;
-        let complexity = 1 + text.matches("if ").count()
-            + text.matches("for ").count()
-            + text.matches("while ").count()
-            + text.matches("case ").count()
-            + text.matches("&&").count()
-            + text.matches("||").count();
+    fn calculate_cyclomatic_complexity(content: &str) -> Result<usize> {
+        let complexity = 1 + content.matches("if ").count()
+            + content.matches("for ").count()
+            + content.matches("while ").count()
+            + content.matches("case ").count()
+            + content.matches("&&").count()
+            + content.matches("||").count();
         Ok(complexity)
     }
 
-    fn calculate_cognitive_complexity(content: &[u8]) -> Result<usize> {
-        let text = std::str::from_utf8(content).context("Failed to convert content to UTF-8")?;
+    fn calculate_cognitive_complexity(content: &str) -> Result<usize> {
         let mut complexity = 0;
         let mut nesting_level: usize = 0;
 
-        for line in text.lines() {
+        for line in content.lines() {
             if line.contains("if ") || line.contains("for ") || line.contains("while ") {
                 complexity += 1 + nesting_level;
                 nesting_level += 1;
@@ -244,18 +250,17 @@ mod code_analysis {
         Ok(complexity)
     }
 
-    fn calculate_halstead_metrics(content: &[u8]) -> Result<HalsteadMetrics> {
-        let text = std::str::from_utf8(content).context("Failed to convert content to UTF-8")?;
+    fn calculate_halstead_metrics(content: &str) -> Result<HalsteadMetrics> {
         let operators = Regex::new(r"[+\-*/=<>!&|^~%]|\b(if|else|for|while|return)\b").unwrap();
         let operands = Regex::new(r"\b[a-zA-Z_][a-zA-Z0-9_]*\b|\d+").unwrap();
 
-        let unique_operators: HashSet<_> = operators.find_iter(text).map(|m| m.as_str()).collect();
-        let unique_operands: HashSet<_> = operands.find_iter(text).map(|m| m.as_str()).collect();
+        let unique_operators: HashSet<_> = operators.find_iter(content).map(|m| m.as_str()).collect();
+        let unique_operands: HashSet<_> = operands.find_iter(content).map(|m| m.as_str()).collect();
 
         let n1 = unique_operators.len();
         let n2 = unique_operands.len();
-        let n1_count = operators.find_iter(text).count();
-        let n2_count = operands.find_iter(text).count();
+        let n1_count = operators.find_iter(content).count();
+        let n2_count = operands.find_iter(content).count();
 
         let program_vocabulary = n1 + n2;
         let program_length = n1_count + n2_count;
@@ -274,8 +279,7 @@ mod code_analysis {
         })
     }
 
-    fn find_functions(content: &[u8]) -> Result<Vec<String>> {
-        let content = std::str::from_utf8(content).context("Failed to convert content to UTF-8")?;
+    fn find_functions(content: &str) -> Result<Vec<String>> {
         let re = Regex::new(r"(?m)^(?:fn|def|function)\s+([a-zA-Z_][a-zA-Z0-9_]*)")
             .context("Failed to create regex")?;
         Ok(re.captures_iter(content)
@@ -283,9 +287,8 @@ mod code_analysis {
             .collect())
     }
 
-    fn parse_expression(content: &[u8]) -> Result<Expr> {
-        let content = std::str::from_utf8(content).context("Failed to convert content to UTF-8")?;
-        parse_expr(content).context("Failed to parse expression")
+    pub fn parse_expression(content: &str) -> Result<Expr> {
+        parse_expr(content)
     }
 
     fn parse_expr(input: &str) -> Result<Expr> {
@@ -373,45 +376,69 @@ mod output {
     }
 }
 
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Config {
+    /// Input ZIP file path
+    #[clap(short, long, parse(from_os_str))]
+    input_zip: PathBuf,
+
+    /// Output directory path
+    #[clap(short, long, parse(from_os_str))]
+    output_dir: PathBuf,
+
+    /// Whether to extract the ZIP contents
+    #[clap(short, long)]
+    extract: bool,
+}
+
 fn main() -> Result<()> {
     env_logger::init();
-    
-    // Hardcoded values instead of command-line arguments
-    let input_path = "/home/amuldotexe/Downloads/tokei-master.zip";
-    let output_dir = "/home/amuldotexe/Desktop/TempResults2024/Parseltongue2024/Play2024";
-    let extract = false;
 
-    info!("Input: {}, Output: {}, Extract: {}", input_path, output_dir, extract);
+    let config = parse_config()?;
 
-    let logger: logger::Logger = logger::Logger::new(Path::new(output_dir)).context("Failed to create logger")?;
+    // Get the start timestamp
+    let start_timestamp = Local::now().format("%Y%m%d%H%M%S").to_string();
+
+    // Extract the folder name from the zip file path
+    let folder_name = config.input_zip
+        .file_stem()
+        .and_then(|name| name.to_str())
+        .unwrap_or("unknown");
+
+    info!("Input: {}, Output: {}, Extract: {}", 
+          config.input_zip.display(), 
+          config.output_dir.display(), 
+          config.extract);
+
+    let logger = logger::Logger::new(&config.output_dir).context("Failed to create logger")?;
     
     logger.log(log::Level::Info, "Starting the application").context("Failed to log start message")?;
 
-    let db_path: &Path = Path::new("huffelpuff_db");
-    let db_manager: Arc<database::DatabaseManager> = Arc::new(database::DatabaseManager::new(db_path).context("Failed to create DatabaseManager")?);
+    let db_path = Path::new("huffelpuff_db");
+    let db_manager = Arc::new(database::DatabaseManager::new(db_path).context("Failed to create DatabaseManager")?);
 
-    let zip_path: PathBuf = PathBuf::from(input_path);
-    let output_dir: PathBuf = PathBuf::from(output_dir);
-    let zip_entries: Vec<zip_processing::ZipEntry> = zip_processing::process_zip(&zip_path, extract, &output_dir).context("Failed to process ZIP file")?;
+    let zip_entries = zip_processing::process_zip(&config.input_zip, config.extract, &config.output_dir)
+        .context("Failed to process ZIP file")?;
 
-    let mut parsed_files: Vec<code_analysis::ParsedFile> = Vec::new();
+    let mut parsed_files = Vec::new();
 
-    let total_files: usize = zip_entries.len();
-    let progress_bar: ProgressBar = ProgressBar::new(total_files as u64);
+    let total_files = zip_entries.len();
+    let progress_bar = ProgressBar::new(total_files as u64);
     let progress_style = ProgressStyle::default_bar()
         .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} {msg}")
-        .expect("Failed to set progress bar style")
+        .context("Failed to set progress bar style")?
         .progress_chars("=>-");
     progress_bar.set_style(progress_style);
 
     for entry in zip_entries {
         progress_bar.set_message(format!("Processing: {}", entry.name));
         
-        let analysis_result: code_analysis::ParsedFile = code_analysis::analyze_file(&entry.name, &entry.content)
+        let analysis_result = code_analysis::analyze_file(&entry.name, &entry.content)
             .context("Failed to analyze file")?;
         
-        let analysis_key: Vec<u8> = format!("analysis:{}", entry.name).into_bytes();
-        let analysis_value: Vec<u8> = serde_json::to_vec(&analysis_result).context("Failed to serialize analysis result")?;
+        let analysis_key = format!("analysis:{}", entry.name).into_bytes();
+        let analysis_value = serde_json::to_vec(&analysis_result).context("Failed to serialize analysis result")?;
         db_manager.store(&analysis_key, &analysis_value)
             .context("Failed to store analysis result")?;
 
@@ -423,15 +450,40 @@ fn main() -> Result<()> {
     }
     progress_bar.finish_with_message("Processing complete");
 
-    let project_summary: summary::ProjectSummary = summary::generate_summary(parsed_files).context("Failed to generate project summary")?;
+    let project_summary = summary::generate_summary(parsed_files).context("Failed to generate project summary")?;
     
-    let output_path: PathBuf = output_dir.join("summary.json");
+    // Create the new filename
+    let output_filename = format!("{}-{}.txt", folder_name, start_timestamp);
+    let output_path = config.output_dir.join(output_filename);
     output::write_summary(&project_summary, &output_path).context("Failed to write summary")?;
 
     info!("Summary written to: {:?}", output_path);
 
     logger.log(log::Level::Info, "Application finished").context("Failed to log finish message")?;
     Ok(())
+}
+
+fn parse_config() -> Result<Config> {
+    let config = Config::parse();
+
+    // Validate input ZIP path
+    if !config.input_zip.exists() {
+        return Err(anyhow::anyhow!("Input ZIP file does not exist: {}", config.input_zip.display()));
+    }
+    if !config.input_zip.is_file() {
+        return Err(anyhow::anyhow!("Input path is not a file: {}", config.input_zip.display()));
+    }
+
+    // Ensure output directory exists or can be created
+    if !config.output_dir.exists() {
+        std::fs::create_dir_all(&config.output_dir)
+            .context("Failed to create output directory")?;
+    }
+    if !config.output_dir.is_dir() {
+        return Err(anyhow::anyhow!("Output path is not a directory: {}", config.output_dir.display()));
+    }
+
+    Ok(config)
 }
 
 #[cfg(test)]
