@@ -1,21 +1,13 @@
-use std::fs::File;
-use std::io::{Read, Write, BufWriter};
-use log::{info, error, debug, warn, trace};
-use anyhow::{Context, Result, bail};
+use log::info;
+use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use serde::{Serialize, Deserialize};
 use indicatif::{ProgressBar, ProgressStyle};
-use flate2::write::GzEncoder;
-use flate2::read::GzDecoder;
-use flate2::Compression;
-use regex::Regex;
-use std::collections::HashSet;
+use serde_json;
 
 mod logger {
     use std::fs::OpenOptions;
-    use std::io::{Write, BufWriter};
-    use std::time::{SystemTime, UNIX_EPOCH};
+    use std::io::Write;
     use log::{debug, error, warn, info, trace};
     use anyhow::{Result, Context};
     use std::path::{Path, PathBuf};
@@ -23,14 +15,12 @@ mod logger {
 
     pub struct Logger {
         log_file: PathBuf,
-        progress_file: PathBuf,
     }
 
     impl Logger {
         pub fn new(output_dir: &Path) -> Result<Self> {
             let log_file = output_dir.join("log.txt");
-            let progress_file = output_dir.join("processProgress.txt");
-            Ok(Self { log_file, progress_file })
+            Ok(Self { log_file })
         }
 
         pub fn log(&self, level: log::Level, message: &str) -> Result<()> {
@@ -53,19 +43,6 @@ mod logger {
             
             Ok(())
         }
-
-        pub fn log_progress(&self, message: &str) -> Result<()> {
-            let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-            let progress_message = format!("[{}] {}", timestamp, message);
-            
-            let mut file = OpenOptions::new()
-                .append(true)
-                .create(true)
-                .open(&self.progress_file)?;
-            writeln!(file, "{}", progress_message)?;
-            
-            Ok(())
-        }
     }
 }
 
@@ -74,10 +51,6 @@ mod database {
     use sled::Db;
     use std::path::Path;
     use log::debug;
-    use flate2::write::GzEncoder;
-    use flate2::read::GzDecoder;
-    use flate2::Compression;
-    use std::io::{Read, Write};
 
     pub struct DatabaseManager {
         db: Db,
@@ -94,84 +67,6 @@ mod database {
             debug!("Stored key: {:?}", String::from_utf8_lossy(key));
             Ok(())
         }
-
-        pub fn get(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
-            match self.db.get(key).context("Failed to retrieve from database")? {
-                Some(ivec) => {
-                    let value = ivec.to_vec();
-                    debug!("Database hit for key: {:?}", String::from_utf8_lossy(key));
-                    Ok(Some(value))
-                }
-                None => {
-                    debug!("Key not found: {:?}", String::from_utf8_lossy(key));
-                    Ok(None)
-                }
-            }
-        }
-
-        pub fn delete(&self, key: &[u8]) -> Result<()> {
-            self.db.remove(key).context("Failed to delete from database")?;
-            debug!("Deleted key: {:?}", String::from_utf8_lossy(key));
-            Ok(())
-        }
-
-        pub fn iter(&self) -> impl Iterator<Item = Result<(Vec<u8>, Vec<u8>)>> + '_ {
-            self.db.iter().map(|result| {
-                result
-                    .context("Failed to iterate over database")
-                    .map(|(key, value)| (key.to_vec(), value.to_vec()))
-            })
-        }
-
-        pub fn flush(&self) -> Result<()> {
-            self.db.flush().context("Failed to flush database")?;
-            debug!("Database flushed");
-            Ok(())
-        }
-
-        pub fn store_compressed_ast(&self, key: &[u8], ast: &[u8]) -> Result<()> {
-            let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-            encoder.write_all(ast)?;
-            let compressed_ast = encoder.finish()?;
-            self.store(key, &compressed_ast)
-        }
-
-        pub fn get_compressed_ast(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
-            if let Some(compressed_ast) = self.get(key)? {
-                let mut decoder = GzDecoder::new(&compressed_ast[..]);
-                let mut ast = Vec::new();
-                decoder.read_to_end(&mut ast)?;
-                Ok(Some(ast))
-            } else {
-                Ok(None)
-            }
-        }
-    }
-}
-
-mod cli {
-    use anyhow::{Result, anyhow};
-    use clap::Parser;
-
-    #[derive(Parser, Debug)]
-    #[clap(author, version, about, long_about = None)]
-    pub struct Config {
-        #[clap(short, long)]
-        pub input: String,
-        #[clap(short, long)]
-        pub output: String,
-        #[clap(short, long, default_value = "info")]
-        pub verbosity: String,
-        #[clap(short, long)]
-        pub extract: bool,
-    }
-
-    pub fn parse_config() -> Result<Config> {
-        let config = Config::parse();
-        if config.input.is_empty() || config.output.is_empty() {
-            return Err(anyhow!("Input and output paths must be specified"));
-        }
-        Ok(config)
     }
 }
 
@@ -359,14 +254,14 @@ mod code_analysis {
 
         let n1 = unique_operators.len();
         let n2 = unique_operands.len();
-        let N1 = operators.find_iter(text).count();
-        let N2 = operands.find_iter(text).count();
+        let n1_count = operators.find_iter(text).count();
+        let n2_count = operands.find_iter(text).count();
 
         let program_vocabulary = n1 + n2;
-        let program_length = N1 + N2;
+        let program_length = n1_count + n2_count;
         let calculated_length = (n1 as f64 * (n2 as f64).log2() + n2 as f64 * (n1 as f64).log2()) as f64;
         let volume = (program_length as f64) * (program_vocabulary as f64).log2();
-        let difficulty = (n1 as f64 / 2.0) * (N2 as f64 / n2 as f64);
+        let difficulty = (n1 as f64 / 2.0) * (n2_count as f64 / n2 as f64);
         let effort = difficulty * volume;
 
         Ok(HalsteadMetrics {
@@ -416,7 +311,7 @@ mod code_analysis {
             let num = num_str.parse::<f64>().context("Failed to parse number")?;
             Ok((Expr::Number(num), rest))
         } else {
-            bail!("Invalid input")
+            Err(anyhow::anyhow!("Invalid input"))
         }
     }
 }
@@ -466,6 +361,7 @@ mod output {
     use std::fs::File;
     use std::io::{Write, BufWriter};
     use std::path::Path;
+    use serde_json;
 
     pub fn write_summary(summary: &ProjectSummary, output_path: &Path) -> Result<()> {
         let json = serde_json::to_string_pretty(summary).context("Failed to serialize summary")?;
@@ -477,59 +373,26 @@ mod output {
     }
 }
 
-mod output_manager {
-    use super::cli::Config;
-    use anyhow::{Result, Context};
-    use std::fs::File;
-    use std::io::Write;
-    use chrono::Local;
-
-    pub struct OutputManager {
-        output_dir: String,
-        progress_file: File,
-    }
-
-    impl OutputManager {
-        pub fn new(config: &Config) -> Result<Self> {
-            std::fs::create_dir_all(&config.output)?;
-            let timestamp = Local::now().format("%Y%m%d%H%M%S").to_string();
-            let progress_file_name = format!("progress-{}-{}.txt", config.input, timestamp);
-            let progress_file_path = std::path::Path::new(&config.output).join(progress_file_name);
-            let progress_file = File::create(progress_file_path)?;
-            Ok(Self {
-                output_dir: config.output.clone(),
-                progress_file,
-            })
-        }
-
-        pub fn write_progress(&mut self, message: &str) -> Result<()> {
-            let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-            writeln!(self.progress_file, "[{}] {}", timestamp, message)?;
-            Ok(())
-        }
-    }
-}
-
 fn main() -> Result<()> {
     env_logger::init();
     
-    let config: cli::Config = cli::parse_config().context("Failed to parse config")?;
-    info!("Config: {:?}", config);
+    // Hardcoded values instead of command-line arguments
+    let input_path = "/home/amuldotexe/Downloads/tokei-master.zip";
+    let output_dir = "/home/amuldotexe/Desktop/TempResults2024/Parseltongue2024/Play2024";
+    let extract = false;
 
-    let zip_filename: &str = Path::new(&config.input)
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or("unknown");
-    let logger: logger::Logger = logger::Logger::new(Path::new(&config.output)).context("Failed to create logger")?;
+    info!("Input: {}, Output: {}, Extract: {}", input_path, output_dir, extract);
+
+    let logger: logger::Logger = logger::Logger::new(Path::new(output_dir)).context("Failed to create logger")?;
     
     logger.log(log::Level::Info, "Starting the application").context("Failed to log start message")?;
 
     let db_path: &Path = Path::new("huffelpuff_db");
     let db_manager: Arc<database::DatabaseManager> = Arc::new(database::DatabaseManager::new(db_path).context("Failed to create DatabaseManager")?);
 
-    let zip_path: PathBuf = PathBuf::from(&config.input);
-    let output_dir: PathBuf = PathBuf::from(&config.output);
-    let zip_entries: Vec<zip_processing::ZipEntry> = zip_processing::process_zip(&zip_path, config.extract, &output_dir).context("Failed to process ZIP file")?;
+    let zip_path: PathBuf = PathBuf::from(input_path);
+    let output_dir: PathBuf = PathBuf::from(output_dir);
+    let zip_entries: Vec<zip_processing::ZipEntry> = zip_processing::process_zip(&zip_path, extract, &output_dir).context("Failed to process ZIP file")?;
 
     let mut parsed_files: Vec<code_analysis::ParsedFile> = Vec::new();
 
@@ -539,9 +402,6 @@ fn main() -> Result<()> {
         .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} {msg}")
         .expect("Failed to set progress bar style")
         .progress_chars("🛡⚡🔨"));
-
-    let mut output_manager: output_manager::OutputManager = output_manager::OutputManager::new(&config)?;
-    output_manager.write_progress("Starting analysis")?;
 
     for entry in zip_entries {
         progress_bar.set_message(format!("Processing: {}", entry.name));
@@ -559,15 +419,13 @@ fn main() -> Result<()> {
 
         parsed_files.push(analysis_result);
         progress_bar.inc(1);
-        output_manager.write_progress(&format!("Processed {} files", progress_bar.position()))?;
     }
     progress_bar.finish_with_message("Processing complete");
-    output_manager.write_progress(&format!("Processed {} files", total_files))?;
 
     let project_summary: summary::ProjectSummary = summary::generate_summary(parsed_files).context("Failed to generate project summary")?;
     
-    let output_path: &Path = Path::new(&config.output);
-    output::write_summary(&project_summary, output_path).context("Failed to write summary")?;
+    let output_path: PathBuf = output_dir.join("summary.json");
+    output::write_summary(&project_summary, &output_path).context("Failed to write summary")?;
 
     info!("Summary written to: {:?}", output_path);
 
@@ -590,12 +448,6 @@ mod tests {
         let value = b"test_value";
 
         db_manager.store(key, value).context("Failed to store value")?;
-        let retrieved = db_manager.get(key).context("Failed to get value")?;
-        assert_eq!(retrieved, Some(value.to_vec()));
-
-        db_manager.delete(key).context("Failed to delete value")?;
-        let deleted = db_manager.get(key).context("Failed to check deleted value")?;
-        assert_eq!(deleted, None);
 
         Ok(())
     }

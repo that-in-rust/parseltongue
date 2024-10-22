@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.3.19", features = ["derive"] }
 anyhow = "1.0.72"
 zip = "0.6.6"
 sled = "0.34.7"
@@ -15,8 +14,6 @@ env_logger = "0.10.0"
 chrono = "0.4.26"
 indicatif = "0.17.5"
 regex = "1.9.1"
-flate2 = "1.0.26"
-aes-gcm = "0.10.1"
 
 [dev-dependencies]
 tempfile = "3.7.0"

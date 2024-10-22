@@ -6,20 +6,9 @@ Most important objective:
 
 OSS Code Analyzer and LLM-Ready Summarizer - Technical Approach
 
-This document outlines the technical approach for the OSS Code Analyzer and LLM-Ready Summarizer, an application for processing ZIP archives of OSS projects, analyzing code, and generating an LLM-friendly summary.
+This document outlines the technical approach for the OSS Code Analyzer and LLM-Ready Summarizer, an application for processing ZIP archives of OSS projects, analyzing code, and generating an LLM-friendly summary. The application uses hardcoded paths for input and output.
 
-1. CLI (Command-Line Interface) Module
-
-Purpose: Handles command-line argument parsing and validation.
-Input: Command-line arguments.
-Output: A Config struct containing parsed and validated configuration options.
-Dependencies: clap.
-Data Structures:
-    Config struct: Stores configuration like input ZIP path, output directory, verbosity, etc.
-Functions:
-    parse_config() -> Result<Config, anyhow::Error>: Parses command-line arguments into a Config struct, handles errors using anyhow. Validates input and output paths.
-
-2. ZIP Processing Module
+1. ZIP Processing Module
 
 Purpose: Processes file entries from ZIP archives.
 Input: Path to the input ZIP file (PathBuf).
@@ -30,7 +19,7 @@ Data Structures:
 Functions:
     process_zip(zip_path: PathBuf) -> Result<Vec<ZipEntry>, anyhow::Error>: Opens the ZIP archive, iterates through its entries, collects each ZipEntry, handles any errors during file reading or ZIP traversal.
 
-3. Database Module
+2. Database Module
 
 Purpose: Manages an embedded database (sled) for storing file contents and summaries.
 Input: ZipEntry structs, parsed ParsedFile structs.
@@ -44,7 +33,7 @@ Functions:
     DatabaseManager::get(key: &[u8]) -> Result<Option<Vec<u8>>, anyhow::Error>: Retrieves data from the database.
     DatabaseManager::close() -> Result<(), anyhow::Error>: Closes the database, flushes any pending writes.
 
-4. Code Analysis Module
+3. Code Analysis Module
 
 Purpose: Performs code analysis on file contents. Detects language, counts lines, calculates various code complexity metrics, and performs basic parsing.
 Input: ZipEntry structs.
@@ -65,7 +54,7 @@ Functions:
     find_functions(content: &[u8]) -> Result<Vec<String>, anyhow::Error>: Uses regex to find function definitions.
     parse_expression(content: &[u8]) -> Result<Expr, anyhow::Error>: Parses simple arithmetic expressions using a recursive descent parser.
 
-5. Summary Module
+4. Summary Module
 
 Purpose: Generates a project summary from analyzed files.
 Input: A vector of ParsedFile structs.
@@ -76,7 +65,7 @@ Data Structures:
 Functions:
     generate_summary(files: Vec<ParsedFile>) -> Result<ProjectSummary, anyhow::Error>: Generates a project summary, calculates total LOC, language breakdown, etc. Serializes to a compressed message using flate2.
 
-6. Output Module
+5. Output Module
 
 Purpose: Manages writing the final summary, progress updates, and log messages to files.
 Input: ProjectSummary struct, progress messages (String), log messages (String), config options (Config).
@@ -90,7 +79,7 @@ Functions:
     OutputManager::write_progress(message: &str) -> Result<(), anyhow::Error>: Writes a progress message to the progress tracking file with a timestamp.
     OutputManager::log_message(level: Level, message: &str) -> Result<(), anyhow::Error>: Logs a message to the log file with timestamp and log level. Uses colored output for console.
 
-7. Logging Module
+6. Logging Module
 
 Purpose: Provides logging to console and file.
 Input: Log messages (String), log levels (log::Level).
