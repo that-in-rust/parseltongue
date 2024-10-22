@@ -4,16 +4,17 @@ use sled::Db;
 use log::{info, error, debug, warn};
 use anyhow::{Context, Result, bail};
 use clap::Parser;
-use tokio::sync::mpsc;
+use std::sync::mpsc;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use serde::{Serialize, Deserialize};
 use std::time::Duration;
 use chrono::Local;
 use indicatif::{ProgressBar, ProgressStyle};
-use tokio::time::timeout;
-use tokio::fs::File;
-use tokio::io::AsyncWriteExt;
+use flate2::write::GzEncoder;
+use flate2::Compression;
+use regex::Regex;
+use std::collections::HashSet;
 
 mod logger {
     use std::fs::OpenOptions;
@@ -61,7 +62,6 @@ mod logger {
 
 mod database {
     use anyhow::{Result, Context};
-    use moka::sync::Cache;
     use sled::Db;
     use std::path::Path;
     use std::sync::Arc;
@@ -69,32 +69,24 @@ mod database {
 
     pub struct DatabaseManager {
         db: Db,
-        cache: Cache<Vec<u8>, Vec<u8>>,
     }
 
     impl DatabaseManager {
         pub fn new(path: &Path) -> Result<Self> {
             let db = sled::open(path).context("Failed to open database")?;
-            let cache = Cache::new(10_000); // Cache size of 10,000 items
-            Ok(Self { db, cache })
+            Ok(Self { db })
         }
 
         pub fn store(&self, key: &[u8], value: &[u8]) -> Result<()> {
             self.db.insert(key, value).context("Failed to insert into database")?;
-            self.cache.insert(key.to_vec(), value.to_vec());
             debug!("Stored key: {:?}", String::from_utf8_lossy(key));
             Ok(())
         }
 
         pub fn get(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
-            if let Some(value) = self.cache.get(key) {
-                debug!("Cache hit for key: {:?}", String::from_utf8_lossy(key));
-                return Ok(Some(value));
-            }
             match self.db.get(key).context("Failed to retrieve from database")? {
                 Some(ivec) => {
                     let value = ivec.to_vec();
-                    self.cache.insert(key.to_vec(), value.clone());
                     debug!("Database hit for key: {:?}", String::from_utf8_lossy(key));
                     Ok(Some(value))
                 }
@@ -107,7 +99,6 @@ mod database {
 
         pub fn delete(&self, key: &[u8]) -> Result<()> {
             self.db.remove(key).context("Failed to delete from database")?;
-            self.cache.remove(key);
             debug!("Deleted key: {:?}", String::from_utf8_lossy(key));
             Ok(())
         }
@@ -133,19 +124,22 @@ mod database {
             Ok(())
         }
 
-        pub fn get_with_timeout(&self, key: &[u8], timeout: Duration) -> Result<Option<Vec<u8>>> {
-            tokio::time::timeout(timeout, async {
-                self.get(key)
-            }).await.context("Database operation timed out")?
+        pub fn store_compressed_ast(&self, key: &[u8], ast: &[u8]) -> Result<()> {
+            let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+            encoder.write_all(ast)?;
+            let compressed_ast = encoder.finish()?;
+            self.store(key, &compressed_ast)
         }
 
-        pub fn atomic_operation<F, T>(&self, f: F) -> Result<T>
-        where
-            F: FnOnce(&sled::Tree) -> Result<T>,
-        {
-            let tree = self.db.open_tree("default")?;
-            tree.transaction(|tx_db| f(tx_db).map_err(sled::transaction::ConflictableTransactionError::Abort))
-                .map_err(|e| anyhow::anyhow!("Transaction failed: {:?}", e))
+        pub fn get_compressed_ast(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
+            if let Some(compressed_ast) = self.get(key)? {
+                let mut decoder = flate2::read::GzDecoder::new(&compressed_ast[..]);
+                let mut ast = Vec::new();
+                decoder.read_to_end(&mut ast)?;
+                Ok(Some(ast))
+            } else {
+                Ok(None)
+            }
         }
     }
 }
@@ -177,7 +171,6 @@ mod cli {
 mod zip_processing {
     use anyhow::Result;
     use std::path::PathBuf;
-    use tokio::sync::mpsc;
     use zip::ZipArchive;
     use std::fs::File;
     use std::io::Read;
@@ -187,50 +180,54 @@ mod zip_processing {
         pub content: Vec<u8>,
     }
 
-    pub async fn process_zip(zip_path: PathBuf) -> Result<mpsc::Receiver<Result<ZipEntry>>> {
-        let (tx, rx) = mpsc::channel(100);
+    pub fn process_zip(zip_path: PathBuf) -> Result<Vec<ZipEntry>> {
+        let file = File::open(&zip_path).context("Failed to open ZIP file")?;
+        let mut archive = ZipArchive::new(file).context("Failed to create ZIP archive")?;
+        let mut entries = Vec::new();
 
-        tokio::task::spawn(async move {
-            match tokio::task::spawn_blocking(move || -> Result<()> {
-                let file = File::open(&zip_path).context("Failed to open ZIP file")?;
-                let mut archive = ZipArchive::new(file).context("Failed to create ZIP archive")?;
+        for i in 0..archive.len() {
+            let mut file = archive.by_index(i).with_context(|| format!("Failed to get ZIP entry at index {}", i))?;
+            let mut content = Vec::new();
+            file.read_to_end(&mut content).with_context(|| format!("Failed to read content of ZIP entry '{}'", file.name()))?;
 
-                for i in 0..archive.len() {
-                    let mut file = archive.by_index(i).with_context(|| format!("Failed to get ZIP entry at index {}", i))?;
-                    let mut content = Vec::new();
-                    file.read_to_end(&mut content).with_context(|| format!("Failed to read content of ZIP entry '{}'", file.name()))?;
+            let entry = ZipEntry {
+                name: file.name().to_string(),
+                content,
+            };
 
-                    let entry = ZipEntry {
-                        name: file.name().to_string(),
-                        content,
-                    };
+            entries.push(entry);
+        }
 
-                    tx.blocking_send(Ok(entry)).with_context(|| format!("Failed to send ZIP entry '{}'", file.name()))?;
-                }
-
-                Ok(())
-            }).await {
-                Ok(result) => result.context("ZIP processing task failed"),
-                Err(e) => Err(anyhow::anyhow!("ZIP processing task panicked: {}", e)),
-            }
-        });
-
-        Ok(rx)
+        Ok(entries)
     }
 }
 
 mod code_analysis {
     use anyhow::{Result, Context};
     use serde::{Serialize, Deserialize};
+    use regex::Regex;
+    use std::collections::HashSet;
 
     #[derive(Debug, Serialize, Deserialize)]
     pub struct ParsedFile {
         pub name: String,
         pub language: LanguageType,
         pub loc: usize,
-        pub complexity: usize,
-        pub linter_errors: usize,
-        pub linter_warnings: usize,
+        pub cyclomatic_complexity: usize,
+        pub cognitive_complexity: usize,
+        pub halstead_metrics: HalsteadMetrics,
+        pub functions: Vec<String>,
+        pub ast: Option<Expr>,
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    pub struct HalsteadMetrics {
+        pub program_vocabulary: usize,
+        pub program_length: usize,
+        pub calculated_length: f64,
+        pub volume: f64,
+        pub difficulty: f64,
+        pub effort: f64,
     }
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -241,23 +238,31 @@ mod code_analysis {
         Unknown,
     }
 
+    #[derive(Debug, Serialize, Deserialize)]
+    pub enum Expr {
+        Number(f64),
+        Add(Box<Expr>, Box<Expr>),
+        Subtract(Box<Expr>, Box<Expr>),
+    }
+
     pub fn analyze_file(name: &str, content: &[u8]) -> Result<ParsedFile> {
         let language = detect_language(name, content);
         let loc = count_lines(content).context("Failed to count lines")?;
-        let complexity = calculate_complexity(content).context("Failed to calculate complexity")?;
-        let (linter_errors, linter_warnings) = run_linter(&language, content).context("Failed to run linter")?;
-
-        if complexity > 100 {
-            warn!("High complexity detected in file: {}", name);
-        }
+        let cyclomatic_complexity = calculate_cyclomatic_complexity(content).context("Failed to calculate cyclomatic complexity")?;
+        let cognitive_complexity = calculate_cognitive_complexity(content).context("Failed to calculate cognitive complexity")?;
+        let halstead_metrics = calculate_halstead_metrics(content).context("Failed to calculate Halstead metrics")?;
+        let functions = find_functions(content).context("Failed to find functions")?;
+        let ast = parse_expression(content).ok();
 
         Ok(ParsedFile {
             name: name.to_string(),
             language,
             loc,
-            complexity,
-            linter_errors,
-            linter_warnings,
+            cyclomatic_complexity,
+            cognitive_complexity,
+            halstead_metrics,
+            functions,
+            ast,
         })
     }
 
@@ -298,15 +303,107 @@ mod code_analysis {
             .count())
     }
 
-    fn calculate_complexity(content: &[u8]) -> Result<usize> {
-        // This is a placeholder. In a real implementation, you'd use a proper
-        // complexity calculation algorithm.
-        Ok(content.len() / 100)
+    fn calculate_cyclomatic_complexity(content: &[u8]) -> Result<usize> {
+        let text = std::str::from_utf8(content).context("Failed to convert content to UTF-8")?;
+        let complexity = 1 + text.matches("if ").count()
+            + text.matches("for ").count()
+            + text.matches("while ").count()
+            + text.matches("case ").count()
+            + text.matches("&&").count()
+            + text.matches("||").count();
+        Ok(complexity)
     }
 
-    fn run_linter(language: &LanguageType, content: &[u8]) -> Result<(usize, usize)> {
-        // This is a placeholder. In a real implementation, you'd run an actual linter.
-        Ok((0, content.len() / 1000))
+    fn calculate_cognitive_complexity(content: &[u8]) -> Result<usize> {
+        let text = std::str::from_utf8(content).context("Failed to convert content to UTF-8")?;
+        let mut complexity = 0;
+        let mut nesting_level = 0;
+
+        for line in text.lines() {
+            if line.contains("if ") || line.contains("for ") || line.contains("while ") {
+                complexity += 1 + nesting_level;
+                nesting_level += 1;
+            }
+            if line.contains("}") {
+                nesting_level = nesting_level.saturating_sub(1);
+            }
+            if line.contains("&&") || line.contains("||") {
+                complexity += 1;
+            }
+        }
+
+        Ok(complexity)
+    }
+
+    fn calculate_halstead_metrics(content: &[u8]) -> Result<HalsteadMetrics> {
+        let text = std::str::from_utf8(content).context("Failed to convert content to UTF-8")?;
+        let operators = Regex::new(r"[+\-*/=<>!&|^~%]|\b(if|else|for|while|return)\b").unwrap();
+        let operands = Regex::new(r"\b[a-zA-Z_][a-zA-Z0-9_]*\b|\d+").unwrap();
+
+        let unique_operators: HashSet<_> = operators.find_iter(text).map(|m| m.as_str()).collect();
+        let unique_operands: HashSet<_> = operands.find_iter(text).map(|m| m.as_str()).collect();
+
+        let n1 = unique_operators.len();
+        let n2 = unique_operands.len();
+        let N1 = operators.find_iter(text).count();
+        let N2 = operands.find_iter(text).count();
+
+        let program_vocabulary = n1 + n2;
+        let program_length = N1 + N2;
+        let calculated_length = (n1 as f64 * n2.log2() + n2 as f64 * n1.log2()) as f64;
+        let volume = (program_length as f64) * (program_vocabulary as f64).log2();
+        let difficulty = (n1 as f64 / 2.0) * (N2 as f64 / n2 as f64);
+        let effort = difficulty * volume;
+
+        Ok(HalsteadMetrics {
+            program_vocabulary,
+            program_length,
+            calculated_length,
+            volume,
+            difficulty,
+            effort,
+        })
+    }
+
+    fn find_functions(content: &[u8]) -> Result<Vec<String>> {
+        let content = std::str::from_utf8(content).context("Failed to convert content to UTF-8")?;
+        let re = Regex::new(r"(?m)^(?:fn|def|function)\s+([a-zA-Z_][a-zA-Z0-9_]*)")
+            .context("Failed to create regex")?;
+        Ok(re.captures_iter(content)
+            .filter_map(|cap| cap.get(1).map(|m| m.as_str().to_string()))
+            .collect())
+    }
+
+    fn parse_expression(content: &[u8]) -> Result<Expr> {
+        let content = std::str::from_utf8(content).context("Failed to convert content to UTF-8")?;
+        parse_expr(content).context("Failed to parse expression")
+    }
+
+    fn parse_expr(input: &str) -> Result<Expr> {
+        let (expr, remaining) = parse_term(input)?;
+        parse_expr_rest(expr, remaining.trim())
+    }
+
+    fn parse_expr_rest(left: Expr, input: &str) -> Result<Expr> {
+        if input.starts_with('+') {
+            let (right, remaining) = parse_term(&input[1..])?;
+            parse_expr_rest(Expr::Add(Box::new(left), Box::new(right)), remaining.trim())
+        } else if input.starts_with('-') {
+            let (right, remaining) = parse_term(&input[1..])?;
+            parse_expr_rest(Expr::Subtract(Box::new(left), Box::new(right)), remaining.trim())
+        } else {
+            Ok(left)
+        }
+    }
+
+    fn parse_term(input: &str) -> Result<(Expr, &str)> {
+        if let Some(num_end) = input.find(|c: char| !c.is_digit(10) && c != '.') {
+            let (num_str, rest) = input.split_at(num_end);
+            let num = num_str.parse::<f64>().context("Failed to parse number")?;
+            Ok((Expr::Number(num), rest))
+        } else {
+            bail!("Invalid input")
+        }
     }
 }
 
@@ -322,8 +419,6 @@ mod summary {
         pub total_loc: usize,
         pub language_breakdown: HashMap<String, usize>,
         pub average_complexity: f64,
-        pub total_linter_errors: usize,
-        pub total_linter_warnings: usize,
     }
 
     pub fn generate_summary(files: Vec<ParsedFile>) -> Result<ProjectSummary> {
@@ -331,8 +426,6 @@ mod summary {
         let total_loc: usize = files.iter().map(|f| f.loc).sum();
         let mut language_breakdown = HashMap::new();
         let total_complexity: usize = files.iter().map(|f| f.complexity).sum();
-        let total_linter_errors: usize = files.iter().map(|f| f.linter_errors).sum();
-        let total_linter_warnings: usize = files.iter().map(|f| f.linter_warnings).sum();
 
         for file in &files {
             *language_breakdown.entry(format!("{:?}", file.language)).or_insert(0) += 1;
@@ -349,8 +442,6 @@ mod summary {
             total_loc,
             language_breakdown,
             average_complexity,
-            total_linter_errors,
-            total_linter_warnings,
         })
     }
 }
@@ -370,53 +461,81 @@ mod output {
         writer.flush().context("Failed to flush output file")?;
         Ok(())
     }
+}
 
-    pub async fn write_summary_async(summary: &ProjectSummary, output_path: &Path) -> Result<()> {
-        let json = serde_json::to_string_pretty(summary).context("Failed to serialize summary")?;
-        let mut file = File::create(output_path).await.context("Failed to create output file")?;
-        file.write_all(json.as_bytes()).await.context("Failed to write summary to file")?;
-        file.flush().await.context("Failed to flush output file")?;
-        Ok(())
+mod output_manager {
+    use super::cli::Config;
+    use anyhow::{Result, Context};
+    use std::fs::File;
+    use std::io::Write;
+    use chrono::Local;
+
+    pub struct OutputManager {
+        output_dir: String,
+        progress_file: File,
+    }
+
+    impl OutputManager {
+        pub fn new(config: &Config) -> Result<Self> {
+            std::fs::create_dir_all(&config.output)?;
+            let timestamp = Local::now().format("%Y%m%d%H%M%S").to_string();
+            let progress_file_name = format!("progress-{}-{}.txt", config.input_file_name, timestamp);
+            let progress_file_path = std::path::Path::new(&config.output).join(progress_file_name);
+            let progress_file = File::create(progress_file_path)?;
+            Ok(Self {
+                output_dir: config.output.clone(),
+                progress_file,
+            })
+        }
+
+        pub fn write_progress(&mut self, message: &str) -> Result<()> {
+            let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+            writeln!(self.progress_file, "[{}] {}", timestamp, message)?;
+            Ok(())
+        }
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
     env_logger::init();
     
-    let config = cli::parse_config().context("Failed to parse config")?;
+    let config: cli::Config = cli::parse_config().context("Failed to parse config")?;
     info!("Config: {:?}", config);
 
-    let zip_filename = Path::new(&config.input)
+    let zip_filename: &str = Path::new(&config.input)
         .file_name()
         .and_then(|name| name.to_str())
         .unwrap_or("unknown");
-    let logger = logger::Logger::new(zip_filename).context("Failed to create logger")?;
+    let logger: logger::Logger = logger::Logger::new(zip_filename).context("Failed to create logger")?;
     
     logger.log("Starting the application").context("Failed to log start message")?;
 
-    let db_path = Path::new("huffelpuff_db");
-    let db_manager = Arc::new(database::DatabaseManager::new(db_path).context("Failed to create DatabaseManager")?);
+    let db_path: &Path = Path::new("huffelpuff_db");
+    let db_manager: Arc<database::DatabaseManager> = Arc::new(database::DatabaseManager::new(db_path).context("Failed to create DatabaseManager")?);
 
-    let zip_path = PathBuf::from(&config.input);
-    let mut receiver = zip_processing::process_zip(zip_path).await.context("Failed to process ZIP file")?;
+    let zip_path: PathBuf = PathBuf::from(&config.input);
+    let zip_entries: Vec<zip_processing::ZipEntry> = zip_processing::process_zip(zip_path).context("Failed to process ZIP file")?;
 
-    let mut parsed_files = Vec::new();
+    let mut parsed_files: Vec<code_analysis::ParsedFile> = Vec::new();
 
-    let progress_bar = ProgressBar::new(0);
+    let total_files: usize = zip_entries.len();
+    let progress_bar: ProgressBar = ProgressBar::new(total_files as u64);
     progress_bar.set_style(ProgressStyle::default_bar()
-        .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
+        .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} {msg}")
+        .progress_chars("🛡⚡🔨")
         .expect("Failed to set progress bar style"));
 
-    while let Ok(Some(entry_result)) = timeout(Duration::from_secs(10), receiver.recv()).await {
-        let entry = entry_result.context("Failed to receive ZIP entry")?;
-        info!("Processing file: {}", entry.name);
+    let mut output_manager: output_manager::OutputManager = output_manager::OutputManager::new(&config)?;
+    output_manager.write_progress("Starting analysis")?;
+
+    for entry in zip_entries {
+        progress_bar.set_message(format!("Processing: {}", entry.name));
         
-        let analysis_result = code_analysis::analyze_file(&entry.name, &entry.content)
+        let analysis_result: code_analysis::ParsedFile = code_analysis::analyze_file(&entry.name, &entry.content)
             .context("Failed to analyze file")?;
         
-        let analysis_key = format!("analysis:{}", entry.name).into_bytes();
-        let analysis_value = serde_json::to_vec(&analysis_result).context("Failed to serialize analysis result")?;
+        let analysis_key: Vec<u8> = format!("analysis:{}", entry.name).into_bytes();
+        let analysis_value: Vec<u8> = serde_json::to_vec(&analysis_result).context("Failed to serialize analysis result")?;
         db_manager.store(&analysis_key, &analysis_value)
             .context("Failed to store analysis result")?;
 
@@ -425,12 +544,14 @@ async fn main() -> Result<()> {
 
         parsed_files.push(analysis_result);
         progress_bar.inc(1);
+        output_manager.write_progress(&format!("Processed {} files", progress_bar.position()))?;
     }
     progress_bar.finish_with_message("Processing complete");
+    output_manager.write_progress(&format!("Processed {} files", total_files))?;
 
-    let project_summary = summary::generate_summary(parsed_files).context("Failed to generate project summary")?;
+    let project_summary: summary::ProjectSummary = summary::generate_summary(parsed_files).context("Failed to generate project summary")?;
     
-    let output_path = Path::new(&config.output);
+    let output_path: &Path = Path::new(&config.output);
     output::write_summary(&project_summary, output_path).context("Failed to write summary")?;
 
     info!("Summary written to: {:?}", output_path);
