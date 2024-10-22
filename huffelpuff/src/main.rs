@@ -1,5 +1,5 @@
 use log::info;
-use anyhow::{Context, Result};
+use anyhow::{Result, Context};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -114,7 +114,7 @@ mod zip_processing {
 }
 
 mod code_analysis {
-    use anyhow::{Result, Context, bail};
+    use anyhow::{Result, Context};
     use serde::{Serialize, Deserialize};
     use regex::Regex;
     use std::collections::HashSet;
@@ -398,10 +398,11 @@ fn main() -> Result<()> {
 
     let total_files: usize = zip_entries.len();
     let progress_bar: ProgressBar = ProgressBar::new(total_files as u64);
-    progress_bar.set_style(ProgressStyle::default_bar()
+    let progress_style = ProgressStyle::default_bar()
         .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} {msg}")
         .expect("Failed to set progress bar style")
-        .progress_chars("🛡⚡🔨"));
+        .progress_chars("=>-");
+    progress_bar.set_style(progress_style);
 
     for entry in zip_entries {
         progress_bar.set_message(format!("Processing: {}", entry.name));
