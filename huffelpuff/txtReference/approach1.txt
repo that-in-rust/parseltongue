@@ -1,16 +1,17 @@
 
 Most important objective:
-- write simple bug free code which is written in modules but all placed in main.rs
-- use minimal experimental libraries
-- write working code first, optimality will be in next version
-
-
+- Write simple, bug-free Rust idiomatic code in modules, all placed in main.rs
+- Use minimal experimental libraries, preferring mature, well-documented ones
+- Focus on working code first, optimize later
+- Utilize databases for operations to minimize RAM usage
+- Log observations and terminal responses in largeLog.txt
+- Log new ideas not included in approach1.txt in backlog.txt
 
 OSS Code Analyzer and LLM-Ready Summarizer - Technical Approach
 
 This document outlines the technical approach for the OSS Code Analyzer and LLM-Ready Summarizer, an application for processing ZIP archives of OSS projects, analyzing code, and generating a compressed, LLM-friendly summary.
 
-1. CLI (Command-Line Interface) Module (cli.rs)
+1. CLI (Command-Line Interface) Module
 
 Purpose: Handles command-line argument parsing and validation.
 Input: Command-line arguments.
@@ -21,34 +22,91 @@ Data Structures:
 Functions:
     parse_config() -> Result<Config, anyhow::Error>: Parses command-line arguments into a Config struct, handles errors using anyhow. Validates input and output paths.
 
-2. ZIP Processing Module (zip_processing.rs)
+======== DIRECTIVE FOR REQUIREMENT =========
+
+Most important objective:
+- write simple bug free Rust idiomatic code which is written in modules but all placed in main.rs
+- use minimal experimental libraries, use mature libraries researching the web for their documentation to avoid mistakes
+- write working code first, optimality will be in next version
+- use databases to do operations where you can, so that RAM is not an issue
+- log everything you observe while writing code or from terminal responses in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/largeLog.txt
+- log every new idea which will not be included in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/approach1.txt in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/backlog.txt
+
+
+For above requirement:
+please expand in 3 lines what you understand and rehasht in 2 lines 
+- then Use @web to ensure what you are solving has some precednece or documentation
+- then explain what you understood in 3 lines
+- then say what you will change in @main.rs
+- then say what you will change in @Cargo.toml
+- then check the code of @main.rs against @avoidRustBugs.txt
+
+2. ZIP Processing Module
 
 Purpose: Streams file entries from ZIP archives.
 Input: Path to the input ZIP file (PathBuf).
 Output: A stream of ZipEntry structs (Receiver<Result<ZipEntry, anyhow::Error>>).
 Dependencies: zip, tokio, anyhow.
 Data Structures:
-    ZipEntry struct:  Contains name (String) and content (Vec<u8>) of a file entry in the ZIP.
+    ZipEntry struct: Contains name (String) and content (Vec<u8>) of a file entry in the ZIP.
 Functions:
     process_zip(zip_path: PathBuf) -> Result<Receiver<Result<ZipEntry, anyhow::Error>>, anyhow::Error>: Opens the ZIP archive, iterates through its entries, streams each ZipEntry through a channel, handles any errors during file reading or ZIP traversal, uses tokio::task::spawn_blocking for ZIP operations.
 
-3. Database Module (database.rs)
+======== DIRECTIVE FOR REQUIREMENT =========
+
+Most important objective:
+- write simple bug free Rust idiomatic code which is written in modules but all placed in main.rs
+- use minimal experimental libraries, use mature libraries researching the web for their documentation to avoid mistakes
+- write working code first, optimality will be in next version
+- use databases to do operations where you can, so that RAM is not an issue
+- log everything you observe while writing code or from terminal responses in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/largeLog.txt
+- log every new idea which will not be included in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/approach1.txt in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/backlog.txt
+
+
+For above requirement:
+please expand in 3 lines what you understand and rehasht in 2 lines 
+- then Use @web to ensure what you are solving has some precednece or documentation
+- then explain what you understood in 3 lines
+- then say what you will change in @main.rs
+- then say what you will change in @Cargo.toml
+- then check the code of @main.rs against @avoidRustBugs.txt
+
+3. Database Module
 
 Purpose: Manages an embedded database (sled) for storing file contents and summaries. Implements caching for efficiency.
-Input:  ZipEntry structs, parsed ParsedFile structs.
+Input: ZipEntry structs, parsed ParsedFile structs.
 Output: Stored file content and parsed data in the database. Cached data.
 Dependencies: sled, anyhow, moka.
 Data Structures:
-    DatabaseManager struct:  Wraps the sled database and the moka cache.
+    DatabaseManager struct: Wraps the sled database and the moka cache.
 Functions:
     DatabaseManager::new(path: &Path) -> Result<Self, anyhow::Error>: Creates a new DatabaseManager, opens the sled database at the given path, creates the moka cache.
     DatabaseManager::store(key: &[u8], value: &[u8]) -> Result<(), anyhow::Error>: Stores data in the database and cache.
     DatabaseManager::get(key: &[u8]) -> Result<Option<Vec<u8>>, anyhow::Error>: Retrieves data from the cache or database.
     DatabaseManager::close() -> Result<(), anyhow::Error>: Closes the database, flushes any pending writes.
 
-4. Code Analysis Module (code_analysis.rs)
+======== DIRECTIVE FOR REQUIREMENT =========
 
-Purpose:  Performs code analysis on file contents.  Detects language, counts lines, calculates code complexity metrics (cyclomatic, cognitive), runs linters, extracts other metadata (function counts, class counts, etc.).
+Most important objective:
+- write simple bug free Rust idiomatic code which is written in modules but all placed in main.rs
+- use minimal experimental libraries, use mature libraries researching the web for their documentation to avoid mistakes
+- write working code first, optimality will be in next version
+- use databases to do operations where you can, so that RAM is not an issue
+- log everything you observe while writing code or from terminal responses in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/largeLog.txt
+- log every new idea which will not be included in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/approach1.txt in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/backlog.txt
+
+
+For above requirement:
+please expand in 3 lines what you understand and rehasht in 2 lines 
+- then Use @web to ensure what you are solving has some precednece or documentation
+- then explain what you understood in 3 lines
+- then say what you will change in @main.rs
+- then say what you will change in @Cargo.toml
+- then check the code of @main.rs against @avoidRustBugs.txt
+
+4. Code Analysis Module
+
+Purpose: Performs code analysis on file contents. Detects language, counts lines, calculates code complexity metrics (cyclomatic, cognitive), runs linters, extracts other metadata (function counts, class counts, etc.).
 Input: ZipEntry structs.
 Output: ParsedFile structs.
 Dependencies: tree-sitter ecosystem (tree-sitter, tree-sitter-rust, etc.), linters (e.g., pylint, eslint), anyhow, rayon.
@@ -61,42 +119,118 @@ Functions:
     count_lines(content: &[u8]) -> (usize, usize, usize, usize): Counts lines of code, comments, and blanks.
     calculate_cyclomatic_complexity(node: &Node) -> usize: Calculates cyclomatic complexity using AST traversal.
     calculate_cognitive_complexity(node: &Node) -> usize: Calculates cognitive complexity using AST traversal.
-    run_linter(entry: &ZipEntry, linter_name: &str) -> Result<(u32, u32), anyhow::Error>:  Executes a linter as a subprocess, parses and returns error/warning counts. Handles linter-specific output formats.
+    run_linter(entry: &ZipEntry, linter_name: &str) -> Result<(u32, u32), anyhow::Error>: Executes a linter as a subprocess, parses and returns error/warning counts. Handles linter-specific output formats.
 
-5. Summary Module (summary.rs)
+======== DIRECTIVE FOR REQUIREMENT =========
+
+Most important objective:
+- write simple bug free Rust idiomatic code which is written in modules but all placed in main.rs
+- use minimal experimental libraries, use mature libraries researching the web for their documentation to avoid mistakes
+- write working code first, optimality will be in next version
+- use databases to do operations where you can, so that RAM is not an issue
+- log everything you observe while writing code or from terminal responses in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/largeLog.txt
+- log every new idea which will not be included in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/approach1.txt in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/backlog.txt
+
+
+For above requirement:
+please expand in 3 lines what you understand and rehasht in 2 lines 
+- then Use @web to ensure what you are solving has some precednece or documentation
+- then explain what you understood in 3 lines
+- then say what you will change in @main.rs
+- then say what you will change in @Cargo.toml
+- then check the code of @main.rs against @avoidRustBugs.txt
+
+5. Summary Module
 
 Purpose: Generates a project summary from analyzed files.
 Input: A vector of ParsedFile structs.
 Output: A ProjectSummary struct.
 Dependencies: serde, serde_json, flate2, anyhow.
 Data Structures:
-    FileSummary:  Reduced representation of a ParsedFile, containing essential information for the summary.
+    FileSummary: Reduced representation of a ParsedFile, containing essential information for the summary.
     ProjectSummary: Contains a vector of FileSummary structs, total LOC, language breakdown, and other project-wide metrics. Serialized using Protocol Buffers.
 Functions:
     generate_summary(files: Vec<ParsedFile>) -> Result<ProjectSummary, anyhow::Error>: Generates a project summary, calculates total LOC, language breakdown, etc. Serializes to a compressed Protocol Buffer message using flate2.
 
-6. Output Module (output.rs)
+======== DIRECTIVE FOR REQUIREMENT =========
+
+Most important objective:
+- write simple bug free Rust idiomatic code which is written in modules but all placed in main.rs
+- use minimal experimental libraries, use mature libraries researching the web for their documentation to avoid mistakes
+- write working code first, optimality will be in next version
+- use databases to do operations where you can, so that RAM is not an issue
+- log everything you observe while writing code or from terminal responses in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/largeLog.txt
+- log every new idea which will not be included in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/approach1.txt in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/backlog.txt
+
+
+For above requirement:
+please expand in 3 lines what you understand and rehasht in 2 lines 
+- then Use @web to ensure what you are solving has some precednece or documentation
+- then explain what you understood in 3 lines
+- then say what you will change in @main.rs
+- then say what you will change in @Cargo.toml
+- then check the code of @main.rs against @avoidRustBugs.txt
+
+6. Output Module
 
 Purpose: Manages writing the final summary, progress updates, and log messages to files. Cleans up old output files.
 Input: ProjectSummary struct, progress messages (String), log messages (String), config options (Config).
-Output:  LLM-ready summary file, progress tracking file, log file.
+Output: LLM-ready summary file, progress tracking file, log file.
 Dependencies: std::fs, std::io, chrono, colored, anyhow.
 Data Structures:
     OutputManager struct: Manages file output operations.
 Functions:
     OutputManager::new(config: &Config) -> Result<Self, anyhow::Error>: Creates a new OutputManager, creates output directory if it doesn't exist.
     OutputManager::write_summary(summary: &ProjectSummary) -> Result<(), anyhow::Error>: Writes the compressed summary to the LLM-ready output file.
-    OutputManager::write_progress(message: &str) -> Result<(), anyhow::Error>:  Writes a progress message to the progress tracking file with a timestamp.
+    OutputManager::write_progress(message: &str) -> Result<(), anyhow::Error>: Writes a progress message to the progress tracking file with a timestamp.
     OutputManager::log_message(level: Level, message: &str) -> Result<(), anyhow::Error>: Logs a message to the log file with timestamp and log level. Uses colored output for console.
     OutputManager::cleanup_old_files(max_files: usize) -> Result<(), anyhow::Error>: Cleans up old summary files, keeping only the most recent ones.
 
-7. Logging Module (logging.rs)
+======== DIRECTIVE FOR REQUIREMENT =========
+
+Most important objective:
+- write simple bug free Rust idiomatic code which is written in modules but all placed in main.rs
+- use minimal experimental libraries, use mature libraries researching the web for their documentation to avoid mistakes
+- write working code first, optimality will be in next version
+- use databases to do operations where you can, so that RAM is not an issue
+- log everything you observe while writing code or from terminal responses in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/largeLog.txt
+- log every new idea which will not be included in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/approach1.txt in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/backlog.txt
+
+
+For above requirement:
+please expand in 3 lines what you understand and rehasht in 2 lines 
+- then Use @web to ensure what you are solving has some precednece or documentation
+- then explain what you understood in 3 lines
+- then say what you will change in @main.rs
+- then say what you will change in @Cargo.toml
+- then check the code of @main.rs against @avoidRustBugs.txt
+
+7. Logging Module
 
 Purpose: Provides Avengers-themed logging to console and file.
 Input: Log messages (String), log levels (log::Level).
-Output:  Log messages written to the console and log file.
+Output: Log messages written to the console and log file.
 Dependencies: log, chrono, colored.
 Data Structures:
     AvengersLogger struct: Implements the log::Log trait, providing custom logging functionality.
 Functions:
-    init_logger(file_path: &Path) -> Result<(), anyhow::Error>:  Initializes the AvengersLogger, sets up logging to both file and console. Sets log level based on config.
+    init_logger(file_path: &Path) -> Result<(), anyhow::Error>: Initializes the AvengersLogger, sets up logging to both file and console. Sets log level based on config.
+
+======== DIRECTIVE FOR REQUIREMENT =========
+
+Most important objective:
+- write simple bug free Rust idiomatic code which is written in modules but all placed in main.rs
+- use minimal experimental libraries, use mature libraries researching the web for their documentation to avoid mistakes
+- write working code first, optimality will be in next version
+- use databases to do operations where you can, so that RAM is not an issue
+- log everything you observe while writing code or from terminal responses in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/largeLog.txt
+- log every new idea which will not be included in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/approach1.txt in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/backlog.txt
+
+
+For above requirement:
+please expand in 3 lines what you understand and rehasht in 2 lines 
+- then Use @web to ensure what you are solving has some precednece or documentation
+- then explain what you understood in 3 lines
+- then say what you will change in @main.rs
+- then say what you will change in @Cargo.toml
+- then check the code of @main.rs against @avoidRustBugs.txt

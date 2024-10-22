@@ -1,24 +1,28 @@
+======== DIRECTIVE FOR REQUIREMENT =========
+
 Most important objective:
 - write simple bug free Rust idiomatic code which is written in modules but all placed in main.rs
 - use minimal experimental libraries, use mature libraries researching the web for their documentation to avoid mistakes
 - write working code first, optimality will be in next version
 - use databases to do operations where you can, so that RAM is not an issue
-- log everything you observe while writing code or from terminal responses in txtReference/largeLog.txt
-- log every new idea which will not be included in txtReference/approach1.txt in txtReference/backlog.txt
+- log everything you observe while writing code or from terminal responses in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/largeLog.txt
+- log every new idea which will not be included in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/approach1.txt in /home/amuldotexe/Desktop/GitHub202410/parseltongue/huffelpuff/txtReference/backlog.txt
 
 
-Steps to Follow
-
-- for first warning or error or requirement, rehash it in 2 lines
+For above requirement:
+please expand in 3 lines what you understand and rehasht in 2 lines 
 - then Use @web to ensure what you are solving has some precednece or documentation
 - then explain what you understood in 3 lines
-- then say what you will change in src/main.rs
-- then say what you will change in Cargo.toml
-- then check what you are saying against txtReference/avoidRustBugs.txt
-- then change what you wanted to change in src/main.rs or Cargo.toml
-- then make the change and write a unit test for it in src/main.rs
-- then move to next warning or error or requirement
-- repeat
+- then say what you will change in @main.rs
+- then say what you will change in @Cargo.toml
+- then check the code of @main.rs against @avoidRustBugs.txt
 
 
 
+
+--------------------------------
+
+
+===========================================
+
+Which requirement number of @approach1.txt  are you on against @main.rs 

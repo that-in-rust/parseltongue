@@ -4,3 +4,19 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+clap = { version = "4.3.0", features = ["derive"] }
+anyhow = "1.0.71"
+tokio = { version = "1.28.2", features = ["full"] }
+zip = "0.6.6"
+sled = "0.34.7"
+moka = "0.10.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+env_logger = "0.10"
+tree-sitter = "0.20"
+libloading = "0.7"
+chrono = "0.4"
+
+[dev-dependencies]
+tempfile = "3.5.0"
