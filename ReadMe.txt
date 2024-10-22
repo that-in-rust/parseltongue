@@ -1,4 +1,4 @@
-Objective:
+Objective as of 21 October 2024:
 Create a rust program that can 
 - read the zip file of an OSS folder whose absolute path is provided by the user (terminal input call folderA)
 - place this extracted folder in a working-directory which is provided by the user (terminal input call folderB)
@@ -13,5 +13,9 @@ Create a rust program that can
 - this folderB will also contain a log.txt file which will contain all significant observations of the program each time it is build or run, this will help us debug the program in the future at a cumulative level
 
 
-first version worked
-second version struggling
+
+Log:
+
+- first version worked on 21 October 2024, I was ecstatic, it compressed the zip file processed it but could not capture all the metadata & depth of the code
+- second version I tried to do ASTs & complicatded things and failed miserably so destroyed it as of 22 October 2024 morning 5 amuldotexe
+- third version trying at 22 October 2024 morning 9 am
