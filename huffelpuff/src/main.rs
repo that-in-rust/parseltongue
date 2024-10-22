@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::{Read, Write, BufWriter};
-use log::{info, error, debug};
+use log::{info, error, debug, warn, trace};
 use anyhow::{Context, Result, bail};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -11,46 +11,61 @@ use flate2::read::GzDecoder;
 use flate2::Compression;
 use regex::Regex;
 use std::collections::HashSet;
+use aes_gcm::{Aes256Gcm, Key, Nonce};
+use aes_gcm::aead::{Aead, NewAead};
 
 mod logger {
     use std::fs::OpenOptions;
     use std::io::{Write, BufWriter};
     use std::time::{SystemTime, UNIX_EPOCH};
-    use log::{debug};
+    use log::{debug, error, warn, info, trace};
     use anyhow::{Result, Context};
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
     use chrono::Local;
 
     pub struct Logger {
         log_file: PathBuf,
+        progress_file: PathBuf,
     }
 
     impl Logger {
-        pub fn new(zip_filename: &str) -> Result<Self> {
-            let timestamp = Local::now().format("%Y%m%d%H%M%S").to_string();
-            let log_filename = format!("Log{}_{}.txt", zip_filename, timestamp);
-            let log_file = PathBuf::from(&log_filename);
-            Ok(Self { log_file })
+        pub fn new(output_dir: &Path) -> Result<Self> {
+            let log_file = output_dir.join("log.txt");
+            let progress_file = output_dir.join("processProgress.txt");
+            Ok(Self { log_file, progress_file })
         }
 
-        pub fn log(&self, message: &str) -> Result<()> {
-            let timestamp = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .context("Failed to get system time")?
-                .as_secs();
+        pub fn log(&self, level: log::Level, message: &str) -> Result<()> {
+            let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+            let log_message = format!("[{}] [{:?}] {}", timestamp, level, message);
             
-            let log_message = format!("[{}] {}", timestamp, message);
-            
-            let file = OpenOptions::new()
+            let mut file = OpenOptions::new()
                 .append(true)
                 .create(true)
-                .open(&self.log_file)
-                .context("Failed to open log file")?;
+                .open(&self.log_file)?;
+            writeln!(file, "{}", log_message)?;
+            
+            match level {
+                log::Level::Error => error!("{}", message),
+                log::Level::Warn => warn!("{}", message),
+                log::Level::Info => info!("{}", message),
+                log::Level::Debug => debug!("{}", message),
+                log::Level::Trace => trace!("{}", message),
+            }
+            
+            Ok(())
+        }
 
-            let mut writer = BufWriter::new(file);
-            writeln!(writer, "{}", log_message).context("Failed to write to log file")?;
-            writer.flush().context("Failed to flush log file")?;
-            debug!("{}", log_message);
+        pub fn log_progress(&self, message: &str) -> Result<()> {
+            let timestamp = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+            let progress_message = format!("[{}] {}", timestamp, message);
+            
+            let mut file = OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open(&self.progress_file)?;
+            writeln!(file, "{}", progress_message)?;
+            
             Ok(())
         }
     }
@@ -137,7 +152,7 @@ mod database {
 }
 
 mod cli {
-    use anyhow::Result;
+    use anyhow::{Result, anyhow};
     use clap::Parser;
 
     #[derive(Parser, Debug)]
@@ -149,12 +164,14 @@ mod cli {
         pub output: String,
         #[clap(short, long, default_value = "info")]
         pub verbosity: String,
+        #[clap(short, long)]
+        pub extract: bool,
     }
 
     pub fn parse_config() -> Result<Config> {
         let config = Config::parse();
         if config.input.is_empty() || config.output.is_empty() {
-            bail!("Input and output paths must be specified");
+            return Err(anyhow!("Input and output paths must be specified"));
         }
         Ok(config)
     }
@@ -162,18 +179,18 @@ mod cli {
 
 mod zip_processing {
     use anyhow::{Result, Context};
-    use std::path::PathBuf;
+    use std::path::{PathBuf, Path};
     use zip::ZipArchive;
-    use std::fs::File;
-    use std::io::Read;
+    use std::fs::{File, create_dir_all};
+    use std::io::{Read, Write};
 
     pub struct ZipEntry {
         pub name: String,
         pub content: Vec<u8>,
     }
 
-    pub fn process_zip(zip_path: PathBuf) -> Result<Vec<ZipEntry>> {
-        let file = File::open(&zip_path).context("Failed to open ZIP file")?;
+    pub fn process_zip(zip_path: &Path, extract: bool, output_dir: &Path) -> Result<Vec<ZipEntry>> {
+        let file = File::open(zip_path).context("Failed to open ZIP file")?;
         let mut archive = ZipArchive::new(file).context("Failed to create ZIP archive")?;
         let mut entries = Vec::new();
 
@@ -184,8 +201,17 @@ mod zip_processing {
 
             let entry = ZipEntry {
                 name: file.name().to_string(),
-                content,
+                content: content.clone(),
             };
+
+            if extract {
+                let output_path = output_dir.join(file.name());
+                if let Some(p) = output_path.parent() {
+                    create_dir_all(p).context("Failed to create directory")?;
+                }
+                let mut output_file = File::create(&output_path).context("Failed to create output file")?;
+                output_file.write_all(&content).context("Failed to write content to file")?;
+            }
 
             entries.push(entry);
         }
@@ -195,7 +221,7 @@ mod zip_processing {
 }
 
 mod code_analysis {
-    use anyhow::{Result, Context};
+    use anyhow::{Result, Context, bail};
     use serde::{Serialize, Deserialize};
     use regex::Regex;
     use std::collections::HashSet;
@@ -440,7 +466,7 @@ mod output {
     use super::summary::ProjectSummary;
     use anyhow::{Result, Context};
     use std::fs::File;
-    use std::io::Write;
+    use std::io::{Write, BufWriter};
     use std::path::Path;
 
     pub fn write_summary(summary: &ProjectSummary, output_path: &Path) -> Result<()> {
@@ -450,6 +476,14 @@ mod output {
         writer.write_all(json.as_bytes()).context("Failed to write summary to file")?;
         writer.flush().context("Failed to flush output file")?;
         Ok(())
+    }
+
+    pub fn encrypt_summary(summary: &str, key: &[u8; 32]) -> Result<Vec<u8>> {
+        let cipher = Aes256Gcm::new(Key::from_slice(key));
+        let nonce = Nonce::from_slice(b"unique nonce"); // In practice, use a unique nonce for each encryption
+        let encrypted = cipher.encrypt(nonce, summary.as_bytes())
+            .map_err(|e| anyhow::anyhow!("Encryption failed: {:?}", e))?;
+        Ok(encrypted)
     }
 }
 
@@ -496,15 +530,16 @@ fn main() -> Result<()> {
         .file_name()
         .and_then(|name| name.to_str())
         .unwrap_or("unknown");
-    let logger: logger::Logger = logger::Logger::new(zip_filename).context("Failed to create logger")?;
+    let logger: logger::Logger = logger::Logger::new(Path::new(&config.output)).context("Failed to create logger")?;
     
-    logger.log("Starting the application").context("Failed to log start message")?;
+    logger.log(log::Level::Info, "Starting the application").context("Failed to log start message")?;
 
     let db_path: &Path = Path::new("huffelpuff_db");
     let db_manager: Arc<database::DatabaseManager> = Arc::new(database::DatabaseManager::new(db_path).context("Failed to create DatabaseManager")?);
 
     let zip_path: PathBuf = PathBuf::from(&config.input);
-    let zip_entries: Vec<zip_processing::ZipEntry> = zip_processing::process_zip(zip_path).context("Failed to process ZIP file")?;
+    let output_dir: PathBuf = PathBuf::from(&config.output);
+    let zip_entries: Vec<zip_processing::ZipEntry> = zip_processing::process_zip(&zip_path, config.extract, &output_dir).context("Failed to process ZIP file")?;
 
     let mut parsed_files: Vec<code_analysis::ParsedFile> = Vec::new();
 
@@ -546,7 +581,7 @@ fn main() -> Result<()> {
 
     info!("Summary written to: {:?}", output_path);
 
-    logger.log("Application finished").context("Failed to log finish message")?;
+    logger.log(log::Level::Info, "Application finished").context("Failed to log finish message")?;
     Ok(())
 }
 
