@@ -22,3 +22,6 @@
 # Optionally, allow your Cargo.toml and other essential files in the root
 !/Cargo.toml
 !/Cargo.lock
+
+
+!.cursorignore
