@@ -10,6 +10,7 @@ use encoding_rs::WINDOWS_1252;
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use std::io::Write;
+use std::fs::{File, OpenOptions}; // Ensure File is imported
 // use std::collections::HashMap; // Commented out as it's not used
 
 mod logger {
@@ -127,6 +128,7 @@ mod code_analysis {
     use std::collections::HashSet;
     use encoding_rs::WINDOWS_1252;
     use log::warn; // Ensure `warn` is imported in this module
+    use std::path::PathBuf; // ✅ Imported here
 
     #[derive(Debug, Serialize, Deserialize, PartialEq)]
     pub struct ParsedFile {
@@ -750,8 +752,14 @@ fn main() -> Result<()> {
 
     let project_summary = summary::generate_summary(parsed_files).context("Failed to generate project summary")?;
     
-    let output_filename = format!("{}-{}.json.gz", folder_name, start_timestamp);
-    output_manager.write_summary(&project_summary, &output_filename).context("Failed to write summary")?;
+    // Change the output filename to use .txt instead of .json.gz
+    let output_filename = format!("{}-{}.txt", folder_name, start_timestamp);
+    
+    // Writing the summary directly to a .txt file without compression
+    let json = serde_json::to_string_pretty(&project_summary).context("Failed to serialize summary")?;
+    let path = config.output_dir.join(&output_filename);
+    let mut file = File::create(&path).context("Failed to create output file")?; // Now File is recognized
+    file.write_all(json.as_bytes()).context("Failed to write summary")?;
 
     output_manager.log_message(log::Level::Info, &format!("Summary written to: {}", output_filename))?;
 
