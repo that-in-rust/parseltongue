@@ -4,11 +4,11 @@ Most important objective:
 - Focus on working code first, optimize later
 - Utilize databases for operations to minimize RAM usage
 
-OSS Code Analyzer and LLM-Ready Summarizer - Technical Approach
+OSS Code Analyzer and LLM-Ready Summarizer - Technical Approach (Updated)
 
 This document outlines the technical approach for the OSS Code Analyzer and LLM-Ready Summarizer, an application for processing ZIP archives of OSS projects, analyzing code, and generating an LLM-friendly summary. The application uses hardcoded paths for input and output.
 
-1. ZIP Processing Module
+1. ZIP Processing Module (Implemented)
 
 Purpose: Processes file entries from ZIP archives.
 Input: Path to the input ZIP file (PathBuf).
@@ -17,9 +17,9 @@ Dependencies: zip, anyhow.
 Data Structures:
     ZipEntry struct: Contains name (String) and content (Vec<u8>) of a file entry in the ZIP.
 Functions:
-    process_zip(zip_path: PathBuf) -> Result<Vec<ZipEntry>, anyhow::Error>: Opens the ZIP archive, iterates through its entries, collects each ZipEntry, handles any errors during file reading or ZIP traversal.
+    process_zip(zip_path: &Path, extract: bool, output_dir: &Path) -> Result<Vec<ZipEntry>>: Opens the ZIP archive, iterates through its entries, collects each ZipEntry, handles any errors during file reading or ZIP traversal.
 
-2. Database Module
+2. Database Module (Implemented)
 
 Purpose: Manages an embedded database (sled) for storing file contents and summaries.
 Input: ZipEntry structs, parsed ParsedFile structs.
@@ -33,7 +33,7 @@ Functions:
     DatabaseManager::get(key: &[u8]) -> Result<Option<Vec<u8>>, anyhow::Error>: Retrieves data from the database.
     DatabaseManager::close() -> Result<(), anyhow::Error>: Closes the database, flushes any pending writes.
 
-3. Code Analysis Module
+3. Code Analysis Module (Updated)
 
 Purpose: Performs code analysis on file contents. Detects language, counts lines, calculates various code complexity metrics, and performs basic parsing.
 Input: ZipEntry structs.
@@ -45,7 +45,7 @@ Data Structures:
     Expr enum: Represents a simple Abstract Syntax Tree for arithmetic expressions.
     HalsteadMetrics struct: Stores Halstead complexity measures.
 Functions:
-    analyze_file(entry: &ZipEntry, db_manager: &DatabaseManager) -> Result<ParsedFile, anyhow::Error>: Analyzes a single file, extracts metrics, finds functions, and parses simple expressions.
+    analyze_file(name: &str, content: &[u8], db_manager: &DatabaseManager) -> Result<ParsedFile, anyhow::Error>: Analyzes a single file, extracts metrics, finds functions, and parses simple expressions. Stores analysis results in the database.
     detect_language(filename: &str) -> LanguageType: Detects programming language based on file extension and content.
     count_lines(content: &[u8]) -> usize: Counts lines of code.
     calculate_cyclomatic_complexity(content: &[u8]) -> Result<usize, anyhow::Error>: Calculates cyclomatic complexity.
@@ -54,7 +54,7 @@ Functions:
     find_functions(content: &[u8]) -> Result<Vec<String>, anyhow::Error>: Uses regex to find function definitions.
     parse_expression(content: &[u8]) -> Result<Expr, anyhow::Error>: Parses simple arithmetic expressions using a recursive descent parser.
 
-4. Summary Module
+4. Summary Module (Updated)
 
 Purpose: Generates a project summary from analyzed files.
 Input: A vector of ParsedFile structs.
@@ -63,9 +63,9 @@ Dependencies: serde, serde_json, flate2, anyhow.
 Data Structures:
     ProjectSummary: Contains total LOC, language breakdown, and other project-wide metrics.
 Functions:
-    generate_summary(files: Vec<ParsedFile>) -> Result<ProjectSummary, anyhow::Error>: Generates a project summary, calculates total LOC, language breakdown, etc. Serializes to a compressed message using flate2.
+    generate_summary(files: Vec<ParsedFile>) -> Result<Vec<u8>, anyhow::Error>: Generates a project summary, calculates total LOC, language breakdown, etc. Serializes to a compressed message using flate2.
 
-5. Output Module
+5. Output Module (New)
 
 Purpose: Manages writing the final summary, progress updates, and log messages to files.
 Input: ProjectSummary struct, progress messages (String), log messages (String), config options (Config).
@@ -74,10 +74,10 @@ Dependencies: std::fs, std::io, chrono, colored, anyhow.
 Data Structures:
     OutputManager struct: Manages file output operations.
 Functions:
-    OutputManager::new(config: &Config) -> Result<Self, anyhow::Error>: Creates a new OutputManager, creates output directory if it doesn't exist.
-    OutputManager::write_summary(summary: &ProjectSummary) -> Result<(), anyhow::Error>: Writes the summary to the LLM-ready output file.
-    OutputManager::write_progress(message: &str) -> Result<(), anyhow::Error>: Writes a progress message to the progress tracking file with a timestamp.
-    OutputManager::log_message(level: Level, message: &str) -> Result<(), anyhow::Error>: Logs a message to the log file with timestamp and log level. Uses colored output for console.
+    new(output_dir: &Path) -> Result<Self, anyhow::Error>: Creates a new OutputManager, creates output directory if it doesn't exist.
+    write_summary(&self, summary: &[u8], filename: &str) -> Result<(), anyhow::Error>: Writes the summary to the LLM-ready output file.
+    write_progress(&self, message: &str) -> Result<(), anyhow::Error>: Writes a progress message to the progress tracking file with a timestamp.
+    log_message(&self, level: log::Level, message: &str) -> Result<(), anyhow::Error>: Logs a message to the log file with timestamp and log level. Uses colored output for console.
 
 6. Logging Module
 
