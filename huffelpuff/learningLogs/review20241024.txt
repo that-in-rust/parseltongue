@@ -18,26 +18,69 @@ This document summarizes the findings and insights related to the Rust project f
    - **Use Case**: Facilitates the analysis of multiple files contained within a single ZIP archive, enhancing usability by allowing batch processing of files.
 
 ## Relevant Repositories
-Based on the functionality of the project, the following repositories were identified as closely related:
 
-1. **[mozilla/rust-code-analysis](https://github.com/mozilla/rust-code-analysis)**
-   - A Rust library for analyzing and extracting information from source codes written in various programming languages. It shares similarities in goals and architecture with the current project.
+1. **[analysis-tools-dev/static-analysis](https://github.com/analysis-tools-dev/static-analysis)**
+   - Comprehensive list of static analysis tools, including several Rust implementations.
 
 2. **[Artisan-Lab/rCanary](https://github.com/Artisan-Lab/rCanary)**
-   - A Rust-based leak checker that implements static analysis features, similar to the project's focus on code analysis.
+   - A Rust-based leak checker that implements static analysis features.
 
 3. **[AzureMarker/p4-analyzer](https://github.com/AzureMarker/p4-analyzer)**
-   - A static analysis tool that checks code for bugs, aligning with the project's objectives of analyzing code quality and generating metrics.
+   - A static analysis tool that checks code for bugs.
 
-4. **[zip-rs/zip](https://github.com/zip-rs/zip)**
-   - The primary library for handling ZIP files in Rust, providing comprehensive functionality for reading and writing ZIP archives.
+4. **[Byron/cargo-count](https://github.com/Byron/cargo-count)**
+   - Tool for counting lines of code with various metrics.
 
-5. **[cargo-audit](https://github.com/RustSec/cargo-audit)**
-   - A tool for auditing Rust projects for vulnerabilities in dependencies, offering insights into structuring code analysis and reporting.
+5. **[est31/cargo-udeps](https://github.com/est31/cargo-udeps)**
+   - Finds unused dependencies in Rust projects.
 
-6. **[rust-analyzer](https://github.com/rust-analyzer/rust-analyzer)**
-   - A language server for Rust that provides features like code analysis and refactoring, serving as a reference for implementing analysis features.
+6. **[immunant/c2rust](https://github.com/immunant/c2rust)**
+   - Translator and refactoring tool for C to Rust conversion.
+
+7. **[kbknapp/cargo-outdated](https://github.com/kbknapp/cargo-outdated)**
+   - Displays outdated dependencies in your project.
+
+8. **[mozilla/rust-code-analysis](https://github.com/mozilla/rust-code-analysis)**
+   - A Rust library for analyzing and extracting information from source codes written in various programming languages.
+
+9. **[mre/awesome-static-analysis](https://github.com/mre/awesome-static-analysis)**
+   - Curated list of static analysis tools, including Rust-specific ones.
+
+10. **[mre/cargo-inspect](https://github.com/mre/cargo-inspect)**
+    - Inspects Rust code and provides insights about the compiler.
+
+11. **[o2sh/onefetch](https://github.com/o2sh/onefetch)**
+    - Git repository summary tool with code analysis features.
+
+12. **[rust-analyzer/rust-analyzer](https://github.com/rust-analyzer/rust-analyzer)**
+    - Language server with advanced code analysis features.
+
+13. **[rust-lang/rust-clippy](https://github.com/rust-lang/rust-clippy)**
+    - The official Rust linter with extensive code analysis capabilities.
+
+14. **[rust-lang/rust-semverver](https://github.com/rust-lang/rust-semverver)**
+    - Semantic versioning checking tool.
+
+15. **[rust-rocksdb/rust-rocksdb](https://github.com/rust-rocksdb/rust-rocksdb)**
+    - Rust wrapper for RocksDB, useful for high-performance storage needs.
+
+16. **[rust-secure-code/cargo-geiger](https://github.com/rust-secure-code/cargo-geiger)**
+    - Detects usage of unsafe Rust in dependencies.
+
+17. **[RustSec/cargo-audit](https://github.com/RustSec/cargo-audit)**
+    - Security auditing tool for Rust dependencies.
+
+18. **[sharkdp/hyperfine](https://github.com/sharkdp/hyperfine)**
+    - Benchmarking tool written in Rust.
+
+19. **[softprops/cargo-thanks](https://github.com/softprops/cargo-thanks)**
+    - Analyzes dependency graph and generates acknowledgments.
+
+20. **[spacejam/sled](https://github.com/spacejam/sled)**
+    - Embedded database with excellent performance characteristics.
+
+21. **[zip-rs/zip](https://github.com/zip-rs/zip)**
+    - Primary library for ZIP file handling in Rust.
 
 ## Conclusion
 The project demonstrates a solid foundation for code analysis in Rust, leveraging modular design, effective logging, and database management. The identified repositories provide valuable resources and examples that can enhance the project's functionality and usability. Continued exploration of these resources will aid in refining the code and expanding its capabilities.
-
