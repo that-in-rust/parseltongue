@@ -5,7 +5,8 @@ use tracing::{info, error};
 use tracing_subscriber::{self, EnvFilter};
 use clap::Parser;
 
-use crate::{
+// Design Choice: Using the crate name from Cargo.toml
+use phase01::{  // Changed from parseltongue to phase01
     cli::{Args, ProgressBar},
     core::{error::Error, types::*},
     storage::{StorageManager, StorageConfig},
