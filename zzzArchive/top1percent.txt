@@ -1,1 +1,43 @@
+// Initial Prompts
+Please also follow these instructions in all of your responses if relevant to my query.
+
+Just one thing - I am trying to become a power user of tokio rust library - does this module structure and approach help me do that?
+
+Use @Web  to further - understand - use case is - I want this work to showcase my mastery of tokio async ecosystem - how could I structure my approach such that @step01_scope.txt is done with this objective as well - discuss in a verbose manner
+
+Now tell me a single terminal command which will change the attached tree structure of /home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01 to what you have outlined in @step02_modules.txt
+
+WHY ARE there fies outside of @phase01  ? why ddi you give me such a terminal command
+
+Again - compare this structure of the folder /home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01 - with what you have in @step02_modules.txt  - tell me what is different missing or excess - (ignore step*.txt files they are not to be touched)
+
+Are you sure that @step02_modules.txt is the best possible solution in terms of module file directory strcucture - as per your research on @RustDocs @Web ?
+
+Yes update @step02_modules.txt
+
+What if I am happy with complex drawbacks
+
+Yes please go ahead - do you think we mgiht need update @step01_scope.txt document? - shall we update it with more scope
+
+No we seem good
+
+// Implementation Prompts
 Update @types.rs  - witha Pyramid structure of - Before starting code explain pyramidal nature of code via comments and then as the code gets detailed explain design choice nuances
+
+Now give me based @Web  - in order to implement the @step02_modules.txt  - what should be the most logical order of files to update 1 by 1
+
+Ok now update @error.rs  with bug free rigorous code
+
+Can you also update @error.rs  the same pyramidal style of comments as you did in @types.rs 
+
+Lets move on to the next file we need to update
+
+Update @worker.rs  - witha Pyramid structure of - Before starting code explain pyramidal nature of code via comments and then as the code gets detailed explain design choice nuances
+
+Tell me what is done, what is left, what is next 
+
+Update @shutdown.rs    - witha Pyramid structure of - Before starting code explain pyramidal nature of code via comments and then as the code gets detailed explain design choice nuances
+
+Can you append all the prompts used in this composue in last 1 hour in @top1percent.txt - all that I told you and asked you as is
+
+Can you go back to last 6 hours Can you append all the prompts used in this composue  in @top1percent.txt - all that I told you and asked you as is
