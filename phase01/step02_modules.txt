@@ -1,4 +1,8 @@
-## Core + Binary Structure (Production-Grade Async Implementation)
++// IMPORTANT: All step*.txt files are for meta-problem-solving
++// DO NOT TOUCH OR DELETE WITHOUT EXPLICIT PERMISSION
++// ===================================================
++
+ ## Core + Binary Structure (Production-Grade Async Implementation)
 
 src/
  ├── lib.rs           // Public API + Core Traits
@@ -93,17 +97,20 @@ src/
  │
  ├── metrics/        // Metrics & Monitoring
  │   ├── mod.rs      // Metrics Coordination
- │   │   - Metric aggregation
- │   │   - Rate limiting
+ │   │   - Global metrics registry
+ │   │   - Metric aggregation strategies
+ │   │   - Dynamic rate limiting
+ │   │   - Cross-component metrics
  │   ├── collect.rs  // Collection
- │   │   - Tokio runtime metrics
- │   │   - Task performance data
- │   │   - Resource usage
+ │   │   - Tokio runtime instrumentation
+ │   │   - Task performance tracking
+ │   │   - Resource utilization monitoring
+ │   │   - Real-time stats collection
  │   └── report.rs   // Reporting
- │       - Structured logging
- │       - Colored console output
- │       - File logging
- │       - JSON formatting
+ │   │   - Structured event logging
+ │   │   - Real-time console updates
+ │   │   - Metrics persistence
+ │   │   - Performance analysis
  │
  └── utils/          // Utilities
      ├── mod.rs      // Utils Coordination
@@ -162,3 +169,9 @@ Component Relationships:
 
 4. Metric Collection Flow:
    TaskMetrics -> AggregatedMetrics -> StructuredLogs -> Reports
+
+5. Metrics Collection Pipeline:
+   Source -> Aggregator -> Reporter -> Storage
+
+6. Resource Management Pipeline:
+   Monitor -> Allocator -> Tracker -> Cleanup

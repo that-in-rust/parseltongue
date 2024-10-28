@@ -967,3 +967,72 @@ Would you like to start with src/core/error.rs?
 
 Cool lets move to next file which one is it - give me absolute path
 
+
+Looking at @phase01  cargo project
+
+@step01_scope.txt  has the scope, @step02_modules.txt  has the implementation directives
+
+can you check if all the relevant files in @phase01 are updated with the correct bug free code
+
+which files are done
+which files are left
+which file should we update 1 by 1 with verbose reasoning
+
+
+
+
+---
+Update @phase01  - each  .toml file   - witha Pyramid structure of - Before starting code explain pyramidal nature of code via comments and then as the code gets detailed explain design choice nuances - DO NOT ASK AT FILE LEVEL
+
+--- check through each file of the folder 
+
+- the toml files should be PERFECT - use @Web  to find out the latest dependecies as needed
+
+amuldotexe@amuldotexe-Lenovo-Legion-Y540-15IRH-PG0:~/Desktop/GitHub202410/parseltongue/phase01$ tree
+.
+├── Cargo.lock
+├── Cargo.toml
+├── src
+│   ├── cli
+│   │   ├── args.rs
+│   │   ├── metrics.rs
+│   │   ├── mod.rs
+│   │   └── progress.rs
+│   ├── core
+│   │   ├── channel.rs
+│   │   ├── error.rs
+│   │   ├── mod.rs
+│   │   ├── runtime
+│   │   │   ├── mod.rs
+│   │   │   ├── shutdown.rs
+│   │   │   └── worker.rs
+│   │   └── types.rs
+│   ├── lib.rs
+│   ├── main.rs
+│   ├── metrics
+│   │   ├── collect.rs
+│   │   ├── mod.rs
+│   │   └── report.rs
+│   ├── storage
+│   │   ├── db.rs
+│   │   ├── index.rs
+│   │   └── mod.rs
+│   ├── utils
+│   │   ├── buffer.rs
+│   │   ├── cleanup.rs
+│   │   ├── mod.rs
+│   │   └── resource.rs
+│   └── zip
+│       ├── encoding.rs
+│       ├── mod.rs
+│       ├── reader.rs
+│       └── validation.rs
+├── step01_scope.txt
+├── step02_modules.txt
+├── step03_avoidObviousBugs.txt
+├── step99_log_prompts.txt
+└── tests
+    ├── integration
+    │   └── mod.rs
+    └── utils
+        └── mod.rs

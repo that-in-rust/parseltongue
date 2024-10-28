@@ -23,11 +23,28 @@
 //! - EncodingError     (encoding errors)
 
 use std::sync::Arc;
-use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
+use encoding_rs::{Encoding, UTF_8, WINDOWS_1252, CoderResult};
+use chardetng::EncodingDetector as ChardetDetector;
+use metrics::{Counter, Gauge};
 use crate::core::{error::{Error, Result}, types::*};
 
 // ===== Level 1: Core Encoding Types =====
 // Design Choice: Using encoding_rs for reliable conversion
+
+/// Encoding metrics collection
+#[derive(Debug, Default)]
+struct EncodingMetrics {
+    successful_conversions: Counter,
+    conversion_errors: Counter,
+    fallbacks_used: Counter,
+    active_conversions: Gauge,
+}
+
+impl EncodingMetrics {
+    fn new() -> Self {
+        Self::default()
+    }
+}
 
 /// Encoding configuration
 #[derive(Debug, Clone)]
@@ -38,6 +55,8 @@ pub struct EncodingConfig {
     pub fallback_encoding: &'static Encoding,
     /// Enable detection
     pub enable_detection: bool,
+    /// Detection confidence threshold
+    pub detection_threshold: f32,
 }
 
 impl Default for EncodingConfig {
@@ -46,6 +65,7 @@ impl Default for EncodingConfig {
             default_encoding: UTF_8,
             fallback_encoding: WINDOWS_1252,
             enable_detection: true,
+            detection_threshold: 0.8,
         }
     }
 }
@@ -72,28 +92,43 @@ impl EncodingDetector {
         }
     }
 
+    // ===== Level 3: Encoding Operations =====
+    // Design Choice: Using separate functions for detection and conversion
+
     /// Detects and converts encoding
     pub fn detect_and_convert(&self, input: &[u8]) -> Result<String> {
-        if self.config.enable_detection {
+        self.metrics.active_conversions.increment(1.0);
+
+        let result = if self.config.enable_detection {
             // Try to detect encoding
             if let Some(encoding) = self.detect_encoding(input) {
-                return self.convert_with_encoding(input, encoding);
+                self.convert_with_encoding(input, encoding)
+            } else {
+                // Try default encoding
+                self.convert_with_encoding(input, self.config.default_encoding)
             }
-        }
+        } else {
+            // Use default encoding directly
+            self.convert_with_encoding(input, self.config.default_encoding)
+        };
 
-        // Try default encoding
-        if let Ok(result) = self.convert_with_encoding(input, self.config.default_encoding) {
-            return Ok(result);
-        }
-
-        // Try fallback encoding
-        self.convert_with_encoding(input, self.config.fallback_encoding)
+        self.metrics.active_conversions.decrement(1.0);
+        result
     }
 
     /// Detects encoding from input
     fn detect_encoding(&self, input: &[u8]) -> Option<&'static Encoding> {
-        // Implementation will use encoding_rs detection
-        todo!("Implement encoding detection")
+        let mut detector = ChardetDetector::new();
+        detector.feed(input, true);
+        
+        let encoding = detector.guess(None, true);
+        let confidence = detector.confidence();
+        
+        if confidence >= self.config.detection_threshold {
+            Some(encoding)
+        } else {
+            None
+        }
     }
 
     /// Converts input with specified encoding
@@ -101,12 +136,59 @@ impl EncodingDetector {
         let (cow, _encoding_used, had_errors) = encoding.decode(input);
         
         if had_errors {
-            self.metrics.conversion_errors.increment(1);
+            // Try fallback encoding if primary fails
+            let (fallback_cow, _, fallback_errors) = self.config.fallback_encoding.decode(input);
+            
+            if fallback_errors {
+                self.metrics.conversion_errors.increment(1);
+                Err(Error::EncodingFailed("Both primary and fallback encoding failed".into()))
+            } else {
+                self.metrics.fallbacks_used.increment(1);
+                Ok(fallback_cow.into_owned())
+            }
         } else {
             self.metrics.successful_conversions.increment(1);
+            Ok(cow.into_owned())
         }
+    }
+}
 
-        Ok(cow.into_owned())
+// ===== Level 4: Encoding Management =====
+// Design Choice: Using builder pattern for encoding chain
+
+/// Encoding chain builder
+pub struct EncodingChain {
+    encodings: Vec<&'static Encoding>,
+    threshold: f32,
+}
+
+impl EncodingChain {
+    pub fn new() -> Self {
+        Self {
+            encodings: Vec::new(),
+            threshold: 0.8,
+        }
+    }
+
+    pub fn add_encoding(&mut self, encoding: &'static Encoding) -> &mut Self {
+        self.encodings.push(encoding);
+        self
+    }
+
+    pub fn with_threshold(&mut self, threshold: f32) -> &mut Self {
+        self.threshold = threshold;
+        self
+    }
+
+    pub fn convert(&self, input: &[u8]) -> Result<String> {
+        for encoding in &self.encodings {
+            let (cow, _, had_errors) = encoding.decode(input);
+            if !had_errors {
+                return Ok(cow.into_owned());
+            }
+        }
+        
+        Err(Error::EncodingFailed("All encodings failed".into()))
     }
 }
 
@@ -125,5 +207,31 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), "Hello, World!");
     }
-}
 
+    #[test]
+    fn test_windows1252_fallback() {
+        let config = EncodingConfig::default();
+        let detector = EncodingDetector::new(config);
+
+        // Windows-1252 encoded bytes
+        let input = &[0x48, 0xE9, 0x6C, 0x6C, 0x6F]; // "Héllo"
+        let result = detector.detect_and_convert(input);
+        
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "Héllo");
+    }
+
+    #[test]
+    fn test_encoding_chain() {
+        let mut chain = EncodingChain::new();
+        chain
+            .add_encoding(UTF_8)
+            .add_encoding(WINDOWS_1252);
+
+        let input = b"Hello, World!";
+        let result = chain.convert(input);
+        
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "Hello, World!");
+    }
+}
