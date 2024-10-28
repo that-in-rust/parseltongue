@@ -1,3 +1,43 @@
+# Parseltongue
+
+A high-performance, async Rust tool for analyzing and processing software projects, starting with efficient ZIP archive handling.
+
+## Vision
+
+Parseltongue aims to be your AI-ready code analysis companion. It processes software projects into an optimized format that both preserves critical metadata and enables efficient LLM-based analysis for:
+- Code understanding and debugging
+- Dependency analysis
+- Security scanning
+- Architecture insights
+
+## Current Phase (01): Foundation
+
+Building robust core infrastructure with:
+
+### ZIP Processing
+- Zero-copy streaming (no extraction)
+- Concurrent processing with backpressure
+- Adaptive buffering
+- Multi-encoding support (UTF-8, Windows-1252)
+
+### Storage Engine
+- Embedded sled database
+- Async transactions
+- Connection pooling
+- Optimized indexing
+
+### Production Infrastructure
+- Async/await (Tokio)
+- Structured logging
+- Performance metrics
+- Resource management
+- Graceful shutdown
+
+## Usage
+
+### Command Line
+
+
 # Parseltongue - Phase 01
 
 A high-performance, async Rust tool for processing ZIP archives into an embedded database.
@@ -80,6 +120,9 @@ Phase 01 establishes core infrastructure. Future phases will introduce:
 - Security scanning features
 - Architecture analysis tools
 
+### Contributing
+
+This is an active project under development. See CONTRIBUTING.md for guidelines.
 
 ### Dependencies
 - **Core**: tokio, sled, zip
