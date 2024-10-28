@@ -1,245 +1,86 @@
-//! Test Utilities Infrastructure
-//! 
-//! Pyramid Structure:
-//! 
-//! Level 4 (Top): Test Orchestration
-//! - TestManager      (manages test setup/teardown)
-//! - TestMetrics      (tracks test performance)
-//! - ResourceManager  (manages test resources)
-//! 
-//! Level 3: Test Support
-//! - MockBuilder      (builds mock objects)
-//! - TestContext      (manages test context)
-//! - TestFixtures     (manages test data)
-//! 
-//! Level 2: Test Helpers
-//! - AsyncTestHelper  (async test support)
-//! - MockStorage     (storage mocks)
-//! - MockZip         (ZIP mocks)
-//! 
-//! Level 1 (Base): Core Test Types
-//! - TestConfig      (test configuration)
-//! - TestError       (test error types)
-//! - TestMetrics     (test metrics)
+//! Common Test Utilities - Pyramidal Structure
+//! Layer 1: Test Setup
+//! Layer 2: Test Data
+//! Layer 3: Assertions
+//! Layer 4: Cleanup
+//! Layer 5: Helpers
 
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use std::path::PathBuf;
 use anyhow::Result;
 use tempfile::TempDir;
-use bytes::Bytes;
-use crate::{
-    core::types::*,
-    storage::AsyncStorage,
-    zip::{ZipEntry, ZipConfig},
-};
+use zip::ZipWriter;
+use std::fs::File;
+use std::io::Write;
+use rand::Rng;
 
-// ===== Level 1: Core Test Types =====
-// Design Choice: Using builder pattern for test setup
-
-/// Test metrics collection
-#[derive(Debug, Default)]
-pub struct TestMetrics {
-    pub tests_run: usize,
-    pub tests_passed: usize,
-    pub tests_failed: usize,
-    pub total_duration: std::time::Duration,
-}
-
-/// Test configuration
-#[derive(Debug, Clone)]
-pub struct TestConfig {
-    pub temp_dir: TempDir,
-    pub timeout: std::time::Duration,
-    pub cleanup_enabled: bool,
-}
-
-// ===== Level 2: Test Helpers =====
-// Design Choice: Using traits for test support
-
-/// Async test helper trait
-#[async_trait::async_trait]
-pub trait AsyncTestHelper {
-    async fn setup() -> Result<Self> where Self: Sized;
-    async fn cleanup(self) -> Result<()>;
-}
-
-/// Mock storage implementation
-#[derive(Clone)]
-pub struct MockStorage {
-    data: Arc<Mutex<std::collections::HashMap<String, Bytes>>>,
-    metrics: Arc<Mutex<StorageMetrics>>,
-}
-
-#[async_trait::async_trait]
-impl AsyncStorage for MockStorage {
-    async fn store(&self, key: &str, value: Bytes) -> Result<()> {
-        let mut data = self.data.lock().await;
-        let mut metrics = self.metrics.lock().await;
-        
-        data.insert(key.to_string(), value.clone());
-        metrics.bytes_written += value.len();
-        metrics.operations_completed += 1;
-        
-        Ok(())
-    }
-
-    async fn get(&self, key: &str) -> Result<Option<Bytes>> {
-        let data = self.data.lock().await;
-        let mut metrics = self.metrics.lock().await;
-        
-        metrics.operations_completed += 1;
-        Ok(data.get(key).cloned())
-    }
-
-    async fn delete(&self, key: &str) -> Result<()> {
-        let mut data = self.data.lock().await;
-        let mut metrics = self.metrics.lock().await;
-        
-        data.remove(key);
-        metrics.operations_completed += 1;
-        
-        Ok(())
-    }
-}
-
-// ===== Level 3: Test Support =====
-// Design Choice: Using context for test state
-
-/// Test context implementation
+// Layer 1: Test Setup
 pub struct TestContext {
-    config: TestConfig,
-    metrics: TestMetrics,
-    storage: MockStorage,
+    pub temp_dir: TempDir,
+    pub input_zip: PathBuf,
+    pub output_dir: PathBuf,
 }
 
 impl TestContext {
     pub async fn new() -> Result<Self> {
+        let temp_dir = TempDir::new()?;
+        let input_zip = temp_dir.path().join("test.zip");
+        let output_dir = temp_dir.path().join("output");
+
+        tokio::fs::create_dir_all(&output_dir).await?;
+
         Ok(Self {
-            config: TestConfig {
-                temp_dir: TempDir::new()?,
-                timeout: std::time::Duration::from_secs(30),
-                cleanup_enabled: true,
-            },
-            metrics: TestMetrics::default(),
-            storage: MockStorage {
-                data: Arc::new(Mutex::new(std::collections::HashMap::new())),
-                metrics: Arc::new(Mutex::new(StorageMetrics::default())),
-            },
+            temp_dir,
+            input_zip,
+            output_dir,
         })
     }
 
-    pub async fn create_test_zip(&self, entries: Vec<(String, Vec<u8>)>) -> Result<std::path::PathBuf> {
-        let zip_path = self.config.temp_dir.path().join("test.zip");
-        let file = std::fs::File::create(&zip_path)?;
-        let mut zip = zip::ZipWriter::new(file);
+    // Layer 2: Test Data Generation
+    pub fn create_test_zip(&self, entries: &[(&str, &[u8])]) -> Result<()> {
+        let file = File::create(&self.input_zip)?;
+        let mut zip = ZipWriter::new(file);
 
-        for (name, data) in entries {
+        for (name, content) in entries {
             zip.start_file(name, Default::default())?;
-            zip.write_all(&data)?;
+            zip.write_all(content)?;
         }
+
         zip.finish()?;
-
-        Ok(zip_path)
-    }
-}
-
-// ===== Level 4: Test Orchestration =====
-// Design Choice: Using builder for test setup
-
-/// Test builder implementation
-pub struct TestBuilder {
-    context: TestContext,
-    setup_fns: Vec<Box<dyn FnOnce(&TestContext) -> Result<()> + Send>>,
-    cleanup_fns: Vec<Box<dyn FnOnce(&TestContext) -> Result<()> + Send>>,
-}
-
-impl TestBuilder {
-    pub async fn new() -> Result<Self> {
-        Ok(Self {
-            context: TestContext::new().await?,
-            setup_fns: Vec::new(),
-            cleanup_fns: Vec::new(),
-        })
+        Ok(())
     }
 
-    pub fn with_setup<F>(&mut self, f: F) -> &mut Self 
-    where
-        F: FnOnce(&TestContext) -> Result<()> + Send + 'static,
-    {
-        self.setup_fns.push(Box::new(f));
-        self
+    // Layer 3: Validation Helpers
+    pub async fn verify_output_structure(&self) -> Result<bool> {
+        let db_dir = self.output_dir.join("db");
+        let logs_dir = self.output_dir.join("logs");
+        let metrics_dir = self.output_dir.join("metrics");
+
+        Ok(
+            tokio::fs::metadata(&db_dir).await?.is_dir() &&
+            tokio::fs::metadata(&logs_dir).await?.is_dir() &&
+            tokio::fs::metadata(&metrics_dir).await?.is_dir()
+        )
     }
 
-    pub fn with_cleanup<F>(&mut self, f: F) -> &mut Self 
-    where
-        F: FnOnce(&TestContext) -> Result<()> + Send + 'static,
-    {
-        self.cleanup_fns.push(Box::new(f));
-        self
-    }
-
-    pub async fn run<F, Fut>(&self, test_fn: F) -> Result<()>
-    where
-        F: FnOnce(&TestContext) -> Fut,
-        Fut: std::future::Future<Output = Result<()>>,
-    {
-        // Run setup
-        for setup in &self.setup_fns {
-            setup(&self.context)?;
-        }
-
-        // Run test
-        test_fn(&self.context).await?;
-
-        // Run cleanup
-        for cleanup in &self.cleanup_fns {
-            cleanup(&self.context)?;
-        }
-
+    // Layer 4: Cleanup
+    pub async fn cleanup(self) -> Result<()> {
+        tokio::fs::remove_dir_all(&self.output_dir).await?;
         Ok(())
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+// Layer 5: Helper Functions
+pub fn generate_random_data(size: usize) -> Vec<u8> {
+    use rand::Rng;
+    let mut rng = rand::thread_rng();
+    (0..size).map(|_| rng.gen()).collect()
+}
 
-    #[tokio::test]
-    async fn test_mock_storage() -> Result<()> {
-        let storage = MockStorage {
-            data: Arc::new(Mutex::new(std::collections::HashMap::new())),
-            metrics: Arc::new(Mutex::new(StorageMetrics::default())),
-        };
-
-        let key = "test_key";
-        let value = Bytes::from("test_value");
-
-        storage.store(key, value.clone()).await?;
-        let retrieved = storage.get(key).await?;
-        
-        assert_eq!(retrieved, Some(value));
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_builder_pattern() -> Result<()> {
-        let mut builder = TestBuilder::new().await?;
-        
-        builder
-            .with_setup(|ctx| {
-                println!("Setup completed");
-                Ok(())
-            })
-            .with_cleanup(|ctx| {
-                println!("Cleanup completed");
-                Ok(())
-            });
-
-        builder.run(|ctx| async {
-            println!("Test running");
-            Ok(())
-        }).await?;
-
-        Ok(())
-    }
+pub fn create_test_entries(count: usize, size: usize) -> Vec<(String, Vec<u8>)> {
+    (0..count)
+        .map(|i| (
+            format!("file_{}.dat", i),
+            generate_random_data(size)
+        ))
+        .collect()
 }

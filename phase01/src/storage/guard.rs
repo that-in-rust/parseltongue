@@ -1,50 +1,68 @@
 use std::sync::Arc;
 use tokio::sync::Semaphore;
-use crate::error::Result;
+use anyhow::Result;
+use tracing::{info, warn};
 
-/// RAII guard for database connections
-pub struct ConnectionGuard {
-    pool: Arc<Semaphore>,
+//! Storage Guard - Pyramidal Structure
+//! Layer 1: Guard Types
+//! Layer 2: Resource Management
+//! Layer 3: Error Handling
+//! Layer 4: Cleanup Logic
+//! Layer 5: Metrics Collection
+
+// Layer 1: Core Types
+pub struct StorageGuard {
+    _permit: Option<Arc<tokio::sync::SemaphorePermit>>,
+    metrics: GuardMetrics,
 }
 
-impl ConnectionGuard {
-    pub(crate) fn new(pool: Arc<Semaphore>) -> Self {
-        Self { pool }
+#[derive(Debug, Default)]
+struct GuardMetrics {
+    operation_count: usize,
+    error_count: usize,
+}
+
+// Layer 2: Implementation
+impl StorageGuard {
+    pub async fn new(pool: Arc<Semaphore>) -> Result<Self> {
+        let permit = pool.acquire_owned().await?;
+        
+        info!("Acquired storage guard");
+        Ok(Self {
+            _permit: Some(Arc::new(permit)),
+            metrics: GuardMetrics::default(),
+        })
     }
-}
 
-impl Drop for ConnectionGuard {
-    fn drop(&mut self) {
-        self.pool.add_permits(1);
-    }
-}
-
-/// RAII guard for database transactions
-pub struct TransactionGuard {
-    committed: bool,
-    tree: Arc<sled::Tree>,
-}
-
-impl TransactionGuard {
-    pub(crate) fn new(tree: Arc<sled::Tree>) -> Self {
-        Self {
-            committed: false,
-            tree,
+    // Layer 3: Operation Tracking
+    pub fn track_operation(&mut self, success: bool) {
+        self.metrics.operation_count += 1;
+        if !success {
+            self.metrics.error_count += 1;
         }
     }
 
-    pub async fn commit(&mut self) -> Result<()> {
-        self.tree.flush()?;
-        self.committed = true;
-        Ok(())
+    // Layer 4: Status Methods
+    pub fn is_healthy(&self) -> bool {
+        let error_rate = if self.metrics.operation_count > 0 {
+            self.metrics.error_count as f64 / self.metrics.operation_count as f64
+        } else {
+            0.0
+        };
+        error_rate < 0.1 // Less than 10% error rate
     }
 }
 
-impl Drop for TransactionGuard {
+// Layer 5: Cleanup
+impl Drop for StorageGuard {
     fn drop(&mut self) {
-        if !self.committed {
-            // Rollback happens automatically when tree is dropped
+        if !self.is_healthy() {
+            warn!(
+                "Storage guard dropped with high error rate: {}/{}", 
+                self.metrics.error_count, 
+                self.metrics.operation_count
+            );
         }
+        info!("Released storage guard");
     }
 }
-

@@ -1,114 +1,96 @@
-//! ZIP File Reading Implementation
-//! 
-//! Pyramid Structure:
-//! 
-//! Level 4 (Top): Stream Processing
-//! - StreamProcessor   (processes ZIP stream)
-//!   ├── Backpressure handling
-//!   ├── Adaptive buffering
-//!   └── CRC validation
-//! 
-//! Level 3: Entry Processing
-//! - EntryReader      (reads ZIP entries)
-//!   ├── Async reading
-//!   ├── Encoding detection
-//!   └── Error handling
-//! 
-//! Level 2: Buffer Management
-//! - BufferPool       (manages buffers)
-//!   ├── Size adaptation
-//!   ├── Memory limits
-//!   └── Cleanup
-//! 
-//! Level 1 (Base): Core Types
-//! - ReaderConfig     (configuration)
-//! - ReaderMetrics    (metrics)
-//! - ReaderError      (errors)
+//! ZIP Reader Implementation - Pyramidal Structure
+//! Layer 1: Reader Interface
+//! Layer 2: Entry Reading
+//! Layer 3: Content Processing
+//! Layer 4: Buffering
+//! Layer 5: Resource Management
 
-use std::sync::Arc;
+use std::io::SeekFrom;
+use anyhow::Result;
+use bytes::Bytes;
+use tokio::fs::File;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt};
-use tokio::sync::Semaphore;
-use tokio_util::codec::{Decoder, FramedRead};
-use bytes::{Bytes, BytesMut};
-use encoding_rs::Encoding;
-use crate::core::error::Result;
+use super::{ZipConfig, ZipEntry, ZipError};
 
-// Design Choice: Using tokio_util::codec for streaming
-pub struct ZipEntryCodec {
+// Layer 1: Core Types
+pub struct ZipReader<R> 
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    reader: R,
     config: ZipConfig,
-    backpressure: Arc<Semaphore>,
-    buffer_pool: Arc<BufferPool>,
+    current_pos: u64,
 }
 
-impl ZipEntryCodec {
-    pub fn new(config: ZipConfig, backpressure: Arc<Semaphore>, buffer_pool: Arc<BufferPool>) -> Self {
+// Layer 2: Implementation
+impl<R> ZipReader<R> 
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    pub fn new(reader: R, config: ZipConfig) -> Self {
         Self {
+            reader,
             config,
-            backpressure,
-            buffer_pool,
-        }
-    }
-}
-
-// Design Choice: Using Decoder trait for async streaming
-impl Decoder for ZipEntryCodec {
-    type Item = ZipEntry;
-    type Error = Error;
-
-    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>> {
-        // Acquire backpressure permit
-        let _permit = self.backpressure.try_acquire()?;
-
-        // Get buffer from pool
-        let mut buffer = self.buffer_pool.acquire()?;
-
-        // Process ZIP entry
-        if let Some(entry) = self.process_entry(src, &mut buffer)? {
-            Ok(Some(entry))
-        } else {
-            Ok(None)
-        }
-    }
-}
-
-// Design Choice: Using adaptive buffer sizing
-pub struct BufferPool {
-    initial_size: usize,
-    max_size: usize,
-    buffers: Arc<Mutex<Vec<BytesMut>>>,
-}
-
-impl BufferPool {
-    pub fn new(initial_size: usize, max_size: usize) -> Self {
-        Self {
-            initial_size,
-            max_size,
-            buffers: Arc::new(Mutex::new(Vec::new())),
+            current_pos: 0,
         }
     }
 
-    pub fn acquire(&self) -> Result<BytesMut> {
-        let mut buffers = self.buffers.lock().await;
-        if let Some(buffer) = buffers.pop() {
-            Ok(buffer)
-        } else {
-            Ok(BytesMut::with_capacity(self.initial_size))
+    // Layer 3: Entry Reading
+    pub async fn read_entry(&mut self) -> Result<Option<ZipEntry>> {
+        let signature = self.read_u32_le().await?;
+        if signature != 0x04034b50 {
+            return Ok(None); // End of central directory
         }
+
+        let _version = self.read_u16_le().await?;
+        let _flags = self.read_u16_le().await?;
+        let _method = self.read_u16_le().await?;
+        let _mod_time = self.read_u16_le().await?;
+        let _mod_date = self.read_u16_le().await?;
+        let _crc = self.read_u32_le().await?;
+        let compressed_size = self.read_u32_le().await? as u64;
+        let size = self.read_u32_le().await? as u64;
+        let name_length = self.read_u16_le().await? as usize;
+        let extra_length = self.read_u16_le().await? as usize;
+
+        // Layer 4: Name Reading
+        let mut name_bytes = vec![0u8; name_length];
+        self.reader.read_exact(&mut name_bytes).await?;
+        let name = String::from_utf8(name_bytes)
+            .map_err(|e| ZipError::FormatError(e.to_string()))?;
+
+        // Skip extra field
+        self.reader.seek(SeekFrom::Current(extra_length as i64)).await?;
+
+        // Layer 5: Content Reading
+        let mut content = vec![0u8; compressed_size as usize];
+        self.reader.read_exact(&mut content).await?;
+
+        Ok(Some(ZipEntry {
+            name,
+            size,
+            compressed_size,
+            content: std::sync::Arc::new(Bytes::from(content)),
+        }))
     }
 
-    pub fn release(&self, mut buffer: BytesMut) {
-        if buffer.capacity() <= self.max_size {
-            buffer.clear();
-            self.buffers.lock().await.push(buffer);
-        }
+    // Helper Methods
+    async fn read_u16_le(&mut self) -> Result<u16> {
+        let mut buf = [0u8; 2];
+        self.reader.read_exact(&mut buf).await?;
+        Ok(u16::from_le_bytes(buf))
+    }
+
+    async fn read_u32_le(&mut self) -> Result<u32> {
+        let mut buf = [0u8; 4];
+        self.reader.read_exact(&mut buf).await?;
+        Ok(u32::from_le_bytes(buf))
     }
 }
 
-// Design Choice: Using async traits for reading
-#[async_trait::async_trait]
-pub trait AsyncZipReader: Send + Sync {
-    async fn next_entry(&mut self) -> Result<Option<ZipEntry>>;
-    async fn read_entry_data(&mut self, entry: &ZipEntry) -> Result<Bytes>;
+impl ZipReader<File> {
+    pub async fn from_file<P: AsRef<std::path::Path>>(path: P, config: ZipConfig) -> Result<Self> {
+        let file = File::open(path).await?;
+        Ok(Self::new(file, config))
+    }
 }
-
-// Implementation continues with more async ZIP reading functionality...

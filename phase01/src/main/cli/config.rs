@@ -1,97 +1,59 @@
-//! CLI Configuration Types
-//! 
-//! Pyramid Structure:
-//! 
-//! Level 4 (Top): Configuration Integration
-//! - ConfigBuilder     (builds full config)
-//! - ConfigValidator   (validates settings)
-//! 
-//! Level 3: Config Components
-//! - RuntimeConfig    (runtime settings)
-//! - StorageConfig    (storage settings)
-//! - MetricsConfig    (metrics settings)
-//! 
-//! Level 2: Config Implementation
-//! - Config types     (concrete settings)
-//! - Validation      (validation logic)
-//! 
-//! Level 1 (Base): Core Config Types
-//! - Basic settings  (primitive types)
-//! - Defaults        (default values)
+//! CLI Configuration - Pyramidal Structure
+//! Layer 1: Public Types
+//! Layer 2: Configuration Validation
+//! Layer 3: Default Implementation
+//! Layer 4: Builder Pattern
+//! Layer 5: Conversion Utilities
 
 use std::path::PathBuf;
 use std::time::Duration;
-use serde::{Serialize, Deserialize};
-use crate::core::error::Result;
+use anyhow::Result;
 
-// Design Choice: Using builder pattern for complex configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CliConfig {
-    /// Input ZIP file path
-    pub input_path: PathBuf,
-    /// Output directory path
+// Layer 1: Core Configuration
+#[derive(Debug, Clone)]
+pub struct Config {
+    pub input_zip: PathBuf,
     pub output_dir: PathBuf,
-    /// Runtime configuration
-    pub runtime: RuntimeConfig,
-    /// Storage configuration
-    pub storage: StorageConfig,
-    /// Metrics configuration
-    pub metrics: MetricsConfig,
-}
-
-// Design Choice: Using separate configs for components
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RuntimeConfig {
-    /// Number of worker threads
     pub workers: usize,
-    /// Buffer size for streaming
     pub buffer_size: usize,
-    /// Shutdown timeout
     pub shutdown_timeout: Duration,
-    /// Enable verbose logging
     pub verbose: bool,
 }
 
-impl Default for RuntimeConfig {
+// Layer 2: Validation
+impl Config {
+    pub fn validate(&self) -> Result<()> {
+        if !self.input_zip.exists() {
+            anyhow::bail!("Input ZIP file does not exist");
+        }
+        if !self.input_zip.is_file() {
+            anyhow::bail!("Input ZIP path is not a file");
+        }
+        if self.workers == 0 {
+            anyhow::bail!("Worker count must be greater than 0");
+        }
+        Ok(())
+    }
+}
+
+// Layer 3: Defaults
+impl Default for Config {
     fn default() -> Self {
         Self {
+            input_zip: PathBuf::new(),
+            output_dir: PathBuf::new(),
             workers: num_cpus::get(),
-            buffer_size: 64 * 1024,  // 64KB
-            shutdown_timeout: Duration::from_secs(30),
+            buffer_size: 8 * 1024, // 8KB
+            shutdown_timeout: Duration::from_secs(10),
             verbose: false,
         }
     }
 }
 
-// Design Choice: Using validation traits
-pub trait ConfigValidator {
-    fn validate(&self) -> Result<()>;
-}
-
-impl ConfigValidator for CliConfig {
-    fn validate(&self) -> Result<()> {
-        // Validate paths
-        if !self.input_path.exists() {
-            return Err(Error::InvalidPath(self.input_path.clone()));
-        }
-        
-        // Validate runtime config
-        if self.runtime.workers == 0 {
-            return Err(Error::InvalidConfig("Workers must be > 0"));
-        }
-        
-        Ok(())
-    }
-}
-
-// Design Choice: Using builder for construction
+// Layer 4: Builder
 #[derive(Default)]
 pub struct ConfigBuilder {
-    input_path: Option<PathBuf>,
-    output_dir: Option<PathBuf>,
-    runtime: RuntimeConfig,
-    storage: StorageConfig,
-    metrics: MetricsConfig,
+    config: Config,
 }
 
 impl ConfigBuilder {
@@ -99,27 +61,23 @@ impl ConfigBuilder {
         Self::default()
     }
 
-    pub fn input_path(mut self, path: PathBuf) -> Self {
-        self.input_path = Some(path);
+    pub fn input_zip(mut self, path: PathBuf) -> Self {
+        self.config.input_zip = path;
         self
     }
 
     pub fn output_dir(mut self, path: PathBuf) -> Self {
-        self.output_dir = Some(path);
+        self.config.output_dir = path;
         self
     }
 
-    pub fn build(self) -> Result<CliConfig> {
-        let config = CliConfig {
-            input_path: self.input_path.ok_or_else(|| Error::InvalidConfig("Missing input path"))?,
-            output_dir: self.output_dir.ok_or_else(|| Error::InvalidConfig("Missing output dir"))?,
-            runtime: self.runtime,
-            storage: self.storage,
-            metrics: self.metrics,
-        };
-        
-        config.validate()?;
-        Ok(config)
+    pub fn workers(mut self, count: usize) -> Self {
+        self.config.workers = count;
+        self
+    }
+
+    pub fn build(self) -> Result<Config> {
+        self.config.validate()?;
+        Ok(self.config)
     }
 }
-

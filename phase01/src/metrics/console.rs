@@ -29,6 +29,8 @@ use tokio::time::{Duration, interval};
 use metrics::{Counter, Gauge, Histogram};
 use crate::core::error::Result;
 use super::{MetricsRegistry, MetricsConfig};
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use anyhow::Result;
 
 // Design Choice: Using tokio-console for runtime insights
 pub struct ConsoleManager {

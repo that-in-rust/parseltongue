@@ -1,48 +1,109 @@
-// Using error.rs from core/error.rs with adjustments for new structure
-use std::{io, path::PathBuf};
-use thiserror::Error;
-use tokio::time::error::Elapsed;
-use std::sync::Arc;
-use metrics::{Counter, Gauge};
-use std::time::Duration;
-use tokio::sync::Mutex;
+//! Error Module - Pyramidal Structure
+//! Layer 1: Error Types
+//! Layer 2: Error Context
+//! Layer 3: Error Conversion
+//! Layer 4: Error Handling
+//! Layer 5: Error Reporting
 
-/// Core error types for the ZIP processing system
-#[derive(Error, Debug)]
-pub enum Error {
-    #[error("IO error: {0}")]
-    Io(#[from] io::Error),
+use std::path::PathBuf;
+use thiserror::Error;
+
+// Layer 1: Core Error Type
+#[derive(Debug, Error)]
+pub enum ProcessorError {
+    #[error("IO error: {source}")]
+    Io {
+        #[from]
+        source: std::io::Error,
+        path: Option<PathBuf>,
+    },
 
     #[error("ZIP error: {0}")]
-    Zip(#[from] zip::result::ZipError),
+    Zip(String),
 
-    #[error("Database error: {0}")]
-    Database(#[from] sled::Error),
+    #[error("Storage error: {0}")]
+    Storage(String),
 
-    #[error("Encoding error: {0}")]
-    Encoding(#[from] std::string::FromUtf8Error),
+    #[error("Runtime error: {0}")]
+    Runtime(String),
 
-    #[error("Operation timed out after {0:?}")]
-    Timeout(Duration, #[source] Box<Elapsed>),
-
-    #[error("Resource limit exceeded: {0}")]
-    ResourceLimit(String),
-
-    #[error("Invalid path: {0}")]
-    InvalidPath(PathBuf),
-
-    #[error("Circuit breaker open: {0}")]
-    CircuitBreakerOpen(String),
-
-    #[error("Task cancelled")]
-    Cancelled,
-
-    #[error("Shutdown in progress")]
-    Shutdown,
+    #[error("Configuration error: {0}")]
+    Config(String),
 }
 
-/// Result type alias for our error type
-pub type Result<T> = std::result::Result<T, Error>;
+// Layer 2: Error Context
+#[derive(Debug)]
+pub struct ErrorContext {
+    pub file: Option<PathBuf>,
+    pub operation: String,
+    pub timestamp: std::time::SystemTime,
+}
 
-// Rest of the error handling infrastructure...
+// Layer 3: Error Extensions
+pub trait ErrorExt {
+    fn with_path(self, path: impl Into<PathBuf>) -> Self;
+    fn with_context(self, context: impl Into<String>) -> Self;
+}
 
+impl ErrorExt for ProcessorError {
+    fn with_path(self, path: impl Into<PathBuf>) -> Self {
+        match self {
+            Self::Io { source, .. } => Self::Io {
+                source,
+                path: Some(path.into()),
+            },
+            other => other,
+        }
+    }
+
+    fn with_context(self, context: impl Into<String>) -> Self {
+        match self {
+            Self::Zip(_) => Self::Zip(context.into()),
+            Self::Storage(_) => Self::Storage(context.into()),
+            Self::Runtime(_) => Self::Runtime(context.into()),
+            Self::Config(_) => Self::Config(context.into()),
+            other => other,
+        }
+    }
+}
+
+// Layer 4: Result Type
+pub type Result<T> = std::result::Result<T, ProcessorError>;
+
+// Layer 5: Error Reporting
+#[derive(Debug)]
+pub struct ErrorReport {
+    error: ProcessorError,
+    context: ErrorContext,
+    backtrace: Option<std::backtrace::Backtrace>,
+}
+
+impl ErrorReport {
+    pub fn new(error: ProcessorError) -> Self {
+        Self {
+            error,
+            context: ErrorContext {
+                file: None,
+                operation: String::new(),
+                timestamp: std::time::SystemTime::now(),
+            },
+            backtrace: std::backtrace::Backtrace::capture().into(),
+        }
+    }
+
+    pub fn print_report(&self) -> String {
+        use std::fmt::Write;
+        let mut output = String::new();
+
+        writeln!(&mut output, "Error: {}", self.error).unwrap();
+        if let Some(path) = &self.context.file {
+            writeln!(&mut output, "File: {}", path.display()).unwrap();
+        }
+        writeln!(&mut output, "Operation: {}", self.context.operation).unwrap();
+        if let Some(bt) = &self.backtrace {
+            writeln!(&mut output, "Backtrace:\n{}", bt).unwrap();
+        }
+
+        output
+    }
+}

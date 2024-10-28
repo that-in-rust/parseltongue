@@ -1,185 +1,110 @@
-//! ZIP Processing Layer
-//! 
-//! Pyramid Structure:
-//! 
-//! Level 4 (Top): ZIP Processing
-//! - ZipProcessor     (main processor)
-//!   ├── Entry processing
-//!   ├── Stream handling
-//!   └── Resource management
-//! 
-//! Level 3: Processing Components
-//! - AsyncReader      (async reading)
-//! - EntryValidator   (validation)
-//! - StreamProcessor  (streaming)
-//! 
-//! Level 2: Implementation
-//! - Reader          (ZIP reading)
-//! - Stream          (streaming)
-//! - Guard           (RAII guards)
-//! 
-//! Level 1 (Base): Core Types
-//! - ZipConfig       (configuration)
-//! - ZipEntry        (entry type)
-//! - ProcessingError (errors)
+//! ZIP Processing Module - Pyramidal Structure
+//! Layer 1: Public Interface
+//! Layer 2: ZIP Management
+//! Layer 3: Stream Processing
+//! Layer 4: Error Handling
+//! Layer 5: Resource Management
 
-pub mod reader;
-pub mod stream;
-pub mod guard;
-
+use std::path::Path;
 use std::sync::Arc;
-use tokio::sync::{Semaphore, mpsc};
+use anyhow::Result;
 use bytes::Bytes;
-use futures::{Stream, StreamExt};
-use metrics::{Counter, Gauge};
-use crate::core::error::Result;
+use tokio::fs::File;
+use tokio::sync::Semaphore;
 
-// Re-export main types
-pub use reader::AsyncZipReader;
+mod reader;
+mod stream;
+mod guard;
 
-// Design Choice: Using async traits for operations
-#[async_trait::async_trait]
-pub trait AsyncZipProcessor: Send + Sync + 'static {
-    async fn process_entry(&self, entry: ZipEntry) -> Result<()>;
-    async fn complete(&self) -> Result<()>;
+pub use reader::ZipReader;
+pub use stream::ZipStream;
+
+// Layer 1: Core Types
+#[derive(Clone)]
+pub struct ZipProcessor {
+    inner: Arc<ZipInner>,
 }
 
-// Design Choice: Using builder pattern for configuration
+struct ZipInner {
+    config: ZipConfig,
+    pool: Arc<Semaphore>,
+}
+
+// Layer 2: Configuration
 #[derive(Debug, Clone)]
 pub struct ZipConfig {
     pub buffer_size: usize,
     pub max_concurrent_entries: usize,
-    pub validation_config: ValidationConfig,
-    pub encoding_config: EncodingConfig,
+    pub chunk_size: usize,
 }
 
 impl Default for ZipConfig {
     fn default() -> Self {
         Self {
-            buffer_size: 64 * 1024, // 64KB
-            max_concurrent_entries: 4,
-            validation_config: ValidationConfig::default(),
-            encoding_config: EncodingConfig::default(),
+            buffer_size: 64 * 1024,      // 64KB
+            max_concurrent_entries: 100,
+            chunk_size: 1024 * 1024,     // 1MB
         }
     }
 }
 
-// Design Choice: Using strong types for entries
-#[derive(Debug, Clone)]
-pub struct ZipEntry {
-    pub path: std::path::PathBuf,
-    pub data: Bytes,
-    pub crc32: u32,
-    pub size: u64,
-}
-
-// Design Choice: Using separate configs for validation
-#[derive(Debug, Clone, Default)]
-pub struct ValidationConfig {
-    pub max_path_length: usize,
-    pub max_file_size: u64,
-    pub allowed_extensions: Vec<String>,
-}
-
-// Design Choice: Using separate configs for encoding
-#[derive(Debug, Clone, Default)]
-pub struct EncodingConfig {
-    pub default_encoding: String,
-    pub detect_encoding: bool,
-    pub fallback_encoding: String,
-}
-
-// Design Choice: Using metrics for monitoring
-#[derive(Debug)]
-struct ProcessingMetrics {
-    entries_processed: Counter,
-    bytes_processed: Counter,
-    active_processors: Gauge,
-    error_count: Counter,
-}
-
-impl ProcessingMetrics {
-    fn new() -> Self {
-        Self {
-            entries_processed: Counter::new(),
-            bytes_processed: Counter::new(),
-            active_processors: Gauge::new(),
-            error_count: Counter::new(),
-        }
-    }
-}
-
-// Design Choice: Using processor for coordination
-pub struct ZipProcessor {
-    config: ZipConfig,
-    backpressure: Arc<Semaphore>,
-    metrics: ProcessingMetrics,
-    entry_tx: mpsc::Sender<ZipEntry>,
-}
-
+// Layer 3: Implementation
 impl ZipProcessor {
     pub fn new(config: ZipConfig) -> Self {
-        let (entry_tx, _) = mpsc::channel(config.max_concurrent_entries);
-        let backpressure = Arc::new(Semaphore::new(config.max_concurrent_entries));
-        let metrics = ProcessingMetrics::new();
-
         Self {
-            config,
-            backpressure,
-            metrics,
-            entry_tx,
+            inner: Arc::new(ZipInner {
+                config,
+                pool: Arc::new(Semaphore::new(config.max_concurrent_entries)),
+            }),
         }
     }
 
-    pub async fn process<R>(&self, reader: R) -> Result<()>
-    where
-        R: AsyncRead + AsyncSeek + Unpin + Send + 'static,
-    {
-        let mut reader = AsyncZipReader::new(reader, self.config.clone());
-        
-        while let Some(entry) = reader.next_entry().await? {
-            let _permit = self.backpressure.acquire().await?;
-            self.metrics.active_processors.increment(1.0);
-            
-            self.process_entry(entry).await?;
-            
-            self.metrics.active_processors.decrement(1.0);
+    // Layer 4: Processing
+    pub async fn process_file<P: AsRef<Path>>(&self, path: P) -> Result<Vec<ZipEntry>> {
+        let file = File::open(path).await?;
+        let reader = ZipReader::new(file, self.inner.config.clone());
+        let mut entries = Vec::new();
+
+        let mut stream = reader.stream_entries().await?;
+        while let Some(entry) = stream.next_entry().await? {
+            let _permit = self.inner.pool.acquire().await?;
+            entries.push(entry);
         }
 
-        Ok(())
+        Ok(entries)
     }
 
-    async fn process_entry(&self, entry: ZipEntry) -> Result<()> {
-        self.metrics.entries_processed.increment(1);
-        self.metrics.bytes_processed.increment(entry.size);
-        
-        self.entry_tx.send(entry).await
-            .map_err(|_| Error::Shutdown)?;
-        
-        Ok(())
+    // Layer 5: Entry Processing
+    pub async fn process_entry(&self, entry: ZipEntry) -> Result<Bytes> {
+        let _permit = self.inner.pool.acquire().await?;
+        entry.read_content().await
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::io::Cursor;
+// Public Types
+#[derive(Debug)]
+pub struct ZipEntry {
+    name: String,
+    size: u64,
+    compressed_size: u64,
+    content: Arc<Bytes>,
+}
 
-    #[tokio::test]
-    async fn test_zip_processor() {
-        let config = ZipConfig::default();
-        let processor = ZipProcessor::new(config);
-
-        // Create test ZIP
-        let mut data = Vec::new();
-        {
-            let mut zip = zip::ZipWriter::new(Cursor::new(&mut data));
-            zip.start_file("test.txt", Default::default()).unwrap();
-            zip.write_all(b"test data").unwrap();
-            zip.finish().unwrap();
-        }
-
-        let cursor = Cursor::new(data);
-        assert!(processor.process(cursor).await.is_ok());
+impl ZipEntry {
+    pub async fn read_content(&self) -> Result<Bytes> {
+        Ok(self.content.as_ref().clone())
     }
+}
+
+// Error Types
+#[derive(Debug, thiserror::Error)]
+pub enum ZipError {
+    #[error("Failed to open ZIP file: {0}")]
+    OpenError(String),
+    
+    #[error("Failed to read ZIP entry: {0}")]
+    ReadError(String),
+    
+    #[error("Invalid ZIP format: {0}")]
+    FormatError(String),
 }

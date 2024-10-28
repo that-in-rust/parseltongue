@@ -58,4 +58,3 @@ impl<S: Stream<Item = Result<ZipEntry>> + Unpin> Stream for BufferedZipStream<S>
         }
     }
 }
-
