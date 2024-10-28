@@ -68,10 +68,3 @@ tokio-test = "0.4.3"
 pretty_assertions = "1.4.0"
 test-log = "0.2.14"
 rand = "0.8.5"
-
-# ===== Benchmark Configuration =====
-// Remove or comment out any [[bench]] sections
-// If you have something like:
-// [[bench]]
-// name = "zip_processing"
-// harness = false
