@@ -27,6 +27,7 @@ src/
 │   ├── mod.rs      // Public storage API
 │   ├── sled.rs     // sled implementation
 │   └── guard.rs    // Connection guards
+│       └── pool.rs  # ✅ Added
 │
 ├── runtime/        // Tokio Runtime Layer
 │   ├── mod.rs      // Runtime coordination
