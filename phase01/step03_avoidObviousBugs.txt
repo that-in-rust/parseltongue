@@ -1,0 +1,378 @@
+# Common Rust Pitfalls and Best Practices
+
+## 1. Module Organization
+- AVOID: Deep module nesting (>3 levels)
+- USE: pub(crate) for internal APIs
+- USE: Re-exports in mod.rs for clean public APIs
+- AVOID: Circular dependencies between modules
+
+## 2. Error Handling
+- AVOID: Unwrap/expect in production code
+- USE: Custom error types with thiserror
+- USE: Context with anyhow for error chains
+- AVOID: Mixing error handling strategies (pick anyhow or custom errors)
+
+## 3. Memory Management
+- AVOID: Cloning when borrowing would work
+- USE: Arc for shared ownership across threads
+- AVOID: Vec<String> when Vec<&str> would work
+- USE: Cow<str> for optional string ownership
+
+## 4. Async/Concurrency
+- AVOID: Blocking operations in async code
+- USE: Proper error propagation in async functions
+- AVOID: Mixing sync and async APIs
+- USE: Spawn blocking for CPU-intensive tasks
+
+## 5. File Operations
+- AVOID: Unbuffered reads/writes
+- USE: BufReader/BufWriter for efficiency
+- AVOID: Reading entire files into memory
+- USE: Streaming for large files
+
+## 6. Database Operations
+- AVOID: Holding database connections too long
+- USE: Connection pooling
+- AVOID: Unbounded queries
+- USE: Explicit transaction boundaries
+
+## 7. ZIP Processing
+- AVOID: Reading entire ZIP into memory
+- USE: Streaming entry processing
+- AVOID: Unsafe path traversal
+- USE: Path sanitization
+
+## 8. Logging
+- AVOID: println! debugging in production
+- USE: Proper log levels (debug, info, warn, error)
+- AVOID: Excessive logging
+- USE: Structured logging where possible
+
+## 9. CLI Arguments
+- AVOID: Manual argument parsing
+- USE: Clap's derive feature
+- AVOID: Global state
+- USE: Proper config structs
+
+## 10. Testing
+- AVOID: Test code in main
+- USE: Integration tests for full workflows
+- AVOID: Mocking when real implementations work
+- USE: Test fixtures and helpers
+
+## Security Considerations
+1. Path Traversal:
+
+
+## 11. Buffer Management
+- USE: Vec::with_capacity for known sizes
+
+## 12. Ownership in File Operations
+
+## 13. Type System Leverage
+
+## 14. Progress Reporting
+- AVOID: Direct prints for progress updates
+- USE: indicatif's ProgressBar for consistent UI
+- AVOID: Progress updates for every small operation
+- USE: Batch updates with appropriate intervals
+
+## 15. ZIP File Error Handling
+- AVOID: Assuming all ZIP entries are valid
+- USE: Proper error handling for each entry
+- AVOID: Ignoring compression errors
+- USE: Explicit checks for CRC and size mismatches
+
+## 16. Database Key Design
+- AVOID: Using raw file paths as keys
+- USE: Normalized paths with consistent separators
+- AVOID: Unbounded key sizes
+- USE: Key validation before insertion
+
+## 17. Memory Management for Large Files
+- AVOID: Loading entire files into memory
+- USE: Chunked reading with fixed buffer sizes
+- AVOID: Growing buffers dynamically
+- USE: Pre-allocated buffers with known sizes
+
+## 18. Character Encoding
+- AVOID: Assuming UTF-8 for all files
+- USE: encoding_rs for proper encoding detection
+- AVOID: Silent encoding fallbacks
+- USE: Explicit encoding error handling
+
+## 19. Directory Management
+- AVOID: Assuming directories exist
+- USE: fs::create_dir_all with error handling
+- AVOID: Race conditions in directory creation
+- USE: Atomic operations where possible
+
+## 20. Database Transactions
+- AVOID: Individual writes for related operations
+- USE: Batch operations for better performance
+- AVOID: Leaving transactions open
+- USE: Explicit transaction boundaries
+
+## 21. Resource Cleanup
+- AVOID: Manual resource management
+- USE: Drop trait for cleanup
+- AVOID: Leaving files/db connections open
+- USE: Guard patterns for automatic cleanup
+
+## 22. Error Context
+- AVOID: Generic error messages
+- USE: Context with file names and operations
+- AVOID: Swallowing intermediate errors
+- USE: Error chains for debugging
+
+## 23. Input Validation
+- AVOID: Trusting input paths directly
+- USE: Path canonicalization and validation
+- AVOID: Assuming ZIP file integrity
+- USE: Size and format validation before processing
+
+## 24. Ownership and Borrowing Best Practices
+- AVOID: Taking ownership when a reference would suffice
+- USE: References for ZIP entries to avoid unnecessary copying
+- AVOID: Multiple mutable references to database connections
+- USE: Proper scoping for borrowed database handles
+
+## 25. Error Handling Patterns
+- AVOID: Using Result<T, Box<dyn Error>> for public APIs
+- USE: Custom error types that implement std::error::Error
+- AVOID: Panic-inducing operations in file processing
+- USE: The ? operator for concise error propagation in ZIP operations
+
+## 26. Type System Safety
+- AVOID: Raw string paths for database keys
+- USE: Newtype pattern for validated paths
+- AVOID: Implicit type conversions
+- USE: Strong types for ZIP entry metadata
+
+## 27. API Design for ZIP Processing
+- AVOID: Exposing internal implementation details
+- USE: Builder pattern for configurable ZIP processing
+- AVOID: Functions with too many parameters
+- USE: Structured configuration objects
+
+## 28. Testing Strategy
+- AVOID: Testing only happy paths
+- USE: Property-based testing for ZIP file handling
+- AVOID: Hardcoded test data
+- USE: Test fixtures for various ZIP formats and encodings
+
+## 29. Memory Management for ZIP Processing
+- AVOID: Storing entire ZIP contents in memory
+- USE: Streaming iterators for ZIP entries
+- AVOID: Unnecessary String allocations for paths
+- USE: Borrowed types (&str) when possible
+
+## 30. Performance Optimization
+- AVOID: Premature optimization
+- USE: Profiling to identify actual bottlenecks
+- AVOID: Unnecessary file system operations
+- USE: Batch database operations for better throughput
+
+## 31. Zero-Cost Abstractions
+- AVOID: Runtime checks that could be done at compile time
+- USE: Type system to enforce valid states
+- AVOID: Dynamic dispatch when static dispatch works
+- USE: Generic code for reusable ZIP processing logic
+
+## 32. Documentation Best Practices
+- AVOID: Undocumented public APIs
+- USE: Examples in documentation for common operations
+- AVOID: Missing error documentation
+- USE: Clear documentation of failure modes and recovery
+
+## 33. Safety Invariants
+- AVOID: Unsafe code in public interfaces
+- USE: Safe abstractions around system calls
+- AVOID: Unchecked array access
+- USE: Bounds checking for ZIP entry data
+
+## 34. Trait Implementation Strategy
+- AVOID: Implementing traits unnecessarily
+- USE: Derive macros for common traits like Debug, Clone where appropriate
+- AVOID: Manual implementations of standard traits
+- USE: Custom traits for ZIP entry processing patterns
+
+## 35. Dependency Management
+- AVOID: Unnecessary dependencies
+- USE: Minimal set of well-maintained crates
+- AVOID: Multiple crates for the same functionality
+- USE: Explicit version requirements in Cargo.toml
+
+## 36. File System Operations
+- AVOID: Race conditions in file operations
+- USE: Atomic operations where possible
+- AVOID: Hardcoded file paths
+- USE: Path normalization and validation
+
+## 37. Database Consistency
+- AVOID: Inconsistent state in database operations
+- USE: Transactions for related operations
+- AVOID: Silent failures in database writes
+- USE: Explicit error handling for all database operations
+
+## 38. Progress Tracking
+- AVOID: Inaccurate progress reporting
+- USE: Proper file size calculations for progress bars
+- AVOID: Blocking operations during progress updates
+- USE: Asynchronous progress reporting
+
+## 39. Resource Management
+- AVOID: Resource leaks in error paths
+- USE: RAII patterns for resource management
+- AVOID: Manual cleanup code
+- USE: Drop implementations for cleanup
+
+## 40. Error Recovery
+- AVOID: Leaving system in inconsistent state after errors
+- USE: Rollback mechanisms for failed operations
+- AVOID: Partial updates to database
+- USE: Transaction-based updates for atomic operations
+
+## 41. Async Task Management
+- AVOID: Spawning unbounded number of tasks
+- USE: Task pools with appropriate limits
+- AVOID: Long-running blocking operations in async code
+- USE: Spawn blocking for CPU-intensive ZIP operations
+
+## 42. Buffer Management
+- AVOID: Fixed buffer sizes for unknown inputs
+- USE: Adaptive buffer sizing based on ZIP entry size
+- AVOID: Buffer overflow risks
+- USE: Checked arithmetic for buffer calculations
+
+## 43. Database Key Consistency
+- AVOID: Inconsistent path separators in keys
+- USE: Platform-agnostic path normalization
+- AVOID: Case sensitivity issues in paths
+- USE: Consistent case handling strategy
+
+## 44. Logging Strategy
+- AVOID: Logging sensitive file paths
+- USE: Redacted logging for sensitive information
+- AVOID: Logging without context
+- USE: Structured logging with operation metadata
+
+## 45. Error Classification
+- AVOID: Generic error types for specific failures
+- USE: Domain-specific error types for ZIP operations
+- AVOID: Missing error context
+- USE: Error wrapping with operation details
+
+## 46. Resource Limits
+- AVOID: Unbounded memory usage
+- USE: Configurable limits for ZIP entries
+- AVOID: Unlimited file sizes
+- USE: Size checks before processing
+
+## 47. Database Optimization
+- AVOID: Frequent small writes
+- USE: Batched operations for better performance
+- AVOID: Unnecessary database reads
+- USE: Caching for frequently accessed data
+
+## 48. Progress Reporting Accuracy
+- AVOID: Misleading progress indicators
+- USE: Accurate file size calculations
+- AVOID: Progress updates for small operations
+- USE: Meaningful progress granularity
+
+## 49. Ownership in Async Contexts
+- AVOID: Moving values into async blocks unnecessarily
+- USE: Clone or Arc when sharing data across async tasks
+- AVOID: Holding locks across await points
+- USE: Scoped locks with minimal critical sections
+
+## 50. Channel Usage
+- AVOID: Unbounded channels for ZIP entry processing
+- USE: Bounded channels with appropriate buffer sizes
+- AVOID: Channel send/recv without error handling
+- USE: Proper error handling for channel operations
+
+## 51. External Crate Integration
+- AVOID: Direct dependency on unstable crate features
+- USE: Feature flags for optional functionality
+- AVOID: Mixing sync and async versions of crates
+- USE: Consistent async patterns across dependencies
+
+## 52. ZIP File Validation
+- AVOID: Processing ZIP files without size validation
+- USE: Pre-flight checks for ZIP file integrity
+- AVOID: Trusting ZIP central directory blindly
+- USE: Cross-validation of local and central headers
+
+## 53. Database Backup Strategy
+- AVOID: Database operations without recovery plan
+- USE: Atomic operations with rollback capability
+- AVOID: Data loss during power failures
+- USE: Proper fsync/durability guarantees
+
+## 54. Memory Mapping
+- AVOID: Memory mapping large files without bounds
+- USE: Chunked processing for large ZIP entries
+- AVOID: Keeping too many file handles open
+- USE: Handle pooling for concurrent operations
+
+## 55. Error Propagation Chain
+- AVOID: Breaking the error chain
+- USE: Proper context for each error layer
+- AVOID: Generic error messages in specific operations
+- USE: Detailed error context for debugging
+
+## 56. Resource Cleanup in Async Code
+- AVOID: Resource leaks in async error paths
+- USE: Async Drop implementations where needed
+- AVOID: Blocking cleanup operations
+- USE: Async cleanup handlers
+
+## 57. Build Process Reliability
+- AVOID: Unstable build dependencies
+- USE: Fixed versions for build-time dependencies
+- AVOID: Platform-specific build assumptions
+- USE: Cross-platform build configurations
+
+## 58. Workspace Organization
+- AVOID: Mixing library and binary crates unnecessarily
+- USE: Clear separation of core logic and CLI
+- AVOID: Circular workspace dependencies
+- USE: Well-defined crate boundaries
+
+## 59. Protobuf and Generated Code
+- AVOID: Manual serialization for structured data
+- USE: Serde for consistent serialization
+- AVOID: Custom binary formats without schema
+- USE: Schema-based serialization for database values
+
+## 60. CLI Input Handling
+- AVOID: Raw command-line argument parsing
+- USE: Clap's derive feature for robust CLI
+- AVOID: Unchecked path arguments
+- USE: Path validation before processing
+
+## 61. Continuous Integration
+- AVOID: Platform-specific assumptions in tests
+- USE: Cross-platform test coverage
+- AVOID: Flaky tests with file system dependencies
+- USE: Temporary directories for file tests
+
+## 62. Dependency Versioning
+- AVOID: Overly permissive version requirements
+- USE: Minimal version specification
+- AVOID: Breaking changes in minor versions
+- USE: Semantic versioning strictly
+
+## 63. Error Type Design
+- AVOID: Stringly-typed errors
+- USE: Strongly-typed domain-specific errors
+- AVOID: Generic error messages
+- USE: Contextual error information
+
+## 64. File System Safety
+- AVOID: Race conditions in file operations
+- USE: Atomic file operations where possible
+- AVOID: Temporary file leaks
+- USE: Cleanup on all exit paths

@@ -3,10 +3,15 @@ src/
  ├── lib.rs           // Public API + module declarations
  │   - Export public interfaces from each module
  │   - Define core Result/Error types
++│   - Define common traits for ZIP and DB operations
++│   - Implement custom Error type with thiserror
+ │
  ├── main.rs          // CLI entry only (~30 LOC)
  │   - Keep Config struct and parse_config()
  │   - Main workflow orchestration
  │   - Error handling setup
++│   - Async runtime setup with tokio
+ │
  ├── core/
  │   ├── mod.rs       // Core orchestration
  │   │   - Re-export error and types
@@ -14,63 +19,104 @@ src/
  │   ├── error.rs     // Custom error types
  │   │   - Move error handling from main.rs
  │   │   - Define custom Error enum
++│   │   - Implement domain-specific error types
++│   │   - Add error context helpers
  │   └── types.rs     // Shared types/traits
  │       - Move Config struct from main.rs
  │       - Common type definitions
++│       - Add newtype wrappers for paths and keys
++│   └── channel.rs   // Async coordination
++│       - Bounded channels for ZIP processing
++│       - Error handling wrappers
++│       - Channel coordination types
  │
  ├── cli/
  │   ├── mod.rs       // CLI orchestration
  │   │   - Move logger mod functionality
  │   │   - Logging setup and configuration
- │   │   From main.rs:
- │   │   - env_logger::init()
- │   │   - Logger struct and impl
++│   │   - Implement structured logging
  │   ├── args.rs      // Argument parsing + validation
  │   │   From main.rs:
  │   │   - Config struct definition
  │   │   - parse_config() function
  │   │   - Argument validation logic
- │   └── progress.rs  // Progress bar handling
- │       From main.rs:
- │       - Progress bar setup code
- │       - ProgressStyle configuration
- │       - Progress update logic
++│   │   - Path canonicalization and validation
+ │   ├── progress.rs  // Progress bar handling
+ │   │   From main.rs:
+ │   │   - Progress bar setup code
+ │   │   - ProgressStyle configuration
+ │   │   - Progress update logic
++│   │   - Async progress reporting
++│   │   - Accurate file size tracking
++│   └── metrics.rs   // Progress metrics
++│       - Size calculations
++│       - Progress aggregation
++│       - Rate limiting
  │
  ├── storage/
  │   ├── mod.rs       // Storage orchestration
  │   │   - Re-export db and index
  │   │   - Storage trait definitions
++│   │   - Transaction management traits
  │   ├── db.rs        // Sled operations
  │   │   From main.rs:
  │   │   - Entire database mod
  │   │   - DatabaseManager struct and impl
  │   │   - store() method
++│   │   - Batch operation support
++│   │   - Recovery and rollback handling
++│   │   - Connection pooling
  │   └── index.rs     // File index management
  │       From main.rs:
  │       - File indexing logic from main loop
  │       - Key generation code
  │       - Index querying functionality
++│       - Path normalization for keys
++│       - Case sensitivity handling
  │
  └── zip/
      ├── mod.rs       // ZIP orchestration
      │   - Re-export reader and encoding
      │   - ZIP processing traits
++│   │   - Streaming iterator traits
      ├── reader.rs    // Streaming implementation
      │   From main.rs:
      │   - zip_processing mod
      │   - ZipEntry struct
      │   - process_zip function
-     └── encoding.rs  // Character set handling
++│   │   - Chunked reading implementation
++│   │   - Buffer management
++│   │   - ZIP validation and integrity checks
+     ├── encoding.rs  // Character set handling
          From main.rs:
          - WINDOWS_1252 encoding handling
          - Character set detection
          - Encoding error handling
++        - Explicit fallback handling
++│   └── validation.rs  // ZIP validation
++│       - Pre-flight checks
++│       - CRC validation
++│       - Size validation
++│       - Header validation
+ ├── utils/
+ │   ├── resource.rs  // Resource management
+ │   ├── buffer.rs    // Buffer management
+ │   │   - Adaptive buffer sizing
+ │   │   - Buffer pooling
+ │   │   - Checked arithmetic helpers
++│   └── cleanup.rs   // Cleanup handlers
++│       - Async cleanup traits
++│       - RAII guards
++│       - Resource tracking
 
-tests/
+ tests/
  └── integration/    // End-to-end workflow tests
      - Move test_database_operations
      - Add ZIP processing tests
      - Add CLI argument tests
++    - Add property-based tests
++    - Add async operation tests
++    - Add resource cleanup tests
 
 Key Improvements:
 1. Removed unnecessary nesting that wasn't serving current scope
@@ -85,3 +131,4 @@ Design Principles:
 - Clear interfaces between modules
 - Easy to navigate for current scope
 - Room to expand without restructuring
+
