@@ -70,6 +70,8 @@ test-log = "0.2.14"
 rand = "0.8.5"
 
 # ===== Benchmark Configuration =====
-[[bench]]
-name = "zip_processing"
-harness = false
+// Remove or comment out any [[bench]] sections
+// If you have something like:
+// [[bench]]
+// name = "zip_processing"
+// harness = false
