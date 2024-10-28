@@ -7,19 +7,30 @@ Core Functionality:
   * --output-dir (-o): Absolute path for base output directory
 - Optional flags:
   * --verbose (-v): Enable verbose logging
++- Additional runtime configuration:
++  * --workers (-w): Number of worker threads
++  * --buffer-size (-b): Streaming buffer size
++  * --shutdown-timeout (-s): Graceful shutdown timeout
 
 2. Output Directory Structure
 - Auto-create timestamped analysis directory:
   output_dir/
     └── {zip-name}-{YYYYMMDDHHMMSS}/  # e.g., my-project-20240125143022/
         ├── db/                        # sled database files
-        └── logs/                      # operation logs
+        ├── logs/                      # operation logs
+        └── metrics/                    # Runtime metrics and traces
+            ├── tokio-console.log       # Tokio runtime metrics
+            └── task-metrics.json       # Task performance data
 
 3. ZIP Processing
 - Validate input ZIP file exists and is readable
 - Stream ZIP contents directly to database without extraction
 - Handle common ZIP formats and encodings (UTF-8, Windows-1252)
 - Track processing progress with progress bar
++- Implement streaming with backpressure
++- Concurrent entry processing with configurable workers
++- Adaptive buffer sizing based on system resources
++- CRC validation in parallel with processing
 
 4. Database Storage
 - Store ZIP contents in sled database under timestamped directory
@@ -28,6 +39,10 @@ Core Functionality:
   * Value: file contents as bytes
 - Maintain index of stored files
 - Handle large files efficiently using streaming
++- Connection pooling with configurable pool size
++- Batched write operations for better throughput
++- Async transaction management
++- Priority-based operation scheduling
 
 5. Error Handling & Logging
 - Graceful error handling for common scenarios:
@@ -37,6 +52,10 @@ Core Functionality:
 - Log operations to:
   * Console (with colors for different levels)
   * logs/processing.log
++- Structured logging with trace contexts
++- Metric collection for performance analysis
++- Circuit breakers for failing operations
++- Graceful degradation under load
 
 Technical Constraints:
 - Use stable Rust only
@@ -48,6 +67,12 @@ Technical Constraints:
   * log + env_logger: logging
   * indicatif: progress bars
   * encoding_rs: character encoding
+Additional dependencies:
++  * tokio: Async runtime
++  * tokio-util: Async utilities
++  * tokio-stream: Stream traits
++  * tracing: Advanced logging
++  * metrics: Runtime metrics
 
 Non-Goals for Phase 01:
 - No ZIP extraction functionality
@@ -55,3 +80,6 @@ Non-Goals for Phase 01:
 - No summary generation
 - No dependency analysis
 - No security scanning
++- No distributed processing
++- No persistent metrics storage
++- No runtime reconfiguration

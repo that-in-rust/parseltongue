@@ -1,134 +1,164 @@
-## Core + Binary Structure (Optimized for Current Scope)
+## Core + Binary Structure (Production-Grade Async Implementation)
+
 src/
- ├── lib.rs           // Public API + module declarations
- │   - Export public interfaces from each module
- │   - Define core Result/Error types
-+│   - Define common traits for ZIP and DB operations
-+│   - Implement custom Error type with thiserror
+ ├── lib.rs           // Public API + Core Traits
+ │   - AsyncZipProcessor trait
+ │   - AsyncStorageBackend trait
+ │   - Async stream traits with backpressure
+ │   - Error types with thiserror
  │
- ├── main.rs          // CLI entry only (~30 LOC)
- │   - Keep Config struct and parse_config()
- │   - Main workflow orchestration
- │   - Error handling setup
-+│   - Async runtime setup with tokio
+ ├── main.rs          // Runtime + Entry Point
+ │   - Tokio multi-threaded runtime setup
+ │   - CLI argument parsing (clap):
+ │     * --input-zip, --output-dir (required)
+ │     * --workers, --buffer-size, --shutdown-timeout (optional)
+ │     * --verbose (optional)
+ │   - Graceful shutdown handling
+ │   - Error reporting setup
  │
- ├── core/
- │   ├── mod.rs       // Core orchestration
- │   │   - Re-export error and types
- │   │   - Common traits
- │   ├── error.rs     // Custom error types
- │   │   - Move error handling from main.rs
- │   │   - Define custom Error enum
-+│   │   - Implement domain-specific error types
-+│   │   - Add error context helpers
- │   └── types.rs     // Shared types/traits
- │       - Move Config struct from main.rs
- │       - Common type definitions
-+│       - Add newtype wrappers for paths and keys
-+│   └── channel.rs   // Async coordination
-+│       - Bounded channels for ZIP processing
-+│       - Error handling wrappers
-+│       - Channel coordination types
+ ├── core/           // Core Async Infrastructure
+ │   ├── runtime/
+ │   │   ├── mod.rs        // Runtime Management
+ │   │   │   - Configurable worker pool
+ │   │   │   - Adaptive buffer sizing
+ │   │   │   - Resource limits
+ │   │   │   - Shutdown coordination
+ │   │   ├── worker.rs     // Task Management
+ │   │   │   - Task scheduling
+ │   │   │   - Priority queues
+ │   │   │   - Backpressure control
+ │   │   └── shutdown.rs   // Graceful Shutdown
+ │   │       - Resource cleanup
+ │   │       - Task cancellation
+ │   │       - Configurable timeout handling
+ │   ├── error.rs    // Error Management
+ │   │   - Domain errors
+ │   │   - Circuit breaker implementation
+ │   │   - Context propagation
+ │   │   - Error metrics
+ │   ├── types.rs    // Core Domain Types
+ │   │   - ZIP entry types
+ │   │   - Storage types
+ │   │   - Runtime configuration types
+ │   │   - Metrics types
+ │   └── channel.rs  // Async Channels
+ │       - Backpressure channels
+ │       - Metrics collection
+ │       - Buffer management
  │
- ├── cli/
- │   ├── mod.rs       // CLI orchestration
- │   │   - Move logger mod functionality
- │   │   - Logging setup and configuration
-+│   │   - Implement structured logging
- │   ├── args.rs      // Argument parsing + validation
- │   │   From main.rs:
- │   │   - Config struct definition
- │   │   - parse_config() function
- │   │   - Argument validation logic
-+│   │   - Path canonicalization and validation
- │   ├── progress.rs  // Progress bar handling
- │   │   From main.rs:
- │   │   - Progress bar setup code
- │   │   - ProgressStyle configuration
- │   │   - Progress update logic
-+│   │   - Async progress reporting
-+│   │   - Accurate file size tracking
-+│   └── metrics.rs   // Progress metrics
-+│       - Size calculations
-+│       - Progress aggregation
-+│       - Rate limiting
+ ├── cli/            // CLI Layer
+ │   ├── mod.rs      // CLI Coordination
+ │   │   - Feature coordination
+ │   │   - Error handling
+ │   ├── args.rs     // Argument Parsing
+ │   │   - Command line parsing
+ │   │   - Validation logic
+ │   ├── progress.rs // Progress Reporting
+ │   │   - Async progress bars
+ │   │   - Rate limiting
+ │   └── metrics.rs  // CLI Metrics
+ │       - Performance tracking
+ │       - User feedback
  │
- ├── storage/
- │   ├── mod.rs       // Storage orchestration
- │   │   - Re-export db and index
- │   │   - Storage trait definitions
-+│   │   - Transaction management traits
- │   ├── db.rs        // Sled operations
- │   │   From main.rs:
- │   │   - Entire database mod
- │   │   - DatabaseManager struct and impl
- │   │   - store() method
-+│   │   - Batch operation support
-+│   │   - Recovery and rollback handling
-+│   │   - Connection pooling
- │   └── index.rs     // File index management
- │       From main.rs:
- │       - File indexing logic from main loop
- │       - Key generation code
- │       - Index querying functionality
-+│       - Path normalization for keys
-+│       - Case sensitivity handling
+ ├── zip/            // ZIP Processing
+ │   ├── mod.rs      // ZIP Coordination
+ │   │   - Stream processing traits
+ │   │   - Buffer management
+ │   ├── reader.rs   // Async Reader
+ │   │   - Chunked streaming
+ │   │   - CRC validation
+ │   │   - Memory management
+ │   ├── validation.rs // Validation
+ │   │   - Format checking
+ │   │   - Integrity validation
+ │   │   - Error detection
+ │   └── encoding.rs   // Character Encoding
+ │       - UTF-8 handling
+ │       - Windows-1252 support
+ │       - Fallback strategies
  │
- └── zip/
-     ├── mod.rs       // ZIP orchestration
-     │   - Re-export reader and encoding
-     │   - ZIP processing traits
-+│   │   - Streaming iterator traits
-     ├── reader.rs    // Streaming implementation
-     │   From main.rs:
-     │   - zip_processing mod
-     │   - ZipEntry struct
-     │   - process_zip function
-+│   │   - Chunked reading implementation
-+│   │   - Buffer management
-+│   │   - ZIP validation and integrity checks
-     ├── encoding.rs  // Character set handling
-         From main.rs:
-         - WINDOWS_1252 encoding handling
-         - Character set detection
-         - Encoding error handling
-+        - Explicit fallback handling
-+│   └── validation.rs  // ZIP validation
-+│       - Pre-flight checks
-+│       - CRC validation
-+│       - Size validation
-+│       - Header validation
- ├── utils/
- │   ├── resource.rs  // Resource management
- │   ├── buffer.rs    // Buffer management
- │   │   - Adaptive buffer sizing
- │   │   - Buffer pooling
- │   │   - Checked arithmetic helpers
-+│   └── cleanup.rs   // Cleanup handlers
-+│       - Async cleanup traits
-+│       - RAII guards
-+│       - Resource tracking
+ ├── storage/        // Storage Layer
+ │   ├── mod.rs      // Storage Coordination
+ │   │   - Configurable connection pooling
+ │   │   - Transaction management
+ │   ├── db.rs       // Database Operations
+ │   │   - Batched write operations
+ │   │   - Priority-based scheduling
+ │   │   - Async transactions
+ │   │   - Error recovery
+ │   └── index.rs    // Index Management
+ │       - Concurrent access
+ │       - Index optimization
+ │       - Search operations
+ │
+ ├── metrics/        // Metrics & Monitoring
+ │   ├── mod.rs      // Metrics Coordination
+ │   │   - Metric aggregation
+ │   │   - Rate limiting
+ │   ├── collect.rs  // Collection
+ │   │   - Tokio runtime metrics
+ │   │   - Task performance data
+ │   │   - Resource usage
+ │   └── report.rs   // Reporting
+ │       - Structured logging
+ │       - Colored console output
+ │       - File logging
+ │       - JSON formatting
+ │
+ └── utils/          // Utilities
+     ├── mod.rs      // Utils Coordination
+     ├── buffer.rs   // Buffer Management
+     │   - Pool management
+     │   - Size adaptation
+     │   - Memory limits
+     ├── resource.rs // Resource Management
+     │   - Resource pooling
+     │   - Limit enforcement
+     └── cleanup.rs  // Cleanup Handlers
+         - RAII guards
+         - Async cleanup
+         - Resource tracking
 
- tests/
- └── integration/    // End-to-end workflow tests
-     - Move test_database_operations
-     - Add ZIP processing tests
-     - Add CLI argument tests
-+    - Add property-based tests
-+    - Add async operation tests
-+    - Add resource cleanup tests
+tests/
+ ├── integration/   // Integration Tests
+ │   └── mod.rs
+ │       - End-to-end workflows
+ │       - Concurrent operations
+ │       - Resource cleanup
+ └── utils/        // Test Utilities
+     └── mod.rs
+         - Async test helpers
+         - Mock implementations
+         - Test fixtures
 
-Key Improvements:
-1. Removed unnecessary nesting that wasn't serving current scope
-2. Combined logging into cli/mod.rs (simple env_logger setup)
-3. Simplified path handling into storage/mod.rs
-4. Focused zip handling on core streaming needs
-5. Single integration test directory for main workflow
+Key Design Principles:
+1. Async-first architecture
+2. Resource-aware operations
+3. Proper error handling
+4. Comprehensive metrics
+5. Clean shutdown paths
+6. Test coverage focus
 
-Design Principles:
-- Each file has single, clear responsibility
-- Max ~200 LOC per file
-- Clear interfaces between modules
-- Easy to navigate for current scope
-- Room to expand without restructuring
+Implementation Notes:
+- All I/O operations are async
+- Resource limits enforced
+- Metrics collected throughout
+- Graceful error recovery
+- Clean shutdown paths
++- No distributed processing support
++- No persistent metrics storage
++- No runtime reconfiguration
++- Focus on single-node performance
 
+Component Relationships:
+1. ZIP Processing Pipeline:
+   AsyncZipReader -> EntryProcessor -> ValidationQueue -> StorageWriter
+
+2. Resource Management:
+   BufferPool -> WorkerPool -> ConnectionPool -> MetricsCollector
+
+3. Error Handling Chain:
+   CircuitBreaker -> ErrorMetrics -> GracefulDegradation -> Reporting
+
+4. Metric Collection Flow:
+   TaskMetrics -> AggregatedMetrics -> StructuredLogs -> Reports

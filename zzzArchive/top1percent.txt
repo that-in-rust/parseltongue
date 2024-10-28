@@ -1,0 +1,1 @@
+Update @types.rs  - witha Pyramid structure of - Before starting code explain pyramidal nature of code via comments and then as the code gets detailed explain design choice nuances
