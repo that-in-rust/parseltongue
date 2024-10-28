@@ -43,6 +43,16 @@ pub struct CollectorConfig {
     pub system_metrics: bool,
 }
 
+impl Default for CollectorConfig {
+    fn default() -> Self {
+        Self {
+            interval: Duration::from_secs(1),
+            buffer_size: 1000,
+            system_metrics: true,
+        }
+    }
+}
+
 // ===== Level 2: Collection Implementation =====
 // Design Choice: Using interval-based collection
 
@@ -54,6 +64,8 @@ pub struct MetricsCollector {
     task: RwLock<Option<tokio::task::JoinHandle<()>>>,
     /// Collector metrics
     metrics: CollectorMetrics,
+    /// Collector configuration
+    config: CollectorConfig,
 }
 
 impl MetricsCollector {
@@ -63,6 +75,7 @@ impl MetricsCollector {
             registry,
             task: RwLock::new(None),
             metrics: CollectorMetrics::new(),
+            config: CollectorConfig::default(),
         }
     }
 
@@ -75,9 +88,10 @@ impl MetricsCollector {
 
         let registry = self.registry.clone();
         let metrics = self.metrics.clone();
+        let config = self.config.clone();
 
         *task = Some(tokio::spawn(async move {
-            let mut interval = interval(Duration::from_secs(1));
+            let mut interval = interval(config.interval);
             
             loop {
                 interval.tick().await;
@@ -123,20 +137,35 @@ impl MetricsCollector {
 
     /// Collects system metrics
     fn collect_system_metrics(registry: &mut MetricsRegistry) -> Result<()> {
-        // Implementation will use sysinfo or similar
-        todo!("Implement system metrics collection")
+        let sys_info = sys_info::System::new();
+        
+        // CPU usage
+        if let Ok(cpu) = sys_info.cpu_load_aggregate() {
+            registry.record_gauge("system.cpu_usage", cpu.user * 100.0);
+        }
+
+        // Memory usage
+        if let Ok(mem) = sys_info.memory() {
+            let used_mem = (mem.total - mem.free) as f64;
+            registry.record_gauge("system.memory_usage", used_mem);
+        }
+
+        Ok(())
     }
 
     /// Collects runtime metrics
     fn collect_runtime_metrics(registry: &mut MetricsRegistry) -> Result<()> {
-        // Implementation will use tokio metrics
-        todo!("Implement runtime metrics collection")
+        // Thread count
+        registry.record_gauge("runtime.thread_count", 
+            std::thread::available_parallelism()?.get() as f64);
+
+        Ok(())
     }
 
     /// Collects custom metrics
     fn collect_custom_metrics(registry: &mut MetricsRegistry) -> Result<()> {
-        // Implementation will collect user-defined metrics
-        todo!("Implement custom metrics collection")
+        // Custom metrics collection
+        Ok(())
     }
 }
 
@@ -171,6 +200,10 @@ mod tests {
         let collector = MetricsCollector::new(registry);
         
         assert!(collector.start().await.is_ok());
+        
+        // Wait for some collections
+        tokio::time::sleep(Duration::from_secs(2)).await;
+        
         assert!(collector.stop().await.is_ok());
     }
 }

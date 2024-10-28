@@ -225,4 +225,3 @@ mod tests {
         assert!(manager.is_ok());
     }
 }
-

@@ -22,7 +22,7 @@
 //! - ConfigBuilder    (builds configuration)
 //! - ErrorHandler     (handles errors)
 
-use std::path::PathBuf;
+use std::path::Path;
 use std::sync::Arc;
 use anyhow::{Context, Result};
 use clap::Parser;
@@ -41,66 +41,37 @@ use crate::{
 // ===== Level 1: Core Setup =====
 // Design Choice: Using clap for CLI argument parsing
 
-/// Command line arguments
-#[derive(Parser, Debug)]
-#[clap(author, version, about)]
-struct CliArgs {
-    /// Input ZIP file path
-    #[clap(short = 'i', long = "input-zip")]
-    input_path: PathBuf,
-
-    /// Output directory path
-    #[clap(short = 'o', long = "output-dir")]
-    output_dir: PathBuf,
-
-    /// Number of worker threads
-    #[clap(short = 'w', long = "workers", default_value = "4")]
-    workers: usize,
-
-    /// Buffer size in bytes
-    #[clap(short = 'b', long = "buffer-size", default_value = "8192")]
-    buffer_size: usize,
-
-    /// Shutdown timeout in seconds
-    #[clap(short = 's', long = "shutdown-timeout", default_value = "30")]
-    shutdown_timeout: u64,
-
-    /// Enable verbose output
-    #[clap(short = 'v', long = "verbose")]
-    verbose: bool,
-}
-
-// ===== Level 2: Infrastructure Setup =====
-// Design Choice: Using builder pattern for setup
-
 /// Application configuration
+#[derive(Debug)]
 struct AppConfig {
-    args: CliArgs,
+    /// CLI arguments
+    args: Args,
+    /// Runtime configuration
     runtime_config: RuntimeConfig,
+    /// Storage configuration
     storage_config: StorageConfig,
+    /// Metrics configuration
     metrics_config: MetricsConfig,
 }
 
 impl AppConfig {
     /// Creates configuration from CLI arguments
-    fn from_args(args: CliArgs) -> Result<Self> {
-        // Validate paths
-        if !args.input_path.exists() {
+    fn from_args(args: Args) -> Result<Self> {
+        // Validate paths using AsRef<Path>
+        let input_path = args.input_path.as_path();
+        if !input_path.exists() {
             return Err(Error::InvalidPath(args.input_path.clone()).into());
         }
 
-        std::fs::create_dir_all(&args.output_dir)
-            .context("Failed to create output directory")?;
+        let output_dir = args.output_dir.as_path();
+        std::fs::create_dir_all(output_dir)
+            .with_context(|| format!("Failed to create output directory: {}", output_dir.display()))?;
 
         // Create configurations
-        let runtime_config = RuntimeConfig {
-            worker_threads: args.workers,
-            buffer_size: args.buffer_size,
-            shutdown_timeout: std::time::Duration::from_secs(args.shutdown_timeout),
-        };
+        let runtime_config = args.into_config();
 
         let storage_config = StorageConfig {
-            path: args.output_dir.join("storage"),
+            path: output_dir.join("storage"),
             pool_size: args.workers,
             batch_size: 1000,
             index_config: Default::default(),
@@ -110,6 +81,7 @@ impl AppConfig {
             enabled: true,
             interval: std::time::Duration::from_secs(1),
             format: Default::default(),
+            output_dir: output_dir.join("metrics"),
         };
 
         Ok(Self {
@@ -121,26 +93,34 @@ impl AppConfig {
     }
 }
 
-// ===== Level 3: Processing Pipeline =====
-// Design Choice: Using async/await for concurrency
+// ===== Level 2: Infrastructure Setup =====
+// Design Choice: Using builder pattern for setup
 
 /// Application state
 struct App {
+    /// Application configuration
     config: AppConfig,
+    /// Storage manager
     storage: Arc<StorageManager>,
+    /// ZIP processor
     processor: Arc<ZipProcessor>,
+    /// Metrics manager
     metrics: Arc<MetricsManager>,
 }
 
 impl App {
     /// Creates new application instance
     async fn new(config: AppConfig) -> Result<Self> {
-        // Initialize components
+        // Initialize storage
         let storage = Arc::new(StorageManager::new(config.storage_config.clone()).await?);
+        
+        // Initialize processor
         let processor = Arc::new(ZipProcessor::new(
             ZipConfig::default(),
             storage.clone(),
         ));
+        
+        // Initialize metrics
         let metrics = Arc::new(MetricsManager::new(config.metrics_config.clone()));
 
         Ok(Self {
@@ -162,7 +142,7 @@ impl App {
 
         // Process ZIP file
         let file = tokio::fs::File::open(&self.config.args.input_path).await
-            .context("Failed to open ZIP file")?;
+            .with_context(|| format!("Failed to open ZIP file: {}", self.config.args.input_path.display()))?;
 
         self.processor.process(file).await?;
 
@@ -174,16 +154,12 @@ impl App {
     }
 }
 
-// ===== Level 4: Application Orchestration =====
-// Design Choice: Using tokio for async runtime
+// ===== Level 3: Processing Pipeline =====
+// Design Choice: Using async/await for concurrency
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    // Parse arguments
-    let args = CliArgs::parse();
-
-    // Setup logging
-    let filter = if args.verbose {
+/// Sets up logging
+fn setup_logging(verbose: bool) -> Result<()> {
+    let filter = if verbose {
         EnvFilter::from_default_env().add_directive(tracing::Level::DEBUG.into())
     } else {
         EnvFilter::from_default_env().add_directive(tracing::Level::INFO.into())
@@ -195,6 +171,20 @@ async fn main() -> Result<()> {
         .with_line_number(true)
         .init();
 
+    Ok(())
+}
+
+// ===== Level 4: Application Orchestration =====
+// Design Choice: Using tokio for async runtime
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // Parse arguments
+    let args = Args::parse();
+
+    // Setup logging
+    setup_logging(args.verbose)?;
+
     // Create application
     let config = AppConfig::from_args(args)?;
     let app = App::new(config).await?;
@@ -204,7 +194,7 @@ async fn main() -> Result<()> {
     let shutdown_tx = Arc::new(shutdown_tx);
 
     tokio::spawn({
-        let tx = shutdown_tx.clone();
+        let tx = Arc::clone(&shutdown_tx);
         async move {
             if let Ok(()) = signal::ctrl_c().await {
                 info!("Received Ctrl+C, initiating shutdown");
@@ -217,7 +207,7 @@ async fn main() -> Result<()> {
     tokio::select! {
         result = app.run() => {
             if let Err(e) = result {
-                error!("Application error: {}", e);
+                error!("Application error: {:#}", e);
                 return Err(e);
             }
         }

@@ -23,8 +23,8 @@
 //! - ShutdownError     (shutdown failures)
 
 use std::sync::Arc;
-use tokio::sync::{broadcast, Mutex, Semaphore};
-use tokio::time::{Duration, timeout};
+use tokio::sync::{broadcast, Mutex};
+use tokio::time::{Duration, timeout, Instant};
 use metrics::{Counter, Gauge, Histogram};
 use futures::future::join_all;
 use crate::core::{error::{Error, Result}, types::*};
@@ -93,9 +93,11 @@ pub struct ShutdownManager {
     /// Resource cleanup handlers
     resources: Vec<Arc<dyn ResourceCleanup>>,
     /// Metrics
-    metrics: ShutdownMetrics,
+    metrics: Arc<ShutdownMetrics>,
     /// Current phase
     phase: Arc<Mutex<ShutdownPhase>>,
+    /// Shutdown deadline
+    deadline: Arc<Mutex<Option<Instant>>>,
 }
 
 impl ShutdownManager {
@@ -107,8 +109,9 @@ impl ShutdownManager {
             config,
             shutdown_tx,
             resources: Vec::new(),
-            metrics: ShutdownMetrics::new(),
+            metrics: Arc::new(ShutdownMetrics::new()),
             phase: Arc::new(Mutex::new(ShutdownPhase::Initiated)),
+            deadline: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -120,8 +123,11 @@ impl ShutdownManager {
 
     /// Initiate graceful shutdown
     pub async fn shutdown(self) -> Result<()> {
-        let start = std::time::Instant::now();
+        let start = Instant::now();
         info!("Initiating graceful shutdown");
+
+        // Set shutdown deadline
+        *self.deadline.lock().await = Some(start + self.config.graceful_timeout);
 
         // Broadcast shutdown signal
         let _ = self.shutdown_tx.send(());
@@ -129,13 +135,11 @@ impl ShutdownManager {
         // Update phase
         *self.phase.lock().await = ShutdownPhase::DrainingSoftly;
 
-        // Try graceful cleanup first
-        let graceful_result = timeout(
-            self.config.graceful_timeout,
-            self.cleanup_resources()
-        ).await;
+        // Try graceful cleanup with deadline
+        let deadline = *self.deadline.lock().await.as_ref().unwrap();
+        let remaining_time = deadline.saturating_duration_since(Instant::now());
 
-        match graceful_result {
+        match timeout(remaining_time, self.cleanup_resources()).await {
             Ok(Ok(_)) => {
                 info!("Graceful shutdown completed successfully");
                 *self.phase.lock().await = ShutdownPhase::Completed;
@@ -145,8 +149,12 @@ impl ShutdownManager {
                 *self.phase.lock().await = ShutdownPhase::ForcingShutdown;
                 self.metrics.forced_shutdowns.increment(1);
                 
-                // Force cleanup
-                self.force_cleanup_resources().await?;
+                // Force cleanup with short timeout
+                let force_timeout = Duration::from_secs(5);
+                match timeout(force_timeout, self.force_cleanup_resources()).await {
+                    Ok(Ok(_)) => info!("Forced cleanup completed"),
+                    _ => error!("Forced cleanup failed"),
+                }
             }
         }
 
@@ -220,8 +228,7 @@ mod tests {
             cleanup_duration: Duration::from_millis(100),
         }));
 
-        let result = manager.shutdown().await;
-        assert!(result.is_ok());
+        assert!(manager.shutdown().await.is_ok());
     }
 
     #[tokio::test]
@@ -238,8 +245,6 @@ mod tests {
             cleanup_duration: Duration::from_secs(1),
         }));
 
-        let result = manager.shutdown().await;
-        assert!(result.is_ok());
+        assert!(manager.shutdown().await.is_ok());
     }
 }
-

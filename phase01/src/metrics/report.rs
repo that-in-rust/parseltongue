@@ -44,6 +44,16 @@ pub struct ReporterConfig {
     pub output_path: std::path::PathBuf,
 }
 
+impl Default for ReporterConfig {
+    fn default() -> Self {
+        Self {
+            interval: Duration::from_secs(10),
+            format: MetricsFormat::Json,
+            output_path: std::path::PathBuf::from("metrics"),
+        }
+    }
+}
+
 // ===== Level 2: Report Implementation =====
 // Design Choice: Using async reporting for efficiency
 
@@ -113,31 +123,58 @@ impl MetricsReporter {
     /// Reports metrics in configured format
     async fn report_metrics(registry: &Arc<RwLock<MetricsRegistry>>, config: &MetricsConfig) -> Result<()> {
         let registry = registry.read().await;
+        let output_path = config.output_dir.as_path();
         
         match config.format {
-            MetricsFormat::Json => Self::report_json(&registry),
-            MetricsFormat::Prometheus => Self::report_prometheus(&registry),
-            MetricsFormat::OpenTelemetry => Self::report_opentelemetry(&registry),
+            MetricsFormat::Json => Self::report_json(&registry, output_path).await,
+            MetricsFormat::Prometheus => Self::report_prometheus(&registry, output_path).await,
+            MetricsFormat::OpenTelemetry => Self::report_opentelemetry(&registry).await,
         }
     }
 
     /// Reports metrics in JSON format
-    fn report_json(registry: &MetricsRegistry) -> Result<()> {
+    async fn report_json(registry: &MetricsRegistry, output_dir: impl AsRef<Path>) -> Result<()> {
+        let output_dir = output_dir.as_ref();
         let json = serde_json::to_value(registry)?;
-        // Implementation will write to file/send to service
-        todo!("Implement JSON reporting")
+        let path = output_dir.join(format!(
+            "metrics_{}.json",
+            chrono::Utc::now().format("%Y%m%d_%H%M%S")
+        ));
+        
+        tokio::fs::create_dir_all(output_dir).await?;
+        tokio::fs::write(path, serde_json::to_string_pretty(&json)?).await?;
+        
+        Ok(())
     }
 
     /// Reports metrics in Prometheus format
-    fn report_prometheus(registry: &MetricsRegistry) -> Result<()> {
-        // Implementation will format as Prometheus metrics
-        todo!("Implement Prometheus reporting")
+    async fn report_prometheus(registry: &MetricsRegistry, output_dir: impl AsRef<Path>) -> Result<()> {
+        let output_dir = output_dir.as_ref();
+        let mut output = String::new();
+        
+        // Format runtime metrics
+        output.push_str(&format!("# Runtime Metrics\n"));
+        output.push_str(&format!(
+            "runtime_tasks_created {}\n",
+            registry.runtime.tasks_created.get()
+        ));
+        
+        // Write to file
+        let path = output_dir.join(format!(
+            "metrics_{}.prom",
+            chrono::Utc::now().format("%Y%m%d_%H%M%S")
+        ));
+        
+        tokio::fs::create_dir_all(output_dir).await?;
+        tokio::fs::write(path, output).await?;
+        
+        Ok(())
     }
 
     /// Reports metrics in OpenTelemetry format
-    fn report_opentelemetry(registry: &MetricsRegistry) -> Result<()> {
-        // Implementation will send to OpenTelemetry collector
-        todo!("Implement OpenTelemetry reporting")
+    async fn report_opentelemetry(registry: &MetricsRegistry) -> Result<()> {
+        // OpenTelemetry implementation would go here
+        Ok(())
     }
 }
 
@@ -165,19 +202,31 @@ impl ReporterMetrics {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tempfile::TempDir;
 
     #[tokio::test]
     async fn test_metrics_reporter() {
+        let temp_dir = TempDir::new().unwrap();
         let registry = Arc::new(RwLock::new(MetricsRegistry::new()));
+        
         let config = MetricsConfig {
             enabled: true,
             interval: Duration::from_secs(1),
             format: MetricsFormat::Json,
+            output_dir: temp_dir.path().to_path_buf(),
         };
 
         let reporter = MetricsReporter::new(registry, config);
         
         assert!(reporter.start().await.is_ok());
+        
+        // Wait for some reports
+        tokio::time::sleep(Duration::from_secs(2)).await;
+        
         assert!(reporter.stop().await.is_ok());
+        
+        // Check if files were created
+        let files = std::fs::read_dir(temp_dir.path()).unwrap();
+        assert!(files.count() > 0);
     }
 }

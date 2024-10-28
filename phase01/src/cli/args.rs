@@ -4,25 +4,22 @@
 //! 
 //! Level 4 (Top): Argument Processing
 //! - ArgumentProcessor (processes arguments)
-//! - ConfigBuilder     (builds configuration)
 //! - Validator         (validates arguments)
 //! 
 //! Level 3: Argument Types
 //! - InputArgs        (input file arguments)
 //! - OutputArgs       (output configuration)
-//! - RuntimeArgs      (runtime settings)
 //! 
 //! Level 2: Argument Implementation
 //! - ArgParser        (argument parsing)
 //! - ArgValidator     (validation logic)
-//! - ConfigMapper     (config mapping)
 //! 
 //! Level 1 (Base): Core Argument Types
 //! - Args            (argument structure)
 //! - ArgError        (argument errors)
 //! - ValidationRule  (validation rules)
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use clap::Parser;
 use crate::core::{error::Result, types::*};
 
@@ -34,24 +31,12 @@ use crate::core::{error::Result, types::*};
 #[clap(author, version, about)]
 pub struct Args {
     /// Input ZIP file path
-    #[clap(short = 'i', long = "input-zip")]
+    #[clap(short = 'i', long = "input-zip", value_parser = validate_input_path)]
     pub input_path: PathBuf,
 
     /// Output directory path
-    #[clap(short = 'o', long = "output-dir")]
+    #[clap(short = 'o', long = "output-dir", value_parser = validate_output_path)]
     pub output_dir: PathBuf,
-
-    /// Number of worker threads
-    #[clap(short = 'w', long = "workers", default_value = "4")]
-    pub workers: usize,
-
-    /// Buffer size in bytes
-    #[clap(short = 'b', long = "buffer-size", default_value = "8192")]
-    pub buffer_size: usize,
-
-    /// Shutdown timeout in seconds
-    #[clap(short = 's', long = "shutdown-timeout", default_value = "30")]
-    pub shutdown_timeout: u64,
 
     /// Enable verbose output
     #[clap(short = 'v', long = "verbose")]
@@ -59,47 +44,131 @@ pub struct Args {
 }
 
 // ===== Level 2: Argument Implementation =====
-// Design Choice: Using validation traits
+// Design Choice: Using validation functions
 
-impl Args {
-    /// Validates command line arguments
-    pub fn validate(&self) -> Result<()> {
-        // Validate input path
-        if !self.input_path.exists() {
-            return Err(Error::InvalidPath(self.input_path.clone()));
-        }
-
-        // Validate worker count
-        if self.workers == 0 {
-            return Err(Error::ResourceLimit("Worker count must be > 0".into()));
-        }
-
-        // Validate buffer size
-        if self.buffer_size == 0 {
-            return Err(Error::ResourceLimit("Buffer size must be > 0".into()));
-        }
-
-        Ok(())
+/// Validates input path
+fn validate_input_path(path: impl AsRef<Path>) -> std::result::Result<PathBuf, String> {
+    let path = path.as_ref();
+    
+    // Check if path exists
+    if !path.exists() {
+        return Err(format!("Input file does not exist: {}", path.display()));
     }
 
-    /// Converts to runtime configuration
-    pub fn into_config(self) -> RuntimeConfig {
-        RuntimeConfig {
-            worker_config: WorkerConfig {
-                thread_count: self.workers,
-                queue_capacity: 1000,
-                stack_size: 3 * 1024 * 1024,
-            },
-            resource_limits: ResourceLimits {
-                max_tasks: self.workers * 2,
-                max_memory: self.buffer_size * self.workers,
-                max_connections: self.workers,
-            },
-            shutdown_config: ShutdownConfig {
-                timeout: std::time::Duration::from_secs(self.shutdown_timeout),
-                force_after_timeout: true,
-            },
+    // Check if it's a file
+    if !path.is_file() {
+        return Err(format!("Input path is not a file: {}", path.display()));
+    }
+
+    // Check file extension
+    if let Some(ext) = path.extension() {
+        if ext != "zip" {
+            return Err(format!(
+                "Input file must have .zip extension, got: {}",
+                path.display()
+            ));
         }
+    } else {
+        return Err(format!("Input file has no extension: {}", path.display()));
+    }
+
+    // Check if file is readable
+    match std::fs::metadata(path) {
+        Ok(meta) => {
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::MetadataExt;
+                let mode = meta.mode();
+                if mode & 0o444 == 0 {
+                    return Err(format!("Input file is not readable: {}", path.display()));
+                }
+            }
+        }
+        Err(e) => {
+            return Err(format!(
+                "Failed to read metadata for input file {}: {}",
+                path.display(), e
+            ));
+        }
+    }
+
+    Ok(path.to_path_buf())
+}
+
+/// Validates output path
+fn validate_output_path(path: impl AsRef<Path>) -> std::result::Result<PathBuf, String> {
+    let path = path.as_ref();
+    
+    // If path exists, check if it's a directory
+    if path.exists() {
+        if !path.is_dir() {
+            return Err(format!(
+                "Output path exists but is not a directory: {}", 
+                path.display()
+            ));
+        }
+
+        // Check if directory is writable
+        match std::fs::metadata(path) {
+            Ok(meta) => {
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::MetadataExt;
+                    let mode = meta.mode();
+                    if mode & 0o222 == 0 {
+                        return Err(format!(
+                            "Output directory is not writable: {}", 
+                            path.display()
+                        ));
+                    }
+                }
+            }
+            Err(e) => {
+                return Err(format!(
+                    "Failed to read metadata for output directory {}: {}", 
+                    path.display(), e
+                ));
+            }
+        }
+    } else {
+        // Try to create the directory
+        if let Err(e) = std::fs::create_dir_all(path) {
+            return Err(format!(
+                "Failed to create output directory {}: {}", 
+                path.display(), e
+            ));
+        }
+    }
+
+    // Verify path is absolute
+    if !path.is_absolute() {
+        return Err(format!(
+            "Output directory must be an absolute path: {}", 
+            path.display()
+        ));
+    }
+
+    Ok(path.to_path_buf())
+}
+
+impl Args {
+    /// Ensures all paths are canonicalized
+    pub fn canonicalize_paths(&mut self) -> Result<()> {
+        self.input_path = self.input_path.canonicalize().map_err(|e| 
+            Error::InvalidPath(format!(
+                "Failed to canonicalize input path {}: {}", 
+                self.input_path.display(), e
+            ))
+        )?;
+
+        self.output_dir = self.output_dir.canonicalize().map_err(|e| 
+            Error::InvalidPath(format!(
+                "Failed to canonicalize output path {}: {}", 
+                self.output_dir.display(), e
+            ))
+        )?;
+
+        Ok(())
     }
 }
 
@@ -107,23 +176,57 @@ impl Args {
 mod tests {
     use super::*;
     use tempfile::TempDir;
+    use std::fs::File;
 
     #[test]
-    fn test_arg_validation() {
+    fn test_input_path_validation() {
         let temp_dir = TempDir::new().unwrap();
-        let input_file = temp_dir.path().join("test.zip");
-        std::fs::write(&input_file, b"test").unwrap();
+        
+        // Test non-existent file
+        let bad_path = temp_dir.path().join("nonexistent.zip");
+        assert!(validate_input_path(&bad_path).is_err());
 
-        let args = Args {
-            input_path: input_file,
+        // Test wrong extension
+        let wrong_ext = temp_dir.path().join("test.txt");
+        File::create(&wrong_ext).unwrap();
+        assert!(validate_input_path(&wrong_ext).is_err());
+
+        // Test valid ZIP file
+        let good_path = temp_dir.path().join("test.zip");
+        File::create(&good_path).unwrap();
+        assert!(validate_input_path(&good_path).is_ok());
+    }
+
+    #[test]
+    fn test_output_path_validation() {
+        let temp_dir = TempDir::new().unwrap();
+        
+        // Test file as output
+        let file_path = temp_dir.path().join("file");
+        File::create(&file_path).unwrap();
+        assert!(validate_output_path(&file_path).is_err());
+
+        // Test valid directory
+        assert!(validate_output_path(temp_dir.path()).is_ok());
+
+        // Test non-absolute path
+        assert!(validate_output_path("relative/path").is_err());
+    }
+
+    #[test]
+    fn test_path_canonicalization() {
+        let temp_dir = TempDir::new().unwrap();
+        let zip_path = temp_dir.path().join("test.zip");
+        File::create(&zip_path).unwrap();
+
+        let mut args = Args {
+            input_path: zip_path,
             output_dir: temp_dir.path().to_path_buf(),
-            workers: 4,
-            buffer_size: 8192,
-            shutdown_timeout: 30,
             verbose: false,
         };
 
-        assert!(args.validate().is_ok());
+        assert!(args.canonicalize_paths().is_ok());
+        assert!(args.input_path.is_absolute());
+        assert!(args.output_dir.is_absolute());
     }
 }
-

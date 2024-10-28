@@ -23,9 +23,12 @@
 //! - IndexError       (index-specific errors)
 
 use std::sync::Arc;
-use sled::Tree;
 use tokio::sync::RwLock;
-use crate::core::{error::Result, types::*};
+use sled::Tree;
+use bytes::Bytes;
+use metrics::{Counter, Gauge, Histogram};
+use crate::core::{error::{Error, Result}, types::*};
+use super::DatabaseStorage;
 
 // ===== Level 1: Core Index Types =====
 // Design Choice: Using RwLock for concurrent access
@@ -41,8 +44,54 @@ pub struct IndexConfig {
     pub compression_enabled: bool,
 }
 
+/// Index metrics collection
+#[derive(Debug)]
+struct IndexMetrics {
+    updates: Counter,
+    searches: Counter,
+    cache_hits: Counter,
+    cache_misses: Counter,
+}
+
+impl IndexMetrics {
+    fn new() -> Self {
+        Self {
+            updates: Counter::new(),
+            searches: Counter::new(),
+            cache_hits: Counter::new(),
+            cache_misses: Counter::new(),
+        }
+    }
+}
+
+// ===== Level 2: Index Implementation =====
+// Design Choice: Using LRU cache for performance
+
+/// Index entry representation
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct IndexEntry {
+    /// Entry path
+    pub path: std::path::PathBuf,
+    /// Entry size
+    pub size: u64,
+    /// Entry timestamp
+    pub timestamp: chrono::DateTime<chrono::Utc>,
+}
+
+impl IndexEntry {
+    pub fn new(path: &str, data: &Bytes) -> Self {
+        Self {
+            path: path.into(),
+            size: data.len() as u64,
+            timestamp: chrono::Utc::now(),
+        }
+    }
+}
+
 /// Index manager implementation
 pub struct IndexManager {
+    /// Storage backend
+    storage: Arc<DatabaseStorage>,
     /// Index tree
     tree: Arc<Tree>,
     /// Index cache
@@ -53,19 +102,23 @@ pub struct IndexManager {
 
 impl IndexManager {
     /// Creates new index manager
-    pub fn new(tree: Tree, config: IndexConfig) -> Self {
+    pub fn new(storage: Arc<DatabaseStorage>, config: IndexConfig) -> Result<Self> {
+        let tree = storage.db().open_tree("index")?;
         let cache = Arc::new(RwLock::new(
             lru::LruCache::new(config.cache_size)
         ));
-        
         let metrics = IndexMetrics::new();
 
-        Self {
+        Ok(Self {
+            storage,
             tree: Arc::new(tree),
             cache,
             metrics,
-        }
+        })
     }
+
+    // ===== Level 3: Index Maintenance =====
+    // Design Choice: Using batched updates for efficiency
 
     /// Updates index entry
     pub async fn update(&self, key: &str, entry: IndexEntry) -> Result<()> {
@@ -87,16 +140,40 @@ impl IndexManager {
 
     /// Searches index
     pub async fn search(&self, prefix: &str) -> Result<Vec<IndexEntry>> {
+        self.metrics.searches.increment(1);
+        
         let mut results = Vec::new();
         
+        // Check cache first
+        {
+            let cache = self.cache.read().await;
+            if let Some(entry) = cache.get(prefix) {
+                self.metrics.cache_hits.increment(1);
+                results.push(entry.clone());
+                return Ok(results);
+            }
+        }
+        
+        self.metrics.cache_misses.increment(1);
+
+        // Search tree
         for item in self.tree.scan_prefix(prefix.as_bytes()) {
             let (_, value) = item?;
             let entry: IndexEntry = bincode::deserialize(&value)?;
             results.push(entry);
         }
 
-        self.metrics.searches.increment(1);
         Ok(results)
+    }
+
+    // ===== Level 4: Index Operations =====
+    // Design Choice: Using async compaction
+
+    /// Compacts index
+    pub async fn compact(&self) -> Result<()> {
+        self.tree.flush()?;
+        self.tree.compact_range::<&[u8], &[u8]>(None, None)?;
+        Ok(())
     }
 }
 
@@ -108,24 +185,19 @@ mod tests {
     #[tokio::test]
     async fn test_index_operations() {
         let temp_dir = TempDir::new().unwrap();
-        let db = sled::open(temp_dir.path()).unwrap();
-        let tree = db.open_tree("index").unwrap();
-        
-        let config = IndexConfig {
-            cache_size: 1000,
-            flush_threshold: 100,
-            compression_enabled: true,
+        let config = StorageConfig {
+            path: temp_dir.path().to_path_buf(),
+            pool_size: 4,
+            batch_size: 100,
+            index_config: IndexConfig::default(),
         };
 
-        let index = IndexManager::new(tree, config);
+        let storage = Arc::new(DatabaseStorage::new(config.clone()).unwrap());
+        let index = IndexManager::new(storage, config.index_config).unwrap();
 
         // Test index operations
-        let entry = IndexEntry {
-            path: "test/path".into(),
-            size: 100,
-            timestamp: chrono::Utc::now(),
-        };
-
+        let entry = IndexEntry::new("test/path", &Bytes::from("test"));
+        
         index.update("test-key", entry.clone()).await.unwrap();
         let results = index.search("test").await.unwrap();
         
@@ -133,4 +205,3 @@ mod tests {
         assert_eq!(results[0].path, entry.path);
     }
 }
-

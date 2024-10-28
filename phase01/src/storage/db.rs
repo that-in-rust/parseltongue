@@ -23,14 +23,38 @@
 //! - ConnectionInfo   (connection details)
 
 use std::sync::Arc;
+use tokio::sync::{Semaphore, RwLock};
 use sled::{Db, Tree};
-use tokio::sync::Semaphore;
 use bytes::Bytes;
+use metrics::{Counter, Gauge, Histogram};
 use crate::core::{error::{Error, Result}, types::*};
 use super::{AsyncStorage, StorageConfig};
 
 // ===== Level 1: Core Database Types =====
 // Design Choice: Using sled for embedded storage
+
+/// Database metrics collection
+#[derive(Debug)]
+struct DbMetrics {
+    writes: Counter,
+    reads: Counter,
+    active_transactions: Gauge,
+    transaction_duration: Histogram,
+}
+
+impl DbMetrics {
+    fn new() -> Self {
+        Self {
+            writes: Counter::new(),
+            reads: Counter::new(),
+            active_transactions: Gauge::new(),
+            transaction_duration: Histogram::new(),
+        }
+    }
+}
+
+// ===== Level 2: Connection Management =====
+// Design Choice: Using connection pooling
 
 /// Database storage implementation
 pub struct DatabaseStorage {
@@ -40,7 +64,9 @@ pub struct DatabaseStorage {
     data_tree: Arc<Tree>,
     /// Connection pool
     pool: Arc<Semaphore>,
-    /// Storage metrics
+    /// Transaction manager
+    transactions: Arc<TransactionManager>,
+    /// Database metrics
     metrics: DbMetrics,
 }
 
@@ -50,12 +76,14 @@ impl DatabaseStorage {
         let db = sled::open(&config.path)?;
         let data_tree = db.open_tree("data")?;
         let pool = Arc::new(Semaphore::new(config.pool_size));
+        let transactions = Arc::new(TransactionManager::new());
         let metrics = DbMetrics::new();
 
         Ok(Self {
             db: Arc::new(db),
             data_tree: Arc::new(data_tree),
             pool,
+            transactions,
             metrics,
         })
     }
@@ -67,12 +95,52 @@ impl DatabaseStorage {
         R: Send + 'static,
     {
         let _permit = self.pool.acquire().await?;
+        let start = std::time::Instant::now();
         
-        tokio::task::spawn_blocking(f)
+        self.metrics.active_transactions.increment(1.0);
+        
+        let result = tokio::task::spawn_blocking(f)
             .await
-            .map_err(|e| Error::Runtime(e.to_string()))?
+            .map_err(|e| Error::Runtime(e.to_string()))??;
+
+        self.metrics.active_transactions.decrement(1.0);
+        self.metrics.transaction_duration.record(start.elapsed());
+        
+        Ok(result)
     }
 }
+
+// ===== Level 3: Transaction Management =====
+// Design Choice: Using ACID transactions
+
+/// Transaction manager implementation
+struct TransactionManager {
+    active_transactions: Arc<RwLock<Vec<TransactionId>>>,
+}
+
+impl TransactionManager {
+    fn new() -> Self {
+        Self {
+            active_transactions: Arc::new(RwLock::new(Vec::new())),
+        }
+    }
+
+    async fn begin(&self) -> TransactionId {
+        let id = TransactionId::new();
+        self.active_transactions.write().await.push(id);
+        id
+    }
+
+    async fn commit(&self, id: TransactionId) {
+        let mut transactions = self.active_transactions.write().await;
+        if let Some(pos) = transactions.iter().position(|x| *x == id) {
+            transactions.remove(pos);
+        }
+    }
+}
+
+// ===== Level 4: Database Operations =====
+// Design Choice: Using async traits for storage operations
 
 #[async_trait::async_trait]
 impl AsyncStorage for DatabaseStorage {
@@ -111,13 +179,25 @@ impl AsyncStorage for DatabaseStorage {
     }
 }
 
+/// Transaction identifier
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct TransactionId(u64);
+
+impl TransactionId {
+    fn new() -> Self {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static NEXT_ID: AtomicU64 = AtomicU64::new(0);
+        Self(NEXT_ID.fetch_add(1, Ordering::SeqCst))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use tempfile::TempDir;
 
     #[tokio::test]
-    async fn test_basic_operations() {
+    async fn test_database_operations() {
         let temp_dir = TempDir::new().unwrap();
         
         let config = StorageConfig {
@@ -137,6 +217,13 @@ mod tests {
         let retrieved = storage.get(key).await.unwrap();
         
         assert_eq!(retrieved, Some(data));
+
+        // Test batch store
+        let entries = vec![
+            ("key1".to_string(), Bytes::from("data1")),
+            ("key2".to_string(), Bytes::from("data2")),
+        ];
+        
+        assert!(storage.batch_store(entries).await.is_ok());
     }
 }
-

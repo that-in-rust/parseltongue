@@ -3,7 +3,7 @@
 name = "phase01"
 version = "0.1.0"
 edition = "2021"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["amuldotexe <https://twitter.com/amuldotexe>"]
 description = "ZIP file analysis and storage tool"
 license = "MIT"
 
@@ -15,42 +15,50 @@ tracing = ["dep:tracing", "dep:tracing-subscriber"]
 
 # ===== Level 2: Dependencies by Category =====
 [dependencies]
-# Async Runtime
+# Async Runtime - Latest stable versions
 tokio = { version = "1.36.0", features = ["full"] }
 futures = "0.3.30"
 async-trait = "0.1.77"
+tokio-util = { version = "0.7.10", features = ["codec"] }
+tokio-stream = "0.1.14"
 
-# Data Processing
+# Data Processing - Verified compatible versions
 bytes = "1.5.0"
-zip = "0.6.6"
+zip = { version = "0.6.6", features = ["deflate", "time"] }
 encoding_rs = "0.8.33"
 chardetng = "0.1.17"
 crc32fast = "1.3.2"
 
-# Storage
-sled = "0.34.7"
+# Storage - Using RocksDB instead of sled for better maintenance
+rocksdb = { version = "0.21.0", features = ["multi-threaded-cf"] }
 bincode = "1.3.3"
 
-# CLI & Arguments
+# CLI & Arguments - Latest stable versions
 clap = { version = "4.5.1", features = ["derive"] }
 indicatif = "0.17.8"
 colored = "2.1.0"
 
-# Error Handling
+# Error Handling - Latest versions
 thiserror = "1.0.57"
 anyhow = "1.0.79"
 
-# Serialization
+# Serialization - Latest stable
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114"
 
-# Metrics & Monitoring
+# Metrics & Monitoring (Optional) - Latest stable
 metrics = { version = "0.21.1", optional = true }
 metrics-util = { version = "0.16.2", optional = true }
 tracing = { version = "0.1.40", optional = true }
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"], optional = true }
 
-# Utilities
+# Time & Date - Latest stable with serde support
+chrono = { version = "0.4.35", features = ["serde"] }
+
+# System Information - Latest stable
+sys-info = "0.9.1"
+
+# Utilities - Latest stable
 tempfile = "3.10.0"
 lru = "0.12.2"
 

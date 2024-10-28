@@ -1036,3 +1036,122 @@ amuldotexe@amuldotexe-Lenovo-Legion-Y540-15IRH-PG0:~/Desktop/GitHub202410/parsel
     │   └── mod.rs
     └── utils
         └── mod.rs
+
+
+=============================
+
+
+Check @step01_scope.txt  @step02_modules.txt 
+
+and this list below - what is updated and what is left to be updated - also check line by line with @Cargo.toml  - verbosely loquacouiously reason with me the current state of the codebase in @phase01 
+amuldotexe@amuldotexe-Lenovo-Legion-Y540-15IRH-PG0:~/Desktop/GitHub202410/parseltongue/phase01$ tree
+.
+├── Cargo.lock
+├── Cargo.toml
+├── src
+│   ├── cli
+│   │   ├── args.rs
+│   │   ├── metrics.rs
+│   │   ├── mod.rs
+│   │   └── progress.rs
+│   ├── core
+│   │   ├── channel.rs
+│   │   ├── error.rs
+│   │   ├── mod.rs
+│   │   ├── runtime
+│   │   │   ├── mod.rs
+│   │   │   ├── shutdown.rs
+│   │   │   └── worker.rs
+│   │   └── types.rs
+│   ├── lib.rs
+│   ├── main.rs
+│   ├── metrics
+│   │   ├── collect.rs
+│   │   ├── mod.rs
+│   │   └── report.rs
+│   ├── storage
+│   │   ├── db.rs
+│   │   ├── index.rs
+│   │   └── mod.rs
+│   ├── utils
+│   │   ├── buffer.rs
+│   │   ├── cleanup.rs
+│   │   ├── mod.rs
+│   │   └── resource.rs
+│   └── zip
+│       ├── encoding.rs
+│       ├── mod.rs
+│       ├── reader.rs
+│       └── validation.rs
+├── step01_scope.txt
+├── step02_modules.txt
+├── step03_avoidObviousBugs.txt
+├── step99_log_prompts.txt
+└── tests
+    ├── integration
+    │   └── mod.rs
+    └── utils
+        └── mod.rs
+
+
+
+===============================
+
+
+
+
+Check @step01_scope.txt  @step02_modules.txt  - what is not there in both these files is out of scope for us
+
+Update @Cargo.toml  - searching the @Web 
+
+for each of the files below check the use keyword - with latest documentation from @RustDocs  @Web  - it should not lead to bugs the way it did previously for Path buf etc - remember some ideas from @avoidRustBugs202409 - where our past problems with some new libraries are documented  
+
+and this list below - what is updated and what is left to be updated - also check line by line with @Cargo.toml  - verbosely loquacouiously reason with me the current state of the codebase in @phase01 
+amuldotexe@amuldotexe-Lenovo-Legion-Y540-15IRH-PG0:~/Desktop/GitHub202410/parseltongue/phase01$ tree
+.
+├── Cargo.lock
+├── Cargo.toml
+├── src
+│   ├── cli
+│   │   ├── args.rs
+│   │   ├── metrics.rs
+│   │   ├── mod.rs
+│   │   └── progress.rs
+│   ├── core
+│   │   ├── channel.rs
+│   │   ├── error.rs
+│   │   ├── mod.rs
+│   │   ├── runtime
+│   │   │   ├── mod.rs
+│   │   │   ├── shutdown.rs
+│   │   │   └── worker.rs
+│   │   └── types.rs
+│   ├── lib.rs
+│   ├── main.rs
+│   ├── metrics
+│   │   ├── collect.rs
+│   │   ├── mod.rs
+│   │   └── report.rs
+│   ├── storage
+│   │   ├── db.rs
+│   │   ├── index.rs
+│   │   └── mod.rs
+│   ├── utils
+│   │   ├── buffer.rs
+│   │   ├── cleanup.rs
+│   │   ├── mod.rs
+│   │   └── resource.rs
+│   └── zip
+│       ├── encoding.rs
+│       ├── mod.rs
+│       ├── reader.rs
+│       └── validation.rs
+├── step01_scope.txt
+├── step02_modules.txt
+├── step03_avoidObviousBugs.txt
+├── step99_log_prompts.txt
+└── tests
+    ├── integration
+    │   └── mod.rs
+    └── utils
+        └── mod.rs
