@@ -3,24 +3,30 @@
 //! Pyramid Structure:
 //! 
 //! Level 4 (Top): Storage Orchestration
-//! - Storage Orchestration
-//! - StorageMetrics    (aggregates storage performance)
-//! - ConnectionPool    (manages DB connections)
+//! - StorageManager   (coordinates storage)
+//!   ├── Connection management
+//!   ├── Transaction handling
+//!   └── Resource cleanup
 //! 
 //! Level 3: Operation Management
-//! - BatchProcessor    (handles batch operations)
-//! - TransactionManager (manages transactions)
-//! - IndexCoordinator  (coordinates indexing)
+//! - BatchProcessor   (batch operations)
+//!   ├── Write batching
+//!   ├── Read batching
+//!   └── Error handling
 //! 
-//! Level 2: Storage Traits
-//! - AsyncStorage      (async storage interface)
-//! - StorageBackend    (storage implementation)
-//! - IndexManager      (index management)
+//! Level 2: Storage Implementation
+//! - DatabaseStorage  (sled implementation)
+//!   ├── ACID guarantees
+//!   ├── Concurrent access
+//!   └── Resource pooling
 //! 
 //! Level 1 (Base): Core Storage Types
-//! - StorageConfig    (storage configuration)
-//! - StorageError     (storage-specific errors)
-//! - ConnectionConfig (connection settings)
+//! - StorageConfig   (configuration)
+//! - StorageMetrics  (metrics collection)
+//! - ConnectionPool  (connection management)
+
+pub mod sled;
+pub mod guard;
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -29,17 +35,10 @@ use bytes::Bytes;
 use metrics::{Counter, Gauge, Histogram};
 use crate::core::{error::{Error, Result}, types::*};
 
-pub mod db;
-pub mod index;
-
 // Re-export main types
-pub use db::DatabaseStorage;
-pub use index::IndexManager;
+pub use sled::DatabaseStorage;
 
-// ===== Level 1: Core Storage Types =====
 // Design Choice: Using builder pattern for configuration
-
-/// Storage configuration
 #[derive(Debug, Clone)]
 pub struct StorageConfig {
     /// Base storage path

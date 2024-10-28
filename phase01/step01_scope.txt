@@ -86,3 +86,5 @@ Non-Goals for Phase 01:
 - No distributed processing
 - No persistent metrics storage
 - No runtime reconfiguration
++ No performance benchmarking suite
++ No comparative performance analysis

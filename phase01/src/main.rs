@@ -1,26 +1,27 @@
-//! Main Entry Point
+//! ZIP Processing CLI Entry Point
 //! 
 //! Pyramid Structure:
 //! 
-//! Level 4 (Top): Application Orchestration
-//! - RuntimeManager    (manages async runtime)
-//! - ShutdownManager   (manages graceful shutdown)
-//! - MetricsManager    (manages metrics collection)
+//! Level 4 (Top): Application Entry
+//! - Main Function     (entry point)
+//!   ├── CLI setup
+//!   ├── Runtime setup
+//!   └── Error handling
 //! 
-//! Level 3: Processing Pipeline
-//! - ZipProcessor     (processes ZIP files)
-//! - StorageManager   (manages storage)
-//! - ValidationManager (manages validation)
+//! Level 3: Core Setup
+//! - Logging Setup    (tracing setup)
+//! - Runtime Setup   (tokio runtime)
+//! - Signal Setup    (signal handling)
 //! 
-//! Level 2: Infrastructure Setup
-//! - LoggingSetup     (configures logging)
-//! - MetricsSetup     (configures metrics)
-//! - StorageSetup     (configures storage)
+//! Level 2: Infrastructure
+//! - Config Building (config setup)
+//! - App Building    (app setup)
+//! - Error Handling  (error setup)
 //! 
-//! Level 1 (Base): Core Setup
-//! - ArgumentParser   (parses CLI args)
-//! - ConfigBuilder    (builds configuration)
-//! - ErrorHandler     (handles errors)
+//! Level 1 (Base): Core Types
+//! - App Config      (configuration)
+//! - App Error       (error types)
+//! - App State       (state types)
 
 use std::path::Path;
 use std::sync::Arc;
@@ -29,8 +30,9 @@ use clap::Parser;
 use tokio::signal;
 use tracing::{info, warn, error};
 use tracing_subscriber::{self, EnvFilter};
+use chrono::Utc;
 
-use crate::{
+use parseltongue::{
     cli::{Args, ProgressBar},
     core::{error::Error, types::*},
     storage::{StorageManager, StorageConfig},
@@ -38,40 +40,56 @@ use crate::{
     metrics::{MetricsManager, MetricsConfig},
 };
 
-// ===== Level 1: Core Setup =====
-// Design Choice: Using clap for CLI argument parsing
-
-/// Application configuration
+// Design Choice: Using builder pattern for configuration
 #[derive(Debug)]
 struct AppConfig {
-    /// CLI arguments
     args: Args,
-    /// Runtime configuration
     runtime_config: RuntimeConfig,
-    /// Storage configuration
     storage_config: StorageConfig,
-    /// Metrics configuration
     metrics_config: MetricsConfig,
 }
 
 impl AppConfig {
-    /// Creates configuration from CLI arguments
     fn from_args(args: Args) -> Result<Self> {
-        // Validate paths using AsRef<Path>
-        let input_path = args.input_path.as_path();
-        if !input_path.exists() {
-            return Err(Error::InvalidPath(args.input_path.clone()).into());
+        // Create timestamped output directory
+        let zip_name = args.input_path.file_stem()
+            .ok_or_else(|| Error::InvalidPath("ZIP file has no name".into()))?
+            .to_string_lossy();
+        
+        let timestamp = Utc::now().format("%Y%m%d%H%M%S");
+        let analysis_dir = args.output_dir.join(format!("{}-{}", zip_name, timestamp));
+
+        // Create directory structure using tokio::fs
+        tokio::fs::create_dir_all(&analysis_dir)
+            .await
+            .with_context(|| format!("Failed to create analysis directory: {}", analysis_dir.display()))?;
+
+        for subdir in ["db", "logs", "metrics"] {
+            tokio::fs::create_dir_all(analysis_dir.join(subdir))
+                .await
+                .with_context(|| format!("Failed to create {} directory", subdir))?;
         }
 
-        let output_dir = args.output_dir.as_path();
-        std::fs::create_dir_all(output_dir)
-            .with_context(|| format!("Failed to create output directory: {}", output_dir.display()))?;
-
         // Create configurations
-        let runtime_config = args.into_config();
+        let runtime_config = RuntimeConfig {
+            worker_config: WorkerConfig {
+                thread_count: args.workers,
+                queue_capacity: 1000,
+                stack_size: 3 * 1024 * 1024,
+            },
+            resource_limits: ResourceLimits {
+                max_tasks: args.workers * 2,
+                max_memory: 1024 * 1024 * 1024,
+                max_connections: args.workers,
+            },
+            shutdown_config: ShutdownConfig {
+                timeout: std::time::Duration::from_secs(args.shutdown_timeout),
+                force_after_timeout: true,
+            },
+        };
 
         let storage_config = StorageConfig {
-            path: output_dir.join("storage"),
+            path: analysis_dir.join("db"),
             pool_size: args.workers,
             batch_size: 1000,
             index_config: Default::default(),
@@ -81,7 +99,7 @@ impl AppConfig {
             enabled: true,
             interval: std::time::Duration::from_secs(1),
             format: Default::default(),
-            output_dir: output_dir.join("metrics"),
+            output_dir: analysis_dir.join("metrics"),
         };
 
         Ok(Self {
@@ -93,23 +111,15 @@ impl AppConfig {
     }
 }
 
-// ===== Level 2: Infrastructure Setup =====
-// Design Choice: Using builder pattern for setup
-
-/// Application state
+// Design Choice: Using async/await for main application
 struct App {
-    /// Application configuration
     config: AppConfig,
-    /// Storage manager
     storage: Arc<StorageManager>,
-    /// ZIP processor
     processor: Arc<ZipProcessor>,
-    /// Metrics manager
     metrics: Arc<MetricsManager>,
 }
 
 impl App {
-    /// Creates new application instance
     async fn new(config: AppConfig) -> Result<Self> {
         // Initialize storage
         let storage = Arc::new(StorageManager::new(config.storage_config.clone()).await?);
@@ -131,7 +141,6 @@ impl App {
         })
     }
 
-    /// Runs the application
     async fn run(&self) -> Result<()> {
         // Start metrics collection
         self.metrics.start().await?;
@@ -154,12 +163,14 @@ impl App {
     }
 }
 
-// ===== Level 3: Processing Pipeline =====
-// Design Choice: Using async/await for concurrency
+// Design Choice: Using tokio for async runtime
+#[tokio::main]
+async fn main() -> Result<()> {
+    // Parse arguments
+    let args = Args::parse();
 
-/// Sets up logging
-fn setup_logging(verbose: bool) -> Result<()> {
-    let filter = if verbose {
+    // Setup logging
+    let filter = if args.verbose {
         EnvFilter::from_default_env().add_directive(tracing::Level::DEBUG.into())
     } else {
         EnvFilter::from_default_env().add_directive(tracing::Level::INFO.into())
@@ -170,20 +181,6 @@ fn setup_logging(verbose: bool) -> Result<()> {
         .with_file(true)
         .with_line_number(true)
         .init();
-
-    Ok(())
-}
-
-// ===== Level 4: Application Orchestration =====
-// Design Choice: Using tokio for async runtime
-
-#[tokio::main]
-async fn main() -> Result<()> {
-    // Parse arguments
-    let args = Args::parse();
-
-    // Setup logging
-    setup_logging(args.verbose)?;
 
     // Create application
     let config = AppConfig::from_args(args)?;

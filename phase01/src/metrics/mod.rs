@@ -22,17 +22,16 @@
 //! - MetricsValue     (value types)
 //! - MetricsError     (metrics errors)
 
-pub mod collect;
-pub mod report;
+// Design Choice: Using separate modules for collection and reporting
+pub mod console;
+pub mod task;
 
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use metrics::{Counter, Gauge, Histogram};
 use crate::core::error::Result;
 use std::path::PathBuf;
-use std::path::Path;
 use chrono::Utc;
-use serde_json;
 
 // ===== Level 1: Core Metrics Types =====
 // Design Choice: Using metrics crate for standardization

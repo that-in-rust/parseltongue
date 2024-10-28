@@ -2,190 +2,57 @@
 +// DO NOT TOUCH OR DELETE WITHOUT EXPLICIT PERMISSION
 +// ===================================================
 +
- ## Module Structure (Performance-Optimized Tokio Implementation)
+ ## Module Structure (Safety-First Design)
 
-1. Public Interface Layer
 src/
- ├── lib.rs           // Public API Layer
- │   ├── Core Traits
- │   │   ├── AsyncZipProcessor: ZIP processing interface
- │   │   ├── AsyncStorageBackend: Storage abstraction
- │   │   └── StreamProcessor: Stream handling with backpressure
- │   ├── Error Types
- │   │   ├── ProcessingError: ZIP/encoding errors
- │   │   ├── StorageError: Database errors
- │   │   └── RuntimeError: Task/resource errors
- │   └── Configuration Types
- │       ├── ProcessingConfig: ZIP handling settings
- │       ├── StorageConfig: Database settings
- │       └── RuntimeConfig: Worker/resource settings
- │
- ├── main.rs          // Entry Point Layer
-     ├── CLI Handling
-     │   ├── ArgParser: Command line parsing
-     │   └── ConfigBuilder: Runtime configuration
-     ├── Runtime Setup
-     │   ├── WorkerPoolInit: Thread pool setup
-     │   └── MetricsInit: Monitoring setup
-     └── Shutdown Handling
-         ├── SignalHandler: OS signal processing
-         └── CleanupCoordinator: Resource cleanup
+├── lib/            // Public API Layer
+│   ├── mod.rs      // Main library interface
+│   ├── prelude.rs  // Re-exports of common types
+│   └── error.rs    // Central error types
+│
+├── main/           // CLI Layer
+│   ├── mod.rs      // Main binary interface
+│   └── cli/        // Isolated CLI handling
+│       ├── mod.rs  // CLI coordination
+│       ├── args.rs // Clap argument parsing
+│       └── config.rs // Configuration types
+│
+├── zip/            // ZIP Processing Layer
+│   ├── mod.rs      // Public ZIP API
+│   ├── reader.rs   // Safe ZIP reading
+│   ├── stream.rs   // Stream implementation
+│   └── guard.rs    // RAII cleanup guards
+│
+├── storage/        // Database Layer
+│   ├── mod.rs      // Public storage API
+│   ├── sled.rs     // sled implementation
+│   └── guard.rs    // Connection guards
+│
+├── runtime/        // Tokio Runtime Layer
+│   ├── mod.rs      // Runtime coordination
+│   ├── worker.rs   // Worker pool management
+│   └── shutdown.rs // Graceful shutdown
+│
+└── metrics/        // Metrics Layer
+    ├── mod.rs      // Metrics coordination
+    ├── console.rs  // tokio-console metrics
+    └── task.rs     // Task performance data
 
-2. Core Infrastructure Layer
-src/core/
- ├── runtime/        // Runtime Management
- │   ├── mod.rs      // Runtime Coordination
- │   │   ├── Types
- │   │   │   ├── RuntimeManager: Central coordinator
- │   │   │   ├── RuntimeMetrics: Performance tracking
- │   │   │   └── RuntimeState: Global state
- │   │   └── Traits
- │   │       ├── ResourceManager: Resource handling
- │   │       └── StateManager: State transitions
- │   │
- │   ├── worker.rs   // Worker Management
- │   │   ├── Types
- │   │   │   ├── Worker: Individual worker
- │   │   │   ├── WorkerPool: Worker collection
- │   │   │   └── WorkerMetrics: Per-worker stats
- │   │   └── Traits
- │   │       ├── TaskExecutor: Task execution
- │   │       └── WorkerLifecycle: Worker states
- │   │
- │   ├── metrics.rs  // Performance Metrics
- │   │   ├── Types
- │   │   │   ├── MetricsRegistry: Metric storage
- │   │   │   ├── MetricsAggregator: Data collection
- │   │   │   └── MetricsReporter: Data reporting
- │   │   └── Traits
- │   │       ├── MetricCollector: Data gathering
- │   │       └── MetricPublisher: Data distribution
- │   │
- │   └── shutdown.rs // Graceful Shutdown
- │       ├── Types
- │       │   ├── ShutdownManager: Shutdown coordinator
- │       │   ├── ShutdownPhase: State tracking
- │       │   └── CleanupTask: Resource cleanup
- │       └── Traits
- │           ├── ResourceCleanup: Cleanup behavior
- │           └── ShutdownNotifier: Signal handling
- │
- ├── error.rs        // Error Management
- │   ├── Types
- │   │   ├── Error: Error enumeration
- │   │   ├── ErrorContext: Error metadata
- │   │   └── ErrorMetrics: Error tracking
- │   └── Traits
- │       ├── ErrorHandler: Error processing
- │       └── ErrorReporter: Error reporting
- │
- └── config.rs       // Configuration
-     ├── Types
-     │   ├── Config: Configuration storage
-     │   ├── RuntimeParams: Runtime settings
-     │   └── ResourceLimits: System constraints
-     └── Traits
-         ├── ConfigValidator: Setting validation
-         └── ConfigApplier: Setting application
-
-3. Processing Layer
-src/zip/
- ├── mod.rs          // ZIP Coordination
- │   ├── Types
- │   │   ├── ZipProcessor: Processing coordinator
- │   │   ├── EntryCollector: Entry management
- │   │   └── ProcessingMetrics: ZIP metrics
- │   └── Traits
- │       ├── EntryProcessor: Entry handling
- │       └── StreamProcessor: Data streaming
- │
- ├── stream.rs       // Streaming Implementation
- │   ├── Types
- │   │   ├── ZipStream: Stream implementation
- │   │   ├── StreamBuffer: Buffer management
- │   │   └── StreamMetrics: Stream statistics
- │   └── Traits
- │       ├── StreamController: Flow control
- │       └── BackpressureHandler: Load management
- │
- ├── buffer.rs       // Memory Management
- │   ├── Types
- │   │   ├── BufferPool: Buffer collection
- │   │   ├── AdaptiveBuffer: Smart buffering
- │   │   └── BufferMetrics: Memory stats
- │   └── Traits
- │       ├── BufferManager: Buffer lifecycle
- │       └── PressureHandler: Memory pressure
- │
- └── validate.rs     // Validation Logic
-     ├── Types
-     │   ├── Validator: Validation coordinator
-     │   ├── ValidationRule: Check definition
-     │   └── ValidationMetrics: Check stats
-     └── Traits
-         ├── RuleExecutor: Rule processing
-         └── ResultCollector: Result handling
-
-tests/
- ├── integration/   // Integration Tests
- │   ├── perf/      // Performance Tests
- │   │   - Throughput tests
- │   │   - Memory usage tests
- │   │   - Scaling tests
- │   └── stress/    // Stress Tests
- │       - Load tests
- │       - Resource limits
- │
- └── utils/        // Test Utilities
-     └── mod.rs
-         - Test helpers
-         - Performance assertions
-
-benches/           // Performance Benchmarks
- ├── zip/
- │   - Streaming performance
- │   - Memory usage patterns
- ├── storage/
- │   - Write throughput
- │   - Batch efficiency
- └── system/
-     - Resource scaling
-     - Adaptive behavior
+tests/             // Testing Layer
+├── common/        // Shared test utilities
+└── integration/   // Integration tests
 
 Key Design Principles:
-1. Async-first architecture
-2. Resource-aware operations
-3. Proper error handling
-4. Comprehensive metrics
-5. Clean shutdown paths
-6. Test coverage focus
+1. Tokio-first architecture
+2. Proper backpressure handling
+3. Graceful shutdown paths
+4. Structured concurrency
+5. Resource-aware operations
 
 Implementation Notes:
-- All I/O operations are async
-- Resource limits enforced
-- Metrics collected throughout
-- Graceful error recovery
-- Clean shutdown paths
-+- No distributed processing support
-+- No persistent metrics storage
-+- No runtime reconfiguration
-+- Focus on single-node performance
-
-Component Relationships:
-1. ZIP Processing Pipeline:
-   AsyncZipReader -> EntryProcessor -> ValidationQueue -> StorageWriter
-
-2. Resource Management:
-   BufferPool -> WorkerPool -> ConnectionPool -> MetricsCollector
-
-3. Error Handling Chain:
-   CircuitBreaker -> ErrorMetrics -> GracefulDegradation -> Reporting
-
-4. Metric Collection Flow:
-   TaskMetrics -> AggregatedMetrics -> StructuredLogs -> Reports
-
-5. Metrics Collection Pipeline:
-   Source -> Aggregator -> Reporter -> Storage
-
-6. Resource Management Pipeline:
-   Monitor -> Allocator -> Tracker -> Cleanup
+- All I/O uses tokio async
+- Backpressure via Semaphore
+- Metrics via tokio-console
+- Graceful task cancellation
+- Proper resource cleanup
+- Benchmarking deferred to future phase

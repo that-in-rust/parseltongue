@@ -3,28 +3,29 @@
 //! Pyramid Structure:
 //! 
 //! Level 4 (Top): Argument Processing
-//! - ArgumentProcessor (processes arguments)
-//! - Validator         (validates arguments)
+//! - ArgumentProcessor (processes args)
+//!   ├── Validation
+//!   ├── Canonicalization
+//!   └── Error handling
 //! 
 //! Level 3: Argument Types
-//! - InputArgs        (input file arguments)
-//! - OutputArgs       (output configuration)
+//! - InputArgs        (input file args)
+//! - OutputArgs       (output config)
+//! - RuntimeArgs      (runtime config)
 //! 
-//! Level 2: Argument Implementation
-//! - ArgParser        (argument parsing)
-//! - ArgValidator     (validation logic)
+//! Level 2: Validation
+//! - PathValidator    (validates paths)
+//! - ConfigValidator  (validates config)
 //! 
-//! Level 1 (Base): Core Argument Types
-//! - Args            (argument structure)
-//! - ArgError        (argument errors)
-//! - ValidationRule  (validation rules)
+//! Level 1 (Base): Core Types
+//! - Args            (argument struct)
+//! - Validation      (validation rules)
 
 use std::path::{Path, PathBuf};
 use clap::Parser;
 use crate::core::{error::Result, types::*};
 
-// ===== Level 1: Core Argument Types =====
-// Design Choice: Using clap for argument parsing
+// Design Choice: Using clap for robust CLI parsing
 
 /// Command line arguments
 #[derive(Parser, Debug)]
@@ -41,6 +42,18 @@ pub struct Args {
     /// Enable verbose output
     #[clap(short = 'v', long = "verbose")]
     pub verbose: bool,
+
+    /// Number of worker threads
+    #[clap(short = 'w', long = "workers", default_value = "4")]
+    pub workers: usize,
+
+    /// Buffer size in bytes
+    #[clap(short = 'b', long = "buffer-size", default_value = "65536")]
+    pub buffer_size: usize,
+
+    /// Shutdown timeout in seconds
+    #[clap(short = 's', long = "shutdown-timeout", default_value = "30")]
+    pub shutdown_timeout: u64,
 }
 
 // ===== Level 2: Argument Implementation =====

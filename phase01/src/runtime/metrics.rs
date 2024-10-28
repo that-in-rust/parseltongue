@@ -31,10 +31,7 @@ use metrics::{Counter, Gauge, Histogram};
 use tokio::sync::RwLock;
 use crate::core::{error::Result, types::*};
 
-// ===== Level 1: Core Metric Types =====
 // Design Choice: Using atomic metrics for lock-free updates
-
-/// Core runtime metrics
 #[derive(Debug)]
 pub struct RuntimeMetrics {
     /// Tasks processed

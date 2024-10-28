@@ -1155,3 +1155,114 @@ amuldotexe@amuldotexe-Lenovo-Legion-Y540-15IRH-PG0:~/Desktop/GitHub202410/parsel
     │   └── mod.rs
     └── utils
         └── mod.rs
+
+
+
+===============================
+
+
+Update @storage  - each  .rs file   - witha Pyramid structure of - Before starting code explain pyramidal nature of code via comments and then as the code gets detailed explain design choice nuances
+
+
+find /home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src -name "*.rs" -type f -exec sh -c 'echo "=== {} ==="; cat {}; echo -e "\n"' \; > /home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/allcode20241028v1.txt
+
+
+
+
+
+cd /home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01 && \
+# Remove files that will be merged/moved (only source files)
+rm -f src/cli/{metrics,progress}.rs \
+   src/core/{channel,types}.rs \
+   src/metrics/{collect,report}.rs \
+   src/storage/{index,db}.rs \
+   src/utils/{buffer,cleanup,mod,resource}.rs \
+   src/zip/{buffer,encoding,validation}.rs && \
+# Create new structure (only source files)
+mkdir -p src/{cli,zip,storage,runtime,metrics} tests/{common,integration} && \
+touch src/prelude.rs src/error.rs \
+      src/cli/config.rs \
+      src/zip/{stream,guard}.rs \
+      src/storage/guard.rs \
+      src/metrics/{console,task}.rs \
+      tests/common/mod.rs
+
+
+
+cd /home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01 && \
+# Move runtime out of core
+mv src/core/runtime src/ && \
+# Create new files
+touch src/prelude.rs \
+      src/cli/config.rs \
+      src/zip/{stream,guard}.rs \
+      src/storage/{sled,guard}.rs \
+      src/metrics/{console,task}.rs && \
+# Rename files
+mv src/storage/db.rs src/storage/sled.rs 2>/dev/null || true && \
+mv src/metrics/collect.rs src/metrics/console.rs 2>/dev/null || true && \
+mv src/metrics/report.rs src/metrics/task.rs 2>/dev/null || true && \
+# Create test structure
+mkdir -p tests/common && \
+mv tests/utils/* tests/common/ 2>/dev/null || true && \
+touch tests/common/mod.rs && \
+# Remove old files
+rm -rf src/core \
+       src/cli/{metrics,progress}.rs \
+       src/utils \
+       src/zip/{buffer,encoding,validation}.rs \
+       src/storage/index.rs \
+       tests/utils
+
+
+
+
+
+find /path/to/your/folder -maxdepth 1 -type f \( -name "*.rs" -o -name "*.toml" \) -exec realpath {} \;
+
+find /home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01 -maxdepth 4 -type f \( -name "*.rs" -o -name "*.toml" \) -exec realpath {} \;
+
+
+-------
+
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/main/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/main/cli/config.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/main/cli/args.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/main/cli/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/storage/sled.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/storage/guard.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/storage/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/metrics/task.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/metrics/console.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/metrics/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/lib/error.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/lib/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/lib/prelude.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/zip/stream.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/zip/reader.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/zip/guard.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/zip/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/main.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/runtime/metrics.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/runtime/shutdown.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/runtime/worker.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src/runtime/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/tests/integration/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/tests/common/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/Cargo.toml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
