@@ -3,24 +3,28 @@
 //! Pyramid Structure:
 //! 
 //! Level 4 (Top): Worker Coordination
-//! - WorkerGroup       (manages multiple workers)
-//! - WorkerMetrics     (aggregates worker performance)
-//! - LoadBalancer      (distributes tasks across workers)
+//! - WorkerGroup       (worker pool management)
+//!   ├── Load balancing
+//!   ├── Worker lifecycle
+//!   └── Pool metrics
 //! 
-//! Level 3: Task Management
-//! - TaskQueue         (priority-based task queue)
-//! - TaskDispatcher    (handles task distribution)
-//! - BackpressureControl (manages worker load)
+//! Level 3: Task Distribution
+//! - TaskDispatcher    (task handling)
+//!   ├── Priority queuing
+//!   ├── Backpressure
+//!   └── Task routing
 //! 
 //! Level 2: Worker Implementation
-//! - Worker           (individual worker implementation)
-//! - WorkerState      (worker lifecycle management)
-//! - TaskExecution    (task execution logic)
+//! - Worker           (single worker)
+//!   ├── Task execution
+//!   ├── State management
+//!   └── Error handling
 //! 
-//! Level 1 (Base): Core Worker Types
-//! - WorkerConfig     (worker configuration)
-//! - TaskDefinition   (task representation)
-//! - WorkerMetrics    (performance metrics)
+//! Level 1 (Base): Worker Types
+//! - Core Types       (foundational)
+//!   ├── Configuration
+//!   ├── Task definitions
+//!   └── Metrics types
 
 use std::sync::Arc;
 use tokio::sync::{mpsc, Semaphore};

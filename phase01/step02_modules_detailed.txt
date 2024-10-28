@@ -1,0 +1,97 @@
+4. Storage Layer (src/storage/)
+Module: storage/batch.rs
+Purpose: Optimized write batching for database operations
+Key Components:
+- BatchWriter
+  ├── Purpose: Efficient batch write operations
+  ├── Key Methods:
+  │   ├── new() -> Creates batch writer with config
+  │   ├── write_many() -> Batched write operation
+  │   └── flush() -> Forces batch write
+  └── State Management:
+      ├── Batch size tracking
+      ├── Memory pressure monitoring
+      └── Write statistics
+
+Key Relationships:
+- Depends on: utils/adaptive.rs, metrics/
+- Used by: storage/db.rs
+- Coordinates with: runtime/worker.rs
+
+Error Handling:
+- Write failures
+- Memory pressure
+- Batch size limits
+- Transaction timeouts
+
+Metrics Collection:
+- Batch sizes
+- Write latency
+- Memory usage
+- Error rates
+
+5. Utils Layer (src/utils/)
+Module: utils/adaptive.rs
+Purpose: System-aware resource tuning
+Key Components:
+- AdaptiveManager
+  ├── Purpose: Dynamic resource adjustment
+  ├── Key Methods:
+  │   ├── tune_buffers() -> Adjusts buffer sizes
+  │   ├── scale_workers() -> Adjusts worker count
+  │   └── monitor_pressure() -> Tracks system load
+  └── State Management:
+      ├── System metrics
+      ├── Adaptation policies
+      └── Resource limits
+
+Key Relationships:
+- Depends on: utils/monitor.rs
+- Used by: runtime/, storage/, zip/
+- Coordinates with: metrics/
+
+Error Handling:
+- Resource exhaustion
+- Adaptation failures
+- Monitoring errors
+- Configuration limits
+
+Metrics Collection:
+- Adaptation frequency
+- Resource utilization
+- Pressure levels
+- Performance impact
+
+6. Metrics Layer (src/metrics/)
+Module: metrics/perf.rs
+Purpose: Performance metric collection and analysis
+Key Components:
+- PerformanceTracker
+  ├── Purpose: Performance data collection
+  ├── Key Methods:
+  │   ├── track_operation() -> Records metrics
+  │   ├── analyze_trends() -> Analyzes patterns
+  │   └── report_stats() -> Generates reports
+  └── State Management:
+      ├── Metric storage
+      ├── Analysis state
+      └── Report generation
+
+Key Relationships:
+- Depends on: metrics/trace.rs
+- Used by: All modules
+- Coordinates with: utils/monitor.rs
+
+Error Handling:
+- Collection failures
+- Analysis errors
+- Storage limits
+- Report generation
+
+Metrics Collection:
+- Operation latency
+- Resource usage
+- Error patterns
+- System health
+
+[Continue with more modules? Let me know if you want this level of detail for other modules.]

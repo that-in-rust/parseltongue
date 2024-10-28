@@ -4,23 +4,27 @@
 //! 
 //! Level 4 (Top): Runtime Orchestration
 //! - RuntimeManager     (coordinates all runtime components)
-//! - RuntimeMetrics    (aggregates runtime performance)
-//! - ShutdownManager   (coordinates graceful shutdown)
+//!   ├── Lifecycle management
+//!   ├── Resource coordination
+//!   └── Global state handling
 //! 
 //! Level 3: Resource Management
 //! - WorkerPoolManager (manages worker threads)
-//! - ResourceMonitor   (tracks system resources)
-//! - BackpressureController (manages load)
+//!   ├── Thread pool administration
+//!   ├── Load distribution
+//!   └── Resource monitoring
 //! 
 //! Level 2: Task Management
 //! - TaskScheduler     (schedules async tasks)
-//! - PriorityQueue    (manages task priorities)
-//! - TaskMetrics      (tracks task performance)
+//!   ├── Priority handling
+//!   ├── Backpressure control
+//!   └── Performance tracking
 //! 
 //! Level 1 (Base): Core Runtime Types
-//! - RuntimeConfig    (configuration types)
-//! - RuntimeState     (state management)
-//! - RuntimeMetrics   (basic metrics)
+//! - Configuration    (runtime settings)
+//!   ├── Worker settings
+//!   ├── Resource limits
+//!   └── Shutdown parameters
 
 use std::sync::Arc;
 use tokio::sync::{Semaphore, broadcast, mpsc};

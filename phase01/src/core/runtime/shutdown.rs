@@ -3,24 +3,28 @@
 //! Pyramid Structure:
 //! 
 //! Level 4 (Top): Shutdown Orchestration
-//! - ShutdownManager    (coordinates complete shutdown)
-//! - ShutdownMetrics    (tracks shutdown progress)
-//! - ResourceReclaimer  (ensures cleanup)
+//! - ShutdownManager    (coordinates shutdown)
+//!   ├── Phase management
+//!   ├── Resource cleanup
+//!   └── Timeout handling
 //! 
 //! Level 3: Component Shutdown
-//! - WorkerShutdown     (worker graceful stop)
-//! - StorageShutdown    (storage cleanup)
-//! - TaskShutdown       (task cancellation)
+//! - ComponentManager   (subsystem shutdown)
+//!   ├── Worker shutdown
+//!   ├── Task cancellation
+//!   └── Connection cleanup
 //! 
-//! Level 2: Resource Management
-//! - ConnectionDraining (DB connection cleanup)
-//! - BufferReclaiming  (memory cleanup)
-//! - TaskDraining      (task completion)
+//! Level 2: Resource Cleanup
+//! - ResourceManager   (cleanup coordination)
+//!   ├── Memory reclamation
+//!   ├── Handle closure
+//!   └── State cleanup
 //! 
-//! Level 1 (Base): Core Shutdown Types
-//! - ShutdownConfig    (shutdown parameters)
-//! - ShutdownState     (shutdown progress)
-//! - ShutdownError     (shutdown failures)
+//! Level 1 (Base): Shutdown Types
+//! - Core Types        (foundational types)
+//!   ├── Shutdown states
+//!   ├── Cleanup traits
+//!   └── Error types
 
 use std::sync::Arc;
 use tokio::sync::{broadcast, Mutex};
