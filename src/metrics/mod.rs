@@ -11,8 +11,11 @@ use tokio::sync::{RwLock, mpsc};
 use anyhow::Result;
 use serde::{Serialize, Deserialize};
 
-mod console;
-mod task;
+pub mod console;
+pub mod task;
+
+// Consider adding:
+pub mod tracing; // For structured logging with tokio trace contexts
 
 // Layer 1: Core Types
 #[derive(Clone)]

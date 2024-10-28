@@ -13,6 +13,7 @@ use bytes::Bytes;
 
 mod sled;
 mod guard;
+pub mod pool; // For tokio::sync::Semaphore-based connection pooling
 
 pub use self::sled::SledStorage;
 
