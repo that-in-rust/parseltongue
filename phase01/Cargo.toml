@@ -29,8 +29,8 @@ encoding_rs = "0.8.33"
 chardetng = "0.1.17"
 crc32fast = "1.3.2"
 
-# Storage - Using RocksDB instead of sled for better maintenance
-rocksdb = { version = "0.21.0", features = ["multi-threaded-cf"] }
+# Storage - Using sled as specified in scope
+sled = "0.34.7"
 bincode = "1.3.3"
 
 # CLI & Arguments - Latest stable versions
