@@ -41,3 +41,6 @@ Update @shutdown.rs    - witha Pyramid structure of - Before starting code expla
 Can you append all the prompts used in this composue in last 1 hour in @top1percent.txt - all that I told you and asked you as is
 
 Can you go back to last 6 hours Can you append all the prompts used in this composue  in @top1percent.txt - all that I told you and asked you as is
+
+
+Update @storage  - each  .rs file   - witha Pyramid structure of - Before starting code explain pyramidal nature of code via comments and then as the code gets detailed explain design choice nuances
