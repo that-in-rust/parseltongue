@@ -1,59 +1,47 @@
-//! Main Binary - Pyramidal Structure
-//! Layer 1: Entry Point
+//! CLI Binary - Pyramidal Structure
+//! Layer 1: Entry Point & CLI
 //! Layer 2: Configuration
 //! Layer 3: Runtime Setup
-//! Layer 4: Processing
-//! Layer 5: Cleanup
+//! Layer 4: Processing Pipeline
+//! Layer 5: Cleanup & Shutdown
 
 use anyhow::Result;
 use clap::Parser;
-use tokio;
 use tracing::{info, error};
 
+// Layer 1: Local Imports
 use parseltongue::{
-    ZipAnalyzer,
-    AnalyzerConfig,
     main::cli::{Args, Config},
+    runtime::RuntimeManager,
+    zip::ZipProcessor,
+    storage::StorageManager,
+    metrics::MetricsManager,
 };
 
-// Layer 1: Entry Point
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Layer 2: Setup
+    // Layer 2: CLI & Config
     let args = Args::parse();
     let config = Config::from_args(args)?;
-    setup_logging(config.verbose)?;
+    setup_tracing(&config)?;
 
-    info!("Starting ZIP analysis...");
+    info!("Initializing ZIP processor...");
 
-    // Layer 3: Analyzer Setup
-    let analyzer = ZipAnalyzer::new(AnalyzerConfig {
-        input_zip: config.input_zip,
-        output_dir: config.output_dir,
-        workers: config.workers,
-        buffer_size: config.buffer_size,
-        shutdown_timeout: config.shutdown_timeout,
-    }).await?;
+    // Layer 3: Component Setup
+    let runtime = RuntimeManager::new(&config.runtime)?;
+    let storage = StorageManager::new(&config.storage).await?;
+    let metrics = MetricsManager::new();
+
+    let processor = ZipProcessor::new(
+        config.input_zip,
+        config.output_dir,
+        storage,
+        metrics,
+    ).await?;
 
     // Layer 4: Processing
     let result = tokio::select! {
-        stats = analyzer.analyze() => {
-            match stats {
-                Ok(stats) => {
-                    info!(
-                        "Analysis complete: {} files ({} bytes) in {:?}",
-                        stats.files_processed,
-                        stats.bytes_processed,
-                        stats.duration
-                    );
-                    Ok(())
-                },
-                Err(e) => {
-                    error!("Analysis failed: {}", e);
-                    Err(e)
-                }
-            }
-        },
+        r = processor.process() => r,
         _ = tokio::signal::ctrl_c() => {
             info!("Received shutdown signal");
             Ok(())
@@ -61,12 +49,18 @@ async fn main() -> Result<()> {
     };
 
     // Layer 5: Cleanup
-    analyzer.shutdown().await?;
+    runtime.shutdown().await?;
+    
+    match result {
+        Ok(_) => info!("Processing complete"),
+        Err(e) => error!("Processing failed: {}", e),
+    }
+    
     result
 }
 
-fn setup_logging(verbose: bool) -> Result<()> {
-    let level = if verbose {
+fn setup_tracing(config: &Config) -> Result<()> {
+    let level = if config.verbose {
         tracing::Level::DEBUG
     } else {
         tracing::Level::INFO
