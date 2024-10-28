@@ -1,0 +1,57 @@
+Phase 01 Scope: ZIP to Database Storage
+
+Core Functionality:
+1. Command Line Interface
+- Accept two required arguments:
+  * --input-zip (-i): Absolute path to source ZIP file
+  * --output-dir (-o): Absolute path for base output directory
+- Optional flags:
+  * --verbose (-v): Enable verbose logging
+
+2. Output Directory Structure
+- Auto-create timestamped analysis directory:
+  output_dir/
+    └── {zip-name}-{YYYYMMDDHHMMSS}/  # e.g., my-project-20240125143022/
+        ├── db/                        # sled database files
+        └── logs/                      # operation logs
+
+3. ZIP Processing
+- Validate input ZIP file exists and is readable
+- Stream ZIP contents directly to database without extraction
+- Handle common ZIP formats and encodings (UTF-8, Windows-1252)
+- Track processing progress with progress bar
+
+4. Database Storage
+- Store ZIP contents in sled database under timestamped directory
+- Database structure:
+  * Key: file path relative to ZIP root
+  * Value: file contents as bytes
+- Maintain index of stored files
+- Handle large files efficiently using streaming
+
+5. Error Handling & Logging
+- Graceful error handling for common scenarios:
+  * Invalid/corrupt ZIP files
+  * Permission issues
+  * Disk space constraints
+- Log operations to:
+  * Console (with colors for different levels)
+  * logs/processing.log
+
+Technical Constraints:
+- Use stable Rust only
+- Minimal dependencies:
+  * zip: ZIP file processing
+  * sled: embedded database
+  * clap: CLI argument parsing
+  * anyhow: error handling
+  * log + env_logger: logging
+  * indicatif: progress bars
+  * encoding_rs: character encoding
+
+Non-Goals for Phase 01:
+- No ZIP extraction functionality
+- No code analysis
+- No summary generation
+- No dependency analysis
+- No security scanning
