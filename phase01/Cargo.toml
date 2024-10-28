@@ -10,8 +10,8 @@ license = "MIT"
 # ===== Level 3: Feature Configuration =====
 [features]
 default = ["metrics", "tracing"]
-metrics = ["dep:metrics", "dep:metrics-util"]
-tracing = ["dep:tracing", "dep:tracing-subscriber"]
+metrics = ["metrics-runtime", "metrics-util"]
+tracing = ["tracing-core", "tracing-subscriber"]
 
 # ===== Level 2: Dependencies by Category =====
 [dependencies]
@@ -41,12 +41,12 @@ colored = "2.1"
 thiserror = "1.0"
 anyhow = "1.0"
 
-# Logging & Metrics
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# Logging & Metrics (Optional)
+metrics-runtime = { version = "0.21", optional = true }
+metrics-util = { version = "0.15", optional = true }
+tracing-core = { version = "0.1", optional = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"], optional = true }
 console-subscriber = "0.2"
-metrics = "0.21"
-metrics-util = "0.15"
 
 # Time & Serialization
 chrono = { version = "0.4", features = ["serde"] }
