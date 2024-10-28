@@ -7,28 +7,28 @@
 
 use std::path::PathBuf;
 use thiserror::Error;
+use std::backtrace::Backtrace;
+use tracing::{error, warn};
 
-// Layer 1: Core Error Type
+// Layer 1: Core Error Types
 #[derive(Debug, Error)]
 pub enum ProcessorError {
-    #[error("IO error: {source}")]
+    #[error("IO error: {source} at {path:?}")]
     Io {
         #[from]
         source: std::io::Error,
         path: Option<PathBuf>,
+        backtrace: Backtrace,
     },
 
     #[error("ZIP error: {0}")]
-    Zip(String),
+    Zip(String, #[backtrace] Backtrace),
 
     #[error("Storage error: {0}")]
-    Storage(String),
+    Storage(String, #[backtrace] Backtrace),
 
     #[error("Runtime error: {0}")]
-    Runtime(String),
-
-    #[error("Configuration error: {0}")]
-    Config(String),
+    Runtime(String, #[backtrace] Backtrace),
 }
 
 // Layer 2: Error Context
@@ -61,7 +61,6 @@ impl ErrorExt for ProcessorError {
             Self::Zip(_) => Self::Zip(context.into()),
             Self::Storage(_) => Self::Storage(context.into()),
             Self::Runtime(_) => Self::Runtime(context.into()),
-            Self::Config(_) => Self::Config(context.into()),
             other => other,
         }
     }

@@ -1,9 +1,9 @@
 //! Common Test Utilities - Pyramidal Structure
 //! Layer 1: Test Setup
-//! Layer 2: Test Data
-//! Layer 3: Assertions
+//! Layer 2: Test Data Generation
+//! Layer 3: Validation Helpers
 //! Layer 4: Cleanup
-//! Layer 5: Helpers
+//! Layer 5: Helper Functions
 
 use std::path::PathBuf;
 use anyhow::Result;
@@ -12,6 +12,7 @@ use zip::ZipWriter;
 use std::fs::File;
 use std::io::Write;
 use rand::Rng;
+use tokio::fs;
 
 // Layer 1: Test Setup
 pub struct TestContext {
@@ -26,7 +27,7 @@ impl TestContext {
         let input_zip = temp_dir.path().join("test.zip");
         let output_dir = temp_dir.path().join("output");
 
-        tokio::fs::create_dir_all(&output_dir).await?;
+        fs::create_dir_all(&output_dir).await?;
 
         Ok(Self {
             temp_dir,

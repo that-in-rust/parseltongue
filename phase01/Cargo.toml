@@ -9,13 +9,13 @@ description = "A Tokio-based ZIP file analyzer and storage system"
 # ===== Level 3: Feature Configuration =====
 [features]
 default = ["metrics", "tracing"]
-metrics = ["dep:metrics", "dep:metrics-util"]
-tracing = ["dep:tracing", "dep:tracing-subscriber"]
+metrics = ["metrics-util"]
+tracing = []
 
 # ===== Level 2: Dependencies by Category =====
 [dependencies]
 # Async Runtime
-tokio = { version = "1.0", features = ["full"] }
+tokio = { version = "1.0", features = ["full", "time", "sync", "rt-multi-thread"] }
 tokio-util = { version = "0.7", features = ["codec"] }
 tokio-stream = "0.1"
 
@@ -39,6 +39,8 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 console-subscriber = "0.1"
 indicatif = "0.17"
+metrics = "0.21"
+metrics-util = "0.15"
 
 # Utilities
 futures = "0.3"
