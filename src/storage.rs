@@ -14,7 +14,7 @@ pub struct Database {
 
 impl Database {
     // Level 3: Initialize the database
-    pub async fn new(path: &Path) -> Result<Self> {
+    pub async fn open(path: &Path) -> Result<Self> {
         let path = path.to_owned();
         let db = spawn_blocking(move || {
             let mut opts = Options::default();

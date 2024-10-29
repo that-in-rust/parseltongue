@@ -16,7 +16,7 @@ pub struct OutputDirs {
 
 impl OutputDirs {
     // Level 3: Create necessary directories
-    pub async fn create(base_dir: &Path, input_zip: &Path) -> Result<Self> {
+    pub async fn create(base_dir: &Path, _input_zip: &Path) -> Result<Self> {
         let timestamp = chrono::Local::now().format("%Y%m%dT%H%M%S").to_string();
         let base = base_dir.join(format!("output_{}", timestamp));
 
@@ -42,5 +42,13 @@ impl OutputDirs {
     // Level 1: Provide utility methods for paths
     pub fn metrics_path(&self) -> &Path {
         &self.metrics_dir
+    }
+
+    pub fn logs_path(&self) -> &Path {
+        &self.logs_dir
+    }
+
+    pub fn db_path(&self) -> &Path {
+        &self.db_dir
     }
 } 

@@ -1,13 +1,16 @@
-// Level 4: Centralized Error Handling
+// Level 4: Error Handling
 // - Defines custom error types
 // - Implements conversions from external errors
-// - Provides a Result alias for convenience
+// - Provides Result type alias
 
 use thiserror::Error;
+use tokio::sync::AcquireError;
+use tokio::task::JoinError;
+use tokio::sync::mpsc::error::SendError;
 use zip::result::ZipError;
 use rocksdb::Error as RocksDbError;
 use std::io;
-use tokio::sync::mpsc::error::SendError;
+use std::num::ParseIntError;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -23,23 +26,34 @@ pub enum Error {
     #[error("Configuration error: {0}")]
     Config(String),
 
-    #[error("Async task error: {0}")]
-    Join(#[from] tokio::task::JoinError),
+    #[error("Task join error: {0}")]
+    Join(#[from] JoinError),
 
     #[error("Parse error: {0}")]
-    ParseInt(#[from] std::num::ParseIntError),
+    ParseInt(#[from] ParseIntError),
 
     #[error("Channel send error: {0}")]
     MpscSendError(String),
 
-    #[error("Other error: {0}")]
+    #[error("Semaphore acquire error: {0}")]
+    SemaphoreError(String),
+
+    #[error("Generic error: {0}")]
     Generic(String),
 }
 
+// Implement From for SendError
 impl<T> From<SendError<T>> for Error {
     fn from(err: SendError<T>) -> Self {
         Error::MpscSendError(err.to_string())
     }
 }
 
-pub type Result<T> = std::result::Result<T, Error>; 
+// Implement From for AcquireError
+impl From<AcquireError> for Error {
+    fn from(err: AcquireError) -> Self {
+        Error::SemaphoreError(err.to_string())
+    }
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
