@@ -131,3 +131,60 @@ mod tests {
         Ok(())
     }
 }
+
+pub struct SledStorageManager {
+    db: Db,
+}
+
+impl SledStorageManager {
+    pub fn new(db_path: &Path) -> Result<Self> {
+        let db = sled::open(db_path)?;
+        Ok(Self { db })
+    }
+
+    pub fn insert(&self, key: &[u8], value: &[u8]) -> Result<()> {
+        self.db.insert(key, value)?;
+        self.db.flush()?;
+        Ok(())
+    }
+
+    pub fn get(&self, key: &[u8]) -> Result<Option<IVec>> {
+        Ok(self.db.get(key)?)
+    }
+
+    pub fn remove(&self, key: &[u8]) -> Result<()> {
+        self.db.remove(key)?;
+        self.db.flush()?;
+        Ok(())
+    }
+
+    pub fn iterate(&self) -> sled::Iter {
+        self.db.iter()
+    }
+
+    pub fn shutdown(&self) -> Result<()> {
+        self.db.flush()?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_sled_storage_manager() -> Result<()> {
+        let temp_dir = TempDir::new()?;
+        let storage = SledStorageManager::new(temp_dir.path())?;
+
+        storage.insert(b"key1", b"value1")?;
+        let value = storage.get(b"key1")?.unwrap();
+        assert_eq!(value.as_ref(), b"value1");
+
+        storage.remove(b"key1")?;
+        assert!(storage.get(b"key1")?.is_none());
+
+        Ok(())
+    }
+}

@@ -11,20 +11,19 @@ use tracing_subscriber::{fmt::format::FmtSpan, EnvFilter, FmtSubscriber};
 
 use parseltongue::main::Application;
 
-// Layer 1: Main Entry Point
-#[tokio::main]
-async fn main() -> Result<()> {
-    // Layer 2: Setup
+// Pyramid Structure: Entry Point -> Initialization -> Execution -> Shutdown
+fn main() {
+    // Initialize logger and metrics
     setup_logging()
         .context("Failed to initialize logging")?;
     
     info!("Starting ZIP processor v{}", parseltongue::VERSION);
 
-    // Layer 3: Application Lifecycle
+    // Parse CLI arguments
     let app = Application::new().await
         .context("Failed to initialize application")?;
 
-    // Layer 4: Error Handling
+    // Execute main application logic
     if let Err(e) = app.run().await {
         app.handle_error(e.clone()).await;
         error!("Application error: {:#}", e);
@@ -32,7 +31,7 @@ async fn main() -> Result<()> {
         std::process::exit(1);
     }
 
-    // Layer 5: Cleanup
+    // Handle graceful shutdown
     app.shutdown().await
         .context("Failed to shutdown cleanly")?;
 

@@ -5,97 +5,48 @@
 //! Layer 4: Resource Control
 //! Layer 5: Error Handling
 
-pub mod sled;
+pub mod sled_storage;
 pub mod guard;
 pub mod pool;
 
-use std::path::PathBuf;
-use std::sync::Arc;
-use anyhow::{Context, Result};
-use tokio::sync::Semaphore;
-use tracing::{debug, info};
+pub use sled_storage::SledStorageManager;
+pub use pool::StoragePool;
 
-use crate::Config;
-use sled::SledStorage;
-use pool::ConnectionPool;
-use guard::StorageGuard;
-
-// Layer 1: Core Types
-#[derive(Debug)]
 pub struct StorageManager {
-    storage: Arc<SledStorage>,
-    pool: Arc<ConnectionPool>,
-    config: StorageConfig,
+    db: sled::Db,
+    pool: StoragePool,
 }
 
-// Layer 2: Configuration
-#[derive(Debug, Clone)]
-pub struct StorageConfig {
-    pub path: PathBuf,
-    pub max_concurrent_ops: usize,
-    pub batch_size: usize,
-    pub pool_timeout: std::time::Duration,
-}
-
-// Layer 3: Implementation
 impl StorageManager {
-    pub async fn new(config: &Config) -> Result<Self> {
-        let storage_config = StorageConfig {
-            path: config.output_dir.join("db"),
-            max_concurrent_ops: config.workers,
-            batch_size: config.buffer_size,
-            pool_timeout: config.shutdown_timeout,
-        };
-
-        let storage = Arc::new(SledStorage::new(&storage_config)
-            .context("Failed to initialize storage")?);
-
-        let pool = Arc::new(ConnectionPool::new(
-            Arc::clone(&storage),
-            pool::PoolConfig {
-                max_connections: storage_config.max_concurrent_ops,
-                acquire_timeout: storage_config.pool_timeout,
-            },
-        ));
-
-        Ok(Self {
-            storage,
-            pool,
-            config: storage_config,
-        })
+    pub fn new(db_path: &std::path::Path, pool_size: usize) -> anyhow::Result<Self> {
+        let db = sled::open(db_path)?;
+        let pool = StoragePool::new(pool_size)?;
+        Ok(Self { db, pool })
     }
 
-    // Layer 4: Storage Operations
-    pub async fn store(&self, key: &str, value: bytes::Bytes) -> Result<()> {
-        debug!("Storing key: {}", key);
-        let conn = self.pool.acquire().await?;
-        conn.store(key, value).await
-    }
-
-    pub async fn get(&self, key: &str) -> Result<Option<bytes::Bytes>> {
-        debug!("Retrieving key: {}", key);
-        let conn = self.pool.acquire().await?;
-        conn.get(key).await
-    }
-
-    pub async fn batch_store(&self, entries: Vec<(String, bytes::Bytes)>) -> Result<()> {
-        debug!("Batch storing {} entries", entries.len());
-        let conn = self.pool.acquire().await?;
-        conn.store_batch(entries).await
-    }
-
-    // Layer 5: Resource Management
-    pub async fn shutdown(&self) -> Result<()> {
-        info!("Shutting down storage manager");
-        self.pool.shutdown().await?;
-        self.storage.flush().await?;
+    pub fn insert(&self, key: &[u8], value: &[u8]) -> anyhow::Result<()> {
+        self.db.insert(key, value)?;
+        self.db.flush()?;
         Ok(())
     }
-}
 
-impl Drop for StorageManager {
-    fn drop(&mut self) {
-        debug!("Storage manager dropped");
+    pub fn get(&self, key: &[u8]) -> anyhow::Result<Option<sled::IVec>> {
+        Ok(self.db.get(key)?)
+    }
+
+    pub fn remove(&self, key: &[u8]) -> anyhow::Result<()> {
+        self.db.remove(key)?;
+        self.db.flush()?;
+        Ok(())
+    }
+
+    pub fn iterate(&self) -> sled::Iter {
+        self.db.iter()
+    }
+
+    pub fn shutdown(&self) -> anyhow::Result<()> {
+        self.db.flush()?;
+        Ok(())
     }
 }
 
@@ -104,25 +55,18 @@ mod tests {
     use super::*;
     use tempfile::TempDir;
 
-    #[tokio::test]
-    async fn test_storage_manager() -> Result<()> {
+    #[test]
+    fn test_storage_manager() -> anyhow::Result<()> {
         let temp_dir = TempDir::new()?;
-        let config = Config::builder()
-            .output_dir(temp_dir.path())
-            .workers(2)
-            .buffer_size(8192)
-            .build()?;
+        let storage = StorageManager::new(temp_dir.path(), 2)?;
 
-        let manager = StorageManager::new(&config).await?;
-        
-        let key = "test_key";
-        let value = bytes::Bytes::from("test_value");
-        
-        manager.store(key, value.clone()).await?;
-        let retrieved = manager.get(key).await?;
-        
-        assert_eq!(retrieved.unwrap(), value);
-        manager.shutdown().await?;
+        storage.insert(b"key1", b"value1")?;
+        let value = storage.get(b"key1")?.unwrap();
+        assert_eq!(value.as_ref(), b"value1");
+
+        storage.remove(b"key1")?;
+        assert!(storage.get(b"key1")?.is_none());
+
         Ok(())
     }
 }

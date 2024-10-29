@@ -98,3 +98,9 @@ mod tests {
         assert!(called);
     }
 }
+
+// Pyramid Structure: Common Imports -> Re-exports
+pub use crate::error::AppError;
+pub use crate::internal::validation;
+
+// ... other common imports and re-exports ...

@@ -5,6 +5,8 @@ use tokio::io::{AsyncRead, AsyncSeek, AsyncWrite};
 use tokio::sync::OwnedSemaphorePermit;
 use bytes::Bytes;
 use tracing::{debug, warn};
+use tokio::sync::broadcast;
+use tokio::sync::RwLock;
 
 use crate::internal::validation::PathValidator;
 
@@ -27,9 +29,13 @@ pub struct ZipEntry<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> {
 
 #[derive(Debug)]
 pub struct ZipGuard {
-    _permit: OwnedSemaphorePermit,
-    buffer_size: usize,
-    entry: ZipEntry<tokio::io::BufReader<tokio::fs::File>>,
+    shutdown_rx: broadcast::Receiver<()>,
+    state: Arc<RwLock<GuardState>>,
+}
+
+#[derive(Debug, Default)]
+struct GuardState {
+    is_active: bool,
 }
 
 // Layer 2: Entry Implementation
@@ -89,16 +95,35 @@ impl<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> ZipEntry<R> {
 
 // Layer 5: Guard Implementation
 impl ZipGuard {
-    pub async fn new(
-        entry: ZipEntry<tokio::io::BufReader<tokio::fs::File>>,
-        permit: OwnedSemaphorePermit,
-        buffer_size: usize,
-    ) -> Result<Self> {
-        Ok(Self {
-            _permit: permit,
-            buffer_size,
-            entry,
-        })
+    pub fn new(shutdown_rx: broadcast::Receiver<()>) -> Self {
+        Self {
+            shutdown_rx,
+            state: Arc::new(RwLock::new(GuardState::default())),
+        }
+    }
+
+    // Layer 3: Guard Activation
+    pub async fn activate(&self) -> Result<()> {
+        let mut state = self.state.write().await;
+        state.is_active = true;
+        debug!("ZipGuard activated");
+        Ok(())
+    }
+
+    // Layer 4: Shutdown Listening
+    pub async fn listen_shutdown(&self) -> Result<()> {
+        if let Ok(_) = self.shutdown_rx.recv().await {
+            let mut state = self.state.write().await;
+            state.is_active = false;
+            warn!("ZipGuard received shutdown signal");
+        }
+        Ok(())
+    }
+
+    // Layer 5: Resource Management
+    pub async fn is_active(&self) -> bool {
+        let state = self.state.read().await;
+        state.is_active
     }
 
     pub fn name(&self) -> &str {
@@ -128,7 +153,7 @@ impl ZipGuard {
 
 impl Drop for ZipGuard {
     fn drop(&mut self) {
-        debug!("ZIP guard dropped for: {}", self.name());
+        debug!("ZipGuard dropped");
     }
 }
 
@@ -167,6 +192,30 @@ mod tests {
         let guard = ZipGuard::new(entry, permit, 8192).await?;
         assert_eq!(guard.name(), "test.txt");
         
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_zip_guard_activation() -> Result<()> {
+        let (tx, rx) = broadcast::channel(1);
+        let guard = ZipGuard::new(rx);
+        
+        assert!(!guard.is_active().await);
+        guard.activate().await?;
+        assert!(guard.is_active().await);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_zip_guard_shutdown() -> Result<()> {
+        let (tx, rx) = broadcast::channel(1);
+        let guard = ZipGuard::new(rx);
+        guard.activate().await?;
+        assert!(guard.is_active().await);
+        
+        tx.send(()).unwrap();
+        guard.listen_shutdown().await?;
+        assert!(!guard.is_active().await);
         Ok(())
     }
 }

@@ -198,3 +198,68 @@ mod tests {
         Ok(())
     }
 }
+
+// Pyramid Structure: Shutdown Coordination -> Graceful Handling
+
+use crate::error::Result;
+use tokio::sync::broadcast;
+use tokio::time::{timeout, Duration};
+
+/// Handles graceful shutdown signaling.
+pub struct ShutdownHandler {
+    sender: broadcast::Sender<()>,
+}
+
+impl ShutdownHandler {
+    /// Creates a new ShutdownHandler.
+    pub fn new() -> Self {
+        let (sender, _) = broadcast::channel(1);
+        Self { sender }
+    }
+
+    /// Initiates the shutdown process.
+    pub fn initiate_shutdown(&self) -> Result<()> {
+        self.sender.send(())?;
+        Ok(())
+    }
+
+    /// Subscribes to shutdown signals.
+    pub fn subscribe(&self) -> broadcast::Receiver<()> {
+        self.sender.subscribe()
+    }
+
+    /// Waits for a shutdown signal with a timeout.
+    pub async fn wait_for_shutdown(&self, timeout_secs: u64) -> Result<()> {
+        let receiver = self.subscribe();
+        match timeout(Duration::from_secs(timeout_secs), receiver.recv()).await {
+            Ok(Ok(_)) => Ok(()),
+            Ok(Err(e)) => Err(AppError::Runtime(format!("Shutdown error: {}", e))),
+            Err(_) => Err(AppError::Shutdown("Shutdown timed out".into())),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio::sync::broadcast;
+
+    #[tokio::test]
+    async fn test_shutdown_handler() -> Result<()> {
+        let handler = ShutdownHandler::new();
+        let receiver = handler.subscribe();
+
+        handler.initiate_shutdown()?;
+        let msg = receiver.recv().await?;
+        assert!(msg.is_empty());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_shutdown_timeout() {
+        let handler = ShutdownHandler::new();
+        let result = handler.wait_for_shutdown(1).await;
+        assert!(result.is_err());
+    }
+}

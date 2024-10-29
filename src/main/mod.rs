@@ -10,70 +10,43 @@ pub mod cli;
 use anyhow::{Context, Result};
 use tracing::{debug, info};
 
-use crate::cli::{CliManager, Config};
-use parseltongue::{MetricsManager, RuntimeManager, StorageManager, ZipProcessor};
+use crate::cli::{Cli, Config};
+use crate::runtime::RuntimeManager;
 
 // Layer 1: Core Types
 #[derive(Debug)]
 pub struct Application {
     config: Config,
     runtime: RuntimeManager,
-    storage: StorageManager,
-    metrics: MetricsManager,
 }
 
 // Layer 2: Implementation
 impl Application {
+    /// Initializes the application
     pub async fn new() -> Result<Self> {
-        let cli = CliManager::new()
-            .context("Failed to initialize CLI")?;
-        let config = cli.config().clone();
-
-        let runtime = RuntimeManager::new(&config)
-            .context("Failed to initialize runtime")?;
-        let storage = StorageManager::new(&config).await
-            .context("Failed to initialize storage")?;
-        let metrics = MetricsManager::new();
-
-        Ok(Self {
-            config,
-            runtime,
-            storage,
-            metrics,
-        })
+        let cli = Cli::new()?;
+        let config = cli.build_config()?;
+        let runtime = RuntimeManager::new(&config).await?;
+        Ok(Self { config, runtime })
     }
 
-    // Layer 3: Application Logic
+    /// Runs the main application logic
     pub async fn run(&self) -> Result<()> {
-        info!("Starting application");
-        
-        let processor = ZipProcessor::new(self.config.clone())
-            .context("Failed to create ZIP processor")?;
-
-        // Process ZIP file
-        processor.process().await
-            .context("Failed to process ZIP file")?;
-
+        info!("Running application with config: {:?}", self.config);
+        // ... implement core processing logic ...
         Ok(())
     }
 
-    // Layer 4: Error Handling
-    pub async fn handle_error(&self, error: anyhow::Error) {
-        self.metrics.record_error(&error.to_string()).await
-            .unwrap_or_else(|e| debug!("Failed to record error: {}", e));
+    /// Handles errors gracefully
+    pub async fn handle_error(&self, error: crate::error::AppError) {
+        tracing::error!("Error encountered: {:?}", error);
+        // ... implement additional error handling ...
     }
 
-    // Layer 5: Cleanup
-    pub async fn shutdown(self) -> Result<()> {
-        info!("Shutting down application");
-
-        self.runtime.shutdown().await
-            .context("Failed to shutdown runtime")?;
-        self.storage.shutdown().await
-            .context("Failed to shutdown storage")?;
-        self.metrics.shutdown().await
-            .context("Failed to shutdown metrics")?;
-
+    /// Shuts down the application gracefully
+    pub async fn shutdown(&self) -> Result<()> {
+        self.runtime.shutdown().await?;
+        info!("Application shutdown complete");
         Ok(())
     }
 }

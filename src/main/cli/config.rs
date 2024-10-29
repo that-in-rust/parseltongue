@@ -26,36 +26,36 @@ pub struct Config {
 pub struct ConfigBuilder {
     input_zip: Option<PathBuf>,
     output_dir: Option<PathBuf>,
-    workers: Option<usize>,
-    buffer_size: Option<usize>,
-    shutdown_timeout: Option<Duration>,
+    workers: usize,
+    buffer_size: usize,
+    shutdown_timeout: Duration,
     verbose: bool,
 }
 
 // Layer 3: Builder Implementation
 impl ConfigBuilder {
-    pub fn input_path<P: AsRef<Path>>(mut self, path: P) -> Self {
-        self.input_zip = Some(path.as_ref().to_path_buf());
+    pub fn input_zip<P: Into<PathBuf>>(mut self, path: P) -> Self {
+        self.input_zip = Some(path.into());
         self
     }
 
-    pub fn output_dir<P: AsRef<Path>>(mut self, path: P) -> Self {
-        self.output_dir = Some(path.as_ref().to_path_buf());
+    pub fn output_dir<P: Into<PathBuf>>(mut self, path: P) -> Self {
+        self.output_dir = Some(path.into());
         self
     }
 
     pub fn workers(mut self, count: usize) -> Self {
-        self.workers = Some(count);
+        self.workers = count;
         self
     }
 
     pub fn buffer_size(mut self, size: usize) -> Self {
-        self.buffer_size = Some(size);
+        self.buffer_size = size;
         self
     }
 
-    pub fn shutdown_timeout(mut self, timeout: Duration) -> Self {
-        self.shutdown_timeout = Some(timeout);
+    pub fn shutdown_timeout(mut self, timeout_secs: u64) -> Self {
+        self.shutdown_timeout = Duration::from_secs(timeout_secs);
         self
     }
 
@@ -66,22 +66,17 @@ impl ConfigBuilder {
 
     // Layer 4: Build & Validation
     pub fn build(self) -> Result<Config> {
-        let config = Config {
-            input_zip: self.input_zip
-                .context("Input ZIP path is required")?,
-            output_dir: self.output_dir
-                .context("Output directory path is required")?,
-            workers: self.workers
-                .unwrap_or_else(num_cpus::get),
-            buffer_size: self.buffer_size
-                .unwrap_or(8192),
-            shutdown_timeout: self.shutdown_timeout
-                .unwrap_or_else(|| Duration::from_secs(30)),
-            verbose: self.verbose,
-        };
+        let input_zip = self.input_zip.ok_or(crate::error::AppError::MissingConfig("input_zip"))?;
+        let output_dir = self.output_dir.ok_or(crate::error::AppError::MissingConfig("output_dir"))?;
 
-        config.validate()?;
-        Ok(config)
+        Ok(Config {
+            input_zip,
+            output_dir,
+            workers: self.workers,
+            buffer_size: self.buffer_size,
+            shutdown_timeout: self.shutdown_timeout,
+            verbose: self.verbose,
+        })
     }
 }
 
@@ -121,7 +116,7 @@ mod tests {
         File::create(&input_file)?;
 
         let config = Config::builder()
-            .input_path(input_file)
+            .input_zip(input_file)
             .output_dir(temp_dir.path())
             .workers(2)
             .buffer_size(8192)

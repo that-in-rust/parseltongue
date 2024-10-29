@@ -11,6 +11,9 @@ use anyhow::{Context, Result};
 use tokio::sync::RwLock;
 use tracing::{debug, info};
 use serde::Serialize;
+use tokio::sync::Mutex;
+use metrics::{Gauge, Histogram};
+use metrics_exporter_prometheus::PrometheusBuilder;
 
 use crate::metrics::{MetricsManager, TaskMetrics};
 
@@ -21,6 +24,9 @@ pub struct RuntimeMetrics {
     task_metrics: TaskMetrics,
     #[cfg(feature = "metrics")]
     metrics_manager: Arc<MetricsManager>,
+    requests: Gauge,
+    response_time: Histogram,
+    exporter: Arc<Mutex<metrics_exporter_prometheus::PrometheusReturn>>,
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -36,6 +42,12 @@ struct RuntimeState {
 // Layer 2: Implementation
 impl RuntimeMetrics {
     pub fn new(worker_count: usize) -> Self {
+        let builder = PrometheusBuilder::new();
+        let exporter = builder
+            .set_buckets_for_metric("response_time_seconds", &[0.1, 0.5, 1.0, 5.0])
+            .install()
+            .expect("Failed to install Prometheus metrics exporter");
+
         Self {
             state: Arc::new(RwLock::new(RuntimeState {
                 start_time: Instant::now(),
@@ -45,6 +57,9 @@ impl RuntimeMetrics {
             task_metrics: TaskMetrics::new(),
             #[cfg(feature = "metrics")]
             metrics_manager: Arc::new(MetricsManager::new()),
+            requests: metrics::register_gauge!("requests_total"),
+            response_time: metrics::register_histogram!("response_time_seconds"),
+            exporter: Arc::new(Mutex::new(exporter)),
         }
     }
 
@@ -121,6 +136,20 @@ impl RuntimeMetrics {
 
         Ok(())
     }
+
+    pub async fn record_request(&self) {
+        self.requests.increment(1.0);
+    }
+
+    pub async fn record_response_time(&self, duration: f64) {
+        self.response_time.observe(duration);
+    }
+
+    pub async fn get_metrics(&self) -> Result<String> {
+        let exporter = self.exporter.lock().await;
+        let metrics = exporter.render();
+        Ok(metrics)
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -151,6 +180,19 @@ mod tests {
         assert_eq!(stats.total_tasks, 1);
         assert_eq!(stats.worker_count, 2);
         
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_metrics_recording() -> Result<()> {
+        let metrics = RuntimeMetrics::new(4);
+        metrics.record_request().await;
+        metrics.record_response_time(0.5).await;
+
+        let collected = metrics.get_metrics().await?;
+        assert!(collected.contains("requests_total"));
+        assert!(collected.contains("response_time_seconds"));
+
         Ok(())
     }
 }

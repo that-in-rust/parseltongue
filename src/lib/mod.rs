@@ -10,9 +10,12 @@
 //! Layer 5: Resource Management & Cleanup
 //!   - RAII patterns and resource handling
 
-// Layer 1: Core Exports
+// Pyramid Structure: Public API -> Internal Modules -> Utilities
 pub mod error;
 pub mod prelude;
+pub mod internal;
+
+// Layer 1: Core Exports
 pub mod zip;
 pub mod storage;
 pub mod runtime;
