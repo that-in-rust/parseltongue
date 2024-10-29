@@ -31,17 +31,20 @@ Core Functionality:
 - Adaptive buffer sizing using tokio::io::BufReader
 - CRC validation in parallel using tokio::spawn
 
-4. Database Storage (Tokio Integration)
-- Store ZIP contents in sled database with tokio wrappers
+4. Database Storage (RocksDB Integration)
+- Store ZIP contents in RocksDB with async support
 - Database structure:
+  * Column Family: zip_files
   * Key: file path relative to ZIP root
   * Value: file contents as bytes
-- Maintain index of stored files
+- Maintain index of stored files using column families
 - Handle large files using tokio::io::AsyncRead
-- Connection pooling using tokio::sync::Semaphore
+- Concurrent read/write operations
 - Batched write operations using tokio::sync::mpsc
-- Async transaction management
+- Transaction management with snapshot isolation
 - Priority-based scheduling using tokio::task::spawn_blocking
+- Configurable compression options
+- Automatic compaction management
 
 5. Error Handling & Logging (Tokio-aware)
 - Graceful error handling using tokio::task::JoinError
@@ -60,7 +63,7 @@ Technical Constraints:
   * tokio-util: Async utilities
   * tokio-stream: Stream traits
   * zip: ZIP file processing
-  * sled: embedded database
+  * rocksdb: Embedded database
   * clap: CLI argument parsing
   * anyhow: error handling
   * tracing + tracing-subscriber: logging
@@ -86,5 +89,5 @@ Non-Goals for Phase 01:
 - No distributed processing
 - No persistent metrics storage
 - No runtime reconfiguration
-+ No performance benchmarking suite
-+ No comparative performance analysis
+- No performance benchmarking suite
+- No comparative performance analysis

@@ -1168,6 +1168,8 @@ find /home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01/src -name "*.rs"
 
 
 
+find /home/amuldotexe/Desktop/GitHub202410/zzArchiveGithub202410/Archive2024/gitmessup2024 -name "*.rs" -type f -exec sh -c 'echo "=== {} ==="; cat {}; echo -e "\n"' \; > /home/amuldotexe/Desktop/GitHub202410/zzArchiveGithub202410/Archive2024/gitmessup2024/allcode20241029v1.txt
+
 
 
 cd /home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01 && \
