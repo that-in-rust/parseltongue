@@ -1,12 +1,12 @@
-//! Console Metrics - Pyramidal Structure
+//! Console UI Metrics - Pyramidal Structure
 //! Layer 1: Core Types & Traits
-//! Layer 2: Metrics Configuration
+//! Layer 2: Progress Display
 //! Layer 3: Metrics Collection
-//! Layer 4: Console Output
+//! Layer 4: UI Updates
 //! Layer 5: Resource Management
 
 use std::sync::Arc;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use tokio::sync::RwLock;
 use tracing::{debug, info};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
@@ -34,6 +34,7 @@ impl ConsoleMetrics {
         let file_bar = progress.add(ProgressBar::new(0));
         let bytes_bar = progress.add(ProgressBar::new(0));
 
+        // Layer 3: Progress Bar Styles
         file_bar.set_style(ProgressStyle::default_bar()
             .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} files ({eta})")
             .unwrap()
@@ -52,7 +53,7 @@ impl ConsoleMetrics {
         }
     }
 
-    // Layer 3: Metrics Recording
+    // Layer 4: Metrics Recording
     pub async fn record_file_processed(&self, size: u64) -> Result<()> {
         let mut state = self.state.write().await;
         state.total_files += 1;
@@ -70,7 +71,6 @@ impl ConsoleMetrics {
         Ok(())
     }
 
-    // Layer 4: Progress Updates
     pub fn set_file_target(&self, count: usize) {
         self.file_bar.set_length(count as u64);
     }

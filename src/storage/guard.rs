@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use anyhow::{Context, Result};
 use bytes::Bytes;
-use tokio::sync::Semaphore;
+use tokio::sync::{OwnedSemaphorePermit, Semaphore};
 use tracing::{debug, warn};
 
 use super::sled::SledStorage;
@@ -17,7 +17,7 @@ use super::sled::SledStorage;
 #[derive(Debug)]
 pub struct StorageGuard {
     storage: Arc<SledStorage>,
-    _permit: tokio::sync::OwnedSemaphorePermit,
+    _permit: OwnedSemaphorePermit,
 }
 
 // Layer 2: Implementation

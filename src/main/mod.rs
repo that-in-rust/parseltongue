@@ -1,72 +1,79 @@
-//! Main Module - Pyramidal Structure
-//! Layer 1: Module Organization & Exports
-//!   - Public interface and module structure
-//! Layer 2: Core Types & Traits
-//!   - Essential types and trait definitions
+//! Main Application - Pyramidal Structure
+//! Layer 1: Core Types & Exports
+//! Layer 2: Application Configuration
 //! Layer 3: Runtime Management
-//!   - Tokio runtime configuration
 //! Layer 4: Error Handling
-//!   - Error propagation and context
 //! Layer 5: Resource Management
-//!   - Cleanup and shutdown coordination
 
-// Layer 1: Module Organization
 pub mod cli;
-use cli::{Args, Config};
 
 use anyhow::{Context, Result};
-use tokio::runtime::Runtime;
-use tracing::{error, info};
+use tracing::{debug, info};
 
-// Layer 2: Core Runtime Management
-pub struct MainRunner {
+use crate::cli::{CliManager, Config};
+use parseltongue::{MetricsManager, RuntimeManager, StorageManager, ZipProcessor};
+
+// Layer 1: Core Types
+#[derive(Debug)]
+pub struct Application {
     config: Config,
-    runtime: Runtime,
+    runtime: RuntimeManager,
+    storage: StorageManager,
+    metrics: MetricsManager,
 }
 
-// Layer 3: Implementation
-impl MainRunner {
-    pub fn new(config: Config) -> Result<Self> {
-        let runtime = tokio::runtime::Builder::new_multi_thread()
-            .worker_threads(config.workers)
-            .enable_all()
-            .build()
-            .context("Failed to create Tokio runtime")?;
+// Layer 2: Implementation
+impl Application {
+    pub async fn new() -> Result<Self> {
+        let cli = CliManager::new()
+            .context("Failed to initialize CLI")?;
+        let config = cli.config().clone();
 
-        Ok(Self { config, runtime })
-    }
+        let runtime = RuntimeManager::new(&config)
+            .context("Failed to initialize runtime")?;
+        let storage = StorageManager::new(&config).await
+            .context("Failed to initialize storage")?;
+        let metrics = MetricsManager::new();
 
-    pub fn run(self) -> Result<()> {
-        self.runtime.block_on(async {
-            self.run_async().await
+        Ok(Self {
+            config,
+            runtime,
+            storage,
+            metrics,
         })
     }
 
-    // Layer 4: Async Processing
-    async fn run_async(&self) -> Result<()> {
-        info!("Starting processing with {} workers", self.config.workers);
+    // Layer 3: Application Logic
+    pub async fn run(&self) -> Result<()> {
+        info!("Starting application");
+        
+        let processor = ZipProcessor::new(self.config.clone())
+            .context("Failed to create ZIP processor")?;
 
-        let result = tokio::select! {
-            r = self.process() => r,
-            _ = tokio::signal::ctrl_c() => {
-                info!("Received shutdown signal");
-                Ok(())
-            }
-        };
+        // Process ZIP file
+        processor.process().await
+            .context("Failed to process ZIP file")?;
 
-        // Layer 5: Cleanup
-        self.cleanup().await?;
-        result
-    }
-
-    async fn process(&self) -> Result<()> {
-        // TODO: Implement core processing logic
         Ok(())
     }
 
-    async fn cleanup(&self) -> Result<()> {
-        info!("Cleaning up resources...");
-        // TODO: Implement resource cleanup
+    // Layer 4: Error Handling
+    pub async fn handle_error(&self, error: anyhow::Error) {
+        self.metrics.record_error(&error.to_string()).await
+            .unwrap_or_else(|e| debug!("Failed to record error: {}", e));
+    }
+
+    // Layer 5: Cleanup
+    pub async fn shutdown(self) -> Result<()> {
+        info!("Shutting down application");
+
+        self.runtime.shutdown().await
+            .context("Failed to shutdown runtime")?;
+        self.storage.shutdown().await
+            .context("Failed to shutdown storage")?;
+        self.metrics.shutdown().await
+            .context("Failed to shutdown metrics")?;
+
         Ok(())
     }
 }
@@ -74,15 +81,17 @@ impl MainRunner {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tempfile::TempDir;
 
-    #[test]
-    fn test_runner_creation() {
-        let config = Config::builder()
-            .workers(2)
-            .build()
-            .unwrap();
+    #[tokio::test]
+    async fn test_application_lifecycle() -> Result<()> {
+        let temp_dir = TempDir::new()?;
+        let test_zip = temp_dir.path().join("test.zip");
+        std::fs::write(&test_zip, b"test data")?;
+
+        let app = Application::new().await?;
+        app.shutdown().await?;
         
-        let runner = MainRunner::new(config);
-        assert!(runner.is_ok());
+        Ok(())
     }
 }

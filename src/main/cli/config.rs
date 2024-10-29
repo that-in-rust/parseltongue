@@ -1,67 +1,51 @@
 //! CLI Configuration - Pyramidal Structure
 //! Layer 1: Public Types & Constants
-//!   - Core configuration types
 //! Layer 2: Builder Pattern
-//!   - Safe configuration construction
 //! Layer 3: Validation Logic
-//!   - Configuration validation rules
 //! Layer 4: Error Handling
-//!   - Configuration-specific errors
 //! Layer 5: Default Implementation
-//!   - Sensible defaults and constants
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
-// Layer 1: Core Configuration
+// Layer 1: Core Types
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
-    pub workers: usize,
-    pub input_path: PathBuf,
+    pub input_zip: PathBuf,
     pub output_dir: PathBuf,
+    pub workers: usize,
     pub buffer_size: usize,
     pub shutdown_timeout: Duration,
     pub verbose: bool,
 }
 
-// Layer 2: Constants
-pub const DEFAULT_WORKERS: usize = num_cpus::get();
-pub const DEFAULT_BUFFER_SIZE: usize = 8 * 1024; // 8KB
-pub const DEFAULT_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(30);
-pub const MIN_BUFFER_SIZE: usize = 1024; // 1KB
-pub const MAX_WORKERS: usize = 32;
-
-// Layer 3: Builder Pattern
+// Layer 2: Builder Pattern
 #[derive(Debug, Default)]
 pub struct ConfigBuilder {
-    workers: Option<usize>,
-    input_path: Option<PathBuf>,
+    input_zip: Option<PathBuf>,
     output_dir: Option<PathBuf>,
+    workers: Option<usize>,
     buffer_size: Option<usize>,
     shutdown_timeout: Option<Duration>,
     verbose: bool,
 }
 
-// Layer 4: Implementation
+// Layer 3: Builder Implementation
 impl ConfigBuilder {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn workers(mut self, workers: usize) -> Self {
-        self.workers = Some(workers);
+    pub fn input_path<P: AsRef<Path>>(mut self, path: P) -> Self {
+        self.input_zip = Some(path.as_ref().to_path_buf());
         self
     }
 
-    pub fn input_path<P: AsRef<std::path::Path>>(mut self, path: P) -> Self {
-        self.input_path = Some(path.as_ref().to_path_buf());
-        self
-    }
-
-    pub fn output_dir<P: AsRef<std::path::Path>>(mut self, path: P) -> Self {
+    pub fn output_dir<P: AsRef<Path>>(mut self, path: P) -> Self {
         self.output_dir = Some(path.as_ref().to_path_buf());
+        self
+    }
+
+    pub fn workers(mut self, count: usize) -> Self {
+        self.workers = Some(count);
         self
     }
 
@@ -80,24 +64,19 @@ impl ConfigBuilder {
         self
     }
 
-    // Layer 5: Validation & Construction
+    // Layer 4: Build & Validation
     pub fn build(self) -> Result<Config> {
-        let workers = self.workers
-            .unwrap_or(DEFAULT_WORKERS)
-            .min(MAX_WORKERS);
-
-        let buffer_size = self.buffer_size
-            .unwrap_or(DEFAULT_BUFFER_SIZE)
-            .max(MIN_BUFFER_SIZE);
-
         let config = Config {
-            workers,
-            input_path: self.input_path
-                .ok_or_else(|| anyhow::anyhow!("input_path is required"))?,
+            input_zip: self.input_zip
+                .context("Input ZIP path is required")?,
             output_dir: self.output_dir
-                .ok_or_else(|| anyhow::anyhow!("output_dir is required"))?,
-            buffer_size,
-            shutdown_timeout: self.shutdown_timeout.unwrap_or(DEFAULT_SHUTDOWN_TIMEOUT),
+                .context("Output directory path is required")?,
+            workers: self.workers
+                .unwrap_or_else(num_cpus::get),
+            buffer_size: self.buffer_size
+                .unwrap_or(8192),
+            shutdown_timeout: self.shutdown_timeout
+                .unwrap_or_else(|| Duration::from_secs(30)),
             verbose: self.verbose,
         };
 
@@ -106,20 +85,24 @@ impl ConfigBuilder {
     }
 }
 
+// Layer 5: Config Implementation
 impl Config {
     pub fn builder() -> ConfigBuilder {
-        ConfigBuilder::new()
+        ConfigBuilder::default()
     }
 
-    fn validate(&self) -> Result<()> {
-        if !self.input_path.exists() {
-            anyhow::bail!("Input path does not exist: {}", self.input_path.display());
+    pub fn validate(&self) -> Result<()> {
+        if !self.input_zip.exists() {
+            anyhow::bail!("Input file does not exist: {}", self.input_zip.display());
         }
-        if !self.input_path.is_file() {
-            anyhow::bail!("Input path is not a file: {}", self.input_path.display());
+        if !self.input_zip.is_file() {
+            anyhow::bail!("Input path is not a file: {}", self.input_zip.display());
         }
         if self.workers == 0 {
-            anyhow::bail!("Worker count cannot be zero");
+            anyhow::bail!("Worker count must be greater than zero");
+        }
+        if self.buffer_size < 1024 {
+            anyhow::bail!("Buffer size must be at least 1KB");
         }
         Ok(())
     }
@@ -128,21 +111,26 @@ impl Config {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::File;
     use tempfile::TempDir;
 
     #[test]
-    fn test_config_builder() {
-        let temp_dir = TempDir::new().unwrap();
+    fn test_config_builder() -> Result<()> {
+        let temp_dir = TempDir::new()?;
         let input_file = temp_dir.path().join("test.zip");
-        std::fs::write(&input_file, b"test").unwrap();
+        File::create(&input_file)?;
 
         let config = Config::builder()
             .input_path(input_file)
             .output_dir(temp_dir.path())
             .workers(2)
-            .build();
+            .buffer_size(8192)
+            .shutdown_timeout(Duration::from_secs(30))
+            .verbose(false)
+            .build()?;
 
-        assert!(config.is_ok());
+        assert!(config.validate().is_ok());
+        Ok(())
     }
 }
 

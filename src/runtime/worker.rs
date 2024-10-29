@@ -1,121 +1,134 @@
-//! Worker Management - Pyramidal Structure
+//! Worker Pool Management - Pyramidal Structure
 //! Layer 1: Core Types & Traits
 //! Layer 2: Worker Configuration
-//! Layer 3: Worker Pool Management
-//! Layer 4: Task Scheduling
-//! Layer 5: Resource Management
+//! Layer 3: Task Management
+//! Layer 4: Resource Control
+//! Layer 5: Metrics Integration
 
 use std::sync::Arc;
+use anyhow::{Context, Result};
 use tokio::sync::{mpsc, Semaphore};
 use tokio::task::JoinHandle;
-use anyhow::{Context, Result};
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info};
 
-use crate::error::ErrorExt;
-use super::RuntimeConfig;
+use super::metrics::RuntimeMetrics;
+use super::shutdown::ShutdownManager;
 
 // Layer 1: Core Types
 #[derive(Debug)]
 pub struct WorkerPool {
-    config: RuntimeConfig,
+    workers: Vec<JoinHandle<Result<()>>>,
+    task_tx: mpsc::Sender<Task>,
     semaphore: Arc<Semaphore>,
-    tx: mpsc::Sender<Task>,
-    rx: mpsc::Receiver<Task>,
-    workers: Vec<JoinHandle<()>>,
+    metrics: Arc<RuntimeMetrics>,
+    shutdown: Arc<ShutdownManager>,
 }
 
 type Task = Box<dyn FnOnce() -> Result<()> + Send + 'static>;
 
-// Layer 2: Worker Implementation
+// Layer 2: Implementation
 impl WorkerPool {
-    pub fn new(config: RuntimeConfig) -> Result<Self> {
-        let (tx, rx) = mpsc::channel(config.worker_threads * 2);
-        let semaphore = Arc::new(Semaphore::new(config.worker_threads));
+    pub fn new(
+        worker_count: usize,
+        metrics: Arc<RuntimeMetrics>,
+        shutdown: Arc<ShutdownManager>,
+    ) -> Self {
+        let (task_tx, task_rx) = mpsc::channel(32); // Bounded channel
+        let semaphore = Arc::new(Semaphore::new(worker_count));
+        let workers = Self::spawn_workers(
+            worker_count,
+            task_rx,
+            Arc::clone(&metrics),
+            Arc::clone(&shutdown),
+        );
 
-        Ok(Self {
-            config,
+        Self {
+            workers,
+            task_tx,
             semaphore,
-            tx,
-            rx,
-            workers: Vec::new(),
-        })
-    }
-
-    // Layer 3: Pool Management
-    pub async fn start(&mut self) -> Result<()> {
-        info!("Starting worker pool with {} threads", self.config.worker_threads);
-
-        for id in 0..self.config.worker_threads {
-            let worker = self.spawn_worker(id).await?;
-            self.workers.push(worker);
+            metrics,
+            shutdown,
         }
-
-        Ok(())
     }
 
-    pub async fn shutdown(&mut self) -> Result<()> {
-        info!("Shutting down worker pool");
-        
-        // Drop sender to signal shutdown
-        drop(self.tx.clone());
-
-        for worker in self.workers.drain(..) {
-            worker.await.context("Worker failed to shutdown")?;
-        }
-
-        Ok(())
-    }
-
-    // Layer 4: Task Management
-    pub async fn spawn<F>(&self, task: F) -> Result<()>
+    // Layer 3: Task Scheduling
+    pub async fn spawn<F, Fut, T>(&self, f: F) -> Result<T>
     where
-        F: FnOnce() -> Result<()> + Send + 'static,
+        F: FnOnce() -> Fut + Send + 'static,
+        Fut: std::future::Future<Output = Result<T>> + Send + 'static,
+        T: Send + 'static,
     {
-        let permit = self.semaphore.acquire()
-            .await
+        let _permit = self.semaphore.acquire().await
             .context("Failed to acquire worker permit")?;
 
-        self.tx.send(Box::new(move || {
-            let result = task();
-            drop(permit);
-            result
-        }))
-        .await
-        .context("Failed to schedule task")?;
+        let (result_tx, mut result_rx) = mpsc::channel(1);
+        let metrics = Arc::clone(&self.metrics);
+
+        let task = Box::new(move || {
+            let start = std::time::Instant::now();
+            let result = tokio::runtime::Handle::current().block_on(f());
+            metrics.record_task_completion(start.elapsed());
+            let _ = result_tx.blocking_send(result);
+            Ok(())
+        });
+
+        self.task_tx.send(task).await
+            .context("Failed to send task to worker")?;
+
+        result_rx.recv().await
+            .context("Failed to receive task result")?
+    }
+
+    // Layer 4: Worker Management
+    fn spawn_workers(
+        count: usize,
+        mut task_rx: mpsc::Receiver<Task>,
+        metrics: Arc<RuntimeMetrics>,
+        shutdown: Arc<ShutdownManager>,
+    ) -> Vec<JoinHandle<Result<()>>> {
+        (0..count).map(|id| {
+            let metrics = Arc::clone(&metrics);
+            let shutdown = Arc::clone(&shutdown);
+
+            tokio::spawn(async move {
+                debug!("Starting worker {}", id);
+                metrics.record_worker_start().await?;
+
+                while let Some(task) = task_rx.recv().await {
+                    if let Err(e) = task() {
+                        error!("Task error in worker {}: {}", id, e);
+                        metrics.record_task_failure(&e.to_string()).await?;
+                    }
+
+                    if shutdown.is_shutting_down() {
+                        break;
+                    }
+                }
+
+                metrics.record_worker_stop().await?;
+                debug!("Worker {} stopped", id);
+                Ok(())
+            })
+        }).collect()
+    }
+
+    // Layer 5: Cleanup
+    pub async fn shutdown(self) -> Result<()> {
+        info!("Shutting down worker pool");
+        
+        // Drop sender to stop accepting new tasks
+        drop(self.task_tx);
+
+        // Wait for all workers to complete
+        for handle in self.workers {
+            handle.await??;
+        }
 
         Ok(())
     }
 
-    pub fn count(&self) -> usize {
-        self.config.worker_threads
-    }
-
-    // Layer 5: Worker Creation
-    async fn spawn_worker(&self, id: usize) -> Result<JoinHandle<()>> {
-        let mut rx = self.rx.clone();
-        let worker_id = id;
-
-        let handle = tokio::spawn(async move {
-            debug!("Worker {} started", worker_id);
-
-            while let Some(task) = rx.recv().await {
-                if let Err(e) = task() {
-                    error!("Worker {} task failed: {}", worker_id, e);
-                }
-            }
-
-            debug!("Worker {} shutting down", worker_id);
-        });
-
-        Ok(handle)
-    }
-}
-
-impl Drop for WorkerPool {
-    fn drop(&mut self) {
-        if !self.workers.is_empty() {
-            warn!("WorkerPool dropped with active workers");
-        }
+    pub async fn active_count(&self) -> usize {
+        self.semaphore.available_permits()
     }
 }
 
@@ -126,23 +139,23 @@ mod tests {
     use tokio::time::sleep;
 
     #[tokio::test]
-    async fn test_worker_lifecycle() {
-        let config = RuntimeConfig {
+    async fn test_worker_pool() -> Result<()> {
+        let metrics = Arc::new(RuntimeMetrics::new(2));
+        let shutdown = Arc::new(ShutdownManager::new(super::super::RuntimeConfig {
             worker_threads: 2,
             shutdown_timeout: Duration::from_secs(1),
-        };
+        }));
 
-        let mut pool = WorkerPool::new(config).unwrap();
-        pool.start().await.unwrap();
+        let pool = WorkerPool::new(2, metrics, shutdown);
 
-        // Test task execution
-        pool.spawn(|| {
-            sleep(Duration::from_millis(100));
-            Ok(())
-        })
-        .await
-        .unwrap();
+        let result = pool.spawn(|| async {
+            sleep(Duration::from_millis(100)).await;
+            Ok::<_, anyhow::Error>(42)
+        }).await?;
 
-        pool.shutdown().await.unwrap();
+        assert_eq!(result, 42);
+        pool.shutdown().await?;
+
+        Ok(())
     }
 }

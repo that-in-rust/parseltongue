@@ -1,17 +1,17 @@
 //! Error Handling - Pyramidal Structure
-//! Layer 1: Error Types & Enums
-//! Layer 2: Error Implementations
-//! Layer 3: Result Type Aliases
+//! Layer 1: Core Error Types
+//! Layer 2: Error Variants
+//! Layer 3: Error Context
 //! Layer 4: Error Conversion
 //! Layer 5: Helper Functions
 
 use std::path::PathBuf;
 use thiserror::Error;
 
-// Layer 1: Core Error Types
+// Layer 1: Core Error Type
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("IO error: {0}")]
+    #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
 
     #[error("ZIP error: {0}")]
@@ -64,12 +64,24 @@ where
     }
 }
 
-// Layer 4: Helper Functions
+// Layer 4: Error Conversion
+impl From<String> for Error {
+    fn from(s: String) -> Self {
+        Error::Runtime(s)
+    }
+}
+
+impl From<&str> for Error {
+    fn from(s: &str) -> Self {
+        Error::Runtime(s.to_string())
+    }
+}
+
+// Layer 5: Helper Functions
 pub(crate) fn path_error(path: impl Into<PathBuf>) -> Error {
     Error::Path(path.into())
 }
 
-// Layer 5: Tests
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,5 +91,13 @@ mod tests {
         let err: Result<()> = Err(Error::MissingConfig("test"));
         let ctx_err = err.with_context("operation failed");
         assert!(ctx_err.is_err());
+        assert!(matches!(ctx_err.unwrap_err(), Error::Runtime(_)));
+    }
+
+    #[test]
+    fn test_error_conversion() {
+        let io_err = std::io::Error::new(std::io::ErrorKind::Other, "test");
+        let err: Error = io_err.into();
+        assert!(matches!(err, Error::Io(_)));
     }
 }

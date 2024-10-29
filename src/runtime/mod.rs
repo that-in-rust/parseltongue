@@ -1,42 +1,40 @@
 //! Runtime Core - Pyramidal Structure
-//! Layer 1: Module Organization & Exports
+//! Layer 1: Core Types & Exports
 //! Layer 2: Runtime Configuration
-//! Layer 3: Runtime Management
-//! Layer 4: Resource Coordination
-//! Layer 5: Metrics & Monitoring
+//! Layer 3: Worker Management
+//! Layer 4: Resource Control
+//! Layer 5: Shutdown Handling
 
 pub mod worker;
 pub mod shutdown;
 pub mod metrics;
 
 use std::sync::Arc;
-use tokio::runtime::Runtime;
 use anyhow::{Context, Result};
-use tracing::{info, warn};
+use tokio::sync::Semaphore;
+use tracing::{debug, info};
 
 use crate::Config;
 use worker::WorkerPool;
 use shutdown::ShutdownManager;
 use metrics::RuntimeMetrics;
 
-// Layer 1: Core Runtime Types
+// Layer 1: Core Types
 #[derive(Debug)]
 pub struct RuntimeManager {
-    runtime: Runtime,
+    config: RuntimeConfig,
     workers: Arc<WorkerPool>,
     shutdown: Arc<ShutdownManager>,
-    #[cfg(feature = "metrics")]
     metrics: Arc<RuntimeMetrics>,
 }
 
-// Layer 2: Configuration
 #[derive(Debug, Clone)]
 pub struct RuntimeConfig {
     pub worker_threads: usize,
     pub shutdown_timeout: std::time::Duration,
 }
 
-// Layer 3: Implementation
+// Layer 2: Implementation
 impl RuntimeManager {
     pub fn new(config: &Config) -> Result<Self> {
         let runtime_config = RuntimeConfig {
@@ -44,61 +42,57 @@ impl RuntimeManager {
             shutdown_timeout: config.shutdown_timeout,
         };
 
-        let runtime = tokio::runtime::Builder::new_multi_thread()
-            .worker_threads(runtime_config.worker_threads)
-            .enable_all()
-            .build()
-            .context("Failed to create Tokio runtime")?;
-
-        let workers = Arc::new(WorkerPool::new(runtime_config.clone())?);
+        let metrics = Arc::new(RuntimeMetrics::new(config.workers));
         let shutdown = Arc::new(ShutdownManager::new(runtime_config.clone()));
-        
-        #[cfg(feature = "metrics")]
-        let metrics = Arc::new(RuntimeMetrics::new());
+        let workers = Arc::new(WorkerPool::new(
+            config.workers,
+            Arc::clone(&metrics),
+            Arc::clone(&shutdown),
+        ));
 
         Ok(Self {
-            runtime,
+            config: runtime_config,
             workers,
             shutdown,
-            #[cfg(feature = "metrics")]
             metrics,
         })
     }
 
-    // Layer 4: Runtime Control
-    pub async fn start(&self) -> Result<()> {
-        info!("Starting runtime with {} workers", self.workers.count());
-        self.workers.start().await?;
-        Ok(())
+    // Layer 3: Task Management
+    pub async fn spawn<F, Fut, T>(&self, f: F) -> Result<T>
+    where
+        F: FnOnce() -> Fut + Send + 'static,
+        Fut: std::future::Future<Output = Result<T>> + Send + 'static,
+        T: Send + 'static,
+    {
+        self.workers.spawn(f).await
     }
 
-    pub async fn shutdown(&self) -> Result<()> {
+    // Layer 4: Status & Metrics
+    pub async fn active_workers(&self) -> usize {
+        self.workers.active_count().await
+    }
+
+    pub async fn get_metrics(&self) -> Result<metrics::RuntimeStatistics> {
+        self.metrics.get_statistics().await
+    }
+
+    // Layer 5: Shutdown
+    pub async fn shutdown(self) -> Result<()> {
         info!("Initiating runtime shutdown");
-        self.shutdown.initiate().await?;
-        self.workers.shutdown().await?;
+        
+        // Shutdown sequence
+        self.shutdown.initiate().await
+            .context("Failed to initiate shutdown")?;
+        
+        self.workers.shutdown().await
+            .context("Failed to shutdown worker pool")?;
+        
+        self.metrics.shutdown().await
+            .context("Failed to shutdown metrics")?;
+
+        info!("Runtime shutdown complete");
         Ok(())
-    }
-
-    // Layer 5: Resource Access
-    pub fn workers(&self) -> Arc<WorkerPool> {
-        Arc::clone(&self.workers)
-    }
-
-    pub fn shutdown_manager(&self) -> Arc<ShutdownManager> {
-        Arc::clone(&self.shutdown)
-    }
-
-    #[cfg(feature = "metrics")]
-    pub fn metrics(&self) -> Arc<RuntimeMetrics> {
-        Arc::clone(&self.metrics)
-    }
-}
-
-impl Drop for RuntimeManager {
-    fn drop(&mut self) {
-        if !self.shutdown.is_complete() {
-            warn!("RuntimeManager dropped before clean shutdown");
-        }
     }
 }
 
@@ -106,17 +100,26 @@ impl Drop for RuntimeManager {
 mod tests {
     use super::*;
     use std::time::Duration;
+    use tokio::time::sleep;
 
     #[tokio::test]
-    async fn test_runtime_lifecycle() {
+    async fn test_runtime_lifecycle() -> Result<()> {
         let config = Config::builder()
             .workers(2)
             .shutdown_timeout(Duration::from_secs(1))
-            .build()
-            .unwrap();
+            .build()?;
 
-        let runtime = RuntimeManager::new(&config).unwrap();
-        runtime.start().await.unwrap();
-        runtime.shutdown().await.unwrap();
+        let runtime = RuntimeManager::new(&config)?;
+        
+        // Test task spawning
+        let result = runtime.spawn(|| async {
+            sleep(Duration::from_millis(100)).await;
+            Ok::<_, anyhow::Error>(42)
+        }).await?;
+        
+        assert_eq!(result, 42);
+        
+        runtime.shutdown().await?;
+        Ok(())
     }
 }

@@ -12,19 +12,21 @@ use tokio::fs::File;
 use tokio::io::{AsyncRead, AsyncSeek, BufReader};
 use zip::ZipArchive;
 use tracing::{debug, warn};
+use bytes::Bytes;
 
 use crate::error::ErrorExt;
 use super::stream::ZipEntryStream;
 
 // Layer 1: Core Types
 #[derive(Debug)]
-pub struct ZipReader<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> {
-    archive: Arc<ZipArchive<R>>,
+pub struct ZipReader {
+    archive: Arc<ZipArchive<BufReader<File>>>,
     path: PathBuf,
+    total_size: u64,
 }
 
 // Layer 2: Implementation
-impl ZipReader<BufReader<File>> {
+impl ZipReader {
     pub async fn new(path: impl AsRef<Path>) -> Result<Self> {
         let path = path.as_ref().to_path_buf();
         debug!("Opening ZIP file: {}", path.display());
@@ -32,6 +34,10 @@ impl ZipReader<BufReader<File>> {
         let file = File::open(&path)
             .await
             .with_context(|| format!("Failed to open ZIP file: {}", path.display()))?;
+
+        let metadata = file.metadata()
+            .await
+            .context("Failed to read file metadata")?;
 
         let reader = BufReader::new(file);
         let archive = tokio::task::spawn_blocking(move || {
@@ -44,17 +50,22 @@ impl ZipReader<BufReader<File>> {
         Ok(Self {
             archive: Arc::new(archive),
             path,
+            total_size: metadata.len(),
         })
     }
 
     // Layer 3: Entry Access
-    pub fn stream_entries(&self) -> Result<ZipEntryStream<BufReader<File>>> {
+    pub fn stream_entries(&self) -> Result<ZipEntryStream> {
         debug!("Creating entry stream for: {}", self.path.display());
         ZipEntryStream::new(Arc::clone(&self.archive))
     }
 
     pub fn entry_count(&self) -> usize {
         self.archive.len()
+    }
+
+    pub fn total_size(&self) -> u64 {
+        self.total_size
     }
 
     // Layer 4: Validation
@@ -82,7 +93,7 @@ impl ZipReader<BufReader<File>> {
     }
 }
 
-impl<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> Drop for ZipReader<R> {
+impl Drop for ZipReader {
     fn drop(&mut self) {
         debug!("Closing ZIP reader: {}", self.path.display());
     }
@@ -113,6 +124,10 @@ mod tests {
         
         assert_eq!(reader.entry_count(), 1);
         assert!(reader.validate().is_ok());
+        
+        let mut stream = reader.stream_entries()?;
+        let entry = stream.next_entry().await?.unwrap();
+        assert_eq!(entry.name(), "test.txt");
         
         Ok(())
     }

@@ -1,28 +1,50 @@
-//! Public API Layer - Pyramidal Structure
-//! Layer 1: Public Exports
-//! Layer 2: Module Organization
-//! Layer 3: Feature Gates
-//! Layer 4: Error Handling
-//! Layer 5: Resource Management
+//! Parseltongue Library - Pyramidal Structure
+//! Layer 1: Public Interface
+//! Layer 2: Module Exports
+//! Layer 3: Feature Configuration
+//! Layer 4: Internal Organization
+//! Layer 5: Documentation
 
-// Layer 1: Core Public Modules
-pub mod lib;      // Public API Layer
-pub mod main;     // CLI Layer
-pub mod zip;      // ZIP Processing Layer
-pub mod storage;  // Database Layer
-pub mod runtime;  // Tokio Runtime Layer
-pub mod metrics;  // Metrics Layer
+// Layer 1: Core Re-exports
+pub use crate::lib::{Config, ConfigBuilder};
+pub use crate::error::{Error, Result};
+pub use crate::storage::StorageManager;
+pub use crate::zip::ZipProcessor;
+pub use crate::runtime::RuntimeManager;
 
-// Layer 2: Public Re-exports
-pub use lib::prelude::*;
-pub use lib::error::Error;
+#[cfg(feature = "metrics")]
+pub use crate::metrics::MetricsManager;
 
-// Layer 3: Type Definitions
-pub type Result<T> = std::result::Result<T, Error>;
+// Layer 2: Module Structure
+pub mod error;
+pub mod lib;
+pub mod storage;
+pub mod zip;
+pub mod runtime;
+pub mod metrics;
+
+// Layer 3: Internal Modules
+mod internal {
+    pub(crate) mod validation;
+    pub(crate) mod utils;
+}
 
 // Layer 4: Feature Gates
 #[cfg(feature = "metrics")]
-pub use metrics::{MetricsManager, ConsoleMetrics, TaskMetrics};
+pub use metrics::TaskMetrics;
 
-// Layer 5: Version Info
+// Layer 5: Version Information
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const MIN_RUST_VERSION: &str = "1.70.0";
+
+// Re-export common types in prelude
+pub mod prelude {
+    pub use crate::error::{Error, Result};
+    pub use crate::Config;
+    pub use crate::storage::StorageManager;
+    pub use crate::zip::ZipProcessor;
+    pub use crate::runtime::RuntimeManager;
+    
+    #[cfg(feature = "metrics")]
+    pub use crate::metrics::MetricsManager;
+}

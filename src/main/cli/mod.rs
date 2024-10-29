@@ -1,4 +1,4 @@
-//! CLI Module - Pyramidal Structure
+//! CLI Coordination - Pyramidal Structure
 //! Layer 1: Module Exports
 //! Layer 2: Common Types
 //! Layer 3: CLI Coordination
@@ -16,6 +16,7 @@ use anyhow::Result;
 use tracing::info;
 
 // Layer 2: CLI Coordination
+#[derive(Debug)]
 pub struct CliManager {
     args: Args,
     config: Config,

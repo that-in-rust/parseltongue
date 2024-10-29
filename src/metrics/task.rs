@@ -1,13 +1,13 @@
-//! Task Metrics - Pyramidal Structure
+//! Task Performance Metrics - Pyramidal Structure
 //! Layer 1: Core Types & Traits
 //! Layer 2: Metrics Configuration
-//! Layer 3: Task Statistics
+//! Layer 3: Statistics Collection
 //! Layer 4: Performance Analysis
 //! Layer 5: Resource Management
 
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use anyhow::Result;
+use anyhow::{Context, Result};
 use tokio::sync::RwLock;
 use tracing::{debug, info};
 use serde::Serialize;

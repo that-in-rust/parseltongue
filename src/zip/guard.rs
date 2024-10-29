@@ -1,11 +1,12 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use anyhow::{Context, Result};
-use tokio::io::{AsyncRead, AsyncSeek};
-use tokio::sync::Semaphore;
-use zip::ZipArchive;
+use tokio::io::{AsyncRead, AsyncSeek, AsyncWrite};
+use tokio::sync::OwnedSemaphorePermit;
 use bytes::Bytes;
 use tracing::{debug, warn};
+
+use crate::internal::validation::PathValidator;
 
 //! ZIP Resource Guards - Pyramidal Structure
 //! Layer 1: Core Types & Traits
@@ -17,33 +18,44 @@ use tracing::{debug, warn};
 // Layer 1: Core Types
 #[derive(Debug)]
 pub struct ZipEntry<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> {
-    archive: Arc<ZipArchive<R>>,
+    archive: Arc<zip::ZipArchive<R>>,
     index: usize,
     path: PathBuf,
     size: u64,
+    buffer_size: usize,
 }
 
 #[derive(Debug)]
 pub struct ZipGuard {
-    _permit: tokio::sync::OwnedSemaphorePermit,
+    _permit: OwnedSemaphorePermit,
     buffer_size: usize,
     entry: ZipEntry<tokio::io::BufReader<tokio::fs::File>>,
 }
 
 // Layer 2: Entry Implementation
 impl<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> ZipEntry<R> {
-    pub async fn new(archive: Arc<ZipArchive<R>>, index: usize) -> Result<Self> {
+    pub async fn new(
+        archive: Arc<zip::ZipArchive<R>>,
+        index: usize,
+        buffer_size: usize,
+    ) -> Result<Self> {
         let entry = archive.by_index(index)
             .context("Failed to get ZIP entry")?;
 
         let path = PathBuf::from(entry.name());
         let size = entry.size();
 
+        // Validate path
+        PathValidator::new()
+            .is_safe_path(&path)
+            .validate()?;
+
         Ok(Self {
             archive,
             index,
             path,
             size,
+            buffer_size,
         })
     }
 
@@ -59,18 +71,29 @@ impl<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> ZipEntry<R> {
     pub fn path(&self) -> &Path {
         &self.path
     }
+
+    // Layer 4: Content Access
+    pub async fn read_content(&self) -> Result<Bytes> {
+        let mut entry = self.archive.by_index(self.index)
+            .context("Failed to reopen ZIP entry")?;
+
+        let mut buffer = Vec::with_capacity(self.buffer_size);
+        tokio::task::spawn_blocking(move || {
+            std::io::copy(&mut entry, &mut buffer)
+        })
+        .await??;
+
+        Ok(Bytes::from(buffer))
+    }
 }
 
-// Layer 4: Guard Implementation
+// Layer 5: Guard Implementation
 impl ZipGuard {
     pub async fn new(
         entry: ZipEntry<tokio::io::BufReader<tokio::fs::File>>,
-        semaphore: Arc<Semaphore>,
+        permit: OwnedSemaphorePermit,
         buffer_size: usize,
     ) -> Result<Self> {
-        let permit = semaphore.try_acquire_owned()
-            .context("Failed to acquire semaphore permit")?;
-
         Ok(Self {
             _permit: permit,
             buffer_size,
@@ -78,44 +101,34 @@ impl ZipGuard {
         })
     }
 
-    pub async fn process(&self) -> Result<()> {
-        debug!("Processing entry: {}", self.entry.name());
-        
-        // Validate path
-        if !self.is_safe_path() {
-            warn!("Unsafe path detected: {}", self.entry.name());
-            anyhow::bail!("Unsafe ZIP entry path: {}", self.entry.name());
-        }
+    pub fn name(&self) -> &str {
+        self.entry.name()
+    }
 
-        // Process entry with proper buffer size
-        let content = self.read_content().await?;
+    pub fn path(&self) -> &Path {
+        self.entry.path()
+    }
+
+    pub fn size(&self) -> u64 {
+        self.entry.size()
+    }
+
+    pub async fn process(&self) -> Result<()> {
+        debug!("Processing entry: {}", self.name());
+        
+        // Read content with proper buffer size
+        let content = self.entry.read_content().await?;
         
         // TODO: Store content via storage layer
-        debug!("Read {} bytes from {}", content.len(), self.entry.name());
+        debug!("Read {} bytes from {}", content.len(), self.name());
         
         Ok(())
     }
+}
 
-    // Layer 5: Safety & Validation
-    fn is_safe_path(&self) -> bool {
-        let path = self.entry.path();
-        
-        // Check for path traversal attempts
-        if path.components().any(|c| matches!(c, std::path::Component::ParentDir)) {
-            return false;
-        }
-
-        // Check for absolute paths
-        if path.is_absolute() {
-            return false;
-        }
-
-        true
-    }
-
-    async fn read_content(&self) -> Result<Bytes> {
-        // TODO: Implement streaming read with proper buffer size
-        Ok(Bytes::new())
+impl Drop for ZipGuard {
+    fn drop(&mut self) {
+        debug!("ZIP guard dropped for: {}", self.name());
     }
 }
 
@@ -125,6 +138,7 @@ mod tests {
     use tempfile::NamedTempFile;
     use tokio::fs::File;
     use tokio::io::BufReader;
+    use tokio::sync::Semaphore;
 
     async fn create_test_entry() -> Result<ZipEntry<BufReader<File>>> {
         let file = NamedTempFile::new()?;
@@ -137,20 +151,21 @@ mod tests {
         let file = File::open(file.path()).await?;
         let reader = BufReader::new(file);
         let archive = tokio::task::spawn_blocking(move || {
-            ZipArchive::new(reader)
+            zip::ZipArchive::new(reader)
         })
         .await??;
 
-        ZipEntry::new(Arc::new(archive), 0).await
+        ZipEntry::new(Arc::new(archive), 0, 8192).await
     }
 
     #[tokio::test]
     async fn test_zip_guard() -> Result<()> {
         let entry = create_test_entry().await?;
         let semaphore = Arc::new(Semaphore::new(1));
+        let permit = semaphore.try_acquire_owned()?;
         
-        let guard = ZipGuard::new(entry, semaphore, 8192).await?;
-        assert!(guard.is_safe_path());
+        let guard = ZipGuard::new(entry, permit, 8192).await?;
+        assert_eq!(guard.name(), "test.txt");
         
         Ok(())
     }

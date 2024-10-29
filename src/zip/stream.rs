@@ -11,6 +11,7 @@ use tokio::io::{AsyncRead, AsyncSeek};
 use zip::ZipArchive;
 use futures::{Stream, StreamExt};
 use tracing::{debug, warn};
+use bytes::Bytes;
 
 use super::guard::ZipEntry;
 
@@ -19,43 +20,61 @@ use super::guard::ZipEntry;
 pub struct ZipEntryStream<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> {
     archive: Arc<ZipArchive<R>>,
     current_index: usize,
+    total_entries: usize,
+    buffer_size: usize,
 }
 
 // Layer 2: Implementation
 impl<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> ZipEntryStream<R> {
-    pub fn new(archive: Arc<ZipArchive<R>>) -> Result<Self> {
+    pub fn new(archive: Arc<ZipArchive<R>>, buffer_size: usize) -> Result<Self> {
+        let total_entries = archive.len();
+        debug!("Creating ZIP stream with {} entries", total_entries);
+
         Ok(Self {
             archive,
             current_index: 0,
+            total_entries,
+            buffer_size,
         })
     }
 
     // Layer 3: Entry Access
     pub async fn next_entry(&mut self) -> Result<Option<ZipEntry<R>>> {
-        if self.current_index >= self.archive.len() {
+        if self.current_index >= self.total_entries {
+            debug!("Reached end of ZIP entries");
             return Ok(None);
         }
 
         let entry = ZipEntry::new(
             Arc::clone(&self.archive),
             self.current_index,
-        ).await?;
+            self.buffer_size,
+        ).await.with_context(|| format!("Failed to read entry {}", self.current_index))?;
 
         self.current_index += 1;
+        debug!("Read ZIP entry {}/{}", self.current_index, self.total_entries);
+
         Ok(Some(entry))
     }
 
     // Layer 4: Stream Properties
     pub fn len(&self) -> usize {
-        self.archive.len()
+        self.total_entries
     }
 
     pub fn is_empty(&self) -> bool {
-        self.archive.len() == 0
+        self.total_entries == 0
     }
 
     pub fn remaining(&self) -> usize {
-        self.archive.len().saturating_sub(self.current_index)
+        self.total_entries.saturating_sub(self.current_index)
+    }
+
+    pub fn progress(&self) -> f64 {
+        if self.total_entries == 0 {
+            return 1.0;
+        }
+        self.current_index as f64 / self.total_entries as f64
     }
 }
 
@@ -73,6 +92,11 @@ impl<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> Stream for ZipEntryStrea
         futures::pin_mut!(future);
         
         future.poll(cx)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.remaining();
+        (remaining, Some(remaining))
     }
 }
 
@@ -108,15 +132,20 @@ mod tests {
         })
         .await??;
 
-        let mut stream = ZipEntryStream::new(Arc::new(archive))?;
+        let mut stream = ZipEntryStream::new(Arc::new(archive), 8192)?;
         
         assert_eq!(stream.len(), 2);
         assert!(!stream.is_empty());
         
         let entry1 = stream.next_entry().await?.unwrap();
         assert_eq!(entry1.name(), "test1.txt");
+        assert_eq!(stream.progress(), 0.5);
         
-        assert_eq!(stream.remaining(), 1);
+        let entry2 = stream.next_entry().await?.unwrap();
+        assert_eq!(entry2.name(), "test2.txt");
+        assert_eq!(stream.progress(), 1.0);
+        
+        assert!(stream.next_entry().await?.is_none());
         
         Ok(())
     }

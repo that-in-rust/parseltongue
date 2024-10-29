@@ -3,70 +3,93 @@
 name = "parseltongue"
 version = "0.1.0"
 edition = "2021"
-authors = ["amuldotexe"]
-description = "A Tokio-based ZIP file analyzer and storage system"
-repository = "https://github.com/amuldotexe/parseltongue"
+rust-version = "1.70.0"
+authors = ["Your Name <your.email@example.com>"]
+description = "High-performance ZIP file processor with async I/O"
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/yourusername/parseltongue"
+documentation = "https://docs.rs/parseltongue"
+readme = "README.md"
+keywords = ["zip", "async", "storage", "processing"]
+categories = ["asynchronous", "compression"]
+
+[lib]
+name = "parseltongue"
+path = "src/lib.rs"
+
+[[bin]]
+name = "parseltongue"
+path = "src/main.rs"
 
 # ===== Level 3: Feature Configuration =====
 [features]
-default = ["metrics"]
-metrics = ["dep:metrics-util", "dep:tokio-console"]
+default = ["metrics", "console"]
+metrics = ["dep:metrics-exporter-prometheus", "dep:metrics-util"]
+console = ["tokio/tracing", "console-subscriber"]
+compression = ["zip/deflate", "flate2"]
 
 # ===== Level 2: Dependencies by Category =====
 [dependencies]
 # Async Runtime
-tokio = { version = "1.36", features = ["full"] }
-tokio-util = { version = "0.7", features = ["codec"] }
-tokio-stream = "0.1"
+tokio = { version = "1.32", features = ["full"] }
+tokio-util = { version = "0.7", features = ["codec", "io"] }
 futures = "0.3"
+futures-util = "0.3"
 
 # Storage
 sled = "0.34"
-bytes = "1.5"
+bytes = "1.4"
 
 # ZIP Processing
-zip = "0.6"
+zip = { version = "0.6", default-features = false, features = ["deflate"] }
 encoding_rs = "0.8"
-
-# CLI
-clap = { version = "4.5", features = ["derive"] }
+flate2 = { version = "1.0", optional = true }
 
 # Error Handling
 anyhow = "1.0"
 thiserror = "1.0"
+backtrace = "0.3"
+
+# CLI
+clap = { version = "4.4", features = ["derive", "env"] }
+indicatif = "0.17"
 
 # Logging & Metrics
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-indicatif = "0.17"
+tracing-appender = "0.2"
+tracing-log = "0.1"
 metrics = "0.21"
 metrics-util = { version = "0.15", optional = true }
-tokio-console = { version = "0.1", optional = true }
+metrics-exporter-prometheus = { version = "0.12", optional = true }
+console-subscriber = { version = "0.1", optional = true }
 
 # Utilities
-chrono = "0.4"
-num_cpus = "1.0"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+num_cpus = "1.15"
+parking_lot = "0.12"
+crossbeam-channel = "0.5"
+rayon = "1.7"
 
 # ===== Level 1: Development Dependencies =====
 [dev-dependencies]
-tokio-test = "0.4"
-tempfile = "3.10"
+tempfile = "3.8"
+criterion = "0.5"
+mockall = "0.11"
+test-log = "0.2"
 rand = "0.8"
+async-trait = "0.1"
 
+# ===== Level 0: Build Configuration =====
 [profile.release]
+lto = "thin"
+debug = 1
 opt-level = 3
-lto = true
 codegen-units = 1
-panic = "unwind"
+panic = "abort"
+strip = "debuginfo"
 
 [profile.dev.package."*"]
 opt-level = 2
 
-# [workspace]
-# members = [
-#     ".",
-#     "benches",
-# ]
+[package.metadata]
+msrv = "1.70.0"

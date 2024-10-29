@@ -1,16 +1,18 @@
-//! CLI Arguments - Pyramidal Structure
-//! Layer 1: Argument Types
-//! Layer 2: Parsing Logic
-//! Layer 3: Validation
-//! Layer 4: Conversion
+//! CLI Argument Parsing - Pyramidal Structure
+//! Layer 1: Core Types & Traits
+//! Layer 2: Argument Definitions
+//! Layer 3: Validation Rules
+//! Layer 4: Conversion Logic
 //! Layer 5: Helper Functions
 
 use std::path::PathBuf;
 use anyhow::Result;
 use clap::Parser;
+use tracing::debug;
+
 use super::config::Config;
 
-// Layer 1: CLI Arguments
+// Layer 1: Core Types
 #[derive(Parser, Debug)]
 #[clap(version, about = "ZIP file analyzer and storage system")]
 pub struct Args {
@@ -42,7 +44,9 @@ pub struct Args {
 // Layer 2: Implementation
 impl Args {
     pub fn parse() -> Self {
-        <Self as Parser>::parse()
+        let args = <Self as Parser>::parse();
+        debug!("Parsed CLI arguments: {:?}", args);
+        args
     }
 
     // Layer 3: Validation
@@ -52,6 +56,12 @@ impl Args {
         }
         if !self.input_zip.is_file() {
             anyhow::bail!("Input path is not a file: {}", self.input_zip.display());
+        }
+        if self.workers == 0 {
+            anyhow::bail!("Worker count must be greater than zero");
+        }
+        if self.buffer_size < 1024 {
+            anyhow::bail!("Buffer size must be at least 1KB");
         }
         Ok(())
     }
@@ -79,10 +89,10 @@ mod tests {
     use tempfile::TempDir;
 
     #[test]
-    fn test_args_validation() {
-        let temp_dir = TempDir::new().unwrap();
+    fn test_args_validation() -> Result<()> {
+        let temp_dir = TempDir::new()?;
         let input_file = temp_dir.path().join("test.zip");
-        File::create(&input_file).unwrap();
+        File::create(&input_file)?;
 
         let args = Args {
             input_zip: input_file,
@@ -94,5 +104,20 @@ mod tests {
         };
 
         assert!(args.validate().is_ok());
+        Ok(())
+    }
+
+    #[test]
+    fn test_invalid_args() {
+        let args = Args {
+            input_zip: PathBuf::from("nonexistent.zip"),
+            output_dir: PathBuf::from("output"),
+            workers: 0,
+            buffer_size: 512,
+            shutdown_timeout: 30,
+            verbose: false,
+        };
+
+        assert!(args.validate().is_err());
     }
 }

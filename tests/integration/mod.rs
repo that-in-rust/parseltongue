@@ -6,7 +6,7 @@
 //! Layer 5: Performance Tests
 
 use anyhow::Result;
-use parseltongue::{Config, MetricsManager};
+use parseltongue::{Config, MetricsManager, RuntimeManager, StorageManager, ZipProcessor};
 use crate::common::{TestContext, TestConfig};
 
 // Layer 1: Test Setup
@@ -17,13 +17,18 @@ async fn setup() -> Result<TestContext> {
 
 // Layer 2: Core Tests
 #[tokio::test]
-async fn test_basic_zip_processing() -> Result<()> {
+async fn test_zip_processing() -> Result<()> {
     let ctx = setup().await?;
     let metrics = MetricsManager::new();
+    let runtime = RuntimeManager::new(&ctx.config)?;
+    let storage = StorageManager::new(&ctx.config).await?;
+    let processor = ZipProcessor::new(ctx.config)?;
 
-    // TODO: Implement actual processing test
-    assert!(ctx.input_path().exists());
-    
+    processor.process().await?;
+    runtime.shutdown().await?;
+    storage.shutdown().await?;
+    metrics.shutdown().await?;
+
     Ok(())
 }
 
@@ -33,9 +38,11 @@ async fn test_metrics_collection() -> Result<()> {
     let ctx = setup().await?;
     let metrics = MetricsManager::new();
 
-    // TODO: Implement metrics test
+    metrics.record_file_processed(100, std::time::Duration::from_millis(50)).await?;
+    let exported = metrics.export_metrics().await?;
+    assert!(exported.contains("total_bytes"));
+
     metrics.shutdown().await?;
-    
     Ok(())
 }
 
@@ -64,7 +71,8 @@ async fn test_large_file_handling() -> Result<()> {
     };
     
     let ctx = TestContext::new(config).await?;
-    assert!(ctx.input_path().exists());
+    let processor = ZipProcessor::new(ctx.config)?;
+    processor.process().await?;
     
     Ok(())
 }

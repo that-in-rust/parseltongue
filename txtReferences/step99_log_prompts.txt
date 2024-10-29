@@ -1259,8 +1259,22 @@ find /home/amuldotexe/Desktop/GitHub202410/parseltongue/phase01 -maxdepth 4 -typ
 
 
 
+==================
+
+Check each .rs .toml file in the folder @storage  agains
+
+just remember this while implementing:
+Update all files  with the appropriate code - this is my confirmation - Update   - each  .rs file or .toml   - witha Pyramid structure of - Before starting code explain pyramidal nature of code via comments and then as the code gets detailed explain design choice nuances - DO NOT ASK AT FILE LEVEL- IMPLEMENT THE CODE NEEDED - NOTHING SHOULD BE MISSING
 
 
+I want you to fix them 4 at a time with your 200 IQ so that the resultant code is bug free Based on @step01_scope.txt & @step02_modules.txt - and make it bug free as per patterns in For each of these 4 files - compare with @step03_avoidObviousBugs.txt 
+
+Update the 4 files  with the appropriate code - this is my confirmation - Update   - each  .rs or .toml file   - with a Pyramid structure of - Before starting code explain pyramidal nature of code via comments and then as the code gets detailed explain design choice nuances - DO NOT ASK AT FILE LEVEL
+
+
+Update me ach time what you fixed - what is left and what is next
+
+ - list out eplicitly with emojis - keep a track
 
 
 

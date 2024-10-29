@@ -1,136 +1,136 @@
-//! Runtime Metrics - Pyramidal Structure
-//! Layer 1: Core Metric Types
-//! Layer 2: Metric Collection
-//! Layer 3: Metric Aggregation
-//! Layer 4: Export & Reporting
+//! Runtime Performance Metrics - Pyramidal Structure
+//! Layer 1: Core Types & Traits
+//! Layer 2: Metrics Configuration
+//! Layer 3: Runtime Statistics
+//! Layer 4: Performance Analysis
 //! Layer 5: Resource Management
 
 use std::sync::Arc;
-use tokio::sync::RwLock;
 use std::time::{Duration, Instant};
-use metrics::{Counter, Gauge, Histogram};
+use anyhow::{Context, Result};
+use tokio::sync::RwLock;
+use tracing::{debug, info};
 use serde::Serialize;
-use anyhow::Result;
+
+use crate::metrics::{MetricsManager, TaskMetrics};
 
 // Layer 1: Core Types
 #[derive(Debug)]
 pub struct RuntimeMetrics {
-    state: Arc<RwLock<MetricsState>>,
-    counters: RuntimeCounters,
-    gauges: RuntimeGauges,
-    histograms: RuntimeHistograms,
+    state: Arc<RwLock<RuntimeState>>,
+    task_metrics: TaskMetrics,
+    #[cfg(feature = "metrics")]
+    metrics_manager: Arc<MetricsManager>,
 }
 
 #[derive(Debug, Default, Serialize)]
-struct MetricsState {
-    start_time: Option<Instant>,
-    total_tasks: u64,
-    active_tasks: u64,
-    failed_tasks: u64,
+struct RuntimeState {
+    start_time: Instant,
+    worker_count: usize,
+    active_workers: usize,
+    total_tasks: usize,
+    failed_tasks: usize,
+    total_duration: Duration,
 }
 
-// Layer 2: Metric Groups
-#[derive(Debug)]
-struct RuntimeCounters {
-    tasks_started: Counter,
-    tasks_completed: Counter,
-    tasks_failed: Counter,
-    bytes_processed: Counter,
-}
-
-#[derive(Debug)]
-struct RuntimeGauges {
-    active_tasks: Gauge,
-    memory_usage: Gauge,
-    worker_count: Gauge,
-}
-
-#[derive(Debug)]
-struct RuntimeHistograms {
-    task_duration: Histogram,
-    queue_time: Histogram,
-    processing_time: Histogram,
-}
-
-// Layer 3: Implementation
+// Layer 2: Implementation
 impl RuntimeMetrics {
-    pub fn new() -> Self {
-        let state = Arc::new(RwLock::new(MetricsState {
-            start_time: Some(Instant::now()),
-            ..Default::default()
-        }));
-
+    pub fn new(worker_count: usize) -> Self {
         Self {
-            state,
-            counters: RuntimeCounters::new(),
-            gauges: RuntimeGauges::new(),
-            histograms: RuntimeHistograms::new(),
+            state: Arc::new(RwLock::new(RuntimeState {
+                start_time: Instant::now(),
+                worker_count,
+                ..Default::default()
+            })),
+            task_metrics: TaskMetrics::new(),
+            #[cfg(feature = "metrics")]
+            metrics_manager: Arc::new(MetricsManager::new()),
         }
     }
 
-    // Layer 4: Metric Recording
-    pub async fn record_task_start(&self) {
-        self.counters.tasks_started.increment(1);
+    // Layer 3: Metrics Recording
+    pub async fn record_worker_start(&self) -> Result<()> {
+        let mut state = self.state.write().await;
+        state.active_workers += 1;
+        debug!("Worker started ({} active)", state.active_workers);
+        Ok(())
+    }
+
+    pub async fn record_worker_stop(&self) -> Result<()> {
+        let mut state = self.state.write().await;
+        state.active_workers = state.active_workers.saturating_sub(1);
+        debug!("Worker stopped ({} active)", state.active_workers);
+        Ok(())
+    }
+
+    pub async fn record_task_completion(&self, duration: Duration) -> Result<()> {
         let mut state = self.state.write().await;
         state.total_tasks += 1;
-        state.active_tasks += 1;
-        self.gauges.active_tasks.set(state.active_tasks as f64);
+        state.total_duration += duration;
+
+        self.task_metrics.record_operation(duration).await?;
+
+        #[cfg(feature = "metrics")]
+        self.metrics_manager.record_file_processed(0, duration).await?;
+
+        Ok(())
     }
 
-    pub async fn record_task_completion(&self, duration: Duration) {
-        self.counters.tasks_completed.increment(1);
-        let mut state = self.state.write().await;
-        state.active_tasks = state.active_tasks.saturating_sub(1);
-        self.gauges.active_tasks.set(state.active_tasks as f64);
-        self.histograms.task_duration.record(duration.as_secs_f64());
-    }
-
-    pub async fn record_task_failure(&self) {
-        self.counters.tasks_failed.increment(1);
+    pub async fn record_task_failure(&self, context: &str) -> Result<()> {
         let mut state = self.state.write().await;
         state.failed_tasks += 1;
-        state.active_tasks = state.active_tasks.saturating_sub(1);
-        self.gauges.active_tasks.set(state.active_tasks as f64);
+
+        self.task_metrics.record_error(context).await?;
+
+        #[cfg(feature = "metrics")]
+        self.metrics_manager.record_error(context).await?;
+
+        Ok(())
     }
 
-    // Layer 5: Metric Export
-    pub async fn export_metrics(&self) -> Result<String> {
+    // Layer 4: Statistics
+    pub async fn get_statistics(&self) -> Result<RuntimeStatistics> {
         let state = self.state.read().await;
-        let metrics = serde_json::to_string_pretty(&*state)?;
-        Ok(metrics)
+        let task_stats = self.task_metrics.get_statistics().await?;
+
+        Ok(RuntimeStatistics {
+            uptime: state.start_time.elapsed(),
+            worker_count: state.worker_count,
+            active_workers: state.active_workers,
+            total_tasks: state.total_tasks,
+            failed_tasks: state.failed_tasks,
+            avg_task_duration: task_stats.avg_duration,
+        })
+    }
+
+    // Layer 5: Resource Management
+    pub async fn shutdown(&self) -> Result<()> {
+        let state = self.state.read().await;
+        info!(
+            "Runtime metrics: {} workers, {} tasks ({} failed), {} total duration",
+            state.worker_count,
+            state.total_tasks,
+            state.failed_tasks,
+            state.total_duration.as_secs(),
+        );
+
+        self.task_metrics.shutdown().await?;
+
+        #[cfg(feature = "metrics")]
+        self.metrics_manager.shutdown().await?;
+
+        Ok(())
     }
 }
 
-// Implementation for metric groups
-impl RuntimeCounters {
-    fn new() -> Self {
-        Self {
-            tasks_started: Counter::noop(),
-            tasks_completed: Counter::noop(),
-            tasks_failed: Counter::noop(),
-            bytes_processed: Counter::noop(),
-        }
-    }
-}
-
-impl RuntimeGauges {
-    fn new() -> Self {
-        Self {
-            active_tasks: Gauge::noop(),
-            memory_usage: Gauge::noop(),
-            worker_count: Gauge::noop(),
-        }
-    }
-}
-
-impl RuntimeHistograms {
-    fn new() -> Self {
-        Self {
-            task_duration: Histogram::noop(),
-            queue_time: Histogram::noop(),
-            processing_time: Histogram::noop(),
-        }
-    }
+#[derive(Debug, Serialize)]
+pub struct RuntimeStatistics {
+    pub uptime: Duration,
+    pub worker_count: usize,
+    pub active_workers: usize,
+    pub total_tasks: usize,
+    pub failed_tasks: usize,
+    pub avg_task_duration: Option<Duration>,
 }
 
 #[cfg(test)]
@@ -139,14 +139,18 @@ mod tests {
     use tokio::time::sleep;
 
     #[tokio::test]
-    async fn test_metrics_recording() {
-        let metrics = RuntimeMetrics::new();
+    async fn test_runtime_metrics() -> Result<()> {
+        let metrics = RuntimeMetrics::new(2);
         
-        metrics.record_task_start().await;
-        sleep(Duration::from_millis(100)).await;
-        metrics.record_task_completion(Duration::from_millis(100)).await;
+        metrics.record_worker_start().await?;
+        metrics.record_task_completion(Duration::from_millis(100)).await?;
+        sleep(Duration::from_millis(10)).await;
+        metrics.record_worker_stop().await?;
         
-        let exported = metrics.export_metrics().await.unwrap();
-        assert!(exported.contains("total_tasks"));
+        let stats = metrics.get_statistics().await?;
+        assert_eq!(stats.total_tasks, 1);
+        assert_eq!(stats.worker_count, 2);
+        
+        Ok(())
     }
 }

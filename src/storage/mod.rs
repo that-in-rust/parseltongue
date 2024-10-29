@@ -7,22 +7,24 @@
 
 pub mod sled;
 pub mod guard;
+pub mod pool;
 
 use std::path::PathBuf;
 use std::sync::Arc;
 use anyhow::{Context, Result};
 use tokio::sync::Semaphore;
-use tracing::{debug, error, info};
+use tracing::{debug, info};
 
 use crate::Config;
 use sled::SledStorage;
+use pool::ConnectionPool;
 use guard::StorageGuard;
 
 // Layer 1: Core Types
 #[derive(Debug)]
 pub struct StorageManager {
     storage: Arc<SledStorage>,
-    semaphore: Arc<Semaphore>,
+    pool: Arc<ConnectionPool>,
     config: StorageConfig,
 }
 
@@ -32,6 +34,7 @@ pub struct StorageConfig {
     pub path: PathBuf,
     pub max_concurrent_ops: usize,
     pub batch_size: usize,
+    pub pool_timeout: std::time::Duration,
 }
 
 // Layer 3: Implementation
@@ -41,16 +44,23 @@ impl StorageManager {
             path: config.output_dir.join("db"),
             max_concurrent_ops: config.workers,
             batch_size: config.buffer_size,
+            pool_timeout: config.shutdown_timeout,
         };
 
-        let storage = SledStorage::new(&storage_config)
-            .context("Failed to initialize storage")?;
+        let storage = Arc::new(SledStorage::new(&storage_config)
+            .context("Failed to initialize storage")?);
 
-        let semaphore = Arc::new(Semaphore::new(storage_config.max_concurrent_ops));
+        let pool = Arc::new(ConnectionPool::new(
+            Arc::clone(&storage),
+            pool::PoolConfig {
+                max_connections: storage_config.max_concurrent_ops,
+                acquire_timeout: storage_config.pool_timeout,
+            },
+        ));
 
         Ok(Self {
-            storage: Arc::new(storage),
-            semaphore,
+            storage,
+            pool,
             config: storage_config,
         })
     }
@@ -58,29 +68,26 @@ impl StorageManager {
     // Layer 4: Storage Operations
     pub async fn store(&self, key: &str, value: bytes::Bytes) -> Result<()> {
         debug!("Storing key: {}", key);
-
-        let guard = StorageGuard::new(
-            Arc::clone(&self.storage),
-            Arc::clone(&self.semaphore),
-        ).await?;
-
-        guard.store(key, value).await
+        let conn = self.pool.acquire().await?;
+        conn.store(key, value).await
     }
 
     pub async fn get(&self, key: &str) -> Result<Option<bytes::Bytes>> {
         debug!("Retrieving key: {}", key);
-
-        let guard = StorageGuard::new(
-            Arc::clone(&self.storage),
-            Arc::clone(&self.semaphore),
-        ).await?;
-
-        guard.get(key).await
+        let conn = self.pool.acquire().await?;
+        conn.get(key).await
     }
 
-    // Layer 5: Cleanup
+    pub async fn batch_store(&self, entries: Vec<(String, bytes::Bytes)>) -> Result<()> {
+        debug!("Batch storing {} entries", entries.len());
+        let conn = self.pool.acquire().await?;
+        conn.store_batch(entries).await
+    }
+
+    // Layer 5: Resource Management
     pub async fn shutdown(&self) -> Result<()> {
         info!("Shutting down storage manager");
+        self.pool.shutdown().await?;
         self.storage.flush().await?;
         Ok(())
     }
@@ -115,6 +122,7 @@ mod tests {
         let retrieved = manager.get(key).await?;
         
         assert_eq!(retrieved.unwrap(), value);
+        manager.shutdown().await?;
         Ok(())
     }
 }

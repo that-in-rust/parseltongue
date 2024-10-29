@@ -11,6 +11,7 @@ use tempfile::{TempDir, NamedTempFile};
 use zip::write::FileOptions;
 
 // Layer 1: Core Types
+#[derive(Debug)]
 pub struct TestContext {
     pub temp_dir: TempDir,
     pub test_zip: NamedTempFile,
