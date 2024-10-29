@@ -4,7 +4,7 @@
 // - Coordinates ZIP processing and storage
 
 use crate::config::Config;
-use crate::zip_processor;
+use crate::zip::zip_processor;
 use crate::storage::Database;
 use crate::output::OutputDirs;
 use crate::metrics;

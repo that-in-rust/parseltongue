@@ -3,6 +3,8 @@
 // - Aggregates error sources for consistent handling
 
 use thiserror::Error;
+use zip::result::ZipError;
+use rocksdb::Error as RocksDbError;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -12,10 +14,10 @@ pub enum Error {
     Io(#[from] std::io::Error),
 
     #[error("ZIP error: {0}")]
-    Zip(#[from] zip::result::ZipError),
+    Zip(#[from] ZipError),
 
     #[error("Database error: {0}")]
-    Db(#[from] rocksdb::Error),
+    Db(#[from] RocksDbError),
 
     #[error("Configuration error: {0}")]
     Config(String),

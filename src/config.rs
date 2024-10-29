@@ -42,4 +42,23 @@ impl Config {
             shutdown_timeout,
         })
     }
+
+    // Level 2: Create Config from input and output paths
+    pub fn from_paths(input_zip: &str, output_dir: &str) -> Result<Self> {
+        let input_zip = PathBuf::from(input_zip);
+        let output_dir = PathBuf::from(output_dir);
+
+        if !input_zip.is_file() {
+            return Err(Error::Config(format!("Input ZIP file not found: {:?}", input_zip)));
+        }
+
+        Ok(Config {
+            input_zip,
+            output_dir,
+            verbose: false,
+            workers: num_cpus::get(),
+            buffer_size: 8192,
+            shutdown_timeout: 5,
+        })
+    }
 } 
