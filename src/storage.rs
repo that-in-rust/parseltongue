@@ -1,11 +1,11 @@
 // Level 4: Database Interactions
-// - Manages RocksDB connections
-// - Provides asynchronous store and retrieve methods
+// - Manages connection to RocksDB
+// - Provides async methods to store and retrieve data
 
+use rocksdb::{DB, Options};
 use std::path::Path;
+use crate::error::{Result, Error};
 use std::sync::Arc;
-use rocksdb::{DB, Options, Error as RocksDbError};
-use crate::error::Result;
 use tokio::task::spawn_blocking;
 
 pub struct Database {
@@ -13,20 +13,20 @@ pub struct Database {
 }
 
 impl Database {
-    // Level 3: Open the database asynchronously
-    pub async fn open(path: &Path) -> Result<Self> {
+    // Level 3: Initialize the database
+    pub async fn new(path: &Path) -> Result<Self> {
         let path = path.to_owned();
-        let db = task::spawn_blocking(move || {
+        let db = spawn_blocking(move || {
             let mut opts = Options::default();
             opts.create_if_missing(true);
-            DB::open(&opts, &path)
+            DB::open(&opts, path).map_err(Error::from)
         })
         .await??;
 
         Ok(Database { db: Arc::new(db) })
     }
 
-    // Level 3: Store data asynchronously
+    // Level 2: Store data asynchronously
     pub async fn store(&self, key: &str, value: &[u8]) -> Result<()> {
         let db = self.db.clone();
         let key = key.to_owned();
@@ -37,11 +37,11 @@ impl Database {
         Ok(())
     }
 
-    // Level 3: Close the database gracefully
+    // Level 2: Close the database gracefully
     pub async fn close(self) -> Result<()> {
         let db = Arc::try_unwrap(self.db)
             .map_err(|_| crate::error::Error::Generic("Database still has multiple owners".into()))?;
-        task::spawn_blocking(|| db.flush()).await??;
+        spawn_blocking(move || db.flush()).await??;
         Ok(())
     }
 } 

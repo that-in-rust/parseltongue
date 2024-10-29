@@ -4,7 +4,6 @@
 
 use std::path::PathBuf;
 use crate::error::{Result, Error};
-use clap::ArgMatches;
 
 pub struct Config {
     pub input_zip: PathBuf,
@@ -16,12 +15,6 @@ pub struct Config {
 }
 
 impl Config {
-    // Level 3: Create Config from ArgMatches
-    pub fn from_matches(matches: &ArgMatches) -> Result<Self> {
-        // Implementation is in cli.rs
-        unimplemented!()
-    }
-
     // Level 3: Create Config from paths
     pub fn from_paths(input_zip: &str, output_dir: &str) -> Result<Self> {
         let input_zip = PathBuf::from(input_zip);

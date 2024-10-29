@@ -3,8 +3,7 @@
 // - Initializes configuration and logging
 // - Runs the application asynchronously
 
-use parseltongue::{cli, Config, app, logging, error::Result};
-use tokio::runtime::Builder;
+use parseltongue::{cli, config::Config, app, logging, error::Result};
 use std::process;
 
 #[tokio::main]

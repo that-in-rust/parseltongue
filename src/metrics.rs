@@ -8,58 +8,18 @@ use tokio::time::{self, Duration};
 use crate::output::OutputDirs;
 use std::fs::File;
 use std::io::Write;
-use crate::error::Result;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
 
 pub struct WorkerMetrics {
-    metrics: Mutex<Vec<WorkerStat>>,
-}
-
-struct WorkerStat {
-    worker_id: usize,
-    task_count: u64,
-    error_count: u64,
-    total_duration: Duration,
+    // Fields for worker metrics can be added here
 }
 
 impl WorkerMetrics {
-    pub fn new() -> Self {
-        Self {
-            metrics: Mutex::new(Vec::new()),
-        }
-    }
-
-    pub fn record_task(&self, worker_id: usize, duration: Duration) {
-        let mut metrics = self.metrics.lock().unwrap();
-        if let Some(stat) = metrics.iter_mut().find(|s| s.worker_id == worker_id) {
-            stat.task_count += 1;
-            stat.total_duration += duration;
-        } else {
-            metrics.push(WorkerStat {
-                worker_id,
-                task_count: 1,
-                error_count: 0,
-                total_duration: duration,
-            });
-        }
-    }
-
-    pub fn record_error(&self, worker_id: usize) {
-        let mut metrics = self.metrics.lock().unwrap();
-        if let Some(stat) = metrics.iter_mut().find(|s| s.worker_id == worker_id) {
-            stat.error_count += 1;
-        } else {
-            metrics.push(WorkerStat {
-                worker_id,
-                task_count: 0,
-                error_count: 1,
-                total_duration: Duration::default(),
-            });
-        }
-    }
+    // Methods to record and report metrics
 }
 
-static MONITOR: once_cell::sync::Lazy<Mutex<Option<TaskMonitor>>> = once_cell::sync::Lazy::new(|| Mutex::new(None));
+static MONITOR: Lazy<Mutex<Option<TaskMonitor>>> = Lazy::new(|| Mutex::new(None));
 
 pub async fn start_collection(output_dirs: &OutputDirs) {
     let monitor = TaskMonitor::new();
@@ -75,8 +35,12 @@ pub async fn start_collection(output_dirs: &OutputDirs) {
         let mut interval = time::interval(Duration::from_secs(1));
         loop {
             interval.tick().await;
-            let stats = monitor.cumulative();
-            let _ = writeln!(file, "{:?}", stats);
+            if let Some(mon) = MONITOR.lock().unwrap().as_ref() {
+                let stats = mon.cumulative();
+                let _ = writeln!(file, "{:?}", stats);
+            } else {
+                break;
+            }
         }
     });
 }

@@ -1,3 +1,292 @@
+ Compiling clap v4.5.20
+   Compiling rocksdb v0.21.0
+   Compiling parseltongue v0.1.0 (/home/amuldotexe/Desktop/GitHub202410/parseltongue)
+error[E0433]: failed to resolve: use of undeclared crate or module `task`
+  --> src/storage.rs:19:18
+   |
+19 |         let db = task::spawn_blocking(move || {
+   |                  ^^^^ use of undeclared crate or module `task`
+   |
+help: consider importing this module
+   |
+5  + use tokio::task;
+   |
+
+error[E0433]: failed to resolve: use of undeclared crate or module `task`
+  --> src/storage.rs:44:9
+   |
+44 |         task::spawn_blocking(|| db.flush()).await??;
+   |         ^^^^ use of undeclared crate or module `task`
+   |
+help: consider importing this module
+   |
+5  + use tokio::task;
+   |
+
+error[E0412]: cannot find type `Error` in this scope
+  --> src/zip/entry_processor.rs:16:23
+   |
+16 |         Ok::<Vec<u8>, Error>(data)
+   |                       ^^^^^ not found in this scope
+   |
+help: consider importing one of these items
+   |
+6  + use anyhow::Error;
+   |
+6  + use clap::Error;
+   |
+6  + use clap::error::Error;
+   |
+6  + use core::error::Error;
+   |
+     and 11 other candidates
+
+warning: unused import: `std::time::Duration`
+ --> src/core/runtime/worker.rs:8:5
+  |
+8 | use std::time::Duration;
+  |     ^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `tracing::error`
+  --> src/core/runtime/worker.rs:13:5
+   |
+13 | use tracing::error;
+   |     ^^^^^^^^^^^^^^
+
+warning: unused import: `fmt`
+ --> src/logging.rs:6:26
+  |
+6 | use tracing_subscriber::{fmt, EnvFilter};
+  |                          ^^^
+
+warning: unused import: `crate::error::Result`
+  --> src/metrics.rs:11:5
+   |
+11 | use crate::error::Result;
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Arc`
+  --> src/metrics.rs:12:17
+   |
+12 | use std::sync::{Arc, Mutex};
+   |                 ^^^
+
+warning: unused import: `Error as RocksDbError`
+ --> src/storage.rs:7:28
+  |
+7 | use rocksdb::{DB, Options, Error as RocksDbError};
+  |                            ^^^^^^^^^^^^^^^^^^^^^
+
+error[E0277]: `?` couldn't convert the error to `error::Error`
+  --> src/zip/zip_processor.rs:33:61
+   |
+33 |         let permit = semaphore.clone().acquire_owned().await?;
+   |                                                             ^ the trait `std::convert::From<AcquireError>` is not implemented for `error::Error`, which is required by `std::result::Result<(), error::Error>: FromResidual<std::result::Result<Infallible, AcquireError>>`
+   |
+   = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+   = help: the following other types implement trait `std::convert::From<T>`:
+             <error::Error as std::convert::From<ZipError>>
+             <error::Error as std::convert::From<rocksdb::Error>>
+             <error::Error as std::convert::From<std::io::Error>>
+             <error::Error as std::convert::From<JoinError>>
+             <error::Error as std::convert::From<ParseIntError>>
+   = note: required for `std::result::Result<(), error::Error>` to implement `FromResidual<std::result::Result<Infallible, AcquireError>>`
+
+error[E0277]: `?` couldn't convert the error to `error::Error`
+  --> src/core/runtime/worker.rs:71:38
+   |
+71 |         self.task_tx.send(task).await?;
+   |                                      ^ the trait `std::convert::From<tokio::sync::mpsc::error::SendError<Task>>` is not implemented for `error::Error`, which is required by `std::result::Result<(), error::Error>: FromResidual<std::result::Result<Infallible, tokio::sync::mpsc::error::SendError<Task>>>`
+   |
+   = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+   = help: the following other types implement trait `std::convert::From<T>`:
+             <error::Error as std::convert::From<ZipError>>
+             <error::Error as std::convert::From<rocksdb::Error>>
+             <error::Error as std::convert::From<std::io::Error>>
+             <error::Error as std::convert::From<JoinError>>
+             <error::Error as std::convert::From<ParseIntError>>
+   = note: required for `std::result::Result<(), error::Error>` to implement `FromResidual<std::result::Result<Infallible, tokio::sync::mpsc::error::SendError<Task>>>`
+
+error[E0599]: no method named `read_to_end` found for mutable reference `&mut ZipFile<'_>` in the current scope
+  --> src/zip/entry_processor.rs:15:18
+   |
+15 |         zip_file.read_to_end(&mut data)?;
+   |                  ^^^^^^^^^^^ method not found in `&mut ZipFile<'_>`
+   |
+   = help: items from traits can only be used if the trait is in scope
+help: trait `Read` which provides `read_to_end` is implemented but not in scope; perhaps you want to import it
+   |
+6  + use std::io::Read;
+   |
+
+error[E0277]: the size for values of type `[u8]` cannot be known at compilation time
+  --> src/zip/entry_processor.rs:13:9
+   |
+13 |     let data = spawn_blocking(move || {
+   |         ^^^^ doesn't have a size known at compile-time
+   |
+   = help: the trait `Sized` is not implemented for `[u8]`
+   = note: all local variables must have a statically known size
+   = help: unsized locals are gated as an unstable feature
+
+error[E0277]: the size for values of type `[u8]` cannot be known at compilation time
+  --> src/zip/entry_processor.rs:13:16
+   |
+13 |       let data = spawn_blocking(move || {
+   |  ________________^
+14 | |         let mut data = Vec::new();
+15 | |         zip_file.read_to_end(&mut data)?;
+16 | |         Ok::<Vec<u8>, Error>(data)
+17 | |     })
+18 | |     .await??;
+   | |____________^ doesn't have a size known at compile-time
+   |
+   = help: the trait `Sized` is not implemented for `[u8]`
+   = note: all local variables must have a statically known size
+   = help: unsized locals are gated as an unstable feature
+
+error[E0277]: the size for values of type `[u8]` cannot be known at compilation time
+  --> src/zip/entry_processor.rs:13:16
+   |
+13 |       let data = spawn_blocking(move || {
+   |  ________________^
+14 | |         let mut data = Vec::new();
+15 | |         zip_file.read_to_end(&mut data)?;
+16 | |         Ok::<Vec<u8>, Error>(data)
+17 | |     })
+18 | |     .await??;
+   | |____________^ doesn't have a size known at compile-time
+   |
+   = help: the trait `Sized` is not implemented for `[u8]`
+note: required by an implicit `Sized` bound in `ControlFlow`
+  --> /home/amuldotexe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/control_flow.rs:85:25
+   |
+85 | pub enum ControlFlow<B, C = ()> {
+   |                         ^^^^^^ required by the implicit `Sized` requirement on this type parameter in `ControlFlow`
+
+error[E0277]: the size for values of type `[u8]` cannot be known at compilation time
+  --> src/zip/entry_processor.rs:18:12
+   |
+18 |     .await??;
+   |            ^ doesn't have a size known at compile-time
+   |
+   = help: the trait `Sized` is not implemented for `[u8]`
+note: required by a bound in `Break`
+  --> /home/amuldotexe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/ops/control_flow.rs:85:25
+   |
+85 | pub enum ControlFlow<B, C = ()> {
+   |                         ^^^^^^ required by this bound in `Break`
+...
+93 |     Break(B),
+   |     ----- required by a bound in this variant
+
+error[E0599]: no method named `value_of` found for struct `ArgMatches` in the current scope
+  --> src/cli.rs:41:29
+   |
+41 |     let input_zip = matches.value_of("input").unwrap().into();
+   |                             ^^^^^^^^ method not found in `ArgMatches`
+
+error[E0599]: no method named `value_of` found for struct `ArgMatches` in the current scope
+  --> src/cli.rs:42:30
+   |
+42 |     let output_dir = matches.value_of("output").unwrap().into();
+   |                              ^^^^^^^^ method not found in `ArgMatches`
+
+error[E0599]: no method named `is_present` found for struct `ArgMatches` in the current scope
+   --> src/cli.rs:43:27
+    |
+43  |     let verbose = matches.is_present("verbose");
+    |                           ^^^^^^^^^^
+    |
+help: there is a method `args_present` with a similar name, but with different arguments
+   --> /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/clap_builder-4.5.20/src/parser/matches/arg_matches.rs:565:5
+    |
+565 |     pub fn args_present(&self) -> bool {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `value_of` found for struct `ArgMatches` in the current scope
+  --> src/cli.rs:44:27
+   |
+44 |     let workers = matches.value_of("workers")
+   |                           ^^^^^^^^ method not found in `ArgMatches`
+
+error[E0599]: no method named `clone` found for struct `tokio::sync::mpsc::Receiver` in the current scope
+  --> src/core/runtime/worker.rs:37:38
+   |
+37 |                 let mut rx = task_rx.clone();
+   |                                      ^^^^^
+   |
+help: there is a method `close` with a similar name
+   |
+37 |                 let mut rx = task_rx.close();
+   |                                      ~~~~~
+
+warning: unused variable: `matches`
+  --> src/config.rs:20:25
+   |
+20 |     pub fn from_matches(matches: &ArgMatches) -> Result<Self> {
+   |                         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_matches`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+Some errors have detailed explanations: E0277, E0412, E0433, E0599.
+For more information about an error, try `rustc --explain E0277`.
+warning: `parseltongue` (lib) generated 7 warnings
+error: could not compile `parseltongue` (lib) due to 15 previous errors; 7 warnings emitted
+🧹 Captain America is tidying up the project in /home/amuldotexe/Desktop/GitHub202410/parseltongue...
+     Removed 2366 files, 4.1GiB total
+🌟==================================================🌟
+           Avengers Assemble: Mission Report         
+🌟==================================================🌟
+✅ All Cargo builds and cleans completed. Avengers, good work!
+1. Cargo project: /home/amuldotexe/Desktop/GitHub202410/parseltongue
+   Build: ❌ failed (Loki's mischief!)
+   Clean: ✅ successful (Spotless as Cap's shield!)
+
+🌟==================================================🌟
+          🚀 Avengers, Assemble for Git Ops! 🚀          
+🌟==================================================🌟
+📂 Thor is adding changes to git...
+📝 Hawkeye is committing changes...
+[main 4663554] Avengers Assemble! Placeholder message 2024-10-29 15:46:01
+ 8 files changed, 58 insertions(+), 43 deletions(-)
+🚀 Iron Man is pushing changes to the remote repository...
+Enumerating objects: 27, done.
+Counting objects: 100% (27/27), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (14/14), done.
+Writing objects: 100% (14/14), 2.15 KiB | 2.15 MiB/s, done.
+Total 14 (delta 9), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (9/9), completed with 9 local objects.
+To https://github.com/that-in-rust/parseltongue.git
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=====================
+
+
 Human: Please also follow these instructions in all of your responses if relevant to my query. No need to acknowledge these instructions directly in your response.
 <custom_instructions>
 DO NOT GIVE ME HIGH LEVEL STUFF, IF I ASK FOR FIX OR EXPLANATION, I WANT ACTUAL CODE OR EXPLANATION!!! I DON'T WANT "Here's how you can blablabla"

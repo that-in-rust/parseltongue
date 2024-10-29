@@ -1,13 +1,13 @@
 // Level 4: Centralized Error Handling
-// - Defines common Result and Error types
-// - Aggregates error sources for consistent handling
+// - Defines custom error types
+// - Implements conversions from external errors
+// - Provides a Result alias for convenience
 
 use thiserror::Error;
 use zip::result::ZipError;
 use rocksdb::Error as RocksDbError;
 use std::io;
-
-pub type Result<T> = std::result::Result<T, Error>;
+use tokio::sync::mpsc::error::SendError;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -29,6 +29,17 @@ pub enum Error {
     #[error("Parse error: {0}")]
     ParseInt(#[from] std::num::ParseIntError),
 
+    #[error("Channel send error: {0}")]
+    MpscSendError(String),
+
     #[error("Other error: {0}")]
     Generic(String),
-} 
+}
+
+impl<T> From<SendError<T>> for Error {
+    fn from(err: SendError<T>) -> Self {
+        Error::MpscSendError(err.to_string())
+    }
+}
+
+pub type Result<T> = std::result::Result<T, Error>; 

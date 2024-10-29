@@ -1,12 +1,10 @@
 // Level 4: Worker Pool Management
-// - Manages a pool of worker tasks for CPU-intensive operations
-// - Implements task distribution and backpressure control
-// - Tracks worker metrics
+// - Manages a pool of worker tasks
+// - Distributes tasks and collects metrics
 
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
-use tokio::sync::{mpsc, Semaphore};
+use tokio::sync::{mpsc, Semaphore, Mutex};
 use tokio::task::JoinHandle;
 use crate::error::Result;
 use crate::metrics::WorkerMetrics;
@@ -25,25 +23,37 @@ struct Task {
 }
 
 impl WorkerPool {
+    // Level 3: Create a new worker pool
     pub fn new(size: usize) -> Self {
-        let (task_tx, mut task_rx) = mpsc::channel::<Task>(size * 2);
-        let metrics = Arc::new(WorkerMetrics::new());
+        let (task_tx, task_rx) = mpsc::channel::<Task>(size * 2);
+        let metrics = Arc::new(WorkerMetrics { /* ... */ });
         let limiter = Arc::new(Semaphore::new(size));
+
+        let task_rx = Arc::new(Mutex::new(task_rx));
 
         let workers = (0..size)
             .map(|id| {
                 let metrics = metrics.clone();
                 let limiter = limiter.clone();
-                let mut rx = task_rx.clone();
+                let task_rx = task_rx.clone();
 
                 tokio::spawn(async move {
-                    while let Some(task) = rx.recv().await {
-                        let _permit = limiter.acquire().await.unwrap();
-                        let start = std::time::Instant::now();
+                    loop {
+                        let task = {
+                            let mut rx = task_rx.lock().await;
+                            rx.recv().await
+                        };
 
-                        (task.payload)();
+                        if let Some(task) = task {
+                            let _permit = limiter.acquire().await.unwrap();
+                            let start = std::time::Instant::now();
 
-                        metrics.record_task(id, start.elapsed());
+                            (task.payload)();
+
+                            metrics.record_task(id, start.elapsed());
+                        } else {
+                            break;
+                        }
                     }
                 })
             })
@@ -57,6 +67,7 @@ impl WorkerPool {
         }
     }
 
+    // Level 2: Submit a task to the pool
     pub async fn submit<F>(&self, task: F) -> Result<()>
     where
         F: FnOnce() + Send + 'static,
@@ -68,17 +79,15 @@ impl WorkerPool {
             payload: Box::new(task),
         };
 
-        self.task_tx.send(task).await?;
-        Ok(())
+        self.task_tx.send(task).await.map_err(|e| e.into())
     }
 
+    // Level 1: Shutdown the worker pool
     pub async fn shutdown(self) -> Result<()> {
         drop(self.task_tx);
-
         for worker in self.workers {
             worker.await?;
         }
-
         Ok(())
     }
 } 
