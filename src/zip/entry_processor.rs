@@ -5,18 +5,20 @@
 
 use crate::storage::Database;
 use crate::error::Result;
-use std::io::Read;
+use tokio::task::spawn_blocking;
 use zip::read::ZipFile;
 
-pub async fn process_entry(entry: &mut ZipFile<'_>, db: &Database) -> Result<()> {
-    // Level 3: Read entry data
-    let mut data = Vec::new();
-    entry.read_to_end(&mut data)?;
+pub async fn process_entry(zip_file: &mut ZipFile<'_>, db: &Database) -> Result<()> {
+    // Read entry data in blocking task
+    let data = spawn_blocking(move || {
+        let mut data = Vec::new();
+        zip_file.read_to_end(&mut data)?;
+        Ok::<Vec<u8>, Error>(data)
+    })
+    .await??;
 
-    // Level 3: Perform CRC validation if necessary (omitted for simplicity)
-
-    // Level 3: Store data in the database
-    let key = entry.name().to_string();
+    // Store data in the database asynchronously
+    let key = zip_file.name().to_string();
     db.store(&key, &data).await?;
 
     Ok(())

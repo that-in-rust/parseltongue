@@ -10,6 +10,7 @@ use tokio::sync::{mpsc, Semaphore};
 use tokio::task::JoinHandle;
 use crate::error::Result;
 use crate::metrics::WorkerMetrics;
+use tracing::error;
 
 pub struct WorkerPool {
     workers: Vec<JoinHandle<()>>,

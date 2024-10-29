@@ -29,7 +29,7 @@ pub async fn run(config: Config) -> Result<()> {
 
     // Level 3: Shutdown resources
     db.close().await?;
-    metrics::shutdown().await?;
+    metrics::shutdown().await;
 
     Ok(())
 } 

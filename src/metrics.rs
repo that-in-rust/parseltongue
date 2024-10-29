@@ -3,7 +3,7 @@
 // - Records metrics to files
 // - Manages worker metrics
 
-use tokio_metrics::RuntimeMonitor;
+use tokio_metrics::TaskMonitor;
 use tokio::time::{self, Duration};
 use crate::output::OutputDirs;
 use std::fs::File;
@@ -59,10 +59,10 @@ impl WorkerMetrics {
     }
 }
 
-static MONITOR: once_cell::sync::Lazy<Mutex<Option<RuntimeMonitor>>> = once_cell::sync::Lazy::new(|| Mutex::new(None));
+static MONITOR: once_cell::sync::Lazy<Mutex<Option<TaskMonitor>>> = once_cell::sync::Lazy::new(|| Mutex::new(None));
 
 pub async fn start_collection(output_dirs: &OutputDirs) {
-    let mut monitor = RuntimeMonitor::new();
+    let monitor = TaskMonitor::new();
     {
         let mut mon = MONITOR.lock().unwrap();
         *mon = Some(monitor.clone());
@@ -75,14 +75,13 @@ pub async fn start_collection(output_dirs: &OutputDirs) {
         let mut interval = time::interval(Duration::from_secs(1));
         loop {
             interval.tick().await;
-            let stats = monitor.collect();
+            let stats = monitor.cumulative();
             let _ = writeln!(file, "{:?}", stats);
         }
     });
 }
 
-pub async fn shutdown() -> Result<()> {
+pub async fn shutdown() {
     let mut mon = MONITOR.lock().unwrap();
     *mon = None;
-    Ok(())
 } 

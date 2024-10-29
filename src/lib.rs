@@ -16,8 +16,8 @@ pub mod storage;
 pub mod zip;
 
 // Level 3: Key type re-exports
-pub use crate::error::{Error, Result};
-pub use crate::config::Config;
+pub use error::{Error, Result};
+pub use config::Config;
 
 // Level 2: Public API
 pub async fn process_zip_file(input: &str, output: &str) -> Result<()> {

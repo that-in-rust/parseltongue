@@ -6,7 +6,7 @@ use std::path::Path;
 use std::sync::Arc;
 use rocksdb::{DB, Options, Error as RocksDbError};
 use crate::error::Result;
-use tokio::task;
+use tokio::task::spawn_blocking;
 
 pub struct Database {
     db: Arc<DB>,
@@ -32,7 +32,7 @@ impl Database {
         let key = key.to_owned();
         let value = value.to_owned();
 
-        task::spawn_blocking(move || db.put(key, value)).await??;
+        spawn_blocking(move || db.put(key, value)).await??;
 
         Ok(())
     }

@@ -3,43 +3,55 @@ use crate::storage::Database;
 use crate::zip::entry_processor::process_entry;
 use crate::error::{Result, Error};
 use tokio::sync::Semaphore;
-use tokio::task;
-use std::fs::File;
-use std::io::SeekFrom;
-use tokio_stream::wrappers::ReceiverStream;
+use std::sync::Arc;
+use tokio::task::spawn_blocking;
 use zip::ZipArchive;
+use std::fs::File;
+use std::io::BufReader;
+use tokio::sync::Mutex;
 
 pub async fn process_zip(config: &Config, db: &Database) -> Result<()> {
-    // Level 3: Validate and open ZIP file
-    let zip_path = config.input_zip.clone();
-    let file = task::spawn_blocking(move || File::open(zip_path)).await??;
-
-    // Level 3: Create ZipArchive
-    let mut archive = task::spawn_blocking(|| ZipArchive::new(file)).await??;
-
-    // Level 3: Set up concurrency controls
     let semaphore = Arc::new(Semaphore::new(config.workers));
-    let (tx, rx) = tokio::sync::mpsc::channel(100);
+    let db = Arc::new(db.clone());
+    let input_zip = config.input_zip.clone();
 
-    // Level 3: Spawn tasks for each entry
-    for i in 0..archive.len() {
-        let mut zip_file = archive.by_index(i)?;
-        let db_clone = db.clone();
+    // Open ZIP archive in blocking task
+    let archive = spawn_blocking(move || {
+        let file = File::open(&input_zip)?;
+        let reader = BufReader::new(file);
+        let archive = ZipArchive::new(reader)?;
+        Ok::<ZipArchive<BufReader<File>>, Error>(archive)
+    })
+    .await??;
+
+    let num_files = archive.len();
+    let archive = Arc::new(Mutex::new(archive));
+
+    let mut handles = Vec::new();
+
+    for i in 0..num_files {
         let permit = semaphore.clone().acquire_owned().await?;
-        let tx = tx.clone();
+        let db_clone = db.clone();
+        let archive = archive.clone();
 
-        task::spawn(async move {
+        let handle = tokio::spawn(async move {
             let _permit = permit;
+            let mut archive = archive.lock().await;
+            let mut zip_file = archive.by_index(i)?;
+
             if let Err(e) = process_entry(&mut zip_file, &db_clone).await {
                 tracing::error!("Error processing entry: {:?}", e);
             }
-            let _ = tx.send(()).await;
+            Ok::<(), Error>(())
         });
+
+        handles.push(handle);
     }
 
-    // Level 3: Wait for all tasks to complete
-    drop(tx);
-    ReceiverStream::new(rx).collect::<Vec<_>>().await;
+    // Await all tasks
+    for handle in handles {
+        handle.await??;
+    }
 
     Ok(())
 }
