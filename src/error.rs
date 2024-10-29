@@ -40,6 +40,10 @@ pub enum Error {
 
     #[error("Generic error: {0}")]
     Generic(String),
+
+    // ❌ Missing timeout errors
+    // ❌ Missing encoding errors
+    // ❌ Missing cleanup errors
 }
 
 // Implement From for SendError

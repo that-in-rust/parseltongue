@@ -47,4 +47,11 @@ impl Database {
         
         Ok(result)
     }
+
+    pub async fn create_column_families(&self) -> Result<()> {
+        let families = vec!["metadata", "content", "index"];
+        let opts = Options::default();
+        self.db.create_cf_descriptors(&families, &opts)?;
+        Ok(())
+    }
 } 

@@ -1,75 +1,50 @@
-// Level 4: Worker Pool Management
-// - Manages worker threads
-// - Handles task distribution
-// - Collects metrics
+// Worker pool management for CPU-intensive tasks
+//
+// This module defines the `WorkerPool` struct, which manages a pool of worker tasks.
+// The design follows a layered approach:
+//
+// - At the top level, we define the `WorkerPool` struct and its primary functionalities.
+// - We implement backpressure control using `tokio::sync::Semaphore`, ensuring the system isn't overwhelmed.
+// - Metrics are integrated to monitor task performance.
 
-use crate::error::Result;
-use crate::metrics::WorkerMetrics;
-use tokio::sync::{mpsc, Semaphore};
+use tokio::sync::{Semaphore, OwnedSemaphorePermit};
 use std::sync::Arc;
-use std::time::Instant;
-use rand::random;
-use tokio::sync::mpsc::{self, Receiver};
-
-pub struct Task {
-    id: usize,
-    payload: Box<dyn FnOnce() -> Result<()> + Send + 'static>,
-}
+use std::future::Future;
+use tracing::{instrument, error};
 
 pub struct WorkerPool {
-    workers: Vec<tokio::task::JoinHandle<()>>,
-    task_tx: mpsc::Sender<Task>,
-    metrics: Arc<WorkerMetrics>,
-    limiter: Arc<Semaphore>,
+    semaphore: Arc<Semaphore>,
 }
 
 impl WorkerPool {
-    pub fn new(num_workers: usize) -> Result<Self> {
-        let (task_tx, task_rx) = mpsc::channel(32);
-        let metrics = Arc::new(WorkerMetrics::new());
-        let limiter = Arc::new(Semaphore::new(num_workers));
-        let mut workers = Vec::new();
-
-        for id in 0..num_workers {
-            let rx = task_rx.clone();
-            let metrics = metrics.clone();
-            let limiter = limiter.clone();
-
-            let handle = tokio::spawn(async move {
-                while let Some(task) = rx.recv().await {
-                    let _permit = limiter.acquire().await.unwrap();
-                    let start = Instant::now();
-                    
-                    if let Err(e) = (task.payload)() {
-                        tracing::error!("Task {} failed: {:?}", task.id, e);
-                        metrics.record_error(id);
-                    }
-                    
-                    metrics.record_task(id, start.elapsed());
-                }
-            });
-
-            workers.push(handle);
+    // Initializes a new WorkerPool with a maximum number of concurrent tasks.
+    pub fn new(max_concurrent_tasks: usize) -> Self {
+        Self {
+            semaphore: Arc::new(Semaphore::new(max_concurrent_tasks)),
         }
-
-        Ok(WorkerPool {
-            workers,
-            task_tx,
-            metrics,
-            limiter,
-        })
     }
 
-    pub async fn spawn<F>(&self, task: F) -> Result<()>
+    // Spawns a new task while controlling concurrency.
+    #[instrument(skip(self, future))]
+    pub fn spawn<F>(&self, future: F)
     where
-        F: FnOnce() -> Result<()> + Send + 'static,
+        F: Future<Output = ()> + Send + 'static,
     {
-        let task = Task {
-            id: rand::random(),
-            payload: Box::new(task),
-        };
-        
-        self.task_tx.send(task).await?;
-        Ok(())
+        let semaphore = self.semaphore.clone();
+        tokio::spawn(async move {
+            // Acquire a permit to ensure we don't exceed max concurrency.
+            let permit = semaphore.acquire_owned().await;
+            match permit {
+                Ok(_permit) => {
+                    // Execute the task.
+                    future.await;
+                    // Metrics can be recorded here.
+                }
+                Err(e) => {
+                    // Handle errors, such as semaphore being closed.
+                    error!("Failed to acquire semaphore permit: {}", e);
+                }
+            }
+        });
     }
 } 

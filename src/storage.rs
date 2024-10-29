@@ -1,47 +1,49 @@
-// Level 4: Database Interactions
-// - Manages connection to RocksDB
-// - Provides async methods to store and retrieve data
+// Asynchronous database interactions using RocksDB
+//
+// This module defines the `Database` struct with async methods for data operations.
+// Key design points:
+//
+// - Synchronous RocksDB operations are wrapped in `spawn_blocking` to prevent blocking the async runtime.
+// - The API provides async `put` and `get` methods.
 
 use rocksdb::{DB, Options};
-use std::path::Path;
-use crate::error::{Result, Error};
-use std::sync::Arc;
-use tokio::task::spawn_blocking;
+use tokio::task;
+use std::path::PathBuf;
+use crate::error::Result;
 
 pub struct Database {
-    db: Arc<DB>,
+    db: DB,
 }
 
 impl Database {
-    // Level 3: Initialize the database
-    pub async fn open(path: &Path) -> Result<Self> {
-        let path = path.to_owned();
-        let db = spawn_blocking(move || {
+    // Opens a new RocksDB instance asynchronously.
+    pub async fn open(path: PathBuf) -> Result<Self> {
+        let db = task::spawn_blocking(move || {
             let mut opts = Options::default();
             opts.create_if_missing(true);
-            DB::open(&opts, path).map_err(Error::from)
-        })
-        .await??;
-
-        Ok(Database { db: Arc::new(db) })
+            DB::open(&opts, path)
+        }).await??;
+        Ok(Self { db })
     }
 
-    // Level 2: Store data asynchronously
-    pub async fn store(&self, key: &str, value: &[u8]) -> Result<()> {
+    // Asynchronously puts data into the database.
+    pub async fn put(&self, key: Vec<u8>, value: Vec<u8>) -> Result<()> {
         let db = self.db.clone();
-        let key = key.to_owned();
-        let value = value.to_owned();
-
-        spawn_blocking(move || db.put(key, value)).await??;
-
+        task::spawn_blocking(move || db.put(key, value)).await??;
         Ok(())
     }
 
-    // Level 2: Close the database gracefully
+    // Asynchronously gets data from the database.
+    pub async fn get(&self, key: Vec<u8>) -> Result<Option<Vec<u8>>> {
+        let db = self.db.clone();
+        let result = task::spawn_blocking(move || db.get(key)).await??;
+        Ok(result)
+    }
+
+    // Closes the database.
     pub async fn close(self) -> Result<()> {
-        let db = Arc::try_unwrap(self.db)
-            .map_err(|_| crate::error::Error::Generic("Database still has multiple owners".into()))?;
-        spawn_blocking(move || db.flush()).await??;
+        // RocksDB handles cleanup on drop.
+        drop(self.db);
         Ok(())
     }
 } 

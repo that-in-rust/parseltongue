@@ -1,80 +1,53 @@
-// Level 4: Metrics Collection
-// - Manages runtime metrics
-// - Handles metric recording
-// - Coordinates metric export
+// Metrics collection for runtime statistics
+//
+// This module provides functionality to start and stop metrics collection.
+// The design includes:
+//
+// - Initializing metrics exporters and collectors.
+// - Periodically recording metrics to files.
 
-use tokio_metrics::TaskMonitor;
-use tokio::time::{self, Duration};
 use crate::output::OutputDirs;
-use std::fs::File;
-use std::io::Write;
-use parking_lot::Mutex;
-use once_cell::sync::Lazy;
+use tokio::task::JoinHandle;
+use tracing::{info, error};
+use tokio_metrics::{TaskMonitor, TaskLayer};
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::Registry;
+use std::sync::Mutex;
 
-#[derive(Debug)]
-pub struct WorkerMetrics {
-    metrics: Mutex<Vec<WorkerStat>>,
+lazy_static::lazy_static! {
+    static ref METRICS_HANDLE: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
 }
 
-#[derive(Debug)]
-struct WorkerStat {
-    worker_id: usize,
-    task_count: u64,
-    error_count: u64,
-    total_duration: Duration,
-}
+pub async fn start_collection(output_dirs: &OutputDirs) {
+    // Initialize the task monitor.
+    let (layer, collector) = TaskLayer::new();
+    let subscriber = Registry::default().with(layer);
+    tracing::subscriber::set_global_default(subscriber).expect("Failed to set global subscriber");
 
-impl WorkerMetrics {
-    pub fn new() -> Self {
-        Self {
-            metrics: Mutex::new(Vec::new()),
-        }
-    }
-
-    pub fn record_task(&self, worker_id: usize, duration: Duration) {
-        let mut metrics = self.metrics.lock();
-        if let Some(stat) = metrics.iter_mut().find(|s| s.worker_id == worker_id) {
-            stat.task_count += 1;
-            stat.total_duration += duration;
-        } else {
-            metrics.push(WorkerStat {
-                worker_id,
-                task_count: 1,
-                error_count: 0,
-                total_duration: duration,
-            });
-        }
-    }
-
-    pub fn record_error(&self, worker_id: usize) {
-        let mut metrics = self.metrics.lock();
-        if let Some(stat) = metrics.iter_mut().find(|s| s.worker_id == worker_id) {
-            stat.error_count += 1;
-        }
-    }
-}
-
-static MONITOR: Lazy<Mutex<Option<TaskMonitor>>> = Lazy::new(|| Mutex::new(None));
-
-pub fn init(output_dirs: &OutputDirs) {
-    let metrics_path = output_dirs.metrics_path().join("task-metrics.json");
-    let mut file = File::create(metrics_path).expect("Failed to create metrics file");
-
-    tokio::spawn(async move {
-        let mut interval = time::interval(Duration::from_secs(1));
+    // Spawn a task to collect metrics periodically.
+    let metrics_file = output_dirs.metrics_dir.join("task-metrics.json");
+    let handle = tokio::spawn(async move {
         loop {
-            interval.tick().await;
-            if let Some(mon) = MONITOR.lock().as_ref() {
-                let stats = mon.cumulative();
-                let _ = writeln!(file, "{:?}", stats);
-            } else {
-                break;
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+            let stats = collector.snapshot();
+            // Write metrics to file.
+            if let Err(e) = tokio::fs::write(&metrics_file, serde_json::to_string(&stats).unwrap()).await {
+                error!("Failed to write metrics: {}", e);
             }
         }
     });
+
+    // Store the handle for graceful shutdown.
+    *METRICS_HANDLE.lock().unwrap() = Some(handle);
 }
 
 pub async fn shutdown() {
-    let mut mon = MONITOR.lock();
-    *mon = None;
+    // Abort the metrics collection task.
+    if let Some(handle) = METRICS_HANDLE.lock().unwrap().take() {
+        handle.abort();
+        if let Err(e) = handle.await {
+            error!("Metrics collection task error: {}", e);
+        }
+    }
+    info!("Metrics collection stopped.");
 } 
