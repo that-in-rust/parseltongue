@@ -1,42 +1,34 @@
 // Level 4: Channel Management
-// - Implements backpressure-aware channels
-// - Manages async communication
-// - Handles graceful shutdown
-// - Provides metrics collection
-
-use tokio::sync::{mpsc, oneshot};
+use tokio::sync::mpsc;
 use std::sync::Arc;
-use parking_lot::Mutex;
-use crate::core::error::{Error, Result};
+use metrics::{counter, gauge};
+use crate::core::error::Result;
 
-// Level 3: Channel Types
 pub struct Channel<T> {
     sender: mpsc::Sender<T>,
-    receiver: Arc<Mutex<mpsc::Receiver<T>>>,
+    receiver: mpsc::Receiver<T>,
     capacity: usize,
 }
 
 impl<T> Channel<T> {
-    // Level 2: Channel Creation
     pub fn new(capacity: usize) -> Self {
         let (sender, receiver) = mpsc::channel(capacity);
+        gauge!("channel.capacity").set(capacity as f64);
+        
         Self {
             sender,
-            receiver: Arc::new(Mutex::new(receiver)),
+            receiver,
             capacity,
         }
     }
 
-    // Level 1: Channel Operations
-    pub async fn send(&self, value: T) -> Result<()> {
-        self.sender.send(value).await
-            .map_err(|_| Error::Channel("Send failed".into()))
+    pub async fn send(&self, item: T) -> Result<()> {
+        self.sender.send(item).await?;
+        counter!("channel.messages").increment(1);
+        Ok(())
     }
 
-    pub async fn recv(&self) -> Result<Option<T>> {
-        self.receiver.lock()
-            .recv().await
-            .transpose()
-            .map_err(|_| Error::Channel("Receive failed".into()))
+    pub async fn recv(&mut self) -> Option<T> {
+        self.receiver.recv().await
     }
 } 

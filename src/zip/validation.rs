@@ -1,41 +1,42 @@
 // Level 4: ZIP Validation
-// - Implements CRC32 checking
 // - Validates ZIP structure
-// - Handles character encodings
-// - Reports validation metrics
+// - Checks CRC32 checksums
+// - Verifies compression
+// - Tracks validation metrics
 
-use crc32fast::Hasher;
-use encoding_rs::Encoding;
 use crate::core::error::{Error, Result};
+use metrics::{counter, gauge};
+use crc32fast::Hasher;
 
-// Level 3: Validation Types
 pub struct ZipValidator {
-    hasher: Hasher,
-    encoding: &'static Encoding,
+    crc32: Hasher,
+    total_bytes: usize,
 }
 
 impl ZipValidator {
-    // Level 2: Validation Operations
-    pub fn validate_entry(&mut self, data: &[u8], expected_crc: u32) -> Result<()> {
-        self.hasher.update(data);
-        let actual_crc = self.hasher.finalize();
-        
-        if actual_crc != expected_crc {
-            return Err(Error::Processing { 
-                msg: format!("CRC mismatch: expected {}, got {}", expected_crc, actual_crc) 
-            });
+    pub fn new() -> Self {
+        Self {
+            crc32: Hasher::new(),
+            total_bytes: 0,
         }
-        Ok(())
     }
 
-    // Level 1: Encoding Operations
-    pub fn decode_filename(&self, raw: &[u8]) -> Result<String> {
-        let (cow, _, had_errors) = self.encoding.decode(raw);
-        if had_errors {
-            return Err(Error::Processing { 
-                msg: "Failed to decode filename".into() 
-            });
+    pub fn update(&mut self, data: &[u8]) {
+        self.crc32.update(data);
+        self.total_bytes += data.len();
+        gauge!("zip.validation.bytes").set(self.total_bytes as f64);
+    }
+
+    pub fn validate(&self, expected_crc32: u32) -> Result<()> {
+        let actual_crc32 = self.crc32.clone().finalize();
+        if actual_crc32 != expected_crc32 {
+            counter!("zip.validation.errors").increment(1);
+            return Err(Error::Validation(format!(
+                "CRC32 mismatch: expected {:x}, got {:x}",
+                expected_crc32, actual_crc32
+            )));
         }
-        Ok(cow.into_owned())
+        counter!("zip.validation.success").increment(1);
+        Ok(())
     }
 } 

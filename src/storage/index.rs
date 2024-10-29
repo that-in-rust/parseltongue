@@ -1,30 +1,43 @@
 // Level 4: Storage Indexing
 // - Manages file indices
-// - Handles key generation
-// - Implements search
-// - Provides metrics
+// - Handles search operations
+// - Provides caching
+// - Tracks index metrics
 
 use crate::core::error::Result;
-use crate::core::types::Entry;
-use std::path::PathBuf;
+use metrics::{counter, gauge};
+use std::collections::HashMap;
+use tokio::sync::RwLock;
+use std::sync::Arc;
 
-// Level 3: Index Management
 pub struct StorageIndex {
-    prefix: PathBuf,
-    counter: std::sync::atomic::AtomicU64,
+    entries: Arc<RwLock<HashMap<String, EntryMetadata>>>,
+}
+
+#[derive(Clone, Debug)]
+pub struct EntryMetadata {
+    pub size: u64,
+    pub offset: u64,
+    pub crc32: u32,
 }
 
 impl StorageIndex {
-    // Level 2: Index Operations
-    pub fn generate_key(&self, entry: &Entry) -> Vec<u8> {
-        let id = self.counter.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-        let key_path = self.prefix.join(format!("{:016x}", id));
-        key_path.to_string_lossy().as_bytes().to_vec()
+    pub fn new() -> Self {
+        Self {
+            entries: Arc::new(RwLock::new(HashMap::new())),
+        }
     }
 
-    // Level 1: Search Operations
-    pub async fn find_by_path(&self, path: &PathBuf) -> Result<Option<Vec<u8>>> {
-        // TODO: Implement path-based search
-        Ok(None)
+    pub async fn insert(&self, path: String, metadata: EntryMetadata) -> Result<()> {
+        let mut entries = self.entries.write().await;
+        entries.insert(path, metadata);
+        gauge!("storage.index.entries").set(entries.len() as f64);
+        counter!("storage.index.inserts").increment(1);
+        Ok(())
+    }
+
+    pub async fn get(&self, path: &str) -> Option<EntryMetadata> {
+        let entries = self.entries.read().await;
+        entries.get(path).cloned()
     }
 } 

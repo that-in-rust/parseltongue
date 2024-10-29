@@ -1,47 +1,57 @@
-// Level 4: Resource Cleanup
-// - Manages resource lifecycle
-// - Implements RAII patterns
-// - Handles cleanup errors
-// - Provides cleanup metrics
+// Level 4: Cleanup Management
+// - Handles resource cleanup
+// - Manages temporary files
+// - Coordinates shutdown
+// - Tracks cleanup metrics
 
-use std::future::Future;
-use std::pin::Pin;
 use tokio::sync::oneshot;
+use std::path::PathBuf;
+use metrics::{counter, gauge};
 use crate::core::error::Result;
 
-// Level 3: Cleanup Manager
 pub struct CleanupManager {
-    handlers: Vec<Box<dyn FnOnce() -> Pin<Box<dyn Future<Output = Result<()>> + Send>> + Send>>,
+    temp_files: Vec<PathBuf>,
     shutdown_tx: Option<oneshot::Sender<()>>,
 }
 
 impl CleanupManager {
-    // Level 2: Handler Management
     pub fn new() -> Self {
-        let (shutdown_tx, _) = oneshot::channel();
         Self {
-            handlers: Vec::new(),
-            shutdown_tx: Some(shutdown_tx),
+            temp_files: Vec::new(),
+            shutdown_tx: None,
         }
     }
 
-    // Level 1: Cleanup Operations
-    pub fn add_handler<F, Fut>(&mut self, f: F)
-    where
-        F: FnOnce() -> Fut + Send + 'static,
-        Fut: Future<Output = Result<()>> + Send + 'static,
-    {
-        self.handlers.push(Box::new(move || Box::pin(f())));
+    pub fn register_temp_file(&mut self, path: PathBuf) {
+        self.temp_files.push(path);
+        gauge!("cleanup.temp_files").set(self.temp_files.len() as f64);
     }
 
-    pub async fn cleanup(mut self) -> Result<()> {
+    pub async fn cleanup(&mut self) -> Result<()> {
+        for path in self.temp_files.drain(..) {
+            if let Err(e) = tokio::fs::remove_file(&path).await {
+                counter!("cleanup.errors").increment(1);
+                log::warn!("Failed to remove temp file {}: {}", path.display(), e);
+            } else {
+                counter!("cleanup.files_removed").increment(1);
+            }
+        }
+        
         if let Some(tx) = self.shutdown_tx.take() {
             let _ = tx.send(());
         }
-
-        for handler in self.handlers {
-            handler().await?;
-        }
+        
         Ok(())
     }
+}
+
+impl Drop for CleanupManager {
+    fn drop(&mut self) {
+        for path in &self.temp_files {
+            if let Err(e) = std::fs::remove_file(path) {
+                log::error!("Failed to remove temp file in cleanup: {}", e);
+            }
+        }
+    }
+} 
 } 

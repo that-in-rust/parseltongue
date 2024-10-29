@@ -1,7 +1,13 @@
 // Level 4: Worker Pool Management
+// - Manages async task execution
+// - Handles backpressure
+// - Tracks worker metrics
+// - Provides graceful shutdown
+
 use tokio::sync::Semaphore;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use metrics::{counter, gauge};
 use crate::core::error::Result;
 
 pub struct WorkerPool {
@@ -28,8 +34,12 @@ impl WorkerPool {
         tokio::spawn(async move {
             let _permit = sem.acquire().await.unwrap();
             count.fetch_add(1, Ordering::SeqCst);
+            gauge!("worker.active").set(count.load(Ordering::SeqCst) as f64);
+            
             let result = future().await;
+            
             count.fetch_sub(1, Ordering::SeqCst);
+            gauge!("worker.active").set(count.load(Ordering::SeqCst) as f64);
             result
         });
         

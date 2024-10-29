@@ -2,12 +2,12 @@
 // - Manages RocksDB instance
 // - Handles async operations
 // - Provides CRUD interface
-// - Implements metrics
+// - Implements metrics collection
 
 use tokio::task;
 use rocksdb::{DB, Options};
 use std::path::Path;
-use crate::core::error::{Error, Result};
+use crate::core::error::Result;
 use metrics::{counter, gauge};
 
 pub struct Database {
@@ -27,7 +27,7 @@ impl Database {
 
         Ok(Self {
             inner: db,
-            metrics_prefix: "storage.db".to_string(),
+            metrics_prefix: "storage.db".into(),
         })
     }
 

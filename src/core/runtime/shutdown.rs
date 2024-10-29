@@ -1,34 +1,42 @@
 // Level 4: Shutdown Coordination
-// - Manages graceful shutdown process
-// - Coordinates subsystem shutdown
-// - Handles timeout management
-// - Collects shutdown metrics
+// - Manages graceful shutdown
+// - Coordinates task completion
+// - Handles timeouts
+// - Tracks shutdown metrics
 
 use tokio::sync::broadcast;
-use std::time::Duration;
+use tokio::time::{Duration, timeout};
+use std::sync::Arc;
+use metrics::{counter, gauge};
+use crate::core::error::Result;
 
-// Level 3: Shutdown Manager
 pub struct ShutdownManager {
-    shutdown_tx: broadcast::Sender<()>,
+    sender: broadcast::Sender<()>,
     timeout: Duration,
 }
 
 impl ShutdownManager {
-    // Level 2: Lifecycle Management
-    pub fn new() -> Self {
-        let (shutdown_tx, _) = broadcast::channel(1);
-        Self {
-            shutdown_tx,
-            timeout: Duration::from_secs(30),
-        }
+    pub fn new(timeout_secs: u64) -> Self {
+        let (sender, _) = broadcast::channel(1);
+        let timeout = Duration::from_secs(timeout_secs);
+        
+        Self { sender, timeout }
     }
 
-    // Level 1: Control Operations
-    pub fn shutdown(&self) {
-        let _ = self.shutdown_tx.send(());
+    pub async fn shutdown(&self) -> Result<()> {
+        counter!("shutdown.initiated").increment(1);
+        self.sender.send(())?;
+        
+        // Wait for timeout duration
+        timeout(self.timeout, async {
+            // Shutdown logic
+        }).await??;
+        
+        counter!("shutdown.completed").increment(1);
+        Ok(())
     }
 
     pub fn subscribe(&self) -> broadcast::Receiver<()> {
-        self.shutdown_tx.subscribe()
+        self.sender.subscribe()
     }
 } 

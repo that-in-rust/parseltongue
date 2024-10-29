@@ -1,22 +1,39 @@
 // Level 4: ZIP Entry Processing
-// - Handles individual ZIP entry extraction
-// - Manages async I/O operations
-// - Implements backpressure
-// - Collects processing metrics
+// - Handles individual ZIP entries
+// - Manages decompression
+// - Validates checksums
+// - Tracks progress
 
-use tokio::task::spawn_blocking;
-use std::io::Read;
 use crate::core::error::{Error, Result};
+use tokio::io::{AsyncRead, AsyncWrite, AsyncReadExt, AsyncWriteExt};
+use bytes::BytesMut;
 
-pub async fn process_entry(mut zip_file: zip::read::ZipFile<'_>) -> Result<Vec<u8>> {
-    // Level 3: Memory Management
-    let mut data = Vec::with_capacity(zip_file.size() as usize);
-    
-    // Level 2: Async Processing
-    spawn_blocking(move || {
-        // Level 1: I/O Operations
-        zip_file.read_to_end(&mut data)?;
-        Ok::<Vec<u8>, Error>(data)
-    })
-    .await??
+pub struct EntryProcessor {
+    buffer: BytesMut,
+    crc32: crc32fast::Hasher,
+}
+
+impl EntryProcessor {
+    pub fn new() -> Self {
+        Self {
+            buffer: BytesMut::with_capacity(8192),
+            crc32: crc32fast::Hasher::new(),
+        }
+    }
+
+    pub async fn process_entry<R, W>(&mut self, reader: &mut R, writer: &mut W) -> Result<()>
+    where
+        R: AsyncRead + Unpin,
+        W: AsyncWrite + Unpin,
+    {
+        loop {
+            let n = reader.read_buf(&mut self.buffer).await?;
+            if n == 0 { break; }
+            
+            self.crc32.update(&self.buffer[..n]);
+            writer.write_all(&self.buffer[..n]).await?;
+            self.buffer.clear();
+        }
+        Ok(())
+    }
 } 

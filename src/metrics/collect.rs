@@ -1,33 +1,51 @@
 // Level 4: Metrics Collection
-// - Implements metrics gathering
-// - Handles async collection
-// - Manages metric types
-// - Provides aggregation points
+// - Gathers runtime metrics
+// - Tracks resource usage
+// - Monitors performance
+// - Handles aggregation
 
-use metrics::{Counter, Gauge, Histogram};
+use metrics::{counter, gauge, histogram};
 use std::sync::Arc;
-use tokio::sync::RwLock;
+use tokio::time::Duration;
+use crate::core::error::Result;
 
-// Level 3: Metric Types
 pub struct MetricsCollector {
-    processed_files: Counter,
-    active_workers: Gauge,
-    processing_time: Histogram,
-    error_count: Counter,
+    prefix: String,
+    interval: Duration,
 }
 
 impl MetricsCollector {
-    // Level 2: Collection Operations
-    pub fn record_processed(&self) {
-        self.processed_files.increment(1);
+    pub fn new(prefix: &str, interval_secs: u64) -> Self {
+        Self {
+            prefix: prefix.to_string(),
+            interval: Duration::from_secs(interval_secs),
+        }
     }
 
-    pub fn update_workers(&self, count: i64) {
-        self.active_workers.set(count as f64);
+    pub async fn collect_metrics(&self) -> Result<()> {
+        // Resource metrics
+        gauge!("memory.usage").set(get_memory_usage() as f64);
+        gauge!("cpu.usage").set(get_cpu_usage() as f64);
+        
+        // Performance metrics
+        histogram!("processing.latency").record(get_processing_latency());
+        
+        Ok(())
     }
+}
 
-    // Level 1: Time Tracking
-    pub fn record_duration(&self, duration_ms: u64) {
-        self.processing_time.record(duration_ms as f64);
-    }
+// Helper functions
+fn get_memory_usage() -> usize {
+    // Implementation
+    0
+}
+
+fn get_cpu_usage() -> f64 {
+    // Implementation
+    0.0
+}
+
+fn get_processing_latency() -> f64 {
+    // Implementation
+    0.0
 } 

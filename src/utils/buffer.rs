@@ -1,42 +1,49 @@
 // Level 4: Buffer Management
-// - Implements buffer pooling
-// - Manages memory limits
-// - Handles buffer recycling
-// - Provides metrics collection
+// - Manages memory buffers
+// - Handles pooling
+// - Provides metrics
+// - Controls allocation
 
-use bytes::{BytesMut, BufMut};
+use bytes::BytesMut;
 use std::sync::Arc;
-use parking_lot::Mutex;
+use tokio::sync::Semaphore;
+use metrics::{counter, gauge};
+use crate::core::error::Result;
 
-// Level 3: Buffer Pool
 pub struct BufferPool {
-    buffers: Arc<Mutex<Vec<BytesMut>>>,
+    buffers: Vec<BytesMut>,
+    semaphore: Arc<Semaphore>,
     buffer_size: usize,
-    max_buffers: usize,
 }
 
 impl BufferPool {
-    // Level 2: Pool Operations
-    pub fn new(buffer_size: usize, max_buffers: usize) -> Self {
+    pub fn new(capacity: usize, buffer_size: usize) -> Self {
+        let buffers = (0..capacity)
+            .map(|_| BytesMut::with_capacity(buffer_size))
+            .collect();
+            
+        gauge!("buffer.pool.capacity").set(capacity as f64);
+        gauge!("buffer.size").set(buffer_size as f64);
+        
         Self {
-            buffers: Arc::new(Mutex::new(Vec::with_capacity(max_buffers))),
+            buffers,
+            semaphore: Arc::new(Semaphore::new(capacity)),
             buffer_size,
-            max_buffers,
         }
     }
 
-    // Level 1: Buffer Management
-    pub fn acquire(&self) -> BytesMut {
-        let mut buffers = self.buffers.lock();
-        buffers.pop()
-            .unwrap_or_else(|| BytesMut::with_capacity(self.buffer_size))
+    pub async fn acquire(&self) -> Result<BytesMut> {
+        let _permit = self.semaphore.acquire().await?;
+        let buffer = self.buffers.pop()
+            .unwrap_or_else(|| BytesMut::with_capacity(self.buffer_size));
+            
+        counter!("buffer.acquired").increment(1);
+        Ok(buffer)
     }
 
     pub fn release(&self, mut buffer: BytesMut) {
         buffer.clear();
-        let mut buffers = self.buffers.lock();
-        if buffers.len() < self.max_buffers {
-            buffers.push(buffer);
-        }
+        self.buffers.push(buffer);
+        counter!("buffer.released").increment(1);
     }
 } 
