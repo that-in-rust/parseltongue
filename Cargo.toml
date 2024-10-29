@@ -5,11 +5,13 @@ version = "0.1.0"
 edition = "2021"
 authors = ["amuldotexe"]
 description = "A Tokio-based ZIP file analyzer and storage system"
+repository = "https://github.com/amuldotexe/parseltongue"
+license = "MIT OR Apache-2.0"
 
 # ===== Level 3: Feature Configuration =====
 [features]
 default = ["metrics"]
-metrics = ["metrics-util", "tokio-console"]
+metrics = ["dep:metrics-util", "dep:tokio-console"]
 
 # ===== Level 2: Dependencies by Category =====
 [dependencies]
@@ -17,13 +19,14 @@ metrics = ["metrics-util", "tokio-console"]
 tokio = { version = "1.36", features = ["full"] }
 tokio-util = { version = "0.7", features = ["codec"] }
 tokio-stream = "0.1"
+futures = "0.3"
 
 # Storage
 sled = "0.34"
+bytes = "1.5"
 
 # ZIP Processing
 zip = "0.6"
-bytes = "1.5"
 encoding_rs = "0.8"
 
 # CLI
@@ -35,14 +38,13 @@ thiserror = "1.0"
 
 # Logging & Metrics
 tracing = "0.1"
-tracing-subscriber = "0.3"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 indicatif = "0.17"
 metrics = "0.21"
 metrics-util = { version = "0.15", optional = true }
 tokio-console = { version = "0.1", optional = true }
 
 # Utilities
-futures = "0.3"
 chrono = "0.4"
 num_cpus = "1.0"
 serde = { version = "1.0", features = ["derive"] }

@@ -1,241 +1,142 @@
-//! Graceful Shutdown Management
-//! 
-//! Pyramid Structure:
-//! 
-//! Level 4 (Top): Shutdown Coordination
-//! - ShutdownManager   (coordinates shutdown)
-//!   ├── Phase tracking
-//!   ├── Resource cleanup
-//!   └── Timeout handling
-//! 
-//! Level 3: Resource Management
-//! - ResourceManager   (manages cleanup)
-//!   ├── Cleanup ordering
-//!   ├── Error handling
-//!   └── Timeout handling
-//! 
-//! Level 2: Cleanup Implementation
-//! - CleanupTask      (cleanup task)
-//!   ├── Task execution
-//!   ├── Error handling
-//!   └── Timeout handling
-//! 
-//! Level 1 (Base): Core Types
-//! - ShutdownPhase    (shutdown states)
-//! - ShutdownConfig   (configuration)
-//! - ShutdownError    (error types)
+//! Shutdown Management - Pyramidal Structure
+//! Layer 1: Core Types & Traits
+//! Layer 2: Resource Management
+//! Layer 3: Shutdown Coordination
+//! Layer 4: Cleanup Handling
+//! Layer 5: Metrics Collection
 
 use std::sync::Arc;
-use tokio::sync::{broadcast, Mutex};
-use tokio::time::{Duration, timeout, Instant};
-use metrics::{Counter, Gauge, Histogram};
-use futures::future::join_all;
-use crate::core::{error::{Error, Result}, types::*};
-use tracing::{info, warn, error};
+use tokio::sync::{broadcast, RwLock};
+use tokio::time::{Duration, timeout};
+use anyhow::{Context, Result};
+use tracing::{error, info, warn};
 
-// Design Choice: Using enums for explicit state transitions
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ShutdownPhase {
-    Initiated,
-    DrainingSoftly,
-    ForcingShutdown,
-    Completed,
-}
+use super::RuntimeConfig;
 
-// Design Choice: Using async traits for cleanup
-#[async_trait::async_trait]
-pub trait ResourceCleanup: Send + Sync {
-    async fn cleanup(&self) -> Result<()>;
-    async fn force_cleanup(&self) -> Result<()>;
-}
-
-// Design Choice: Using builder pattern for configuration
-#[derive(Debug, Clone)]
-pub struct ShutdownConfig {
-    pub graceful_timeout: Duration,
-    pub force_timeout: Duration,
-    pub cleanup_order: Vec<CleanupPriority>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum CleanupPriority {
-    High,
-    Normal,
-    Low,
-}
-
-// Design Choice: Using metrics for monitoring
+// Layer 1: Core Types
 #[derive(Debug)]
-struct ShutdownMetrics {
-    active_tasks: Gauge,
-    pending_resources: Gauge,
-    shutdown_duration: Histogram,
-    forced_shutdowns: Counter,
-}
-
-impl ShutdownMetrics {
-    fn new() -> Self {
-        Self {
-            active_tasks: Gauge::new(),
-            pending_resources: Gauge::new(),
-            shutdown_duration: Histogram::new(),
-            forced_shutdowns: Counter::new(),
-        }
-    }
-}
-
-// Design Choice: Using Arc for shared state
 pub struct ShutdownManager {
-    config: ShutdownConfig,
+    config: RuntimeConfig,
+    state: Arc<RwLock<ShutdownState>>,
     shutdown_tx: broadcast::Sender<()>,
-    resources: Vec<(CleanupPriority, Arc<dyn ResourceCleanup>)>,
-    metrics: Arc<ShutdownMetrics>,
-    phase: Arc<Mutex<ShutdownPhase>>,
-    deadline: Arc<Mutex<Option<Instant>>>,
 }
 
+#[derive(Debug, Default)]
+struct ShutdownState {
+    is_shutting_down: bool,
+    active_tasks: usize,
+}
+
+// Layer 2: Implementation
 impl ShutdownManager {
-    pub fn new(config: ShutdownConfig) -> Self {
+    pub fn new(config: RuntimeConfig) -> Self {
         let (shutdown_tx, _) = broadcast::channel(1);
-        
         Self {
             config,
+            state: Arc::new(RwLock::new(ShutdownState::default())),
             shutdown_tx,
-            resources: Vec::new(),
-            metrics: Arc::new(ShutdownMetrics::new()),
-            phase: Arc::new(Mutex::new(ShutdownPhase::Initiated)),
-            deadline: Arc::new(Mutex::new(None)),
         }
     }
 
-    pub fn register_resource(&mut self, priority: CleanupPriority, resource: Arc<dyn ResourceCleanup>) {
-        self.resources.push((priority, resource));
-        self.metrics.pending_resources.increment(1.0);
-    }
-
-    pub async fn shutdown(mut self) -> Result<()> {
-        let start = Instant::now();
-        info!("Initiating graceful shutdown");
-
-        // Sort resources by priority
-        self.resources.sort_by_key(|(p, _)| *p);
-
-        // Set deadline
-        *self.deadline.lock().await = Some(start + self.config.graceful_timeout);
-
-        // Broadcast shutdown signal
-        let _ = self.shutdown_tx.send(());
+    // Layer 3: Task Management
+    pub async fn register_task(&self) -> Result<ShutdownGuard> {
+        let mut state = self.state.write().await;
+        if state.is_shutting_down {
+            anyhow::bail!("System is shutting down, cannot register new tasks");
+        }
+        state.active_tasks += 1;
         
-        // Update phase
-        *self.phase.lock().await = ShutdownPhase::DrainingSoftly;
+        Ok(ShutdownGuard {
+            state: Arc::clone(&self.state),
+            rx: self.shutdown_tx.subscribe(),
+        })
+    }
 
-        // Try graceful cleanup
-        let deadline = *self.deadline.lock().await.as_ref().unwrap();
-        let remaining = deadline.saturating_duration_since(Instant::now());
-
-        match timeout(remaining, self.cleanup_resources()).await {
-            Ok(Ok(_)) => {
-                info!("Graceful shutdown completed successfully");
-                *self.phase.lock().await = ShutdownPhase::Completed;
-            }
-            _ => {
-                warn!("Graceful shutdown timed out, forcing cleanup");
-                *self.phase.lock().await = ShutdownPhase::ForcingShutdown;
-                self.metrics.forced_shutdowns.increment(1);
-                
-                // Force cleanup with short timeout
-                match timeout(self.config.force_timeout, self.force_cleanup_resources()).await {
-                    Ok(Ok(_)) => info!("Forced cleanup completed"),
-                    _ => error!("Forced cleanup failed"),
-                }
-            }
+    // Layer 4: Shutdown Coordination
+    pub async fn initiate(&self) -> Result<()> {
+        info!("Initiating shutdown sequence");
+        {
+            let mut state = self.state.write().await;
+            state.is_shutting_down = true;
         }
 
-        self.metrics.shutdown_duration.record(start.elapsed());
+        // Notify all tasks
+        let _ = self.shutdown_tx.send(());
+
+        // Wait for tasks with timeout
+        let timeout_duration = self.config.shutdown_timeout;
+        match timeout(timeout_duration, self.wait_for_tasks()).await {
+            Ok(_) => Ok(()),
+            Err(_) => {
+                warn!("Shutdown timed out after {:?}", timeout_duration);
+                Ok(())
+            }
+        }
+    }
+
+    // Layer 5: State Management
+    pub async fn wait_for_tasks(&self) -> Result<()> {
+        loop {
+            let state = self.state.read().await;
+            if state.active_tasks == 0 {
+                break;
+            }
+            drop(state);
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
         Ok(())
     }
 
-    async fn cleanup_resources(&self) -> Result<()> {
-        for (_, resource) in &self.resources {
-            if let Err(e) = resource.cleanup().await {
-                error!("Resource cleanup failed: {}", e);
-            }
-            self.metrics.pending_resources.decrement(1.0);
-        }
-        Ok(())
+    pub fn is_complete(&self) -> bool {
+        matches!(self.state.try_read(), Ok(state) if state.active_tasks == 0)
     }
+}
 
-    async fn force_cleanup_resources(&self) -> Result<()> {
-        let futures: Vec<_> = self.resources.iter()
-            .map(|(_, r)| r.force_cleanup())
-            .collect();
+// Resource Guard
+#[derive(Debug)]
+pub struct ShutdownGuard {
+    state: Arc<RwLock<ShutdownState>>,
+    rx: broadcast::Receiver<()>,
+}
 
-        join_all(futures).await
-            .into_iter()
-            .collect::<Result<Vec<_>>>()?;
+impl ShutdownGuard {
+    pub async fn wait_for_shutdown(&mut self) -> Result<()> {
+        self.rx.recv().await.context("Shutdown signal failed")
+    }
+}
 
-        Ok(())
+impl Drop for ShutdownGuard {
+    fn drop(&mut self) {
+        if let Ok(mut state) = self.state.try_write() {
+            state.active_tasks = state.active_tasks.saturating_sub(1);
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokio::time::sleep;
-
-    struct TestResource {
-        cleanup_duration: Duration,
-    }
-
-    #[async_trait::async_trait]
-    impl ResourceCleanup for TestResource {
-        async fn cleanup(&self) -> Result<()> {
-            sleep(self.cleanup_duration).await;
-            Ok(())
-        }
-
-        async fn force_cleanup(&self) -> Result<()> {
-            Ok(())
-        }
-    }
 
     #[tokio::test]
-    async fn test_graceful_shutdown() {
-        let config = ShutdownConfig {
-            graceful_timeout: Duration::from_secs(1),
-            force_timeout: Duration::from_secs(1),
-            cleanup_order: vec![CleanupPriority::Normal],
+    async fn test_shutdown_sequence() {
+        let config = RuntimeConfig {
+            worker_threads: 1,
+            shutdown_timeout: Duration::from_secs(1),
         };
 
-        let mut manager = ShutdownManager::new(config);
+        let manager = ShutdownManager::new(config);
         
-        manager.register_resource(
-            CleanupPriority::Normal,
-            Arc::new(TestResource {
-                cleanup_duration: Duration::from_millis(100),
-            })
-        );
-
-        assert!(manager.shutdown().await.is_ok());
-    }
-
-    #[tokio::test]
-    async fn test_forced_shutdown() {
-        let config = ShutdownConfig {
-            graceful_timeout: Duration::from_millis(100),
-            force_timeout: Duration::from_secs(1),
-            cleanup_order: vec![CleanupPriority::Normal],
-        };
-
-        let mut manager = ShutdownManager::new(config);
+        // Register a task
+        let guard = manager.register_task().await.unwrap();
         
-        manager.register_resource(
-            CleanupPriority::Normal,
-            Arc::new(TestResource {
-                cleanup_duration: Duration::from_secs(1),
-            })
-        );
+        // Initiate shutdown
+        let shutdown_handle = tokio::spawn(async move {
+            manager.initiate().await.unwrap();
+        });
 
-        assert!(manager.shutdown().await.is_ok());
+        // Drop the guard to simulate task completion
+        drop(guard);
+        
+        shutdown_handle.await.unwrap();
     }
 }

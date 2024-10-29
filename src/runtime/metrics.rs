@@ -1,127 +1,135 @@
-//! Runtime Performance Metrics
-//! 
-//! Pyramid Structure:
-//! 
-//! Level 4 (Top): Metrics Aggregation
-//! - MetricsAggregator  (combines all runtime metrics)
-//!   ├── Performance summaries
-//!   ├── Resource utilization
-//!   └── System health
-//! 
-//! Level 3: Component Metrics
-//! - WorkerMetrics     (worker performance)
-//!   ├── Task throughput
-//!   ├── Queue depths
-//!   └── Processing latency
-//! 
-//! Level 2: Resource Metrics
-//! - ResourceMetrics   (resource usage)
-//!   ├── Memory tracking
-//!   ├── CPU utilization
-//!   └── I/O statistics
-//! 
-//! Level 1 (Base): Core Metric Types
-//! - MetricTypes      (foundational types)
-//!   ├── Counters
-//!   ├── Gauges
-//!   └── Histograms
+//! Runtime Metrics - Pyramidal Structure
+//! Layer 1: Core Metric Types
+//! Layer 2: Metric Collection
+//! Layer 3: Metric Aggregation
+//! Layer 4: Export & Reporting
+//! Layer 5: Resource Management
 
 use std::sync::Arc;
-use metrics::{Counter, Gauge, Histogram};
 use tokio::sync::RwLock;
-use crate::core::{error::Result, types::*};
+use std::time::{Duration, Instant};
+use metrics::{Counter, Gauge, Histogram};
+use serde::Serialize;
+use anyhow::Result;
 
-// Design Choice: Using atomic metrics for lock-free updates
+// Layer 1: Core Types
 #[derive(Debug)]
 pub struct RuntimeMetrics {
-    /// Tasks processed
-    pub tasks_completed: Counter,
-    /// Active workers
-    pub active_workers: Gauge,
-    /// Task latency
-    pub task_latency: Histogram,
-    /// Memory usage
-    pub memory_usage: Gauge,
-    /// CPU usage
-    pub cpu_usage: Gauge,
+    state: Arc<RwLock<MetricsState>>,
+    counters: RuntimeCounters,
+    gauges: RuntimeGauges,
+    histograms: RuntimeHistograms,
 }
 
-// ===== Level 2: Resource Metrics =====
-// Design Choice: Using RwLock for infrequent updates
-
-/// Resource utilization metrics
-pub struct ResourceMetrics {
-    /// Memory metrics
-    memory: Arc<MemoryMetrics>,
-    /// CPU metrics
-    cpu: Arc<CpuMetrics>,
-    /// I/O metrics
-    io: Arc<IoMetrics>,
+#[derive(Debug, Default, Serialize)]
+struct MetricsState {
+    start_time: Option<Instant>,
+    total_tasks: u64,
+    active_tasks: u64,
+    failed_tasks: u64,
 }
 
-// ===== Level 3: Component Metrics =====
-// Design Choice: Using channels for metric updates
-
-/// Worker-specific metrics
-pub struct WorkerMetrics {
-    /// Tasks started
-    pub tasks_started: Counter,
-    /// Tasks completed
-    pub tasks_completed: Counter,
-    /// Tasks failed
-    pub tasks_failed: Counter,
-    /// Queue depth
-    pub queue_depth: Gauge,
-    /// Processing time
-    pub processing_time: Histogram,
+// Layer 2: Metric Groups
+#[derive(Debug)]
+struct RuntimeCounters {
+    tasks_started: Counter,
+    tasks_completed: Counter,
+    tasks_failed: Counter,
+    bytes_processed: Counter,
 }
 
-// ===== Level 4: Metrics Aggregation =====
-// Design Choice: Using builder pattern for configuration
-
-/// Metrics aggregator implementation
-pub struct MetricsAggregator {
-    /// Runtime metrics
-    runtime: Arc<RuntimeMetrics>,
-    /// Resource metrics
-    resources: Arc<ResourceMetrics>,
-    /// Worker metrics
-    workers: Arc<RwLock<Vec<Arc<WorkerMetrics>>>>,
+#[derive(Debug)]
+struct RuntimeGauges {
+    active_tasks: Gauge,
+    memory_usage: Gauge,
+    worker_count: Gauge,
 }
 
-impl MetricsAggregator {
-    /// Creates new metrics aggregator
+#[derive(Debug)]
+struct RuntimeHistograms {
+    task_duration: Histogram,
+    queue_time: Histogram,
+    processing_time: Histogram,
+}
+
+// Layer 3: Implementation
+impl RuntimeMetrics {
     pub fn new() -> Self {
+        let state = Arc::new(RwLock::new(MetricsState {
+            start_time: Some(Instant::now()),
+            ..Default::default()
+        }));
+
         Self {
-            runtime: Arc::new(RuntimeMetrics::new()),
-            resources: Arc::new(ResourceMetrics::new()),
-            workers: Arc::new(RwLock::new(Vec::new())),
+            state,
+            counters: RuntimeCounters::new(),
+            gauges: RuntimeGauges::new(),
+            histograms: RuntimeHistograms::new(),
         }
     }
 
-    /// Records task completion
-    pub fn record_task_completion(&self, duration: Duration) {
-        self.runtime.tasks_completed.increment(1);
-        self.runtime.task_latency.record(duration);
+    // Layer 4: Metric Recording
+    pub async fn record_task_start(&self) {
+        self.counters.tasks_started.increment(1);
+        let mut state = self.state.write().await;
+        state.total_tasks += 1;
+        state.active_tasks += 1;
+        self.gauges.active_tasks.set(state.active_tasks as f64);
     }
 
-    /// Updates resource metrics
-    pub async fn update_resources(&self) -> Result<()> {
-        // Update memory metrics
-        let mem_info = sys_info::mem_info()?;
-        self.runtime.memory_usage.set(mem_info.total as f64);
-
-        // Update CPU metrics
-        let cpu_load = sys_info::loadavg()?;
-        self.runtime.cpu_usage.set(cpu_load.one);
-
-        Ok(())
+    pub async fn record_task_completion(&self, duration: Duration) {
+        self.counters.tasks_completed.increment(1);
+        let mut state = self.state.write().await;
+        state.active_tasks = state.active_tasks.saturating_sub(1);
+        self.gauges.active_tasks.set(state.active_tasks as f64);
+        self.histograms.task_duration.record(duration.as_secs_f64());
     }
 
-    /// Registers worker metrics
-    pub async fn register_worker(&self, metrics: Arc<WorkerMetrics>) {
-        self.runtime.active_workers.increment(1.0);
-        self.workers.write().await.push(metrics);
+    pub async fn record_task_failure(&self) {
+        self.counters.tasks_failed.increment(1);
+        let mut state = self.state.write().await;
+        state.failed_tasks += 1;
+        state.active_tasks = state.active_tasks.saturating_sub(1);
+        self.gauges.active_tasks.set(state.active_tasks as f64);
+    }
+
+    // Layer 5: Metric Export
+    pub async fn export_metrics(&self) -> Result<String> {
+        let state = self.state.read().await;
+        let metrics = serde_json::to_string_pretty(&*state)?;
+        Ok(metrics)
+    }
+}
+
+// Implementation for metric groups
+impl RuntimeCounters {
+    fn new() -> Self {
+        Self {
+            tasks_started: Counter::noop(),
+            tasks_completed: Counter::noop(),
+            tasks_failed: Counter::noop(),
+            bytes_processed: Counter::noop(),
+        }
+    }
+}
+
+impl RuntimeGauges {
+    fn new() -> Self {
+        Self {
+            active_tasks: Gauge::noop(),
+            memory_usage: Gauge::noop(),
+            worker_count: Gauge::noop(),
+        }
+    }
+}
+
+impl RuntimeHistograms {
+    fn new() -> Self {
+        Self {
+            task_duration: Histogram::noop(),
+            queue_time: Histogram::noop(),
+            processing_time: Histogram::noop(),
+        }
     }
 }
 
@@ -131,21 +139,14 @@ mod tests {
     use tokio::time::sleep;
 
     #[tokio::test]
-    async fn test_metrics_aggregation() {
-        let aggregator = MetricsAggregator::new();
+    async fn test_metrics_recording() {
+        let metrics = RuntimeMetrics::new();
         
-        // Record some metrics
-        aggregator.record_task_completion(Duration::from_millis(100));
+        metrics.record_task_start().await;
+        sleep(Duration::from_millis(100)).await;
+        metrics.record_task_completion(Duration::from_millis(100)).await;
         
-        // Update resources
-        aggregator.update_resources().await.unwrap();
-        
-        // Register worker
-        let worker_metrics = Arc::new(WorkerMetrics::new("test-worker"));
-        aggregator.register_worker(worker_metrics).await;
-        
-        // Verify metrics
-        assert_eq!(aggregator.runtime.tasks_completed.get(), 1);
-        assert_eq!(aggregator.runtime.active_workers.get(), 1.0);
+        let exported = metrics.export_metrics().await.unwrap();
+        assert!(exported.contains("total_tasks"));
     }
 }

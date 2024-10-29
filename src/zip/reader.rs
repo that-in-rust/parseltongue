@@ -1,96 +1,119 @@
-//! ZIP Reader Implementation - Pyramidal Structure
-//! Layer 1: Reader Interface
-//! Layer 2: Entry Reading
-//! Layer 3: Content Processing
-//! Layer 4: Buffering
+//! ZIP Reading - Pyramidal Structure
+//! Layer 1: Core Types & Traits
+//! Layer 2: File Operations
+//! Layer 3: ZIP Entry Reading
+//! Layer 4: Error Handling
 //! Layer 5: Resource Management
 
-use std::io::SeekFrom;
-use anyhow::Result;
-use bytes::Bytes;
+use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use anyhow::{Context, Result};
 use tokio::fs::File;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt};
-use super::{ZipConfig, ZipEntry, ZipError};
+use tokio::io::{AsyncRead, AsyncSeek, BufReader};
+use zip::ZipArchive;
+use tracing::{debug, warn};
+
+use crate::error::ErrorExt;
+use super::stream::ZipEntryStream;
 
 // Layer 1: Core Types
-pub struct ZipReader<R> 
-where
-    R: AsyncRead + AsyncSeek + Unpin,
-{
-    reader: R,
-    config: ZipConfig,
-    current_pos: u64,
+#[derive(Debug)]
+pub struct ZipReader<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> {
+    archive: Arc<ZipArchive<R>>,
+    path: PathBuf,
 }
 
 // Layer 2: Implementation
-impl<R> ZipReader<R> 
-where
-    R: AsyncRead + AsyncSeek + Unpin,
-{
-    pub fn new(reader: R, config: ZipConfig) -> Self {
-        Self {
-            reader,
-            config,
-            current_pos: 0,
+impl ZipReader<BufReader<File>> {
+    pub async fn new(path: impl AsRef<Path>) -> Result<Self> {
+        let path = path.as_ref().to_path_buf();
+        debug!("Opening ZIP file: {}", path.display());
+
+        let file = File::open(&path)
+            .await
+            .with_context(|| format!("Failed to open ZIP file: {}", path.display()))?;
+
+        let reader = BufReader::new(file);
+        let archive = tokio::task::spawn_blocking(move || {
+            ZipArchive::new(reader)
+        })
+        .await
+        .context("ZIP reading task failed")?
+        .context("Failed to parse ZIP archive")?;
+
+        Ok(Self {
+            archive: Arc::new(archive),
+            path,
+        })
+    }
+
+    // Layer 3: Entry Access
+    pub fn stream_entries(&self) -> Result<ZipEntryStream<BufReader<File>>> {
+        debug!("Creating entry stream for: {}", self.path.display());
+        ZipEntryStream::new(Arc::clone(&self.archive))
+    }
+
+    pub fn entry_count(&self) -> usize {
+        self.archive.len()
+    }
+
+    // Layer 4: Validation
+    pub fn validate(&self) -> Result<()> {
+        debug!("Validating ZIP archive: {}", self.path.display());
+        
+        if self.archive.len() == 0 {
+            warn!("ZIP archive is empty: {}", self.path.display());
+            anyhow::bail!("ZIP archive is empty");
         }
-    }
 
-    // Layer 3: Entry Reading
-    pub async fn read_entry(&mut self) -> Result<Option<ZipEntry>> {
-        let signature = self.read_u32_le().await?;
-        if signature != 0x04034b50 {
-            return Ok(None); // End of central directory
+        // Check for central directory
+        if !self.has_central_directory() {
+            warn!("ZIP archive has no central directory: {}", self.path.display());
+            anyhow::bail!("ZIP archive is corrupted (no central directory)");
         }
 
-        let _version = self.read_u16_le().await?;
-        let _flags = self.read_u16_le().await?;
-        let _method = self.read_u16_le().await?;
-        let _mod_time = self.read_u16_le().await?;
-        let _mod_date = self.read_u16_le().await?;
-        let _crc = self.read_u32_le().await?;
-        let compressed_size = self.read_u32_le().await? as u64;
-        let size = self.read_u32_le().await? as u64;
-        let name_length = self.read_u16_le().await? as usize;
-        let extra_length = self.read_u16_le().await? as usize;
-
-        // Layer 4: Name Reading
-        let mut name_bytes = vec![0u8; name_length];
-        self.reader.read_exact(&mut name_bytes).await?;
-        let name = String::from_utf8(name_bytes)
-            .map_err(|e| ZipError::FormatError(e.to_string()))?;
-
-        // Skip extra field
-        self.reader.seek(SeekFrom::Current(extra_length as i64)).await?;
-
-        // Layer 5: Content Reading
-        let mut content = vec![0u8; compressed_size as usize];
-        self.reader.read_exact(&mut content).await?;
-
-        Ok(Some(ZipEntry {
-            name,
-            size,
-            compressed_size,
-            content: std::sync::Arc::new(Bytes::from(content)),
-        }))
+        Ok(())
     }
 
-    // Helper Methods
-    async fn read_u16_le(&mut self) -> Result<u16> {
-        let mut buf = [0u8; 2];
-        self.reader.read_exact(&mut buf).await?;
-        Ok(u16::from_le_bytes(buf))
-    }
-
-    async fn read_u32_le(&mut self) -> Result<u32> {
-        let mut buf = [0u8; 4];
-        self.reader.read_exact(&mut buf).await?;
-        Ok(u32::from_le_bytes(buf))
+    // Layer 5: Internal Helpers
+    fn has_central_directory(&self) -> bool {
+        // Basic validation - if we can read the archive, it has a central directory
+        true
     }
 }
 
-impl ZipReader<File> {
-    pub async fn from_file<P: AsRef<std::path::Path>>(path: P, config: ZipConfig) -> Result<Self> {
-        let file = File::open(path).await?;
-        Ok(Self::new(file, config))
+impl<R: AsyncRead + AsyncSeek + Unpin + Send + 'static> Drop for ZipReader<R> {
+    fn drop(&mut self) {
+        debug!("Closing ZIP reader: {}", self.path.display());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::NamedTempFile;
+    use tokio::io::AsyncWriteExt;
+    use zip::write::FileOptions;
+
+    async fn create_test_zip() -> Result<NamedTempFile> {
+        let file = NamedTempFile::new()?;
+        let mut zip = zip::ZipWriter::new(std::fs::File::create(file.path())?);
+
+        zip.start_file("test.txt", FileOptions::default())?;
+        zip.write_all(b"test content")?;
+        zip.finish()?;
+
+        Ok(file)
+    }
+
+    #[tokio::test]
+    async fn test_zip_reader() -> Result<()> {
+        let test_file = create_test_zip().await?;
+        let reader = ZipReader::new(test_file.path()).await?;
+        
+        assert_eq!(reader.entry_count(), 1);
+        assert!(reader.validate().is_ok());
+        
+        Ok(())
     }
 }

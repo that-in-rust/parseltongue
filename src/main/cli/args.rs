@@ -1,71 +1,98 @@
 //! CLI Arguments - Pyramidal Structure
-//! Layer 1: Argument Definition
-//! Layer 2: Argument Parsing
-//! Layer 3: Validation & Conversion
-//! Layer 4: Error Handling
-//! Layer 5: Help Text Generation
+//! Layer 1: Argument Types
+//! Layer 2: Parsing Logic
+//! Layer 3: Validation
+//! Layer 4: Conversion
+//! Layer 5: Helper Functions
 
-use clap::{Parser, ArgAction};
 use std::path::PathBuf;
 use anyhow::Result;
-use super::config::{Config, ConfigBuilder};
+use clap::Parser;
+use super::config::Config;
 
-// Layer 1: CLI Arguments Structure
+// Layer 1: CLI Arguments
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[clap(version, about = "ZIP file analyzer and storage system")]
 pub struct Args {
     /// Input ZIP file path
-    #[arg(short = 'i', long, value_name = "FILE")]
-    input_zip: PathBuf,
+    #[clap(short, long, value_parser)]
+    pub input_zip: PathBuf,
 
     /// Output directory path
-    #[arg(short = 'o', long, value_name = "DIR")]
-    output_dir: PathBuf,
+    #[clap(short, long, value_parser)]
+    pub output_dir: PathBuf,
 
     /// Number of worker threads
-    #[arg(short = 'w', long, default_value_t = num_cpus::get())]
-    workers: usize,
+    #[clap(short, long, value_parser, default_value_t = num_cpus::get())]
+    pub workers: usize,
 
-    /// Buffer size in KB
-    #[arg(short = 'b', long, default_value_t = 8)]
-    buffer_size: usize,
+    /// Buffer size in bytes
+    #[clap(short, long, value_parser, default_value = "8192")]
+    pub buffer_size: usize,
 
     /// Shutdown timeout in seconds
-    #[arg(short = 's', long, default_value_t = 10)]
-    shutdown_timeout: u64,
+    #[clap(short, long, value_parser, default_value = "30")]
+    pub shutdown_timeout: u64,
 
     /// Enable verbose logging
-    #[arg(short = 'v', long, action = ArgAction::SetTrue)]
-    verbose: bool,
+    #[clap(short, long, env = "PARSELTONGUE_VERBOSE")]
+    pub verbose: bool,
 }
 
-// Layer 2: Argument Implementation
+// Layer 2: Implementation
 impl Args {
-    // Layer 3: Parse and Convert
-    pub fn parse_args() -> Result<Config> {
-        let args = Self::parse();
-        args.into_config()
+    pub fn parse() -> Self {
+        <Self as Parser>::parse()
     }
 
-    // Layer 4: Config Conversion
-    fn into_config(self) -> Result<Config> {
-        ConfigBuilder::new()
-            .input_zip(self.input_zip)
+    // Layer 3: Validation
+    fn validate(&self) -> Result<()> {
+        if !self.input_zip.exists() {
+            anyhow::bail!("Input file does not exist: {}", self.input_zip.display());
+        }
+        if !self.input_zip.is_file() {
+            anyhow::bail!("Input path is not a file: {}", self.input_zip.display());
+        }
+        Ok(())
+    }
+
+    // Layer 4: Conversion
+    pub fn into_config(self) -> Result<Config> {
+        self.validate()?;
+        
+        Config::builder()
+            .input_path(self.input_zip)
             .output_dir(self.output_dir)
             .workers(self.workers)
+            .buffer_size(self.buffer_size)
+            .shutdown_timeout(std::time::Duration::from_secs(self.shutdown_timeout))
+            .verbose(self.verbose)
             .build()
     }
 }
 
-// Layer 5: Custom Error Types
-#[derive(Debug, thiserror::Error)]
-pub enum ArgsError {
-    #[error("Invalid input path: {0}")]
-    InvalidInput(String),
-    
-    #[error("Invalid output path: {0}")]
-    InvalidOutput(String),
-    
-    #[error("Invalid worker count: {0}")]
-    InvalidWorkers(String),
+// Layer 5: Tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::File;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_args_validation() {
+        let temp_dir = TempDir::new().unwrap();
+        let input_file = temp_dir.path().join("test.zip");
+        File::create(&input_file).unwrap();
+
+        let args = Args {
+            input_zip: input_file,
+            output_dir: temp_dir.path().to_path_buf(),
+            workers: 2,
+            buffer_size: 8192,
+            shutdown_timeout: 30,
+            verbose: false,
+        };
+
+        assert!(args.validate().is_ok());
+    }
 }

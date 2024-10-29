@@ -1,108 +1,83 @@
-//! Error Module - Pyramidal Structure
-//! Layer 1: Error Types
-//! Layer 2: Error Context
-//! Layer 3: Error Conversion
-//! Layer 4: Error Handling
-//! Layer 5: Error Reporting
+//! Error Handling - Pyramidal Structure
+//! Layer 1: Error Types & Enums
+//! Layer 2: Error Implementations
+//! Layer 3: Result Type Aliases
+//! Layer 4: Error Conversion
+//! Layer 5: Helper Functions
 
 use std::path::PathBuf;
 use thiserror::Error;
-use std::backtrace::Backtrace;
-use tracing::{error, warn};
 
 // Layer 1: Core Error Types
-#[derive(Debug, Error)]
-pub enum ProcessorError {
-    #[error("IO error: {source} at {path:?}")]
-    Io {
-        #[from]
-        source: std::io::Error,
-        path: Option<PathBuf>,
-        backtrace: Backtrace,
-    },
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
 
     #[error("ZIP error: {0}")]
-    Zip(String, #[backtrace] Backtrace),
+    Zip(#[from] zip::result::ZipError),
 
-    #[error("Storage error: {0}")]
-    Storage(String, #[backtrace] Backtrace),
+    #[error("Database error: {0}")]
+    Database(#[from] sled::Error),
+
+    #[error("Missing configuration: {0}")]
+    MissingConfig(&'static str),
+
+    #[error("Invalid configuration: {0}")]
+    InvalidConfig(&'static str),
+
+    #[error("Path error: {0}")]
+    Path(PathBuf),
 
     #[error("Runtime error: {0}")]
-    Runtime(String, #[backtrace] Backtrace),
+    Runtime(String),
+
+    #[error("Shutdown error: {0}")]
+    Shutdown(String),
+
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
 }
 
-// Layer 2: Error Context
-#[derive(Debug)]
-pub struct ErrorContext {
-    pub file: Option<PathBuf>,
-    pub operation: String,
-    pub timestamp: std::time::SystemTime,
+// Layer 2: Result Type
+pub type Result<T> = std::result::Result<T, Error>;
+
+// Layer 3: Error Context Extensions
+pub trait ErrorExt<T> {
+    fn with_context<C>(self, ctx: C) -> Result<T>
+    where
+        C: std::fmt::Display + Send + Sync + 'static;
 }
 
-// Layer 3: Error Extensions
-pub trait ErrorExt {
-    fn with_path(self, path: impl Into<PathBuf>) -> Self;
-    fn with_context(self, context: impl Into<String>) -> Self;
-}
-
-impl ErrorExt for ProcessorError {
-    fn with_path(self, path: impl Into<PathBuf>) -> Self {
-        match self {
-            Self::Io { source, .. } => Self::Io {
-                source,
-                path: Some(path.into()),
-            },
-            other => other,
-        }
-    }
-
-    fn with_context(self, context: impl Into<String>) -> Self {
-        match self {
-            Self::Zip(_) => Self::Zip(context.into()),
-            Self::Storage(_) => Self::Storage(context.into()),
-            Self::Runtime(_) => Self::Runtime(context.into()),
-            other => other,
-        }
+impl<T, E> ErrorExt<T> for std::result::Result<T, E>
+where
+    E: Into<Error>,
+{
+    fn with_context<C>(self, ctx: C) -> Result<T>
+    where
+        C: std::fmt::Display + Send + Sync + 'static,
+    {
+        self.map_err(|e| {
+            let err: Error = e.into();
+            Error::Runtime(format!("{}: {}", ctx, err))
+        })
     }
 }
 
-// Layer 4: Result Type
-pub type Result<T> = std::result::Result<T, ProcessorError>;
-
-// Layer 5: Error Reporting
-#[derive(Debug)]
-pub struct ErrorReport {
-    error: ProcessorError,
-    context: ErrorContext,
-    backtrace: Option<std::backtrace::Backtrace>,
+// Layer 4: Helper Functions
+pub(crate) fn path_error(path: impl Into<PathBuf>) -> Error {
+    Error::Path(path.into())
 }
 
-impl ErrorReport {
-    pub fn new(error: ProcessorError) -> Self {
-        Self {
-            error,
-            context: ErrorContext {
-                file: None,
-                operation: String::new(),
-                timestamp: std::time::SystemTime::now(),
-            },
-            backtrace: std::backtrace::Backtrace::capture().into(),
-        }
-    }
+// Layer 5: Tests
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    pub fn print_report(&self) -> String {
-        use std::fmt::Write;
-        let mut output = String::new();
-
-        writeln!(&mut output, "Error: {}", self.error).unwrap();
-        if let Some(path) = &self.context.file {
-            writeln!(&mut output, "File: {}", path.display()).unwrap();
-        }
-        writeln!(&mut output, "Operation: {}", self.context.operation).unwrap();
-        if let Some(bt) = &self.backtrace {
-            writeln!(&mut output, "Backtrace:\n{}", bt).unwrap();
-        }
-
-        output
+    #[test]
+    fn test_error_context() {
+        let err: Result<()> = Err(Error::MissingConfig("test"));
+        let ctx_err = err.with_context("operation failed");
+        assert!(ctx_err.is_err());
     }
 }

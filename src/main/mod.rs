@@ -1,115 +1,88 @@
 //! Main Module - Pyramidal Structure
-//! Layer 1: Public Interface
-//! Layer 2: Module Organization
-//! Layer 3: Application Logic
+//! Layer 1: Module Organization & Exports
+//!   - Public interface and module structure
+//! Layer 2: Core Types & Traits
+//!   - Essential types and trait definitions
+//! Layer 3: Runtime Management
+//!   - Tokio runtime configuration
 //! Layer 4: Error Handling
+//!   - Error propagation and context
 //! Layer 5: Resource Management
+//!   - Cleanup and shutdown coordination
 
+// Layer 1: Module Organization
 pub mod cli;
+use cli::{Args, Config};
 
-use anyhow::Result;
-use std::path::PathBuf;
-use tokio::signal;
-use tracing::{info, error};
-use crate::{
-    runtime,
-    storage,
-    metrics,
-};
-use chrono::Local;
+use anyhow::{Context, Result};
+use tokio::runtime::Runtime;
+use tracing::{error, info};
 
-// Layer 1: Core Types
-pub struct Application {
-    config: cli::Config,
+// Layer 2: Core Runtime Management
+pub struct MainRunner {
+    config: Config,
+    runtime: Runtime,
 }
 
-// Layer 2: Implementation
-impl Application {
-    pub fn new(config: cli::Config) -> Self {
-        Self { config }
+// Layer 3: Implementation
+impl MainRunner {
+    pub fn new(config: Config) -> Result<Self> {
+        let runtime = tokio::runtime::Builder::new_multi_thread()
+            .worker_threads(config.workers)
+            .enable_all()
+            .build()
+            .context("Failed to create Tokio runtime")?;
+
+        Ok(Self { config, runtime })
     }
 
-    // Layer 3: Application Logic
-    pub async fn run(&self) -> Result<()> {
-        info!("Starting application with config: {:?}", self.config);
+    pub fn run(self) -> Result<()> {
+        self.runtime.block_on(async {
+            self.run_async().await
+        })
+    }
 
-        // Validate paths
-        self.validate_paths().await?;
+    // Layer 4: Async Processing
+    async fn run_async(&self) -> Result<()> {
+        info!("Starting processing with {} workers", self.config.workers);
 
-        // Create output directory structure
-        let output_dir = self.create_output_structure().await?;
-        info!("Created output directory: {}", output_dir.display());
-
-        // Initialize components
-        let runtime = self.initialize_runtime()?;
-        let storage = self.initialize_storage(&output_dir).await?;
-        let metrics = self.initialize_metrics(&output_dir).await?;
-
-        // Layer 4: Processing
         let result = tokio::select! {
-            r = self.process_zip(runtime, storage, metrics) => r,
-            _ = signal::ctrl_c() => {
+            r = self.process() => r,
+            _ = tokio::signal::ctrl_c() => {
                 info!("Received shutdown signal");
                 Ok(())
             }
         };
 
         // Layer 5: Cleanup
-        self.cleanup(&output_dir).await?;
+        self.cleanup().await?;
         result
     }
 
-    async fn validate_paths(&self) -> Result<()> {
-        if !self.config.input_zip.exists() {
-            anyhow::bail!("Input ZIP file does not exist: {}", self.config.input_zip.display());
-        }
+    async fn process(&self) -> Result<()> {
+        // TODO: Implement core processing logic
         Ok(())
     }
 
-    async fn create_output_structure(&self) -> Result<PathBuf> {
-        let timestamp = chrono::Local::now().format("%Y%m%d%H%M%S");
-        let zip_name = self.config.input_zip
-            .file_stem()
-            .unwrap_or_default()
-            .to_string_lossy();
-
-        let output_dir = self.config.output_dir
-            .join(format!("{}-{}", zip_name, timestamp));
-
-        for dir in ["db", "logs", "metrics"] {
-            tokio::fs::create_dir_all(output_dir.join(dir)).await?;
-        }
-
-        Ok(output_dir)
-    }
-
-    fn initialize_runtime(&self) -> Result<runtime::RuntimeManager> {
-        // Runtime initialization code...
-        unimplemented!()
-    }
-
-    async fn initialize_storage(&self, output_dir: &PathBuf) -> Result<storage::StorageManager> {
-        // Storage initialization code...
-        unimplemented!()
-    }
-
-    async fn initialize_metrics(&self, output_dir: &PathBuf) -> Result<metrics::MetricsManager> {
-        // Metrics initialization code...
-        unimplemented!()
-    }
-
-    async fn process_zip(
-        &self,
-        runtime: runtime::RuntimeManager,
-        storage: storage::StorageManager,
-        metrics: metrics::MetricsManager,
-    ) -> Result<()> {
-        // ZIP processing code...
-        unimplemented!()
-    }
-
-    async fn cleanup(&self, output_dir: &PathBuf) -> Result<()> {
+    async fn cleanup(&self) -> Result<()> {
         info!("Cleaning up resources...");
+        // TODO: Implement resource cleanup
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_runner_creation() {
+        let config = Config::builder()
+            .workers(2)
+            .build()
+            .unwrap();
+        
+        let runner = MainRunner::new(config);
+        assert!(runner.is_ok());
     }
 }

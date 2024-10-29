@@ -1,44 +1,32 @@
-//! Prelude Module - Pyramidal Structure
+//! Common Types - Pyramidal Structure
 //! Layer 1: Core Re-exports
 //! Layer 2: Type Aliases
 //! Layer 3: Common Traits
-//! Layer 4: Error Types
-//! Layer 5: Helper Functions
+//! Layer 4: Helper Types
+//! Layer 5: Constants
 
 // Layer 1: Core Re-exports
-pub use crate::{
-    Processor,
-    ProcessorConfig,
-    ProcessingStats,
-};
+pub use crate::error::{Error, Result, ErrorExt};
+pub use crate::Config;
 
 // Layer 2: Common Types
+pub use std::path::{Path, PathBuf};
+pub use std::time::Duration;
+pub use tokio::sync::oneshot;
+
+// Layer 3: Async Types
+pub use tokio::io::{AsyncRead, AsyncWrite};
+pub use tokio::sync::{mpsc, Mutex, RwLock};
+pub use futures::Stream;
+
+// Layer 4: Feature-gated Exports
+#[cfg(feature = "metrics")]
+pub use crate::metrics::{MetricsManager, TaskMetrics};
+
+// Layer 5: Common Constants
 pub use crate::{
-    zip::{ZipProcessor, ZipConfig, ZipEntry},
-    storage::{StorageManager, StorageConfig},
-    metrics::{MetricsManager, MetricsConfig},
-    runtime::{RuntimeManager, RuntimeConfig},
+    VERSION,
+    MIN_RUST_VERSION,
+    DEFAULT_BUFFER_SIZE,
+    DEFAULT_SHUTDOWN_TIMEOUT,
 };
-
-// Layer 3: Error Types
-pub use crate::error::{
-    ProcessorError,
-    ErrorContext,
-    ErrorExt,
-    Result,
-};
-
-// Layer 4: Common Traits
-pub use tokio::{
-    io::{AsyncRead, AsyncWrite, AsyncSeek},
-    sync::Semaphore,
-};
-
-pub use futures::{Stream, StreamExt};
-pub use bytes::{Bytes, BytesMut};
-
-// Layer 5: Helper Types
-pub type BoxedError = Box<dyn std::error::Error + Send + Sync>;
-pub type BoxedStream<T> = Pin<Box<dyn Stream<Item = T> + Send>>;
-
-use std::pin::Pin;
