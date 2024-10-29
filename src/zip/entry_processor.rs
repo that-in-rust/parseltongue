@@ -3,7 +3,7 @@
 // - Manages data extraction
 // - Coordinates storage operations
 
-use crate::storage::Database;
+use crate::storage::db::Database;
 use crate::error::Result;
 use std::io::Read;
 use zip::read::ZipFile;

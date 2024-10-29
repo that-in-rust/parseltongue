@@ -8,6 +8,8 @@ use crate::metrics::WorkerMetrics;
 use tokio::sync::{mpsc, Semaphore};
 use std::sync::Arc;
 use std::time::Instant;
+use rand::random;
+use tokio::sync::mpsc::{self, Receiver};
 
 pub struct Task {
     id: usize,

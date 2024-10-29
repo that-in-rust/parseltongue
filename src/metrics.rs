@@ -57,7 +57,7 @@ impl WorkerMetrics {
 static MONITOR: Lazy<Mutex<Option<TaskMonitor>>> = Lazy::new(|| Mutex::new(None));
 
 pub fn init(output_dirs: &OutputDirs) {
-    let metrics_path = output_dirs.metrics_dir().join("task-metrics.json");
+    let metrics_path = output_dirs.metrics_path().join("task-metrics.json");
     let mut file = File::create(metrics_path).expect("Failed to create metrics file");
 
     tokio::spawn(async move {

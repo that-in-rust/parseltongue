@@ -1645,6 +1645,7 @@ dependencies = [
  "chrono",
  "clap",
  "console-subscriber",
+ "crc32fast",
  "criterion",
  "crossbeam-channel",
  "encoding_rs",

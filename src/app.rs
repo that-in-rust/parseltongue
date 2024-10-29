@@ -5,9 +5,9 @@
 
 use crate::config::Config;
 use crate::logging;
-use crate::metrics;
+use crate::metrics::init as init_metrics;
 use crate::output::OutputDirs;
-use crate::storage::Database;
+use crate::storage::db::Database;
 use crate::zip::zip_processor;
 use crate::error::Result;
 
@@ -19,7 +19,7 @@ pub async fn run(config: Config) -> Result<()> {
     logging::init(&config, output_dirs.logs_path())?;
 
     // Level 3: Start metrics collection
-    metrics::start_collection(&output_dirs).await;
+    init_metrics(&output_dirs).await;
 
     // Level 3: Open database
     let db = Database::open(output_dirs.db_path()).await?;
@@ -29,7 +29,7 @@ pub async fn run(config: Config) -> Result<()> {
 
     // Level 3: Shutdown resources
     db.close().await?;
-    metrics::shutdown().await;
+    init_metrics::shutdown().await;
 
     Ok(())
 } 

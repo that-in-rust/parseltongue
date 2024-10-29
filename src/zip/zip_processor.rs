@@ -1,8 +1,8 @@
 use crate::config::Config;
-use crate::storage::Database;
+use crate::storage::db::Database;
 use crate::zip::entry_processor::process_entry;
-use crate::error::{Result, Error};
-use tokio::sync::{Semaphore, Mutex};
+use crate::error::Result;
+use tokio::sync::Semaphore;
 use std::sync::Arc;
 use tokio::task::spawn_blocking;
 use zip::ZipArchive;

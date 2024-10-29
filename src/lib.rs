@@ -14,6 +14,15 @@ pub mod output;
 pub mod storage;
 pub mod zip;
 
-// Key Type Re-exports
-pub use crate::error::{Error, Result};
-pub use crate::config::Config;
+// Re-export commonly used types
+pub use error::{Error, Result};
+pub use config::Config;
+pub use storage::Database;
+pub use metrics::MetricsExporter;
+
+// Feature-gated exports
+#[cfg(feature = "metrics")]
+pub use metrics::init as init_metrics;
+
+#[cfg(feature = "console")]
+pub use tokio::console_subscriber;

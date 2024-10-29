@@ -1,6 +1,12 @@
 // Level 4: ZIP Module
-// - Orchestrates ZIP processing components
-// - Provides high-level interfaces for ZIP operations
+// - Manages ZIP file processing
+// - Coordinates streaming and processing
+// - Handles compression and encoding
 
+pub mod codec;
+pub mod entry_processor;
 pub mod zip_processor;
-pub mod entry_processor; 
+
+// Re-export commonly used types
+pub use codec::ZipEntryCodec;
+pub use zip_processor::process_zip;

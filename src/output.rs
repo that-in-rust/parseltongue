@@ -3,7 +3,6 @@
 // - Provides paths for logs, metrics, and analysis results
 
 use std::path::{Path, PathBuf};
-use crate::config::Config;
 use crate::error::Result;
 use tokio::fs;
 
