@@ -1,36 +1,26 @@
-// Level 4: Core Type Definitions
-// - Defines fundamental types used across application
-// - Implements key traits and conversions
-// - Provides type safety guarantees
-// - Enables efficient data handling
+// Level 4: Core Types
+// - Defines fundamental data structures
+// - Manages configuration
+// - Provides type safety
+// - Enables extensibility
 
 use std::path::PathBuf;
-use bytes::Bytes;
+use serde::{Deserialize, Serialize};
 
-// Level 3: Configuration Types
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
-    pub input_path: PathBuf,
+    pub input_zip: PathBuf,
     pub output_dir: PathBuf,
-    pub worker_threads: usize,
+    pub verbose: bool,
+    pub workers: usize,
     pub buffer_size: usize,
-    pub shutdown_timeout: std::time::Duration,
+    pub shutdown_timeout: u64,
 }
 
-// Level 2: Data Types
-#[derive(Debug)]
-pub struct Entry {
-    pub path: PathBuf,
-    pub data: Bytes,
-    pub size: u64,
-    pub crc32: u32,
-}
-
-// Level 1: Status Types
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum ProcessingStatus {
-    Pending,
-    Processing,
-    Complete,
-    Failed,
+#[derive(Debug, Clone)]
+pub struct RuntimeMetrics {
+    pub active_tasks: usize,
+    pub completed_tasks: usize,
+    pub failed_tasks: usize,
+    pub memory_usage: usize,
 } 

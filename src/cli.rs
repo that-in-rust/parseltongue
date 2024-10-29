@@ -4,8 +4,9 @@
 // - Validates inputs
 
 use clap::{Arg, Command};
-use crate::config::Config;
-use crate::error::{Result, Error};
+use crate::cli::args::Args;
+use crate::core::types::Config;
+use crate::core::error::{Result, Error};
 
 pub fn parse_args() -> Result<Config> {
     // Level 3: Define command-line arguments

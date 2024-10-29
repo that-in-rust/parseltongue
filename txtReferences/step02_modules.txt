@@ -1,338 +1,74 @@
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/
-├── Purpose: Root project directory
-├── Responsibility: Project configuration and dependency management
-└── Key Files:
-    ├── Cargo.toml       // Project dependencies and configurations
-    |── Cargo.lock       // Lockfile ensuring reproducible builds
-    |── README.md        // Project documentation
-    └── .gitignore       // Ignore patterns for Git
-
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/
-├── Purpose: Source code root directory
-└── Responsibility: Organize code modules
-
----
-
-### Main Application
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/main.rs**
-
-- **Purpose:** Application entry point
-- **Key Functions:**
-  - `fn main() -> Result<()>`
-    - Parses command-line arguments
-    - Initializes configuration and logging
-    - Runs the application asynchronously
-- **Dependencies:**
-  - Uses `crate::cli` for CLI parsing
-  - Calls `crate::app::run` to execute the application logic
-
----
-
-### Library Root
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/lib.rs**
-
-- **Purpose:** Library root
-- **Responsibility:** Defines public API, re-exports key components, organizes module structure
-- **Modules:**
-  - `pub mod app;`
-  - `pub mod cli;`
-  - `pub mod config;`
-  - `pub mod core;`
-  - `pub mod error;`
-  - `pub mod logging;`
-  - `pub mod metrics;`
-  - `pub mod output;`
-  - `pub mod storage;`
-  - `pub mod zip;`
-- **Key Type Re-exports:**
-  - `pub use crate::error::{Error, Result};`
-  - `pub use crate::config::Config;`
-- **Public API:**
-  - `pub async fn process_zip_file(input: &str, output: &str) -> Result<()>`
-
----
-
-### Application Modules
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/app.rs**
-
-- **Purpose:** Main application logic coordination
-- **Exports:**
-  - `pub async fn run(config: Config) -> Result<()>`
-- **Dependencies:**
-  - Uses `crate::zip::zip_processor`
-  - Uses `crate::storage::Database`
-  - Uses `crate::output::OutputDirs`
-  - Calls `crate::logging::init` for logging setup
-  - Handles metrics initialization and shutdown
-
----
-
-### Command-Line Interface
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/cli.rs**
-
-- **Purpose:** Command Line Interface parsing
-- **Exports:**
-  - `pub fn parse_args() -> Result<Config>`
-- **Implementation:**
-  - Uses `clap` for argument parsing
-  - Defines required and optional arguments
-  - Validates arguments and constructs `Config` struct
-
----
-
-### Configuration
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/config.rs**
-
-- **Purpose:** Application configuration
-- **Exports:**
-  - `pub struct Config { /* fields */ }`
-  - `impl Config { /* methods */ }`
-- **Implementation:**
-  - Configuration validation and defaults
-  - Organizes configuration into logical sections
-  - Provides methods to create `Config` from CLI arguments or paths
-
----
-
-### Core Utilities and Runtime Management
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/mod.rs**
-
-- **Purpose:** Core module re-exports
-- **Exports:**
-  - `pub mod runtime;`
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/mod.rs**
-
-- **Purpose:** Runtime Management and Coordination
-- **Exports:**
-  - `pub mod worker;`
-  - `pub mod shutdown;`
-- **Structures:**
-  - `pub struct RuntimeManager { /* fields */ }`
-- **Implementation:**
-  - Manages Tokio runtime configuration and lifecycle
-  - Coordinates worker pools and resource limits
-  - Handles graceful shutdown across all subsystems
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/worker.rs**
-
-- **Purpose:** Worker Pool Management
-- **Implementation:**
-  - Manages a pool of worker tasks for CPU-intensive operations
-  - Implements task distribution and backpressure control
-  - Tracks worker metrics
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/shutdown.rs**
-
-- **Purpose:** Graceful shutdown management
-- **Implementation:**
-  - Provides mechanisms to signal and coordinate shutdown across tasks
-  - Uses `tokio::sync::broadcast` for notifying tasks of shutdown
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/task.rs**
-
-- **Purpose:** Task scheduling and management
-- **Exports:**
-  - `pub struct TaskManager`
-  - `impl TaskManager`
-- **Implementation:**
-  - Manages task lifecycle
-  - Handles task priorities
-  - Provides task metrics
-  - Implements cancellation
-
----
-
-### Error Handling
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/error.rs**
-
-- **Purpose:** Centralized error handling
-- **Exports:**
-  - `pub enum Error { /* variants */ }`
-  - `pub type Result<T> = std::result::Result<T, Error>`
-- **Implementation:**
-  - Uses `thiserror` for custom error types
-  - Provides context for async errors
-  - Aggregates error sources from various crates (`std::io`, `zip`, `rocksdb`, etc.)
-
----
-
-### Logging
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/logging.rs**
-
-- **Purpose:** Configure asynchronous logging
-- **Implementation:**
-  - Initializes logging with `tracing` and `tracing-subscriber`
-  - Logs to console and file concurrently using `tracing-appender`
-  - Uses structured logging with trace contexts
-
----
-
-### Metrics Collection
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/metrics.rs**
-
-- **Purpose:** Collect runtime metrics
-- **Exports:**
-  - `pub async fn start_collection(output_dirs: &OutputDirs)`
-  - `pub async fn shutdown() -> Result<()>`
-  - `pub struct WorkerMetrics { /* fields */ }`
-- **Implementation:**
-  - Integrates `tokio-metrics` for runtime statistics
-  - Records metrics to files in the metrics directory
-  - Manages worker metrics for task performance tracking
-
----
-
-### Output Management
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/output.rs**
-
-- **Purpose:** Manage output directory structure
-- **Exports:**
-  - `pub struct OutputDirs { /* fields */ }`
-  - `impl OutputDirs { /* methods */ }`
-- **Implementation:**
-  - Creates timestamped analysis directory structure using `tokio::fs`
-  - Ensures all directories are created before processing begins
-  - Provides paths to the database, logs, and metrics directories
-
----
-
-### Storage (Database Interactions)
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage.rs**
-
-- **Purpose:** Database interactions
-- **Exports:**
-  - `pub struct Database { /* fields */ }`
-  - `impl Database { /* methods */ }`
-- **Dependencies:**
-  - Uses `rocksdb` crate with async support via `tokio::task::spawn_blocking`
-- **Implementation:**
-  - Manages RocksDB connections
-  - Provides asynchronous methods for storing and retrieving data
-  - Ensures proper closure and flushing of the database on shutdown
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage/batch.rs**
-
-- **Purpose:** Batch operation management
-- **Exports:**
-  - `pub struct BatchProcessor`
-  - `impl BatchProcessor`
-- **Implementation:**
-  - Manages transaction boundaries
-  - Implements batch operations
-  - Handles rollbacks
-  - Collects operation metrics
-
----
-
-### ZIP Processing
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/mod.rs**
-
-- **Purpose:** ZIP processing module re-exports
-- **Exports:**
-  - `pub mod zip_processor;`
-  - `pub mod entry_processor;`
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/zip_processor.rs**
-
-- **Purpose:** Process ZIP files asynchronously
-- **Exports:**
-  - `pub async fn process_zip(config: &Config, db: &Database) -> Result<()>`
-- **Implementation:**
-  - Validates input ZIP file using `tokio::fs`
-  - Opens ZIP archive in a blocking task
-  - Processes entries concurrently with `tokio::spawn`
-  - Manages backpressure with `tokio::sync::Semaphore`
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/entry_processor.rs**
-
-- **Purpose:** Process individual ZIP entries
-- **Exports:**
-  - `pub async fn process_entry(entry: ZipFile<'_>, db: &Database) -> Result<()>`
-- **Implementation:**
-  - Reads entry data synchronously in a blocking context
-  - Stores entry data in RocksDB asynchronously
-  - Handles errors and logs them accordingly
-
-**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/compression.rs**
-
-- **Purpose:** Compression handling
-- **Exports:**
-  - `pub struct CompressionHandler`
-  - `pub enum CompressionAlgorithm`
-- **Implementation:**
-  - Handles different compression algorithms
-  - Manages streaming operations
-  - Implements memory-efficient processing
-  - Provides compression metrics
-
----
-
-### Supporting Modules and Files
-
-- **All modules declared in `mod.rs` files correspond to actual files in your codebase.**
-
-- **Ensure that for any `mod` declarations, the corresponding files exist:**
-
-  - For example, `pub mod shutdown;` in `src/core/runtime/mod.rs` corresponds to `src/core/runtime/shutdown.rs`.
-
-- **All modules have been implemented according to their purpose descriptions above.**
-
----
-
-### Dependencies and Crates
-
-- **All necessary crates have been imported and are declared in `Cargo.toml`:**
-
-  - `tokio`, `tokio-stream`, `zip`, `rocksdb`, `clap`, `tracing`, `thiserror`, `tokio-metrics`, `lazy_static`, `chrono`, etc.
-
-- **Ensure that each crate's version is compatible with the code and other dependencies.**
-
----
-
-### Verification Steps
-
-1. **Import Missing Crates and Modules**
-2. **Verify All Module Paths**
-3. **Ensure All Dependencies are Properly Imported**
-4. **Check Each and Every File**
-5. **Update the Code as Necessary**
-6. **Basic Build Verification:**
-   ```bash
-   cargo clean
-   cargo build
-   ```
-
-### Non-Goals for Initial Implementation
-
-The following are explicitly out of scope for the initial implementation:
-1. Complete test coverage (only critical paths needed)
-2. Benchmark suite implementation
-3. CI/CD pipeline setup
-4. Release workflow automation
-5. Performance comparison frameworks
-6. Comprehensive documentation (basic API docs sufficient)
-
-These can be added in future iterations as the codebase matures.
-
----
-
-### Conclusion
-
-By updating `@step02_modules.txt` with the latest changes and ensuring that all modules and files are properly accounted for, we have a clear and detailed map of the project's structure. This comprehensive overview should help in verifying that the codebase is correctly organized and that all components are in place.
-
-Please proceed to check each file as per the verification steps outlined above. This will help ensure that the codebase is cohesive, that all modules are correctly implemented, and that the project builds successfully.
-
-Let me know if you need further assistance or if you encounter any other issues!
+# Complete File Listing with Purposes
+
+## Core Files
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/main.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/lib.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/app.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/config.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/error.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/logging.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/output.rs
+
+## Core Module
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/error.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/types.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/channel.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/task.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/worker.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/shutdown.rs
+
+## CLI Module
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/cli.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/cli/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/cli/args.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/cli/metrics.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/cli/progress.rs
+
+## Storage Module
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage/db.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage/batch.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage/index.rs
+
+## ZIP Module
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip_processor.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/codec.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/stream.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/reader.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/validation.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/compression.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/entry_processor.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/zip_processor.rs
+
+## Metrics Module
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/metrics.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/metrics/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/metrics/collect.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/metrics/export.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/metrics/progress.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/metrics/report.rs
+
+## Utils Module
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/utils/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/utils/buffer.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/utils/cleanup.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/utils/resource.rs
+
+## Tests
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/tests/common/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/tests/integration/mod.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/tests/property/mod.rs
+
+## Examples
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/examples/basic_usage.rs
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/examples/advanced_usage.rs
+
+## Benchmarks
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/benches/zip_processing.rs
+
+## Project Configuration
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/Cargo.toml

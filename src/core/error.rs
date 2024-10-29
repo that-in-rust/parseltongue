@@ -1,41 +1,23 @@
-// Level 4: Error Type Hierarchy
-// - Defines core error types used throughout application
-// - Implements error conversion traits
-// - Provides error context and backtracing
-// - Enables async-aware error propagation
-
+// Level 4: Error Management
 use thiserror::Error;
-use std::path::PathBuf;
+use std::io;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    // Level 3: Domain-Specific Errors
-    #[error("ZIP processing error: {0}")]
-    Zip(#[from] zip::result::ZipError),
-    
-    #[error("Storage error: {0}")]
-    Storage(#[from] rocksdb::Error),
-    
     #[error("I/O error: {0}")]
-    Io(#[from] std::io::Error),
-
-    // Level 2: Application Errors
-    #[error("File not found: {path}")]
-    FileNotFound { path: PathBuf },
+    Io(#[from] io::Error),
     
-    #[error("Invalid configuration: {msg}")]
-    Config { msg: String },
+    #[error("Configuration error: {0}")]
+    Config(String),
     
-    #[error("Processing error: {msg}")]
-    Processing { msg: String },
-
-    // Level 1: Runtime Errors
-    #[error("Task error: {0}")]
-    Task(#[from] tokio::task::JoinError),
+    #[error("Database error: {0}")]
+    Database(String),
     
-    #[error("Channel error: {0}")]
-    Channel(String),
+    #[error("ZIP processing error: {0}")]
+    Processing(String),
+    
+    #[error("Encoding error: {0}")]
+    Encoding(#[from] std::string::FromUtf8Error),
 }
 
-// Convenience type alias used throughout the application
 pub type Result<T> = std::result::Result<T, Error>; 

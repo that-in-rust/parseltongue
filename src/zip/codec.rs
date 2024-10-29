@@ -6,7 +6,7 @@
 use bytes::{BytesMut, Buf};
 use tokio_util::codec::{Decoder, Encoder};
 use std::io::{self, Cursor};
-use crate::error::Result;
+use crate::core::error::Error;
 
 #[derive(Debug)]
 enum CodecState {
@@ -34,7 +34,7 @@ impl ZipEntryCodec {
 
 impl Decoder for ZipEntryCodec {
     type Item = Vec<u8>;
-    type Error = crate::error::Error;
+    type Error = Error;
 
     fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>> {
         match self.state {

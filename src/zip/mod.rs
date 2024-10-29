@@ -1,12 +1,16 @@
-// Level 4: ZIP Module
-// - Manages ZIP file processing
-// - Coordinates streaming and processing
-// - Handles compression and encoding
+// Level 4: ZIP Module Organization
+// - Manages ZIP processing
+// - Coordinates streaming
+// - Handles compression
+// - Provides validation
 
+pub mod stream;
 pub mod codec;
+pub mod validation;
+pub mod compression;
 pub mod entry_processor;
-pub mod zip_processor;
+pub mod reader;
 
-// Re-export commonly used types
-pub use codec::ZipEntryCodec;
-pub use zip_processor::process_zip;
+pub use stream::ZipStream;
+pub use codec::ZipCodec;
+pub use validation::ZipValidator;
