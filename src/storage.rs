@@ -4,7 +4,7 @@
 
 use std::path::Path;
 use std::sync::Arc;
-use rocksdb::{DB, Options};
+use rocksdb::{DB, Options, Error as RocksDbError};
 use crate::error::Result;
 use tokio::task;
 
@@ -32,17 +32,15 @@ impl Database {
         let key = key.to_owned();
         let value = value.to_owned();
 
-        task::spawn_blocking(move || {
-            db.put(key.as_bytes(), &value)
-        })
-        .await??;
+        task::spawn_blocking(move || db.put(key, value)).await??;
 
         Ok(())
     }
 
     // Level 3: Close the database gracefully
     pub async fn close(self) -> Result<()> {
-        let db = Arc::try_unwrap(self.db).map_err(|_| crate::error::Error::Generic("Database still has multiple owners".into()))?;
+        let db = Arc::try_unwrap(self.db)
+            .map_err(|_| crate::error::Error::Generic("Database still has multiple owners".into()))?;
         task::spawn_blocking(|| db.flush()).await??;
         Ok(())
     }

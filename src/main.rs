@@ -1,22 +1,32 @@
 // Level 4: Application Entry Point
-// - Initializes logging and configuration
-// - Starts Tokio runtime
-// - Runs application logic asynchronously
+// - Parses command-line arguments
+// - Initializes configuration and logging
+// - Runs the application asynchronously
 
-use crate::cli;
-use crate::config::Config;
-use crate::app;
-use crate::error::Result;
-use crate::logging;
+use parseltongue::{cli, Config, app, logging, error::Result};
+use tokio::runtime::Builder;
+use std::process;
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() {
     // Level 3: Parse command-line arguments
-    let config = cli::parse_args()?;
+    let config = match cli::parse_args() {
+        Ok(cfg) => cfg,
+        Err(e) => {
+            eprintln!("Error parsing arguments: {}", e);
+            process::exit(1);
+        }
+    };
 
     // Level 3: Initialize logging
-    logging::init(&config)?;
+    if let Err(e) = logging::init(&config) {
+        eprintln!("Error initializing logging: {}", e);
+        process::exit(1);
+    }
 
-    // Level 2: Run the main application logic
-    app::run(config).await
+    // Level 3: Run the application
+    if let Err(e) = app::run(config).await {
+        eprintln!("Application error: {}", e);
+        process::exit(1);
+    }
 } 

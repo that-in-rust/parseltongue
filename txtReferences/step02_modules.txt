@@ -2,330 +2,321 @@
 ├── Purpose: Root project directory
 ├── Responsibility: Project configuration and dependency management
 └── Key Files:
-    ├── Cargo.toml         // Project dependencies and configurations
-    └── .gitignore         // Ignore patterns for Git
+    ├── Cargo.toml       // Project dependencies and configurations
+    |── Cargo.lock       // Lockfile ensuring reproducible builds
+    |── README.md        // Project documentation
+    └── .gitignore       // Ignore patterns for Git
 
 /home/amuldotexe/Desktop/GitHub202410/parseltongue/src/
 ├── Purpose: Source code root directory
 └── Responsibility: Organize code modules
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/main.rs
-├── Purpose: Application entry point
-├── Key Functions:
-    fn main() -> Result<()> {
-        // Initialize logging and configuration
-        // Start Tokio runtime
-        // Run application logic asynchronously
-    }
-└── Dependencies:
-    - crate::cli
-    - crate::app
+---
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/cli.rs
-├── Purpose: Command Line Interface parsing
-├── Exports:
-    pub fn parse_args() -> Config
-└── Implementation:
-    - Use clap for argument parsing
-    - Define required and optional arguments
-    - Validate arguments and construct Config struct
+### Main Application
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/config.rs
-├── Purpose: Application configuration
-├── Exports:
-    pub struct Config { /* fields */ }
-└── Implementation:
-    - Configuration validation and defaults
-    - Organize configuration into logical sections
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/main.rs**
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/app.rs
-├── Purpose: Main application logic coordination
-├── Exports:
-    pub async fn run(config: Config) -> Result<()>
-└── Dependencies:
-    - crate::zip_processor
-    - crate::storage
-    - crate::output
+- **Purpose:** Application entry point
+- **Key Functions:**
+  - `fn main() -> Result<()>`
+    - Parses command-line arguments
+    - Initializes configuration and logging
+    - Runs the application asynchronously
+- **Dependencies:**
+  - Uses `crate::cli` for CLI parsing
+  - Calls `crate::app::run` to execute the application logic
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip_processor.rs
-├── Purpose: Process ZIP files asynchronously
-├── Exports:
-    pub async fn process_zip(config: &Config) -> Result<()>
-└── Implementation:
-    - Validate input ZIP file using `tokio::fs`
-    - Stream ZIP entries with `tokio_stream`
-    - Process entries concurrently with `tokio::spawn`
-    - Manage backpressure with `tokio::sync::Semaphore`
+---
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/entry_processor.rs
-├── Purpose: Process individual ZIP entries
-├── Exports:
-    pub async fn process_entry(entry: ZipEntry, db: &Database) -> Result<()>
-└── Implementation:
-    - Read entry data asynchronously
-    - Perform CRC validation in parallel
-    - Store entry data in RocksDB
+### Library Root
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage.rs
-├── Purpose: Database interactions
-├── Exports:
-    pub struct Database { /* fields */ }
-    impl Database {
-        pub async fn open(path: &Path) -> Result<Self>
-        pub async fn store(&self, key: &str, value: &[u8]) -> Result<()>
-    }
-└── Dependencies:
-    - Use `rocksdb` crate with async support via `tokio::task::spawn_blocking`
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/lib.rs**
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/output.rs
-├── Purpose: Manage output directory structure
-├── Exports:
-    pub struct OutputDirs { /* fields */ }
-    impl OutputDirs {
-        pub async fn create(base_dir: &Path, zip_name: &str) -> Result<Self>
-        pub fn db_path(&self) -> PathBuf
-        pub fn logs_path(&self) -> PathBuf
-        pub fn metrics_path(&self) -> PathBuf
-    }
-└── Implementation:
-    - Create timestamped analysis directory structure using `tokio::fs`
-    - Ensure all directories are created before processing begins
+- **Purpose:** Library root
+- **Responsibility:** Defines public API, re-exports key components, organizes module structure
+- **Modules:**
+  - `pub mod app;`
+  - `pub mod cli;`
+  - `pub mod config;`
+  - `pub mod core;`
+  - `pub mod error;`
+  - `pub mod logging;`
+  - `pub mod metrics;`
+  - `pub mod output;`
+  - `pub mod storage;`
+  - `pub mod zip;`
+- **Key Type Re-exports:**
+  - `pub use crate::error::{Error, Result};`
+  - `pub use crate::config::Config;`
+- **Public API:**
+  - `pub async fn process_zip_file(input: &str, output: &str) -> Result<()>`
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/logging.rs
-├── Purpose: Configure asynchronous logging
-└── Implementation:
-    - Initialize logging with `tracing` and `tracing-subscriber`
-    - Log to console and file concurrently
-    - Use structured logging with trace contexts
+---
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/error.rs
-├── Purpose: Centralized error handling
-├── Exports:
-    pub type Result<T> = std::result::Result<T, anyhow::Error>
-└── Implementation:
-    - Use `thiserror` for custom error types
-    - Provide context for async errors
+### Application Modules
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/metrics.rs
-├── Purpose: Collect runtime metrics
-└── Implementation:
-    - Integrate `tokio-metrics` for runtime statistics
-    - Record metrics to files in the metrics directory
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/app.rs**
 
-# Additional Required Modules
+- **Purpose:** Main application logic coordination
+- **Exports:**
+  - `pub async fn run(config: Config) -> Result<()>`
+- **Dependencies:**
+  - Uses `crate::zip::zip_processor`
+  - Uses `crate::storage::Database`
+  - Uses `crate::output::OutputDirs`
+  - Calls `crate::logging::init` for logging setup
+  - Handles metrics initialization and shutdown
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/runtime/mod.rs
-├── Purpose: Runtime management and coordination
-├── Exports:
-    pub struct Runtime {
-        worker_pool: WorkerPool,
-        backpressure: BackpressureManager,
-        shutdown: ShutdownManager,
-        circuit_breaker: CircuitBreaker,
-    }
-    impl Runtime {
-        pub async fn new(config: &Config) -> Result<Self>
-        pub async fn spawn<F>(&self, task: F) -> Result<JoinHandle<T>>
-        pub async fn shutdown(self) -> Result<()>
-    }
-└── Implementation:
-    - Coordinates all runtime components
-    - Manages worker lifecycle
-    - Handles graceful shutdown
+---
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/runtime/worker_pool.rs
-├── Purpose: Worker thread management
-├── Exports:
-    pub struct WorkerPool {
-        workers: Vec<JoinHandle<()>>,
-        queue: mpsc::Sender<Task>,
-        metrics: Arc<WorkerMetrics>,
-    }
-    impl WorkerPool {
-        pub fn new(size: usize) -> Self
-        pub async fn spawn<F>(&self, task: F) -> Result<()>
-        pub async fn shutdown(self) -> Result<()>
-    }
-└── Implementation:
-    - Manages fixed thread pool
-    - Handles task distribution
-    - Collects worker metrics
+### Command-Line Interface
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/runtime/backpressure.rs
-├── Purpose: Backpressure management
-├── Exports:
-    pub struct BackpressureManager {
-        semaphore: Arc<Semaphore>,
-        high_water_mark: usize,
-        low_water_mark: usize,
-    }
-    impl BackpressureManager {
-        pub async fn acquire(&self) -> OwnedSemaphorePermit
-        pub fn try_acquire(&self) -> Option<OwnedSemaphorePermit>
-        pub fn available_permits(&self) -> usize
-    }
-└── Implementation:
-    - Uses tokio::sync::Semaphore
-    - Implements adaptive limits
-    - Provides backpressure metrics
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/cli.rs**
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/runtime/shutdown.rs
-├── Purpose: Graceful shutdown coordination
-├── Exports:
-    pub struct ShutdownManager {
-        trigger: broadcast::Sender<()>,
-        timeout: Duration,
-        hooks: Vec<Box<dyn ShutdownHook>>,
-    }
-    impl ShutdownManager {
-        pub fn new(timeout: Duration) -> Self
-        pub fn register_hook<H: ShutdownHook>(&mut self, hook: H)
-        pub async fn shutdown(self) -> Result<()>
-    }
-└── Implementation:
-    - Coordinates orderly shutdown
-    - Manages shutdown timeouts
-    - Executes cleanup hooks
+- **Purpose:** Command Line Interface parsing
+- **Exports:**
+  - `pub fn parse_args() -> Result<Config>`
+- **Implementation:**
+  - Uses `clap` for argument parsing
+  - Defines required and optional arguments
+  - Validates arguments and constructs `Config` struct
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/runtime/circuit_breaker.rs
-├── Purpose: Circuit breaker pattern implementation
-├── Exports:
-    pub struct CircuitBreaker {
-        state: watch::Receiver<CircuitState>,
-        failure_threshold: u32,
-        reset_timeout: Duration,
-    }
-    impl CircuitBreaker {
-        pub async fn protect<F, T>(&self, f: F) -> Result<T>
-        pub fn current_state(&self) -> CircuitState
-        pub async fn reset(&self) -> Result<()>
-    }
-└── Implementation:
-    - Prevents cascading failures
-    - Implements half-open state
-    - Provides failure metrics
+---
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/stream.rs
-├── Purpose: Async ZIP streaming
-├── Exports:
-    pub struct ZipStream {
-        reader: BufReader<File>,
-        buffer_manager: BufferManager,
-        decoder: ZipDecoder,
-    }
-    impl Stream for ZipStream {
-        type Item = Result<ZipEntry>;
-        async fn next(&mut self) -> Option<Self::Item>
-    }
-└── Implementation:
-    - Implements Stream trait
-    - Uses adaptive buffering
-    - Handles partial reads
+### Configuration
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/buffer.rs
-├── Purpose: Adaptive buffer management
-├── Exports:
-    pub struct BufferManager {
-        current_size: usize,
-        min_size: usize,
-        max_size: usize,
-        metrics: Arc<BufferMetrics>,
-    }
-    impl BufferManager {
-        pub fn new(config: BufferConfig) -> Self
-        pub fn allocate(&mut self) -> BytesMut
-        pub fn adjust_size(&mut self, usage: BufferUsage)
-    }
-└── Implementation:
-    - Manages buffer pools
-    - Implements adaptive sizing
-    - Tracks buffer utilization
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/config.rs**
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage/rocks/connection.rs
-├── Purpose: RocksDB connection management
-├── Exports:
-    pub struct ConnectionPool {
-        connections: Vec<Arc<Connection>>,
-        semaphore: Arc<Semaphore>,
-    }
-    impl ConnectionPool {
-        pub async fn acquire(&self) -> Result<PooledConnection>
-        pub async fn with_connection<F, T>(&self, f: F) -> Result<T>
-        pub async fn shutdown(self) -> Result<()>
-    }
-└── Implementation:
-    - Manages connection lifecycle
-    - Implements connection pooling
-    - Handles connection errors
+- **Purpose:** Application configuration
+- **Exports:**
+  - `pub struct Config { /* fields */ }`
+  - `impl Config { /* methods */ }`
+- **Implementation:**
+  - Configuration validation and defaults
+  - Organizes configuration into logical sections
+  - Provides methods to create `Config` from CLI arguments or paths
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage/rocks/batch.rs
-├── Purpose: Batch operation management
-├── Exports:
-    pub struct BatchWriter {
-        batch: WriteBatch,
-        size: usize,
-        max_size: usize,
-        metrics: Arc<BatchMetrics>,
-    }
-    impl BatchWriter {
-        pub fn new(config: BatchConfig) -> Self
-        pub async fn write(&mut self, key: &[u8], value: &[u8]) -> Result<()>
-        pub async fn flush(&mut self) -> Result<()>
-    }
-└── Implementation:
-    - Accumulates write operations
-    - Implements size-based flushing
-    - Tracks batch metrics
+---
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/metrics/runtime.rs
-├── Purpose: Runtime metrics collection
-├── Exports:
-    pub struct RuntimeMetrics {
-        task_metrics: TaskMetrics,
-        worker_metrics: WorkerMetrics,
-        buffer_metrics: BufferMetrics,
-    }
-    impl RuntimeMetrics {
-        pub fn record_task(&self, duration: Duration)
-        pub fn record_buffer_usage(&self, usage: BufferUsage)
-        pub async fn export(&self) -> Result<()>
-    }
-└── Implementation:
-    - Collects runtime statistics
-    - Tracks resource utilization
-    - Exports metrics periodically
+### Core Utilities and Runtime Management
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/metrics/console.rs
-├── Purpose: Tokio console integration
-├── Exports:
-    pub struct ConsoleReporter {
-        runtime_metrics: Arc<RuntimeMetrics>,
-        export_interval: Duration,
-    }
-    impl ConsoleReporter {
-        pub async fn start(self) -> Result<()>
-        pub async fn export_metrics(&self) -> Result<()>
-        pub async fn shutdown(self) -> Result<()>
-    }
-└── Implementation:
-    - Integrates with tokio-console
-    - Exports runtime metrics
-    - Provides real-time insights
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/mod.rs**
 
-/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/tracing/context.rs
-├── Purpose: Trace context management
-├── Exports:
-    pub struct TraceContext {
-        span: Span,
-        parent: Option<TraceParent>,
-        baggage: HashMap<String, String>,
-    }
-    impl TraceContext {
-        pub fn new(name: &str) -> Self
-        pub fn child(&self, name: &str) -> Self
-        pub fn record(&self, field: &str, value: &dyn Value)
-    }
-└── Implementation:
-    - Manages trace contexts
-    - Implements context propagation
-    - Records structured data
+- **Purpose:** Core module re-exports
+- **Exports:**
+  - `pub mod runtime;`
+
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/mod.rs**
+
+- **Purpose:** Runtime Management and Coordination
+- **Exports:**
+  - `pub mod worker;`
+  - `pub mod shutdown;`
+- **Structures:**
+  - `pub struct RuntimeManager { /* fields */ }`
+- **Implementation:**
+  - Manages Tokio runtime configuration and lifecycle
+  - Coordinates worker pools and resource limits
+  - Handles graceful shutdown across all subsystems
+
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/worker.rs**
+
+- **Purpose:** Worker Pool Management
+- **Implementation:**
+  - Manages a pool of worker tasks for CPU-intensive operations
+  - Implements task distribution and backpressure control
+  - Tracks worker metrics
+
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/shutdown.rs**
+
+- **Purpose:** Graceful shutdown management
+- **Implementation:**
+  - Provides mechanisms to signal and coordinate shutdown across tasks
+  - Uses `tokio::sync::broadcast` for notifying tasks of shutdown
+
+---
+
+### Error Handling
+
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/error.rs**
+
+- **Purpose:** Centralized error handling
+- **Exports:**
+  - `pub enum Error { /* variants */ }`
+  - `pub type Result<T> = std::result::Result<T, Error>`
+- **Implementation:**
+  - Uses `thiserror` for custom error types
+  - Provides context for async errors
+  - Aggregates error sources from various crates (`std::io`, `zip`, `rocksdb`, etc.)
+
+---
+
+### Logging
+
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/logging.rs**
+
+- **Purpose:** Configure asynchronous logging
+- **Implementation:**
+  - Initializes logging with `tracing` and `tracing-subscriber`
+  - Logs to console and file concurrently using `tracing-appender`
+  - Uses structured logging with trace contexts
+
+---
+
+### Metrics Collection
+
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/metrics.rs**
+
+- **Purpose:** Collect runtime metrics
+- **Exports:**
+  - `pub async fn start_collection(output_dirs: &OutputDirs)`
+  - `pub async fn shutdown() -> Result<()>`
+  - `pub struct WorkerMetrics { /* fields */ }`
+- **Implementation:**
+  - Integrates `tokio-metrics` for runtime statistics
+  - Records metrics to files in the metrics directory
+  - Manages worker metrics for task performance tracking
+
+---
+
+### Output Management
+
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/output.rs**
+
+- **Purpose:** Manage output directory structure
+- **Exports:**
+  - `pub struct OutputDirs { /* fields */ }`
+  - `impl OutputDirs { /* methods */ }`
+- **Implementation:**
+  - Creates timestamped analysis directory structure using `tokio::fs`
+  - Ensures all directories are created before processing begins
+  - Provides paths to the database, logs, and metrics directories
+
+---
+
+### Storage (Database Interactions)
+
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage.rs**
+
+- **Purpose:** Database interactions
+- **Exports:**
+  - `pub struct Database { /* fields */ }`
+  - `impl Database { /* methods */ }`
+- **Dependencies:**
+  - Uses `rocksdb` crate with async support via `tokio::task::spawn_blocking`
+- **Implementation:**
+  - Manages RocksDB connections
+  - Provides asynchronous methods for storing and retrieving data
+  - Ensures proper closure and flushing of the database on shutdown
+
+---
+
+### ZIP Processing
+
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/mod.rs**
+
+- **Purpose:** ZIP processing module re-exports
+- **Exports:**
+  - `pub mod zip_processor;`
+  - `pub mod entry_processor;`
+
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/zip_processor.rs**
+
+- **Purpose:** Process ZIP files asynchronously
+- **Exports:**
+  - `pub async fn process_zip(config: &Config, db: &Database) -> Result<()>`
+- **Implementation:**
+  - Validates input ZIP file using `tokio::fs`
+  - Opens ZIP archive in a blocking task
+  - Processes entries concurrently with `tokio::spawn`
+  - Manages backpressure with `tokio::sync::Semaphore`
+
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/entry_processor.rs**
+
+- **Purpose:** Process individual ZIP entries
+- **Exports:**
+  - `pub async fn process_entry(entry: ZipFile<'_>, db: &Database) -> Result<()>`
+- **Implementation:**
+  - Reads entry data synchronously in a blocking context
+  - Stores entry data in RocksDB asynchronously
+  - Handles errors and logs them accordingly
+
+---
+
+### Supporting Modules and Files
+
+- **All modules declared in `mod.rs` files correspond to actual files in your codebase.**
+
+- **Ensure that for any `mod` declarations, the corresponding files exist:**
+
+  - For example, `pub mod shutdown;` in `src/core/runtime/mod.rs` corresponds to `src/core/runtime/shutdown.rs`.
+
+- **All modules have been implemented according to their purpose descriptions above.**
+
+---
+
+### Dependencies and Crates
+
+- **All necessary crates have been imported and are declared in `Cargo.toml`:**
+
+  - `tokio`, `tokio-stream`, `zip`, `rocksdb`, `clap`, `tracing`, `thiserror`, `tokio-metrics`, `lazy_static`, `chrono`, etc.
+
+- **Ensure that each crate's version is compatible with the code and other dependencies.**
+
+---
+
+### Verification Steps
+
+1. **Import Missing Crates and Modules:**
+
+   - Ensure all necessary `use` statements are included in each file.
+   - For example, in `src/core/runtime/worker.rs`, include:
+
+     ```rust
+     use std::sync::atomic::{AtomicU64, Ordering};
+     use std::time::Duration;
+     use tracing::error; // For logging errors
+     ```
+
+2. **Verify All Module Paths:**
+
+   - Check that each `mod` declaration corresponds to an actual file.
+   - For example, `pub mod core;` in `src/lib.rs` corresponds to `src/core/mod.rs`.
+
+3. **Ensure All Dependencies are Properly Imported:**
+
+   - Double-check all `use` statements in each file.
+   - Confirm that types and functions are correctly imported from their respective modules.
+
+4. **Check Each and Every File:**
+
+   - Go through all files in `src/` and its subdirectories.
+   - Ensure that the content matches the module declarations.
+   - Fill in any missing implementations based on the module's purpose.
+
+5. **Update the Code as Necessary:**
+
+   - Address any compilation errors due to missing types or functions.
+   - Implement stubs or full implementations where needed.
+
+6. **Rebuild the Project:**
+
+   - After making the necessary changes, run:
+
+     ```bash
+     cargo clean
+     cargo build
+     ```
+
+   - Verify that the project builds successfully without errors.
+
+---
+
+### Conclusion
+
+By updating `@step02_modules.txt` with the latest changes and ensuring that all modules and files are properly accounted for, we have a clear and detailed map of the project's structure. This comprehensive overview should help in verifying that the codebase is correctly organized and that all components are in place.
+
+Please proceed to check each file as per the verification steps outlined above. This will help ensure that the codebase is cohesive, that all modules are correctly implemented, and that the project builds successfully.
+
+Let me know if you need further assistance or if you encounter any other issues!

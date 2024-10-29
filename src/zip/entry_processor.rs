@@ -8,7 +8,7 @@ use crate::error::Result;
 use std::io::Read;
 use zip::read::ZipFile;
 
-pub async fn process_entry(mut entry: ZipFile<'_>, db: &Database) -> Result<()> {
+pub async fn process_entry(entry: &mut ZipFile<'_>, db: &Database) -> Result<()> {
     // Level 3: Read entry data
     let mut data = Vec::new();
     entry.read_to_end(&mut data)?;

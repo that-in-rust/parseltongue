@@ -1,55 +1,61 @@
 // Level 4: Command Line Interface Parsing
 // - Defines CLI arguments
-// - Validates input
-// - Constructs Config struct
+// - Parses arguments into Config
+// - Validates inputs
 
 use clap::{Arg, Command};
 use crate::config::Config;
-use crate::error::Result;
+use crate::error::{Result, Error};
 
-// Level 3: Parse CLI arguments into Config
 pub fn parse_args() -> Result<Config> {
-    // Level 2: Define CLI arguments using Clap
+    // Level 3: Define CLI arguments
     let matches = Command::new("parseltongue")
         .version("0.1.0")
+        .author("twitter.com/amuldotexe")
         .about("High-performance ZIP file processor with async I/O")
-        .arg(Arg::new("input_zip")
+        .arg(Arg::new("input")
             .short('i')
-            .long("input-zip")
-            .value_name("FILE")
-            .help("Absolute path to source ZIP file")
+            .long("input")
+            .value_name("ZIP_FILE")
+            .help("Input ZIP file to process")
             .required(true))
-        .arg(Arg::new("output_dir")
+        .arg(Arg::new("output")
             .short('o')
-            .long("output-dir")
-            .value_name("DIR")
-            .help("Absolute path for base output directory")
+            .long("output")
+            .value_name("OUTPUT_DIR")
+            .help("Output directory for processed data")
             .required(true))
         .arg(Arg::new("verbose")
             .short('v')
             .long("verbose")
-            .action(clap::ArgAction::SetTrue)
             .help("Enable verbose logging"))
         .arg(Arg::new("workers")
             .short('w')
             .long("workers")
             .value_name("NUM")
             .help("Number of worker threads")
-            .default_value("4"))
-        .arg(Arg::new("buffer_size")
-            .short('b')
-            .long("buffer-size")
-            .value_name("BYTES")
-            .help("Streaming buffer size")
-            .default_value("8192"))
-        .arg(Arg::new("shutdown_timeout")
-            .short('s')
-            .long("shutdown-timeout")
-            .value_name("SECONDS")
-            .help("Graceful shutdown timeout")
-            .default_value("5"))
+            .required(false))
         .get_matches();
 
-    // Level 2: Construct Config from matches
-    Config::from_matches(&matches)
+    // Level 3: Parse and validate inputs
+    let input_zip = matches.value_of("input").unwrap().into();
+    let output_dir = matches.value_of("output").unwrap().into();
+    let verbose = matches.is_present("verbose");
+    let workers = matches.value_of("workers")
+        .map(|s| s.parse::<usize>())
+        .transpose()
+        .map_err(|e| Error::Config(format!("Invalid workers value: {}", e)))?
+        .unwrap_or_else(num_cpus::get);
+
+    // Level 3: Construct Config
+    let config = Config {
+        input_zip,
+        output_dir,
+        verbose,
+        workers,
+        buffer_size: 8192,
+        shutdown_timeout: 5,
+    };
+
+    Ok(config)
 } 

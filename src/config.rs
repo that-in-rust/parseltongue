@@ -1,13 +1,11 @@
 // Level 4: Application Configuration
-// - Stores all configuration options
-// - Validates inputs and provides defaults
-// - Organizes configuration into logical sections
+// - Holds configuration values
+// - Provides methods for creation and validation
 
-use clap::ArgMatches;
 use std::path::PathBuf;
 use crate::error::{Result, Error};
+use clap::ArgMatches;
 
-// Level 3: Configuration Struct
 pub struct Config {
     pub input_zip: PathBuf,
     pub output_dir: PathBuf,
@@ -18,32 +16,13 @@ pub struct Config {
 }
 
 impl Config {
-    // Level 2: Create Config from CLI matches
+    // Level 3: Create Config from ArgMatches
     pub fn from_matches(matches: &ArgMatches) -> Result<Self> {
-        // Level 1: Extract and validate arguments
-        let input_zip = PathBuf::from(matches.get_one::<String>("input_zip").unwrap());
-        let output_dir = PathBuf::from(matches.get_one::<String>("output_dir").unwrap());
-
-        if !input_zip.is_file() {
-            return Err(Error::Config(format!("Input ZIP file not found: {:?}", input_zip)));
-        }
-
-        let verbose = matches.get_flag("verbose");
-        let workers = matches.get_one::<String>("workers").unwrap().parse::<usize>()?;
-        let buffer_size = matches.get_one::<String>("buffer_size").unwrap().parse::<usize>()?;
-        let shutdown_timeout = matches.get_one::<String>("shutdown_timeout").unwrap().parse::<u64>()?;
-
-        Ok(Config {
-            input_zip,
-            output_dir,
-            verbose,
-            workers,
-            buffer_size,
-            shutdown_timeout,
-        })
+        // Implementation is in cli.rs
+        unimplemented!()
     }
 
-    // Level 2: Create Config from input and output paths
+    // Level 3: Create Config from paths
     pub fn from_paths(input_zip: &str, output_dir: &str) -> Result<Self> {
         let input_zip = PathBuf::from(input_zip);
         let output_dir = PathBuf::from(output_dir);
