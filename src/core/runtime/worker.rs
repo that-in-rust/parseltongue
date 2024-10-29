@@ -1,92 +1,73 @@
 // Level 4: Worker Pool Management
-// - Manages a pool of worker tasks
-// - Distributes tasks and collects metrics
+// - Manages worker threads
+// - Handles task distribution
+// - Collects metrics
 
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
-use tokio::sync::{mpsc, Semaphore, Mutex};
-use tokio::task::JoinHandle;
 use crate::error::Result;
 use crate::metrics::WorkerMetrics;
+use tokio::sync::{mpsc, Semaphore};
+use std::sync::Arc;
+use std::time::Instant;
+
+pub struct Task {
+    id: usize,
+    payload: Box<dyn FnOnce() -> Result<()> + Send + 'static>,
+}
 
 pub struct WorkerPool {
-    workers: Vec<JoinHandle<()>>,
+    workers: Vec<tokio::task::JoinHandle<()>>,
     task_tx: mpsc::Sender<Task>,
     metrics: Arc<WorkerMetrics>,
     limiter: Arc<Semaphore>,
 }
 
-struct Task {
-    id: u64,
-    payload: Box<dyn FnOnce() + Send + 'static>,
-}
-
 impl WorkerPool {
-    // Level 3: Create a new worker pool
-    pub fn new(size: usize) -> Self {
-        let (task_tx, task_rx) = mpsc::channel::<Task>(size * 2);
-        let metrics = Arc::new(WorkerMetrics { /* ... */ });
-        let limiter = Arc::new(Semaphore::new(size));
+    pub fn new(num_workers: usize) -> Result<Self> {
+        let (task_tx, task_rx) = mpsc::channel(32);
+        let metrics = Arc::new(WorkerMetrics::new());
+        let limiter = Arc::new(Semaphore::new(num_workers));
+        let mut workers = Vec::new();
 
-        let task_rx = Arc::new(Mutex::new(task_rx));
+        for id in 0..num_workers {
+            let rx = task_rx.clone();
+            let metrics = metrics.clone();
+            let limiter = limiter.clone();
 
-        let workers = (0..size)
-            .map(|id| {
-                let metrics = metrics.clone();
-                let limiter = limiter.clone();
-                let task_rx = task_rx.clone();
-
-                tokio::spawn(async move {
-                    loop {
-                        let task = {
-                            let mut rx = task_rx.lock().await;
-                            rx.recv().await
-                        };
-
-                        if let Some(task) = task {
-                            let _permit = limiter.acquire().await.unwrap();
-                            let start = std::time::Instant::now();
-
-                            (task.payload)();
-
-                            metrics.record_task(id, start.elapsed());
-                        } else {
-                            break;
-                        }
+            let handle = tokio::spawn(async move {
+                while let Some(task) = rx.recv().await {
+                    let _permit = limiter.acquire().await.unwrap();
+                    let start = Instant::now();
+                    
+                    if let Err(e) = (task.payload)() {
+                        tracing::error!("Task {} failed: {:?}", task.id, e);
+                        metrics.record_error(id);
                     }
-                })
-            })
-            .collect();
+                    
+                    metrics.record_task(id, start.elapsed());
+                }
+            });
 
-        Self {
+            workers.push(handle);
+        }
+
+        Ok(WorkerPool {
             workers,
             task_tx,
             metrics,
             limiter,
-        }
+        })
     }
 
-    // Level 2: Submit a task to the pool
-    pub async fn submit<F>(&self, task: F) -> Result<()>
+    pub async fn spawn<F>(&self, task: F) -> Result<()>
     where
-        F: FnOnce() + Send + 'static,
+        F: FnOnce() -> Result<()> + Send + 'static,
     {
-        static TASK_ID: AtomicU64 = AtomicU64::new(0);
-
         let task = Task {
-            id: TASK_ID.fetch_add(1, Ordering::SeqCst),
+            id: rand::random(),
             payload: Box::new(task),
         };
-
-        self.task_tx.send(task).await.map_err(|e| e.into())
-    }
-
-    // Level 1: Shutdown the worker pool
-    pub async fn shutdown(self) -> Result<()> {
-        drop(self.task_tx);
-        for worker in self.workers {
-            worker.await?;
-        }
+        
+        self.task_tx.send(task).await?;
         Ok(())
     }
 } 

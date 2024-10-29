@@ -1,16 +1,20 @@
-// Level 4: Runtime Metrics Collection
-// - Integrates tokio-metrics for runtime statistics
-// - Records metrics to files
-// - Manages worker metrics
+// Level 4: Metrics Collection
+// - Manages runtime metrics
+// - Handles metric recording
+// - Coordinates metric export
 
 use tokio_metrics::TaskMonitor;
 use tokio::time::{self, Duration};
 use crate::output::OutputDirs;
 use std::fs::File;
 use std::io::Write;
-use std::sync::Mutex;
+use parking_lot::Mutex;
 use once_cell::sync::Lazy;
-use parking_lot::Mutex as PLMutex;
+
+#[derive(Debug)]
+pub struct WorkerMetrics {
+    metrics: Mutex<Vec<WorkerStat>>,
+}
 
 #[derive(Debug)]
 struct WorkerStat {
@@ -20,14 +24,10 @@ struct WorkerStat {
     total_duration: Duration,
 }
 
-pub struct WorkerMetrics {
-    metrics: PLMutex<Vec<WorkerStat>>,
-}
-
 impl WorkerMetrics {
     pub fn new() -> Self {
         Self {
-            metrics: PLMutex::new(Vec::new()),
+            metrics: Mutex::new(Vec::new()),
         }
     }
 
@@ -56,21 +56,15 @@ impl WorkerMetrics {
 
 static MONITOR: Lazy<Mutex<Option<TaskMonitor>>> = Lazy::new(|| Mutex::new(None));
 
-pub async fn start_collection(output_dirs: &OutputDirs) {
-    let monitor = TaskMonitor::new();
-    {
-        let mut mon = MONITOR.lock().unwrap();
-        *mon = Some(monitor);
-    }
-
-    let metrics_path = output_dirs.metrics_path().join("runtime_metrics.csv");
+pub fn init(output_dirs: &OutputDirs) {
+    let metrics_path = output_dirs.metrics_dir().join("task-metrics.json");
     let mut file = File::create(metrics_path).expect("Failed to create metrics file");
 
     tokio::spawn(async move {
         let mut interval = time::interval(Duration::from_secs(1));
         loop {
             interval.tick().await;
-            if let Some(mon) = MONITOR.lock().unwrap().as_ref() {
+            if let Some(mon) = MONITOR.lock().as_ref() {
                 let stats = mon.cumulative();
                 let _ = writeln!(file, "{:?}", stats);
             } else {
@@ -81,6 +75,6 @@ pub async fn start_collection(output_dirs: &OutputDirs) {
 }
 
 pub async fn shutdown() {
-    let mut mon = MONITOR.lock().unwrap();
+    let mut mon = MONITOR.lock();
     *mon = None;
 } 

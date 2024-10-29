@@ -14,19 +14,15 @@ pub async fn process_zip(config: &Config, db: &Database) -> Result<()> {
     let db = Arc::new(db.clone());
     let input_zip = config.input_zip.clone();
 
-    // Level 3: Open ZIP archive in blocking task
     let archive = spawn_blocking(move || {
         let file = File::open(&input_zip)?;
         let reader = BufReader::new(file);
-        let archive = ZipArchive::new(reader)?;
-        Ok::<ZipArchive<BufReader<File>>, Error>(archive)
-    })
-    .await??;
+        ZipArchive::new(reader)
+    }).await??;
 
     let num_files = archive.len();
-    let archive = Arc::new(Mutex::new(archive));
+    let archive = Arc::new(tokio::sync::Mutex::new(archive));
 
-    // Level 2: Process entries concurrently
     let mut handles = Vec::new();
 
     for i in 0..num_files {
@@ -37,18 +33,13 @@ pub async fn process_zip(config: &Config, db: &Database) -> Result<()> {
         let handle = tokio::spawn(async move {
             let _permit = permit;
             let mut archive = archive.lock().await;
-            let mut zip_file = archive.by_index(i).map_err(Error::from)?;
-
-            if let Err(e) = process_entry(&mut zip_file, &db_clone).await {
-                tracing::error!("Error processing entry: {:?}", e);
-            }
-            Ok::<(), Error>(())
+            let zip_file = archive.by_index(i)?;
+            process_entry(zip_file, &db_clone).await
         });
 
         handles.push(handle);
     }
 
-    // Level 1: Await all tasks
     for handle in handles {
         handle.await??;
     }

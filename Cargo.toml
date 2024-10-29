@@ -31,14 +31,14 @@ compression = ["zip/deflate", "flate2"]
 # ===== Level 2: Dependencies by Category =====
 [dependencies]
 # Async Runtime
-tokio = { version = "1.32.0", features = ["full"] }
+tokio = { version = "1.41.0", features = ["full"] }
 tokio-util = { version = "0.7.7", features = ["codec", "io"] }
 tokio-stream = "0.1.14"
 futures = "0.3.28"
 futures-util = "0.3.28"
 
 # Storage
-rocksdb = "0.21.0"
+rocksdb = { version = "0.21.0" }
 bytes = "1.5.0"
 
 # ZIP Processing

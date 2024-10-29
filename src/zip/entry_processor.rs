@@ -1,26 +1,22 @@
 // Level 4: ZIP Entry Processing
-// - Processes individual ZIP entries
-// - Handles data extraction and storage
+// - Handles individual ZIP file entries
+// - Manages data extraction
+// - Coordinates storage operations
 
 use crate::storage::Database;
 use crate::error::Result;
-use zip::read::ZipFile;
 use std::io::Read;
-use tokio::task::spawn_blocking;
+use zip::read::ZipFile;
 
-pub async fn process_entry<'a>(mut zip_file: ZipFile<'a>, db: &Database) -> Result<()> {
+pub async fn process_entry(mut zip_file: ZipFile<'_>, db: &Database) -> Result<()> {
     let name = zip_file.name().to_string();
+    let mut data = Vec::new();
     
-    // Read entry data in blocking task
-    let data = spawn_blocking(move || {
-        let mut data = Vec::new();
-        zip_file.read_to_end(&mut data)?;
-        Ok::<_, std::io::Error>(data)
-    })
-    .await??;
-
-    // Store in database
+    // Read data synchronously since ZipFile implements Read
+    zip_file.read_to_end(&mut data)?;
+    
+    // Store data asynchronously
     db.store(&name, &data).await?;
-
+    
     Ok(())
 } 
