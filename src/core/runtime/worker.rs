@@ -1,50 +1,48 @@
-// Worker pool management for CPU-intensive tasks
-//
-// This module defines the `WorkerPool` struct, which manages a pool of worker tasks.
-// The design follows a layered approach:
-//
-// - At the top level, we define the `WorkerPool` struct and its primary functionalities.
-// - We implement backpressure control using `tokio::sync::Semaphore`, ensuring the system isn't overwhelmed.
-// - Metrics are integrated to monitor task performance.
+// Level 4: Worker Pool Management
+// - Manages worker thread lifecycle
+// - Implements task scheduling
+// - Handles backpressure
+// - Collects worker metrics
 
-use tokio::sync::{Semaphore, OwnedSemaphorePermit};
+use tokio::sync::Semaphore;
 use std::sync::Arc;
-use std::future::Future;
-use tracing::{instrument, error};
+use crate::core::error::Result;
 
+// Level 3: Worker Pool
 pub struct WorkerPool {
     semaphore: Arc<Semaphore>,
+    task_count: std::sync::atomic::AtomicU64,
 }
 
 impl WorkerPool {
-    // Initializes a new WorkerPool with a maximum number of concurrent tasks.
-    pub fn new(max_concurrent_tasks: usize) -> Self {
+    // Level 2: Pool Management
+    pub fn new(max_workers: usize) -> Self {
         Self {
-            semaphore: Arc::new(Semaphore::new(max_concurrent_tasks)),
+            semaphore: Arc::new(Semaphore::new(max_workers)),
+            task_count: std::sync::atomic::AtomicU64::new(0),
         }
     }
 
-    // Spawns a new task while controlling concurrency.
-    #[instrument(skip(self, future))]
+    // Level 1: Task Operations
     pub fn spawn<F>(&self, future: F)
     where
-        F: Future<Output = ()> + Send + 'static,
+        F: std::future::Future<Output = ()> + Send + 'static,
     {
-        let semaphore = self.semaphore.clone();
+        let sem = self.semaphore.clone();
+        let count = &self.task_count;
+        
         tokio::spawn(async move {
-            // Acquire a permit to ensure we don't exceed max concurrency.
-            let permit = semaphore.acquire_owned().await;
-            match permit {
-                Ok(_permit) => {
-                    // Execute the task.
-                    future.await;
-                    // Metrics can be recorded here.
-                }
-                Err(e) => {
-                    // Handle errors, such as semaphore being closed.
-                    error!("Failed to acquire semaphore permit: {}", e);
-                }
-            }
+            let _permit = sem.acquire().await.unwrap();
+            count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            future.await;
+            count.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
         });
+    }
+
+    pub async fn shutdown(&self) {
+        // Wait for all tasks to complete
+        while self.task_count.load(std::sync::atomic::Ordering::SeqCst) > 0 {
+            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        }
     }
 } 

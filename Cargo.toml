@@ -78,7 +78,7 @@ once_cell = "1.17.2"
 chrono = "0.4.26"
 
 # Add missing dependencies
-crc32fast = "1.3.2"
+crc32fast = { version = "1.3.2", optional = true }
 rand = "0.8.5"
 
 # ===== Level 1: Development Dependencies =====

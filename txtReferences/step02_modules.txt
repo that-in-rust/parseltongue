@@ -135,6 +135,18 @@
   - Provides mechanisms to signal and coordinate shutdown across tasks
   - Uses `tokio::sync::broadcast` for notifying tasks of shutdown
 
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/core/runtime/task.rs**
+
+- **Purpose:** Task scheduling and management
+- **Exports:**
+  - `pub struct TaskManager`
+  - `impl TaskManager`
+- **Implementation:**
+  - Manages task lifecycle
+  - Handles task priorities
+  - Provides task metrics
+  - Implements cancellation
+
 ---
 
 ### Error Handling
@@ -210,6 +222,18 @@
   - Provides asynchronous methods for storing and retrieving data
   - Ensures proper closure and flushing of the database on shutdown
 
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/storage/batch.rs**
+
+- **Purpose:** Batch operation management
+- **Exports:**
+  - `pub struct BatchProcessor`
+  - `impl BatchProcessor`
+- **Implementation:**
+  - Manages transaction boundaries
+  - Implements batch operations
+  - Handles rollbacks
+  - Collects operation metrics
+
 ---
 
 ### ZIP Processing
@@ -242,6 +266,18 @@
   - Stores entry data in RocksDB asynchronously
   - Handles errors and logs them accordingly
 
+**/home/amuldotexe/Desktop/GitHub202410/parseltongue/src/zip/compression.rs**
+
+- **Purpose:** Compression handling
+- **Exports:**
+  - `pub struct CompressionHandler`
+  - `pub enum CompressionAlgorithm`
+- **Implementation:**
+  - Handles different compression algorithms
+  - Manages streaming operations
+  - Implements memory-efficient processing
+  - Provides compression metrics
+
 ---
 
 ### Supporting Modules and Files
@@ -268,48 +304,28 @@
 
 ### Verification Steps
 
-1. **Import Missing Crates and Modules:**
+1. **Import Missing Crates and Modules**
+2. **Verify All Module Paths**
+3. **Ensure All Dependencies are Properly Imported**
+4. **Check Each and Every File**
+5. **Update the Code as Necessary**
+6. **Basic Build Verification:**
+   ```bash
+   cargo clean
+   cargo build
+   ```
 
-   - Ensure all necessary `use` statements are included in each file.
-   - For example, in `src/core/runtime/worker.rs`, include:
+### Non-Goals for Initial Implementation
 
-     ```rust
-     use std::sync::atomic::{AtomicU64, Ordering};
-     use std::time::Duration;
-     use tracing::error; // For logging errors
-     ```
+The following are explicitly out of scope for the initial implementation:
+1. Complete test coverage (only critical paths needed)
+2. Benchmark suite implementation
+3. CI/CD pipeline setup
+4. Release workflow automation
+5. Performance comparison frameworks
+6. Comprehensive documentation (basic API docs sufficient)
 
-2. **Verify All Module Paths:**
-
-   - Check that each `mod` declaration corresponds to an actual file.
-   - For example, `pub mod core;` in `src/lib.rs` corresponds to `src/core/mod.rs`.
-
-3. **Ensure All Dependencies are Properly Imported:**
-
-   - Double-check all `use` statements in each file.
-   - Confirm that types and functions are correctly imported from their respective modules.
-
-4. **Check Each and Every File:**
-
-   - Go through all files in `src/` and its subdirectories.
-   - Ensure that the content matches the module declarations.
-   - Fill in any missing implementations based on the module's purpose.
-
-5. **Update the Code as Necessary:**
-
-   - Address any compilation errors due to missing types or functions.
-   - Implement stubs or full implementations where needed.
-
-6. **Rebuild the Project:**
-
-   - After making the necessary changes, run:
-
-     ```bash
-     cargo clean
-     cargo build
-     ```
-
-   - Verify that the project builds successfully without errors.
+These can be added in future iterations as the codebase matures.
 
 ---
 

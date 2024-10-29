@@ -1,57 +1,58 @@
-// Level 4: Database Operations
-// - Manages RocksDB instance
-// - Provides async storage operations
-// - Handles connection lifecycle
+// Level 4: Database Interface
+// - Manages RocksDB lifecycle and operations
+// - Handles async storage operations
+// - Implements backpressure and resource limits
+// - Provides metrics collection points
 
-use rocksdb::{DB, Options};
+use tokio::task;
+use rocksdb::{DB, Options, ColumnFamilyDescriptor, TransactionDB, Transaction};
+use crate::core::error::{Error, Result};
 use std::path::Path;
-use crate::error::Result;
-use tokio::task::spawn_blocking;
-use std::sync::Arc;
+use metrics::{Counter, Gauge};
 
+// Level 3: Database Types
 pub struct Database {
-    db: Arc<DB>,
+    db: TransactionDB,
+    write_counter: Counter,
+    read_counter: Counter,
+    size_gauge: Gauge,
 }
 
 impl Database {
-    pub async fn open(path: &Path) -> Result<Self> {
-        let path = path.to_path_buf();
-        let db = spawn_blocking(move || {
+    // Level 2: Database Lifecycle
+    pub async fn new(path: impl AsRef<Path>, column_families: &[&str]) -> Result<Self> {
+        let path = path.as_ref().to_owned();
+        let cf_descriptors: Vec<_> = column_families.iter()
+            .map(|name| ColumnFamilyDescriptor::new(*name, Options::default()))
+            .collect();
+
+        let db = task::spawn_blocking(move || {
             let mut opts = Options::default();
             opts.create_if_missing(true);
-            DB::open(&opts, path)
+            opts.set_max_background_jobs(4);
+            TransactionDB::open_cf_descriptors(&opts, path, cf_descriptors)
         }).await??;
-        
-        Ok(Self { db: Arc::new(db) })
+
+        Ok(Self {
+            db,
+            write_counter: metrics::counter!("db_writes_total"),
+            read_counter: metrics::counter!("db_reads_total"),
+            size_gauge: metrics::gauge!("db_size_bytes"),
+        })
     }
 
-    pub async fn store(&self, key: &str, value: &[u8]) -> Result<()> {
+    // Level 1: Transaction Operations
+    pub async fn transaction<F, T>(&self, f: F) -> Result<T>
+    where
+        F: FnOnce(&Transaction) -> Result<T> + Send + 'static,
+        T: Send + 'static,
+    {
         let db = self.db.clone();
-        let key = key.to_string();
-        let value = value.to_vec();
-        
-        spawn_blocking(move || {
-            db.put(key.as_bytes(), value)
-        }).await??;
-        
-        Ok(())
-    }
-
-    pub async fn get(&self, key: &str) -> Result<Option<Vec<u8>>> {
-        let db = self.db.clone();
-        let key = key.to_string();
-        
-        let result = spawn_blocking(move || {
-            db.get(key.as_bytes())
-        }).await??;
-        
-        Ok(result)
-    }
-
-    pub async fn create_column_families(&self) -> Result<()> {
-        let families = vec!["metadata", "content", "index"];
-        let opts = Options::default();
-        self.db.create_cf_descriptors(&families, &opts)?;
-        Ok(())
+        task::spawn_blocking(move || {
+            let txn = db.transaction();
+            let result = f(&txn)?;
+            txn.commit()?;
+            Ok(result)
+        }).await??
     }
 } 

@@ -1,31 +1,28 @@
 // Level 4: Application Entry Point
-// - Parses command-line arguments
-// - Initializes configuration and logging
-// - Runs the application asynchronously
+// - CLI initialization
+// - Runtime setup
+// - Error handling
+// - Metrics setup
 
-use parseltongue::{cli, config::Config, app, logging, error::Result};
-use std::process;
+use parseltongue::{
+    cli::args::Args,
+    core::{error::Result, runtime::RuntimeManager},
+    metrics::report::MetricsReporter,
+};
 
 #[tokio::main]
-async fn main() {
-    // Level 3: Parse command-line arguments
-    let config = match cli::parse_args() {
-        Ok(cfg) => cfg,
-        Err(e) => {
-            eprintln!("Error parsing arguments: {}", e);
-            process::exit(1);
-        }
-    };
-
-    // Level 3: Initialize logging
-    if let Err(e) = logging::init(&config) {
-        eprintln!("Error initializing logging: {}", e);
-        process::exit(1);
-    }
-
-    // Level 3: Run the application
-    if let Err(e) = app::run(config).await {
-        eprintln!("Application error: {}", e);
-        process::exit(1);
-    }
+async fn main() -> Result<()> {
+    // Level 3: Setup
+    let args = Args::parse_args();
+    let config = args.into_config()?;
+    
+    // Level 2: Runtime Init
+    let runtime = RuntimeManager::new(config.worker_threads);
+    let metrics = MetricsReporter::new("0.0.0.0:9000".parse().unwrap());
+    
+    // Level 1: Execution
+    metrics.start().await?;
+    runtime.run(config).await?;
+    
+    Ok(())
 } 

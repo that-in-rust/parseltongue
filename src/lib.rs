@@ -1,28 +1,17 @@
-// Level 4: Library Root
-// - Defines public API
-// - Re-exports key components
-// - Organizes module structure
+// Level 4: Library Interface
+// - Public API definitions
+// - Feature configuration
+// - Module organization
+// - Documentation
 
-pub mod app;
-pub mod cli;
-pub mod config;
 pub mod core;
-pub mod error;
-pub mod logging;
-pub mod metrics;
-pub mod output;
+pub mod cli;
 pub mod storage;
 pub mod zip;
+pub mod utils;
+pub mod metrics;
 
 // Re-export commonly used types
-pub use error::{Error, Result};
-pub use config::Config;
-pub use storage::Database;
-pub use metrics::MetricsExporter;
-
-// Feature-gated exports
-#[cfg(feature = "metrics")]
-pub use metrics::init as init_metrics;
-
-#[cfg(feature = "console")]
-pub use tokio::console_subscriber;
+pub use core::{error::Error, types::Config};
+pub use storage::db::Database;
+pub use zip::stream::ZipStream;
