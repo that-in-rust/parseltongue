@@ -1,0 +1,397 @@
+**Assignment: Dual Backend Codebase Analyzer with Comparative Metrics**
+
+---
+
+**Objective:**
+
+Develop an extremely minimalistic full-stack application that demonstrates advanced asynchronous programming and backend development skills using **both Java 17 (Spring Boot)** and **Rust 2021 (Tokio)**. The application will:
+
+- Allow users to upload a zip file containing a codebase.
+- Provide an interface with a selector (radio buttons or dropdown) to choose whether to analyze the codebase using the **Java** backend or the **Rust** backend.
+- Process the uploaded file asynchronously using the selected backend.
+- Display real-time progress of the analysis on the frontend.
+- Store the analysis results in a **MongoDB** database with an appropriate schema design.
+- Present the output results for the same file, showing the processing speed and final outcomes for both Java and Rust implementations.
+- Run aggregation queries on the data to provide comparative insights.
+- Showcase mastery of asynchronous programming in both Java (CompletableFuture, etc.) and Rust (Tokio).
+- Keep the project minimalistic, focusing on core functionalities to demonstrate deep understanding.
+
+---
+
+### **Project Overview:**
+
+1. **Frontend Interface:**
+
+   - **Tech Stack:** Next.js (React) with Tailwind CSS.
+   - **Functionality:**
+     - Single-page application with:
+       - File upload functionality for zip files.
+       - A selector (radio buttons or dropdown) to choose between Java and Rust backends for analysis.
+     - Display real-time progress of the analysis visually.
+     - After analysis, display the results from both Java and Rust backends for comparison.
+     - Show processing time and final result outcomes.
+     - Provide options to run aggregation queries and display additional insights.
+
+2. **Backend Services:**
+
+   - **Java 17 Backend (Spring Boot):**
+     - Asynchronously process the uploaded zip file using modern Java features.
+     - Extract code metrics (e.g., number of files, files per language).
+     - Store results in MongoDB.
+     - Expose API endpoints for:
+       - Receiving the file and initiating analysis.
+       - Providing analysis results.
+       - Reporting progress status.
+     - Utilize CompletableFuture and other asynchronous constructs to showcase mastery.
+
+   - **Rust 2021 Backend (Tokio):**
+     - Asynchronously process the uploaded zip file using Tokio runtime.
+     - Extract the same code metrics as the Java backend.
+     - Store results in MongoDB.
+     - Expose similar API endpoints as the Java backend.
+     - Showcase advanced usage of Tokio for asynchronous programming.
+
+3. **Database:**
+
+   - **MongoDB:**
+     - Used to store analysis results and progress updates.
+     - Design a schema that can accommodate results from both backends.
+     - Run aggregation queries to compare data.
+
+---
+
+### **Technical Requirements:**
+
+#### **Frontend (Next.js and Tailwind CSS):**
+
+- **File Upload:**
+  - Allow users to upload a zip file containing code files.
+  - Handle file validation and size limitations.
+
+- **Backend Selector:**
+  - Provide radio buttons or a dropdown menu to select either Java or Rust backend for analysis.
+
+- **Progress Visualization:**
+  - Show real-time progress updates during analysis.
+  - Implement a progress bar or status messages.
+
+- **Results Display:**
+  - Display the analysis results, including:
+    - Metrics from the selected backend.
+    - Processing time taken.
+  - If both backends have processed the same file, display a comparative view.
+
+- **Aggregation Queries:**
+  - Provide options to run predefined aggregation queries on the data.
+  - Display results in a user-friendly format (e.g., charts or tables).
+
+- **Design and UX:**
+  - Use Tailwind CSS for modern, minimalistic styling.
+  - Ensure the interface is intuitive and responsive.
+
+#### **Backend Services:**
+
+##### **Common Requirements for Both Java and Rust Backends:**
+
+- **Asynchronous Processing:**
+  - Process the uploaded zip file without blocking.
+  - Efficiently handle I/O operations and concurrency.
+
+- **Code Metrics Extraction:**
+  - Total number of files.
+  - Number of files per programming language (based on file extensions).
+  - (Optional) Total lines of code.
+
+- **Progress Updates:**
+  - Send progress updates to the frontend.
+  - Implement a mechanism for the frontend to receive updates (e.g., polling or WebSockets).
+
+- **Database Interaction:**
+  - Store results in MongoDB with a consistent schema.
+  - Perform asynchronous database operations.
+
+- **API Endpoints:**
+  - **POST** `/analyze`:
+    - Accepts the uploaded file and backend selection.
+    - Returns a job ID for tracking.
+  - **GET** `/progress/{jobId}`:
+    - Returns current progress status.
+  - **GET** `/results/{jobId}`:
+    - Returns analysis results.
+  - **GET** `/aggregate`:
+    - Runs aggregation queries and returns data.
+
+##### **Java 17 Backend (Spring Boot):**
+
+- **Asynchronous Features:**
+  - Use `CompletableFuture`, `ExecutorService`, or Spring's `@Async`.
+  - Leverage Java 17 features where appropriate.
+
+- **Mastery Demonstration:**
+  - Efficient non-blocking I/O operations.
+  - Proper thread management and synchronization.
+
+##### **Rust 2021 Backend (Tokio):**
+
+- **Asynchronous Features:**
+  - Use `async`/`await` with the Tokio runtime.
+  - Efficiently manage tasks and I/O.
+
+- **Mastery Demonstration:**
+  - Advanced usage of Tokio for task scheduling and I/O handling.
+  - Effective concurrency management.
+
+#### **Database Design:**
+
+- **Schema Considerations:**
+  - Design collections to store analysis results from both backends.
+  - Fields to include:
+    - Job ID
+    - Backend used (Java or Rust)
+    - Metrics collected
+    - Processing time
+    - Timestamps
+
+- **Aggregation Queries:**
+  - Compare results between Java and Rust analyses.
+  - Examples:
+    - Average processing time per backend.
+    - Total number of files processed.
+    - Language distribution across analyses.
+
+---
+
+### **Implementation Steps:**
+
+#### **Frontend:**
+
+1. **Set Up Next.js Project:**
+
+   ```bash
+   npx create-next-app frontend
+   cd frontend
+   ```
+
+2. **Install Tailwind CSS:**
+
+   ```bash
+   npm install -D tailwindcss postcss autoprefixer
+   npx tailwindcss init -p
+   ```
+
+3. **Configure Tailwind CSS:**
+
+   - Update `tailwind.config.js` and import Tailwind directives in `styles/globals.css`.
+
+4. **Create Main Page (`pages/index.js`):**
+
+   - Implement file upload and backend selector.
+   - Use `fetch` or `axios` to send the file and selection to the backend.
+   - Implement progress polling or use WebSockets for real-time updates.
+   - Display results and comparative metrics.
+
+5. **Styling:**
+
+   - Use Tailwind CSS for a clean, minimalistic design.
+   - Ensure responsiveness and accessibility.
+
+#### **Backends:**
+
+1. **Set Up Projects:**
+
+   - **Java 17 Backend:**
+     - Use Spring Initializr to create a new project.
+     - Include dependencies: Web, MongoDB, Lombok (optional).
+   - **Rust 2021 Backend:**
+     - Create a new Rust project using Cargo.
+     - Add dependencies: `tokio`, `actix-web`, `mongodb`.
+
+2. **Implement Asynchronous File Processing:**
+
+   - **File Handling:**
+     - Receive uploaded files via multipart/form-data.
+     - Store files securely and temporarily.
+
+   - **Asynchronous Processing:**
+     - Start analysis in a non-blocking manner.
+     - Use appropriate async constructs.
+
+3. **Progress Tracking:**
+
+   - Maintain progress status per job ID.
+   - Update progress in MongoDB or an in-memory store.
+
+4. **Analysis Logic:**
+
+   - Extract files from the zip archive.
+   - Collect metrics as per requirements.
+
+5. **Database Operations:**
+
+   - Connect to MongoDB using asynchronous drivers.
+   - Store results with appropriate schema.
+
+6. **API Endpoints:**
+
+   - Implement endpoints as specified.
+   - Ensure consistent API design across both backends.
+
+7. **Error Handling:**
+
+   - Handle exceptions and edge cases gracefully.
+   - Provide informative error responses.
+
+8. **Security Measures:**
+
+   - Validate and sanitize inputs.
+   - Implement CORS policies for frontend communication.
+   - Handle file uploads securely.
+
+---
+
+### **Comparative Metrics and Mastery Demonstration:**
+
+- **Processing Speed:**
+  - Measure and record processing time.
+  - Display times for comparison on the frontend.
+
+- **Result Consistency:**
+  - Ensure both backends produce consistent metrics.
+  - Highlight any discrepancies.
+
+- **Asynchronous Implementation:**
+  - Use idiomatic patterns in each language.
+  - Showcase advanced features and best practices.
+
+---
+
+### **Submission Guidelines:**
+
+- **GitHub Repository Structure:**
+
+  ```
+  project-root/
+  ├── frontend/
+  │   └── ...
+  ├── backend-java/
+  │   └── ...
+  ├── backend-rust/
+  │   └── ...
+  └── README.md
+  ```
+
+- **Documentation:**
+
+  - **Root README:**
+    - Overview and objectives.
+    - Prerequisites.
+    - Instructions for running the frontend and both backends.
+  - **Backend READMEs:**
+    - Setup and run instructions.
+    - Dependencies and configurations.
+
+- **Instructions:**
+
+  - **Prerequisites:**
+    - Node.js for the frontend.
+    - Java 17 and Maven/Gradle for Java backend.
+    - Rust 1.56+ and Cargo for Rust backend.
+    - MongoDB installed or accessible.
+
+  - **Running the Application:**
+    - Start MongoDB if necessary.
+    - Run each backend service.
+    - Start the frontend application.
+    - Access the application via `http://localhost:3000`.
+
+- **Sample Data:**
+
+  - Include sample zip files for testing.
+  - Ensure they are small for quick processing.
+
+---
+
+### **Evaluation Criteria:**
+
+- **Functionality:**
+  - Application allows backend selection.
+  - Asynchronous processing with progress visualization.
+  - Accurate and consistent results.
+  - Comparative metrics displayed.
+
+- **Code Quality:**
+  - Clean, readable, maintainable code.
+  - Proper use of asynchronous constructs.
+  - Effective error handling.
+
+- **User Experience:**
+  - Intuitive interface.
+  - Responsive design.
+  - Clear visualization of progress and results.
+
+- **Technical Implementation:**
+  - Mastery of Java 17 and Rust 2021 features.
+  - Efficient MongoDB interactions.
+  - Consistent API design.
+
+- **Documentation:**
+  - Clear setup and usage instructions.
+  - Well-commented code where necessary.
+  - Explanation of design choices.
+
+---
+
+### **Optional Enhancements (Not Required):**
+
+- **Simultaneous Analysis:**
+  - Allow running analyses on both backends concurrently.
+
+- **WebSockets:**
+  - Implement real-time updates without polling.
+
+- **Advanced Metrics:**
+  - Additional code analysis (e.g., code complexity).
+
+- **Dockerization:**
+  - Provide Docker configurations for easy deployment.
+
+- **Automated Testing:**
+  - Include unit and integration tests.
+
+---
+
+### **Getting Started Tips:**
+
+- **Plan Architecture:**
+  - Design how the frontend interacts with both backends.
+  - Ensure consistent API endpoints.
+
+- **Start with One Backend:**
+  - Implement core features with one backend before adding the second.
+
+- **Use Common Data Models:**
+  - Ensure data structures are compatible across both backends.
+
+- **Test Incrementally:**
+  - Test each component individually.
+  - Use tools like Postman to test APIs.
+
+- **Manage Time:**
+  - Prioritize core functionalities.
+  - Keep the project minimalistic.
+
+---
+
+### **Conclusion:**
+
+This assignment aims to showcase your ability to implement advanced asynchronous processing in both Java and Rust, comparing their performance and outputs within a practical application. By incorporating a modern frontend and a well-designed database schema, you demonstrate full-stack development skills and an understanding of user experience.
+
+The project remains minimalistic to ensure focus on essential features, enabling you to complete it efficiently while still demonstrating depth in key areas.
+
+Completing this project will provide a solid example of your technical abilities, suitable for showcasing during interviews or as part of your professional portfolio.
+
+---
+
+**We encourage you to focus on delivering a functional, well-documented, and user-friendly application.** Keep the design simple, the code clean, and ensure the project effectively highlights your strengths in asynchronous programming and backend development. Good luck with your development!
+
+---
