@@ -1,3 +1,15 @@
+
+
+
+
+
+====
+Please improve this prompt in context of our improved scope file like this - take this as an exampe use your 300 IQ intelligence to make the LLM prompt more comprehensive, detailed and effective - basically all types of things that is just 1 level above codebase - all language features, dos donts - so that we can keep updating this map of Codebase at every step of updation of code base
+
+so the prompt should be about creation as well as updation
+- it should also mention with checkmarks what is done, what is missing, what is extra, what is wrong,
+- it should also mention terminal commands for gracefully removing or moving what is not required from the codebase while making sure everything we did is reutilized so our hardwork is not lost
+
 # Parseltongue v0.1: Project Scope
 
 ## End-to-End User Journey
@@ -148,3 +160,5 @@ cd analyzer
 - Docker support
 - Cloud deployment
 
+
+=================
