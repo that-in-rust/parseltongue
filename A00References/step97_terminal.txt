@@ -1,3 +1,10 @@
+
+
+chmod +x A00References/install01.sh
+sudo ./A00References/install01.sh
+
+
+===============
 #!/bin/bash
 
 # Robust shell options
