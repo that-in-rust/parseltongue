@@ -192,17 +192,28 @@ verify_websocket_connections() {
 
 verify_stream_processing() {
     log_info "Verifying stream processing..."
-    # Simulate a disk speed test
+    local test_file="/tmp/testfile"
+    local bs="1M"
+    local count=1024  # 1 GB test file
     local write_speed
-    write_speed=$( (dd if=/dev/zero of=/tmp/testfile bs=1M count=1024 oflag=direct conv=fdatasync 2>&1) | grep -o '[0-9.]\+ MB/s' | tail -1 | awk '{print $1}')
-    rm -f /tmp/testfile
 
-    if [[ -z "$write_speed" ]]; then
+    # Perform the disk write test
+    sync  # Ensure all previous I/O is flushed
+    write_output=$(dd if=/dev/zero of="$test_file" bs="$bs" count="$count" oflag=direct conv=fdatasync 2>&1)
+    rm -f "$test_file"  # Clean up test file
+
+    # Extract the speed from the output
+    if [[ $write_output =~ ([0-9\.]+)\ MB/s ]]; then
+        write_speed="${BASH_REMATCH[1]}"
+    elif [[ $write_output =~ ([0-9\.]+)\ GB/s ]]; then
+        write_speed_in_gb="${BASH_REMATCH[1]}"
+        write_speed=$(echo "$write_speed_in_gb * 1024" | bc)
+    else
         log_error "Unable to measure disk speed"
         return 1
     fi
 
-    write_speed_int=${write_speed%.*} # Remove decimal part
+    write_speed_int=${write_speed%.*}  # Remove decimal part
 
     if [[ $write_speed_int -ge $STREAM_PROCESSING ]]; then
         log_success "Stream processing speed: ${write_speed_int}MB/s (Required: ${STREAM_PROCESSING}MB/s)"
