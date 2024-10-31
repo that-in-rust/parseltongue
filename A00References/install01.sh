@@ -29,202 +29,96 @@
 # - Database initialization
 # ===========================
 
-# Exit on error, but allow installations to continue even with unrelated errors
-set +e
+set -e
 
 # Function to check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Function to install Java 21
-install_java() {
-    echo "Installing Java 21 JDK..."
-    sudo apt-get install -y software-properties-common
-    sudo add-apt-repository -y ppa:linuxuprising/java
-    sudo apt-get update
-    sudo apt-get install -y oracle-java21-installer
+# Function to verify tool versions
+verify_tool_version() {
+    local tool=$1
+    local min_version=$2
+    local version_check_failed=false
     
-    # Verify installation
-    if ! command_exists java; then
-        echo "❌ Java installation failed"
-        exit 1
-    fi
+    case $tool in
+        "node")
+            if command_exists node; then
+                local version=$(node -v | cut -d'v' -f2)
+                if [ "$(echo "$version $min_version" | awk '{if ($1 < $2) print 1}')" ]; then
+                    version_check_failed=true
+                fi
+            else
+                version_check_failed=true
+            fi
+            ;;
+        "java")
+            if command_exists java; then
+                local version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
+                if [ "$version" -lt "$min_version" ]; then
+                    version_check_failed=true
+                fi
+            else
+                version_check_failed=true
+            fi
+            ;;
+        "rust")
+            if command_exists rustc; then
+                local version=$(rustc --version | cut -d' ' -f2)
+                if [ "$(echo "$version $min_version" | awk '{if ($1 < $2) print 1}')" ]; then
+                    version_check_failed=true
+                fi
+            else
+                version_check_failed=true
+            fi
+            ;;
+        "mongodb")
+            if command_exists mongod; then
+                local version=$(mongod --version | grep "db version" | cut -d' ' -f3)
+                if [ "$(echo "$version $min_version" | awk '{if ($1 < $2) print 1}')" ]; then
+                    version_check_failed=true
+                fi
+            else
+                version_check_failed=true
+            fi
+            ;;
+    esac
+
+    [ "$version_check_failed" = false ]
+    return $?
 }
 
-# Function to install Gradle
-install_gradle() {
-    echo "Installing Gradle..."
-    sudo apt-get install -y unzip
-    wget -q https://services.gradle.org/distributions/gradle-8.5-bin.zip
-    sudo unzip -d /opt/gradle gradle-8.5-bin.zip
-    sudo ln -s /opt/gradle/gradle-8.5/bin/gradle /usr/bin/gradle
-    rm gradle-8.5-bin.zip
+# Function to verify system requirements
+verify_system_requirements() {
+    echo "🔍 Verifying system requirements..."
     
-    # Verify installation
-    if ! command_exists gradle; then
-        echo "❌ Gradle installation failed"
-        exit 1
-    fi
-}
-
-# Function to install Spring Boot CLI
-install_spring_boot_cli() {
-    echo "Installing Spring Boot CLI..."
-    
-    # Install required packages
-    sudo apt-get install -y unzip wget
-    
-    # Create temporary directory
-    TEMP_DIR=$(mktemp -d)
-    cd "$TEMP_DIR" || exit 1
-    
-    # Download with retry and verification
-    SPRING_VERSION="3.2.0"
-    SPRING_URL="https://repo.spring.io/release/org/springframework/boot/spring-boot-cli/${SPRING_VERSION}/spring-boot-cli-${SPRING_VERSION}-bin.zip"
-    
-    echo "Downloading Spring Boot CLI..."
-    for i in {1..3}; do
-        if wget -q "$SPRING_URL" && [ -f "spring-boot-cli-${SPRING_VERSION}-bin.zip" ]; then
-            break
-        fi
-        echo "Retrying download..."
-        sleep 2
-        if [ $i -eq 3 ]; then
-            echo "❌ Failed to download Spring Boot CLI"
-            exit 1
-        fi
-    done
-    
-    # Verify download
-    if [ ! -f "spring-boot-cli-${SPRING_VERSION}-bin.zip" ]; then
-        echo "❌ Spring Boot CLI download failed"
-        exit 1
-    fi
-    
-    # Clean up old installation
-    sudo rm -rf /opt/spring* /usr/local/bin/spring
-    
-    # Install
-    sudo unzip -q "spring-boot-cli-${SPRING_VERSION}-bin.zip" -d /opt/
-    sudo ln -sf "/opt/spring-${SPRING_VERSION}/bin/spring" /usr/local/bin/spring
-    
-    # Clean up
-    cd - || exit 1
-    rm -rf "$TEMP_DIR"
-    
-    # Verify installation
-    if ! command_exists spring; then
-        echo "❌ Spring Boot CLI installation failed"
-        exit 1
-    fi
-    
-    # Verify version
-    INSTALLED_VERSION=$(spring --version | grep -oP '\d+\.\d+\.\d+' || echo "0.0.0")
-    if [ "$(echo "$INSTALLED_VERSION $SPRING_VERSION" | awk '{if ($1 < $2) print 1}')" ]; then
-        echo "❌ Spring Boot CLI version mismatch. Expected $SPRING_VERSION, got $INSTALLED_VERSION"
-        exit 1
-    fi
-    
-    echo "✅ Spring Boot CLI $SPRING_VERSION installed successfully"
-}
-
-# Function to install Node.js and npm
-install_node() {
-    echo "Installing Node.js and npm..."
-    
-    # Remove old Node.js
-    sudo apt-get remove -y nodejs npm
-    sudo apt-get autoremove -y
-    
-    # Clean up old files
-    sudo rm -rf /usr/local/bin/npm /usr/local/share/man/man1/node* ~/.npm ~/.node-gyp
-    
-    # Add NodeSource repository (Node.js 20.x for Next.js 14+)
-    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-    
-    # Verify and upgrade npm
-    sudo npm install -g npm@latest
-    
-    # Install required global packages
-    sudo npm install -g typescript @types/node @types/react @types/react-dom
-}
-
-# Function to install Rust and Cargo
-install_rust() {
-    echo "Installing Rust and Cargo..."
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source "$HOME/.cargo/env"
-    
-    # Verify installation
-    if ! command_exists cargo; then
-        echo "❌ Rust/Cargo installation failed"
-        exit 1
-    fi
-}
-
-# Function to install MongoDB for Ubuntu 22.04
-install_mongodb() {
     # Check Ubuntu version
     if ! grep -q "Ubuntu 22.04" /etc/os-release; then
         echo "❌ This script is optimized for Ubuntu 22.04"
         exit 1
     fi
 
-    echo "Installing MongoDB on Ubuntu 22.04..."
-    
-    # Install required packages
-    sudo apt-get install -y gnupg curl
+    # Check minimum required versions
+    local required_versions=(
+        "node:20.0.0"
+        "java:21"
+        "rust:1.70.0"
+        "mongodb:6.0"
+    )
 
-    # Remove existing MongoDB keys and sources
-    sudo rm -f /etc/apt/sources.list.d/mongodb*.list
-    sudo rm -f /usr/share/keyrings/mongodb*.gpg
-    
-    # Import MongoDB public GPG key
-    curl -fsSL https://www.mongodb.org/static/pgp/server-6.0.asc | \
-        sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg
-    
-    # Create list file for MongoDB
-    echo "deb [ arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | \
-        sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-
-    sudo apt-get update -y
-    sudo apt-get install -y mongodb-org
-    
-    # Start MongoDB
-    sudo systemctl daemon-reload
-    sudo systemctl start mongod
-    sudo systemctl enable mongod
-    
-    # Wait for MongoDB to start
-    echo "Waiting for MongoDB to start..."
-    for i in {1..30}; do
-        if mongosh --eval "db.version()" >/dev/null 2>&1; then
-            break
-        fi
-        sleep 1
-        if [ $i -eq 30 ]; then
-            echo "❌ MongoDB failed to start"
+    for req in "${required_versions[@]}"; do
+        local tool="${req%%:*}"
+        local min_version="${req#*:}"
+        
+        if ! verify_tool_version "$tool" "$min_version"; then
+            echo "❌ $tool version check failed. Minimum required: $min_version"
             exit 1
         fi
     done
-
-    # Setup MongoDB for project
-    echo "Setting up MongoDB for Parseltongue..."
-    mongosh --eval '
-        use parseltongue;
-        db.createCollection("analysis_jobs");
-        db.createCollection("analysis_results");
-        db.createCollection("file_metadata");
-        db.analysis_jobs.createIndex({ "createdAt": 1 });
-        db.analysis_jobs.createIndex({ "status": 1 });
-        db.file_metadata.createIndex({ "jobId": 1 });
-        db.analysis_results.createIndex({ "jobId": 1 }, { unique: true });
-    '
 }
 
-# Function to install all missing dependencies
+# Function to install missing dependencies
 install_missing_deps() {
     local missing=("$@")
     
@@ -253,7 +147,34 @@ install_missing_deps() {
     done
 }
 
-# Function to setup Next.js frontend
+# Function to verify installation
+verify_installation() {
+    local component=$1
+    local version=$2
+    local retries=3
+    local verified=false
+
+    echo "🔍 Verifying $component installation..."
+
+    for ((i=1; i<=retries; i++)); do
+        if verify_tool_version "$component" "$version"; then
+            verified=true
+            break
+        fi
+        echo "⚠️ Verification attempt $i failed, retrying..."
+        sleep 2
+    done
+
+    if ! $verified; then
+        echo "❌ Failed to verify $component installation after $retries attempts"
+        return 1
+    fi
+
+    echo "✅ $component installation verified"
+    return 0
+}
+
+# Function to setup frontend
 setup_frontend() {
     echo "Setting up Next.js frontend..."
     (
@@ -414,72 +335,66 @@ EOL
     chmod +x scripts/dev-commands.sh
 }
 
-# Function to verify system requirements
-verify_system_requirements() {
-    echo "🔍 Verifying system requirements..."
-    
-    # Check Ubuntu version
-    if ! grep -q "Ubuntu 22.04" /etc/os-release; then
-        echo "❌ This script is optimized for Ubuntu 22.04"
-        exit 1
-    fi
-
-    # Check minimum required versions
-    local required_versions=(
-        "node:20.0.0"
-        "java:21"
-        "rust:1.70.0"
-    )
-
-    for req in "${required_versions[@]}"; do
-        local tool="${req%%:*}"
-        local min_version="${req#*:}"
-        
-        if ! verify_tool_version "$tool" "$min_version"; then
-            echo "❌ $tool version check failed. Minimum required: $min_version"
-            exit 1
+# Function to generate summary
+generate_summary() {
+    echo "=== Summary ==="
+    echo "🔍 Available Components:"
+    for cmd in node npm java gradle spring cargo mongodb mongosh; do
+        if command_exists "$cmd"; then
+            echo "✅ $cmd: $(command -v "$cmd")"
+            case $cmd in
+                "node") echo "   Version: $(node -v)" ;;
+                "java") echo "   Version: $(java -version 2>&1 | head -n 1)" ;;
+                "mongodb") echo "   Version: $(mongod --version | grep "db version")" ;;
+                "cargo") echo "   Version: $(cargo --version)" ;;
+            esac
+        else
+            echo "❌ $cmd: Not available"
         fi
     done
-}
 
-# Function to verify tool versions
-verify_tool_version() {
-    local tool=$1
-    local min_version=$2
-    
-    case $tool in
-        "node")
-            if command_exists node; then
-                local version=$(node -v | cut -d'v' -f2)
-                if [ "$(echo "$version $min_version" | awk '{if ($1 < $2) print 1}')" ]; then
-                    return 1
-                fi
-            else
-                return 1
-            fi
-            ;;
-        "java")
-            if command_exists java; then
-                local version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
-                if [ "$version" -lt "$min_version" ]; then
-                    return 1
-                fi
-            else
-                return 1
-            fi
-            ;;
-        "rust")
-            if command_exists rustc; then
-                local version=$(rustc --version | cut -d' ' -f2)
-                if [ "$(echo "$version $min_version" | awk '{if ($1 < $2) print 1}')" ]; then
-                    return 1
-                fi
-            else
-                return 1
-            fi
-            ;;
-    esac
-    return 0
+    echo -e "\n📦 Installation Status:"
+    echo "Frontend Setup: $(test -d frontend/src && echo "✅" || echo "❌")"
+    echo "Java Backend: $(test -d backend-java/src && echo "✅" || echo "❌")"
+    echo "Rust Backend: $(test -d backend-rust/src && echo "✅" || echo "❌")"
+    echo "MongoDB: $(systemctl is-active mongod >/dev/null 2>&1 && echo "✅" || echo "❌")"
+
+    echo -e "\n🚫 Uninstalled Components:"
+    for cmd in "${MISSING_DEPS[@]}"; do
+        echo "- $cmd"
+    done
+
+    echo -e "\n🚧 Blocked On:"
+    if [ ${#failed_verifications[@]} -ne 0 ]; then
+        printf '%s\n' "${failed_verifications[@]}"
+    else
+        echo "No blocking issues"
+    fi
+
+    echo -e "\n🔧 Needs Fixing:"
+    local needs_fixing=()
+    # Check frontend setup
+    if [ ! -f frontend/package.json ]; then
+        needs_fixing+=("Frontend package.json missing")
+    fi
+    # Check Java backend setup
+    if [ ! -f backend-java/build.gradle ]; then
+        needs_fixing+=("Java backend build.gradle missing")
+    fi
+    # Check Rust backend setup
+    if [ ! -f backend-rust/Cargo.toml ]; then
+        needs_fixing+=("Rust backend Cargo.toml missing")
+    fi
+    # Check MongoDB
+    if ! mongosh --eval "db.version()" --quiet >/dev/null 2>&1; then
+        needs_fixing+=("MongoDB connection issues")
+    fi
+
+    if [ ${#needs_fixing[@]} -eq 0 ]; then
+        echo "No issues found"
+    else
+        printf '%s\n' "${needs_fixing[@]}"
+    fi
 }
 
 # Main installation process
@@ -504,12 +419,6 @@ main() {
         install_missing_deps "${MISSING_DEPS[@]}"
     fi
 
-    # Create project structure
-    mkdir -p frontend/{src/{app,components,services,types},config} \
-           backend-java/src/main/java/com/parseltongue/{config,controller,model,repository,service} \
-           backend-rust/src/{config,handlers,models,services} \
-           shared/{types,config}
-
     # Setup each component
     setup_frontend
     setup_java_backend
@@ -524,52 +433,24 @@ main() {
     echo "3. Java backend: http://localhost:8080"
     echo "4. Rust backend: http://localhost:8081"
 
-    # === Final Summary ===
-    echo "
-=== Installation Summary ===
-🔍 System Requirements:
-- Ubuntu 22.04: ${grep -q "Ubuntu 22.04" /etc/os-release && echo "✅" || echo "❌"}
-- Node.js 20+: $(node -v 2>/dev/null || echo "❌")
-- Java 21+: $(java -version 2>&1 | head -n 1 | cut -d'"' -f2 || echo "❌")
-- Rust 1.70+: $(rustc --version 2>/dev/null || echo "❌")
+    # Run post-installation verification
+    echo "🔍 Running post-installation verifications..."
+    local failed_verifications=()
+    
+    for component in "node:20.0.0" "java:21" "mongodb:6.0"; do
+        if ! verify_installation "${component%%:*}" "${component#*:}"; then
+            failed_verifications+=("$component")
+        fi
+    done
 
-🏗️ Project Structure:
-- Frontend (Next.js): $(test -d frontend/src && echo "✅" || echo "❌")
-- Backend (Java): $(test -d backend-java/src && echo "✅" || echo "❌")
-- Backend (Rust): $(test -d backend-rust/src && echo "✅" || echo "❌")
-- Shared Resources: $(test -d shared && echo "✅" || echo "❌")
+    if [ ${#failed_verifications[@]} -ne 0 ]; then
+        echo "❌ The following components failed verification:"
+        printf '%s\n' "${failed_verifications[@]}"
+        exit 1
+    fi
 
-🔧 Development Tools:
-- Spring Boot CLI: $(command -v spring >/dev/null 2>&1 && echo "✅" || echo "❌")
-- Gradle: $(command -v gradle >/dev/null 2>&1 && echo "✅" || echo "❌")
-- MongoDB: $(mongosh --version >/dev/null 2>&1 && echo "✅" || echo "❌")
-
-📦 Dependencies Status:
-Frontend:
-- Next.js: $(test -f frontend/package.json && grep -q "next" frontend/package.json && echo "✅" || echo "❌")
-- React Query: $(test -f frontend/package.json && grep -q "@tanstack/react-query" frontend/package.json && echo "✅" || echo "❌")
-- Tailwind: $(test -f frontend/tailwind.config.js && echo "✅" || echo "❌")
-
-Backend (Java):
-- Spring Boot: $(test -f backend-java/build.gradle && grep -q "org.springframework.boot" backend-java/build.gradle && echo "✅" || echo "❌")
-- MongoDB Driver: $(test -f backend-java/build.gradle && grep -q "spring-boot-starter-data-mongodb" backend-java/build.gradle && echo "✅" || echo "❌")
-
-Backend (Rust):
-- Actix-web: $(test -f backend-rust/Cargo.toml && grep -q "actix-web" backend-rust/Cargo.toml && echo "✅" || echo "❌")
-- MongoDB Driver: $(test -f backend-rust/Cargo.toml && grep -q "mongodb" backend-rust/Cargo.toml && echo "✅" || echo "❌")
-
-🗄️ Database Setup:
-- MongoDB Service: $(systemctl is-active mongod >/dev/null 2>&1 && echo "✅" || echo "❌")
-- Collections Created: $(mongosh --eval "use parseltongue; db.getCollectionNames().length" --quiet >/dev/null 2>&1 && echo "✅" || echo "❌")
-
-📝 Next Steps:
-1. Start services: ./scripts/dev-commands.sh start
-2. Access frontend: http://localhost:3000
-3. Java backend: http://localhost:8080
-4. Rust backend: http://localhost:8081
-
-⚠️ Note: Any ❌ marks indicate components that may need manual attention.
-==========================="
+    # Generate summary
+    generate_summary
 }
 
 # Run the script

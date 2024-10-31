@@ -78,6 +78,12 @@ mkdir -p parseltongue/shared/{types,config}
 # Track current files
 find . -type f -not -path '*/\.*' > step98_current_files.txt
 
+# === Mistakes N(version) ===
+# 1. Repository Cloning: The script does not clone the necessary repository. Ensure the repository is cloned if not already present.
+# 2. Error Handling: Consider adding more granular error handling for specific operations to improve robustness.
+# 3. Logging: Enhance logging for each step to aid in debugging and provide more detailed feedback during execution.
+# 4. Verification: While the script verifies installations, it could include checks for specific configurations or files to ensure complete setup.
+
 
 ===
 
