@@ -1,4 +1,3 @@
-./.cursorignore
 ./step02_module.txt
 ./step98_current_files.txt
 ./Readme.ipynb

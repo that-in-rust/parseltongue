@@ -85,3 +85,51 @@
 !**/.env*.local  # Next.js env files
 !**/next.config.js
 !**/next-env.d.ts
+
+# Build directories
+**/target/
+**/build/
+**/dist/
+**/node_modules/
+
+# IDE files
+**/.idea/
+**/.vscode/
+**/.vs/
+**/*.iml
+
+# Logs and databases
+**/*.log
+**/*.sqlite
+**/*.db
+
+# Environment files
+**/.env
+**/.env.*
+**/secrets.*
+
+# Generated files
+**/generated/
+**/*.generated.*
+
+# Test coverage
+**/coverage/
+
+# Temporary files
+**/*.tmp
+**/*.temp
+**/tmp/
+**/temp/
+
+# OS files
+**/.DS_Store
+**/Thumbs.db
+
+# Backup files
+**/*.bak
+**/*.backup
+backup/
+
+# Documentation (optional - uncomment if needed)
+# **/docs/
+# **/*.md

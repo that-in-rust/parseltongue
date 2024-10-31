@@ -1,83 +1,61 @@
-=== Current Files ===
+#!/bin/bash
 
-find . -type f ! -path "*/.git/*" > step98_current_files.txt
+# Project status commands
+check_structure() {
+    echo "Checking project structure..."
+    tree -I 'node_modules|target|build|dist|.git'
+}
 
+check_git_status() {
+    echo "Git status..."
+    git status
+    echo "Recent commits..."
+    git log --oneline -n 5
+}
 
+check_builds() {
+    echo "Checking builds..."
+    
+    echo "Frontend:"
+    cd frontend && npm run build
+    
+    echo "Java Backend:"
+    cd ../backend-java && ./gradlew build
+    
+    echo "Rust Backend:"
+    cd ../backend-rust && cargo build
+}
 
-=== terminal commands version 1.0 ===
+cleanup_project() {
+    echo "Cleaning project..."
+    
+    # Clean frontend
+    cd frontend
+    rm -rf node_modules build dist
+    npm ci
+    
+    # Clean Java backend
+    cd ../backend-java
+    ./gradlew clean
+    
+    # Clean Rust backend
+    cd ../backend-rust
+    cargo clean
+}
 
-# Version checks
-echo "=== Checking installed versions ==="
-java -version
-node -v
-mongod --version
-rustc --version
-cargo --version
-spring --version
+# Run all checks
+all_checks() {
+    check_structure
+    check_git_status
+    check_builds
+}
 
-# Java installation
-echo "=== Installing Java 17 ==="
-# Ubuntu/Debian
-sudo apt update
-sudo apt install openjdk-17-jdk -y
-# macOS
-# brew install openjdk@17
-# Windows: Download from https://adoptium.net/
-
-# Node.js installation 
-echo "=== Installing Node.js 18+ ==="
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm install 18
-nvm use 18
-
-# MongoDB installation
-echo "=== Installing MongoDB 6.0+ ==="
-# Ubuntu/Debian
-sudo apt install gnupg
-wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-sudo apt update
-sudo apt install mongodb-org -y
-sudo systemctl start mongod
-sudo systemctl enable mongod
-
-# Rust installation
-echo "=== Installing Rust and Cargo ==="
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-source $HOME/.cargo/env
-
-# Spring Boot CLI installation
-echo "=== Installing Spring Boot CLI ==="
-# Ubuntu/Debian
-curl -s https://get.sdkman.io | bash
-source "$HOME/.sdkman/bin/sdkman-init.sh"
-sdk install springboot
-
-# Essential build tools
-echo "=== Installing build essentials ==="
-sudo apt update
-sudo apt install build-essential git -y
-
-# Verify installations
-echo "=== Verifying all installations ==="
-java -version
-node -v
-mongod --version
-rustc --version
-cargo --version
-spring --version
-git --version
-
-# Create project directories
-echo "=== Creating project structure ==="
-mkdir -p parseltongue/{frontend,backend-java,backend-rust,docs}
-cd parseltongue
-
-# Initialize git
-git init
-echo "node_modules/" > .gitignore
-echo "target/" >> .gitignore
-echo ".env" >> .gitignore
-echo "*.log" >> .gitignore
+# Usage
+case "$1" in
+    "structure") check_structure ;;
+    "git") check_git_status ;;
+    "build") check_builds ;;
+    "clean") cleanup_project ;;
+    "all") all_checks ;;
+    *) echo "Usage: $0 {structure|git|build|clean|all}" ;;
+esac
