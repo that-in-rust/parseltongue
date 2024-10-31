@@ -1,4 +1,4 @@
-# Parseltongue v0.2: Async-First Project Blueprint
+# Parseltongue v0.2.1: Async-First Project Blueprint
 
 ## Directory Structure
 ```
@@ -21,7 +21,7 @@ parseltongue/
 │   │   ├── controller/       
 │   │   │   ├── AnalysisHandler.java  # Reactive handlers
 │   │   │   └── WebSocketHandler.java # Progress updates
-│   │   ├── model/            
+│   │   ├─��� model/            
 │   │   │   ├── AnalysisJob.java     # Reactive model
 │   │   │   └── FileStream.java      # Stream processor
 │   │   ├── repository/       
