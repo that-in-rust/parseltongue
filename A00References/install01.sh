@@ -189,9 +189,43 @@ verify_websocket_connections() {
 }
 
 verify_stream_processing() {
-    log_info "Verifying stream processing... (not fully implemented)"
-    # Placeholder implementation
-    return 0
+    log_info "Verifying stream processing..."
+    
+    # Create test data for stream processing
+    local test_size=100 # 100MB
+    local chunk_size=1  # 1MB chunks
+    local test_file="stream_test"
+    
+    # Generate test file
+    dd if=/dev/zero of="$test_file" bs=1M count=$test_size 2>/dev/null
+    
+    # Measure streaming speed
+    local start_time=$(date +%s.%N)
+    
+    # Process in chunks to simulate streaming
+    local processed=0
+    while [ $processed -lt $test_size ]; do
+        dd if="$test_file" of=/dev/null bs=1M skip=$processed count=$chunk_size 2>/dev/null
+        processed=$((processed + chunk_size))
+        
+        # Update progress
+        local progress=$((processed * 100 / test_size))
+        echo -ne "Progress: $progress%\r"
+    done
+    
+    local end_time=$(date +%s.%N)
+    local duration=$(echo "$end_time - $start_time" | bc)
+    local speed=$(echo "$test_size / $duration" | bc)
+    
+    rm -f "$test_file"
+    
+    if [[ $(echo "$speed >= $STREAM_PROCESSING" | bc) -eq 1 ]]; then
+        log_success "Stream processing speed: ${speed}MB/s (Required: ${STREAM_PROCESSING}MB/s)"
+        return 0
+    else
+        log_error "Stream processing speed (${speed}MB/s) below required ${STREAM_PROCESSING}MB/s"
+        return 1
+    fi
 }
 
 measure_websocket_latency() {
@@ -375,20 +409,34 @@ verify_frameworks() {
 # Installation & Post-Verification
 verify_services() {
     log_info "Verifying services..."
+    local max_retries=5
+    local retry_delay=2
+    
     local urls=(
         "http://localhost:3000"          # Web UI
         "http://localhost:8080/health"   # Java API
         "http://localhost:8081/health"   # Rust API
         "mongodb://localhost:27017"      # MongoDB
     )
-
+    
     for url in "${urls[@]}"; do
-        if ! curl --silent --fail "$url" >/dev/null; then
-            log_error "Service not responding: $url"
-            return 1
-        fi
+        local retries=0
+        while [ $retries -lt $max_retries ]; do
+            if curl --silent --fail "$url" >/dev/null 2>&1; then
+                log_success "Service responding: $url"
+                break
+            else
+                retries=$((retries + 1))
+                if [ $retries -eq $max_retries ]; then
+                    log_error "Service not responding after $max_retries attempts: $url"
+                    return 1
+                fi
+                log_info "Retry $retries/$max_retries for $url"
+                sleep $retry_delay
+            fi
+        done
     done
-
+    
     log_success "All services are running"
     return 0
 }
@@ -415,21 +463,28 @@ verify_async_requirements() {
     # Check memory limits
     total_memory=$(free -m | awk '/Mem:/ {print $2}')
     if [[ $total_memory -lt $MAX_MEMORY ]]; then
-        log_error "Insufficient memory for async operations"
+        log_error "Insufficient memory for async operations (${total_memory}MB < ${MAX_MEMORY}MB)"
         return 1
     fi
+    log_success "Memory check passed: ${total_memory}MB available"
 
     # Check network capacity for WebSocket
     if ! verify_websocket_latency; then
-        log_error "Network latency too high for WebSocket operations"
         return 1
     fi
+    log_success "WebSocket latency check passed"
 
     # Check disk speed for stream processing
     if ! verify_disk_speed; then
-        log_error "Disk speed insufficient for stream processing"
         return 1
     fi
+    log_success "Disk speed check passed"
+
+    # Verify stream processing capability
+    if ! verify_stream_processing; then
+        return 1
+    fi
+    log_success "Stream processing check passed"
 
     return 0
 }
