@@ -22,6 +22,21 @@
    - Error types
    - Progress tracking types
 
+### 🛠️ Required Framework & Dependencies
+1. Java Backend
+   - Spring Boot 3.x
+   - Spring Data MongoDB
+   - Lombok
+   - Spring Web
+   - Spring Actuator
+   - Gradle build system
+
+2. Rust Backend
+   - Actix-web
+   - MongoDB driver
+   - Tokio runtime
+   - Serde for serialization
+
 ### ❌ Missing Core Features
 1. Backend Processing
    - Java: Analysis service implementation
@@ -41,6 +56,12 @@
    - Language detection
    - Progress updates
 
+4. Project Setup
+   - Spring Boot initialization
+   - Gradle/Maven configuration
+   - Package structure setup
+   - Dependency management
+
 ### 🚫 Explicitly Out of Scope for v0.1
 1. WebSocket implementation
 2. Docker containerization
@@ -50,4 +71,8 @@
 6. Complex animations
 7. Theme customization
 8. Performance optimizations
+9. Security features like authentication and authorization
+10. Advanced error handling beyond basics
+11. Mobile responsiveness
+12. Cloud deployment and CI/CD pipelines
 

@@ -1,0 +1,179 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+# Ignore binary files and build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+*.o
+*.obj
+
+# Ignore images and media
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.mp3
+*.wav
+*.avi
+*.mov
+*.flv
+*.webm
+*.svg
+*.ico
+
+# Ignore archives
+*.zip
+*.tar
+*.gz
+*.bz2
+*.7z
+*.rar
+*.iso
+
+# Ignore virtual environments
+venv/
+.venv/
+
+# Ignore Python cache and bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore build directories and artifacts
+/build/
+/dist/
+/site-packages/
+target/
+
+# Ignore Rust-specific files
+Cargo.lock
+
+# Ignore Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore documentation build artifacts
+/docs/_build/
+
+# Ignore test results, coverage reports, logs
+/test_output/
+coverage/
+*.log
+
+# Ignore Node.js dependencies
+/node_modules/
+package-lock.json
+yarn.lock
+
+# Ignore version control metadata
+.git/
+.hg/
+.svn/
+.gitignore
+
+# Ignore IDE/editor specific files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Ignore miscellaneous files
+LICENSE
+README
+*.md
+*.txt
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+
+# Ignore backup files
+*.bak
+*.tmp
+*.temp
+*~
+
+# Ignore database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Ignore compiled translations
+*.mo
+
+# Ignore minified files
+*.min.js
+*.min.css
+
+# Ignore generated files
+*.generated.*
+
+# OSS-specific ignores
+*.jar
+*.war
+*.ear
+*.class
+*.apk
+*.aab
+*.ipa
+*.app
+*.msi
+*.cab
+*.ocx
+*.sys
+*.vbp
+*.vbw
+*.vbx
+*.vbg
+*.vbi
+*.vbs
+*.wsf
+*.wsc
+*.wsh
+*.hta
+*.htb
+*.hlp
+*.chm
+*.hhp
+*.hhk
+*.hxs
+*.hxc
+*.hxt
+*.hxw
+*.hxi
+*.hxq
+*.hxk
+*.hxh
+*.mht
+*.mhtml
+*.mhtl
+*.mhtm
+*.mhts
+
+# Ignore large data files
+*.csv
+*.tsv
+*.json
+*.xml
+*.yaml
+*.yml
+
+# Ignore font files
+*.ttf
+*.otf
+*.woff
+*.woff2
+*.eot
+
+# Ignore configuration files
+*.ini
+*.cfg
+*.conf
+*.config
+
+# Ignore cache directories
+.cache/

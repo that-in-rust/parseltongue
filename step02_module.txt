@@ -40,6 +40,7 @@
 - Node.js v18+ ✅
 - Java 17 JDK ✅
 - MongoDB 6.0+ ✅
+- Rust 1.56+ and Cargo ✅
 
 ### 2. Frontend Build 🔄
 - Install dependencies ❌
@@ -59,7 +60,14 @@
   ./gradlew bootRun
   ```
 
-### 4. Database Setup 🔄
+### 4. Rust Backend Build 🔄
+- Build with Cargo ❌
+  ```bash
+  cd backend-rust
+  cargo build --release
+  ```
+
+### 5. Database Setup 🔄
 - Start MongoDB ❌
   ```bash
   mongod --dbpath /data/db
@@ -69,7 +77,7 @@
   mongo parseltongue --eval "db.analysis_jobs.createIndex({jobId: 1})"
   ```
 
-### 5. Environment Configuration 🔄
+### 6. Environment Configuration 🔄
 - Frontend (.env) ❌
   ```
   NEXT_PUBLIC_JAVA_API=http://localhost:8080
@@ -80,7 +88,7 @@
   spring.data.mongodb.uri=mongodb://localhost:27017/parseltongue
   ```
 
-### 6. Launch Sequence 🔄
+### 7. Launch Sequence 🔄
 1. Start MongoDB ❌
 2. Start Java backend ❌
    ```bash
@@ -96,7 +104,7 @@
    npm run start
    ```
 
-### 7. Verification Steps 🔄
+### 8. Verification Steps 🔄
 - MongoDB connection test ❌
 - Java API health check ❌
 - Rust API health check ❌
@@ -117,29 +125,31 @@ Legend:
 ❌ - Not Started/Incomplete
 
 Current Priority:
-1. Implement AnalysisJob.java
-2. Implement AnalysisService.java
-3. Update AnalysisRepository.java
-4. Update Rust db/mod.rs
-5. Update Rust main.rs
+1. Setup Spring Boot project structure ❌
+2. Fix dependency issues ❌
+3. Implement AnalysisJob.java ✅ (needs proper project setup)
+4. Implement AnalysisService.java ✅ (needs proper project setup)
+5. Update AnalysisRepository.java ✅ (needs proper project setup)
+6. Setup Rust project with Cargo.toml ✅
 
 ==== Current Files Section ===
 
 Backend Java:
 /backend-java/src/main/java/com/parseltongue/analysis/config/AnalysisConfig.java ✅
-/backend-java/src/main/java/com/parseltongue/analysis/controller/AnalysisController.java ❌ (needs update)
+/backend-java/src/main/java/com/parseltongue/analysis/controller/AnalysisController.java ✅
 /backend-java/src/main/java/com/parseltongue/analysis/exception/AnalysisException.java ✅
 /backend-java/src/main/java/com/parseltongue/analysis/exception/GlobalExceptionHandler.java ✅
-/backend-java/src/main/java/com/parseltongue/analysis/model/AnalysisJob.java ❌ (needs implementation)
-/backend-java/src/main/java/com/parseltongue/analysis/repository/AnalysisRepository.java ❌ (needs update)
-/backend-java/src/main/java/com/parseltongue/analysis/service/AnalysisService.java ❌ (needs implementation)
+/backend-java/src/main/java/com/parseltongue/analysis/model/AnalysisJob.java ✅
+/backend-java/src/main/java/com/parseltongue/analysis/repository/AnalysisRepository.java ✅
+/backend-java/src/main/java/com/parseltongue/analysis/service/AnalysisService.java ✅
 
 Backend Rust:
 /backend-rust/src/analysis.rs ✅
 /backend-rust/src/config.rs ✅
-/backend-rust/src/db/mod.rs ❌ (needs update)
+/backend-rust/src/db/mod.rs ✅
 /backend-rust/src/handlers.rs ✅
-/backend-rust/src/main.rs ❌ (needs update)
+/backend-rust/src/main.rs ✅
+/backend-rust/Cargo.toml ✅
 
 Frontend:
 /src/components/ErrorState.tsx ✅
@@ -157,3 +167,35 @@ Other:
 /step01_scope.txt ✅ (keep)
 /step02_module.txt ✅ (keep)
 /step99_assignment_prompt01.txt ✅ (keep)
+
+### Required Setup Steps Before Implementation:
+1. Initialize Spring Boot Project ❌
+   ```bash
+   spring init --build=gradle --java-version=17 \
+     --dependencies=web,data-mongodb,lombok,actuator \
+     --package-name=com.parseltongue.analysis \
+     backend-java
+   ```
+
+2. Configure build.gradle ❌
+   ```gradle
+   dependencies {
+       implementation 'org.springframework.boot:spring-boot-starter-web'
+       implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+       implementation 'org.springframework.boot-spring-boot-starter-actuator'
+       compileOnly 'org.projectlombok:lombok'
+       annotationProcessor 'org.projectlombok:lombok'
+   }
+   ```
+
+3. Create proper package structure ❌
+   ```
+   backend-java/
+   └── src/main/java/com/parseltongue/analysis/
+       ├── AnalysisApplication.java
+       ├── config/
+       ├── controller/
+       ├── model/
+       ├── repository/
+       └── service/
+   ```
