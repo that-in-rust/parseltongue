@@ -121,15 +121,33 @@ verify_tool_version() {
 
 # Function to verify system requirements
 verify_system_requirements() {
-    echo "🔍 Verifying system requirements..."
+    log_info "🔍 Pre-checking required tools..."
     
     # Check Ubuntu version
     if ! grep -q "Ubuntu 22.04" /etc/os-release; then
-        echo "❌ This script is optimized for Ubuntu 22.04"
+        log_error "This script is optimized for Ubuntu 22.04"
         exit 1
     fi
 
-    # Check minimum required versions
+    # First check for existence and install if missing
+    local required_tools=(node npm java gradle spring cargo mongodb mongosh)
+    MISSING_DEPS=()
+    
+    for tool in "${required_tools[@]}"; do
+        if ! command_exists "$tool"; then
+            log_warn "$tool is missing, will be installed"
+            MISSING_DEPS+=("$tool")
+        fi
+    done
+
+    # Install missing dependencies first
+    if [ ${#MISSING_DEPS[@]} -ne 0 ]; then
+        log_info "Installing missing tools: ${MISSING_DEPS[*]}"
+        install_missing_deps "${MISSING_DEPS[@]}"
+    fi
+
+    # Now check versions after ensuring tools exist
+    log_info "Verifying tool versions..."
     local required_versions=(
         "node:20.0.0"
         "java:21"
@@ -142,10 +160,12 @@ verify_system_requirements() {
         local min_version="${req#*:}"
         
         if ! verify_tool_version "$tool" "$min_version"; then
-            echo "❌ $tool version check failed. Minimum required: $min_version"
+            log_error "$tool version check failed. Minimum required: $min_version"
             exit 1
         fi
     done
+
+    log_success "All system requirements verified"
 }
 
 # Function to install missing dependencies
@@ -427,28 +447,287 @@ generate_summary() {
     fi
 }
 
+# Function to install Java
+install_java() {
+    log_info "Installing Java 21..."
+    
+    # Check if already installed with correct version
+    if command_exists java && [[ $(java -version 2>&1 | head -n 1) == *"21"* ]]; then
+        log_success "Java 21 is already installed"
+        return 0
+    }
+
+    # Try multiple installation methods
+    if command_exists apt; then
+        sudo apt-get update
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository -y ppa:linuxuprising/java
+        sudo apt-get update
+        
+        # Handle interactive prompt
+        echo "oracle-java21-installer shared/accepted-oracle-license-v1-3 select true" | \
+            sudo debconf-set-selections
+        
+        sudo apt-get install -y oracle-java21-installer
+    else
+        log_error "Package manager not supported"
+        exit 1
+    fi
+
+    # Verify installation
+    if ! command_exists java; then
+        log_error "Java installation failed"
+        exit 1
+    fi
+}
+
+# Function to install Gradle
+install_gradle() {
+    log_info "Installing Gradle..."
+    
+    # Check if already installed
+    if command_exists gradle; then
+        log_success "Gradle is already installed"
+        return 0
+    }
+
+    # Install required packages
+    sudo apt-get install -y unzip
+
+    # Download and install Gradle with retry mechanism
+    local GRADLE_VERSION="8.5"
+    local MAX_RETRIES=3
+    local retry_count=0
+    
+    while [ $retry_count -lt $MAX_RETRIES ]; do
+        if wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip"; then
+            break
+        fi
+        retry_count=$((retry_count + 1))
+        log_warn "Download failed, retrying... ($retry_count/$MAX_RETRIES)"
+        sleep 2
+    done
+
+    if [ $retry_count -eq $MAX_RETRIES ]; then
+        log_error "Failed to download Gradle"
+        exit 1
+    fi
+
+    sudo unzip -q "gradle-${GRADLE_VERSION}-bin.zip" -d /opt/gradle
+    sudo ln -sf "/opt/gradle/gradle-${GRADLE_VERSION}/bin/gradle" /usr/bin/gradle
+    rm "gradle-${GRADLE_VERSION}-bin.zip"
+
+    # Verify installation
+    if ! command_exists gradle; then
+        log_error "Gradle installation failed"
+        exit 1
+    fi
+}
+
+# Function to install Spring Boot CLI
+install_spring_boot_cli() {
+    log_info "Installing Spring Boot CLI..."
+    
+    # Check if already installed
+    if command_exists spring; then
+        log_success "Spring Boot CLI is already installed"
+        return 0
+    }
+
+    # Install required packages
+    sudo apt-get install -y unzip wget
+
+    # Create temporary directory
+    local TEMP_DIR=$(mktemp -d)
+    safe_cd "$TEMP_DIR"
+
+    # Download Spring Boot CLI with retry mechanism
+    local SPRING_VERSION="3.2.0"
+    local SPRING_URL="https://repo.spring.io/release/org/springframework/boot/spring-boot-cli/${SPRING_VERSION}/spring-boot-cli-${SPRING_VERSION}-bin.zip"
+    local MAX_RETRIES=3
+    local retry_count=0
+
+    while [ $retry_count -lt $MAX_RETRIES ]; do
+        if wget -q "$SPRING_URL"; then
+            break
+        fi
+        retry_count=$((retry_count + 1))
+        log_warn "Download failed, retrying... ($retry_count/$MAX_RETRIES)"
+        sleep 2
+    done
+
+    if [ $retry_count -eq $MAX_RETRIES ]; then
+        log_error "Failed to download Spring Boot CLI"
+        safe_cd -
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
+
+    # Clean up old installation
+    sudo rm -rf /opt/spring* /usr/local/bin/spring
+
+    # Install
+    sudo unzip -q "spring-boot-cli-${SPRING_VERSION}-bin.zip" -d /opt/
+    sudo ln -sf "/opt/spring-${SPRING_VERSION}/bin/spring" /usr/local/bin/spring
+
+    # Clean up
+    safe_cd -
+    rm -rf "$TEMP_DIR"
+
+    # Verify installation
+    if ! command_exists spring; then
+        log_error "Spring Boot CLI installation failed"
+        exit 1
+    fi
+}
+
+# Function to install Node.js
+install_node() {
+    log_info "Installing Node.js..."
+    
+    # Check if already installed with correct version
+    if command_exists node && [[ $(node -v) == *"20"* ]]; then
+        log_success "Node.js 20 is already installed"
+        return 0
+    }
+
+    # Remove old versions
+    sudo apt-get remove -y nodejs npm || true
+    sudo apt-get autoremove -y
+
+    # Clean up old files
+    sudo rm -rf /usr/local/bin/npm /usr/local/share/man/man1/node* ~/.npm ~/.node-gyp
+
+    # Add NodeSource repository
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+
+    # Install Node.js
+    sudo apt-get install -y nodejs
+
+    # Upgrade npm
+    sudo npm install -g npm@latest
+
+    # Install global packages
+    sudo npm install -g typescript @types/node @types/react @types/react-dom
+
+    # Verify installation
+    if ! command_exists node || ! command_exists npm; then
+        log_error "Node.js installation failed"
+        exit 1
+    fi
+}
+
+# Function to install Rust
+install_rust() {
+    log_info "Installing Rust..."
+    
+    # Check if already installed
+    if command_exists rustc && command_exists cargo; then
+        log_success "Rust is already installed"
+        return 0
+    }
+
+    # Download and install Rust with retry mechanism
+    local MAX_RETRIES=3
+    local retry_count=0
+
+    while [ $retry_count -lt $MAX_RETRIES ]; do
+        if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; then
+            break
+        fi
+        retry_count=$((retry_count + 1))
+        log_warn "Installation failed, retrying... ($retry_count/$MAX_RETRIES)"
+        sleep 2
+    done
+
+    if [ $retry_count -eq $MAX_RETRIES ]; then
+        log_error "Failed to install Rust"
+        exit 1
+    fi
+
+    # Source cargo environment
+    source "$HOME/.cargo/env"
+
+    # Verify installation
+    if ! command_exists rustc || ! command_exists cargo; then
+        log_error "Rust installation failed"
+        exit 1
+    fi
+}
+
+# Function to install MongoDB
+install_mongodb() {
+    log_info "Installing MongoDB..."
+    
+    # Check if already installed
+    if command_exists mongod && systemctl is-active --quiet mongod; then
+        log_success "MongoDB is already installed and running"
+        return 0
+    }
+
+    # Install required packages
+    sudo apt-get install -y gnupg curl
+
+    # Remove existing MongoDB keys and sources
+    sudo rm -f /etc/apt/sources.list.d/mongodb*.list
+    sudo rm -f /usr/share/keyrings/mongodb*.gpg
+
+    # Import MongoDB public GPG key with retry mechanism
+    local MAX_RETRIES=3
+    local retry_count=0
+
+    while [ $retry_count -lt $MAX_RETRIES ]; do
+        if curl -fsSL https://www.mongodb.org/static/pgp/server-6.0.asc | \
+            sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg; then
+            break
+        fi
+        retry_count=$((retry_count + 1))
+        log_warn "Key import failed, retrying... ($retry_count/$MAX_RETRIES)"
+        sleep 2
+    done
+
+    if [ $retry_count -eq $MAX_RETRIES ]; then
+        log_error "Failed to import MongoDB GPG key"
+        exit 1
+    fi
+
+    # Create list file for MongoDB
+    echo "deb [ arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | \
+        sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+
+    sudo apt-get update
+    sudo apt-get install -y mongodb-org
+
+    # Start MongoDB
+    sudo systemctl daemon-reload
+    sudo systemctl start mongod
+    sudo systemctl enable mongod
+
+    # Wait for MongoDB to start
+    log_info "Waiting for MongoDB to start..."
+    local start_timeout=30
+    local counter=0
+    while ! mongosh --eval "db.version()" >/dev/null 2>&1; do
+        sleep 1
+        counter=$((counter + 1))
+        if [ $counter -eq $start_timeout ]; then
+            log_error "MongoDB failed to start within $start_timeout seconds"
+            exit 1
+        fi
+    done
+
+    # Verify installation
+    if ! command_exists mongod || ! systemctl is-active --quiet mongod; then
+        log_error "MongoDB installation failed"
+        exit 1
+    fi
+}
+
 # Main installation process
 main() {
     # Verify system requirements first
     verify_system_requirements
     
-    # Check for missing dependencies
-    echo "🔍 Checking prerequisites..."
-    MISSING_DEPS=()
-    
-    # Check required tools
-    for cmd in node npm java gradle spring cargo mongodb mongosh; do
-        if ! command_exists "$cmd"; then
-            MISSING_DEPS+=("$cmd")
-        fi
-    done
-
-    # Install missing dependencies
-    if [ "${#MISSING_DEPS[@]}" -ne 0 ]; then
-        echo "Missing tools: ${MISSING_DEPS[*]}"
-        install_missing_deps "${MISSING_DEPS[@]}"
-    fi
-
     # Setup each component
     setup_frontend
     setup_java_backend
