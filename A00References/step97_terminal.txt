@@ -1,5 +1,37 @@
 #!/bin/bash
 
+# Robust shell options
+set -Eeuo pipefail
+IFS=$'\n\t'
+
+# Enable debug mode if requested
+if [[ "${DEBUG:-}" == "true" ]]; then
+    set -x
+fi
+
+# Error handling
+trap cleanup SIGINT SIGTERM ERR EXIT
+
+# Get script location
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+
+# Cleanup function
+cleanup() {
+    trap - SIGINT SIGTERM ERR EXIT
+    # Add cleanup code here
+}
+
+# Path safety function
+safe_cd() {
+    cd "$1" || exit 1
+}
+
+# Logging functions
+log_info() { echo "ℹ️ $*" >&2; }
+log_warn() { echo "⚠️ $*" >&2; }
+log_error() { echo "❌ $*" >&2; }
+log_success() { echo "✅ $*" >&2; }
+
 # Project status commands
 check_structure() {
     echo "Checking project structure..."
@@ -78,11 +110,23 @@ mkdir -p parseltongue/shared/{types,config}
 # Track current files
 find . -type f -not -path '*/\.*' > step98_current_files.txt
 
-# === Mistakes N(version) ===
+# === Mistakes v1 ===
 # 1. Repository Cloning: The script does not clone the necessary repository. Ensure the repository is cloned if not already present.
 # 2. Error Handling: Consider adding more granular error handling for specific operations to improve robustness.
 # 3. Logging: Enhance logging for each step to aid in debugging and provide more detailed feedback during execution.
 # 4. Verification: While the script verifies installations, it could include checks for specific configurations or files to ensure complete setup.
+
+# === Mistakes v2 ===
+# 1. Shell Options: Script was missing important shell options like 'pipefail'
+# 2. Error Trapping: No proper error trap handlers were implemented
+# 3. Debug Mode: No built-in debug mode capability
+# 4. Path Safety: Directory changes were not properly handled for safety
+# 5. Logging: No standardized logging functions
+# 6. Cleanup: No proper cleanup mechanism on script exit or error
+
+Sources:
+- https://www.shell-tips.com/bash/debug-script/
+- https://stackoverflow.com/questions/20034614/what-are-the-rules-to-write-robust-shell-scripts
 
 
 ===

@@ -29,7 +29,37 @@
 # - Database initialization
 # ===========================
 
-set -e
+# Robust shell options
+set -Eeuo pipefail
+IFS=$'\n\t'
+
+# Enable debug mode if requested
+if [[ "${DEBUG:-}" == "true" ]]; then
+    set -x
+fi
+
+# Error handling
+trap cleanup SIGINT SIGTERM ERR EXIT
+
+# Get script location
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+
+# Cleanup function
+cleanup() {
+    trap - SIGINT SIGTERM ERR EXIT
+    # Add cleanup code here
+}
+
+# Path safety function
+safe_cd() {
+    cd "$1" || exit 1
+}
+
+# Logging functions
+log_info() { echo "ℹ️ $*" >&2; }
+log_warn() { echo "⚠️ $*" >&2; }
+log_error() { echo "❌ $*" >&2; }
+log_success() { echo "✅ $*" >&2; }
 
 # Function to check if command exists
 command_exists() {
