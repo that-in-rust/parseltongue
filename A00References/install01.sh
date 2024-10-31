@@ -397,10 +397,20 @@ generate_summary() {
         if command_exists "$cmd"; then
             echo "✅ $cmd: $(command -v "$cmd")"
             case $cmd in
-                "node") echo "   Version: $(node -v)" ;;
-                "java") echo "   Version: $(java -version 2>&1 | head -n 1)" ;;
-                "mongodb") echo "   Version: $(mongod --version | grep "db version")" ;;
-                "cargo") echo "   Version: $(cargo --version)" ;;
+                "node") 
+                    echo "   Version: $(node -v)" 
+                    ;;
+                "java") 
+                    echo "   Version: $(java -version 2>&1 | head -n 1)" 
+                    ;;
+                "mongodb") 
+                    echo "   Version: $(mongod --version | grep "db version")" 
+                    ;;
+                "cargo") 
+                    echo "   Version: $(cargo --version)" 
+                    ;;
+                *) 
+                    ;;
             esac
         else
             echo "❌ $cmd: Not available"
@@ -459,7 +469,7 @@ install_java() {
     if command_exists java && [[ $(java -version 2>&1 | head -n 1) == *"21"* ]]; then
         log_success "Java 21 is already installed"
         return 0
-    }
+    fi
 
     # Try multiple installation methods
     if command_exists apt; then
