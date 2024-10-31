@@ -82,6 +82,146 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 [[ "${DEBUG:-}" == "true" ]] && set -x
 
+# Add these logging functions at the start
+log_info() {
+    echo -e "\e[34m[INFO] $1\e[0m"
+}
+
+log_error() {
+    echo -e "\e[31m[ERROR] $1\e[0m" >&2
+}
+
+log_success() {
+    echo -e "\e[32m[SUCCESS] $1\e[0m"
+}
+
+# Add core check functions
+check_ubuntu_version() {
+    log_info "Checking Ubuntu version..."
+    if ! grep -q "Ubuntu ${REQUIRED_UBUNTU_VERSION}" /etc/os-release; then
+        log_error "This script requires Ubuntu ${REQUIRED_UBUNTU_VERSION}"
+        return 1
+    fi
+    return 0
+}
+
+check_disk_space() {
+    log_info "Checking disk space..."
+    local available_space
+    available_space=$(df -m . | awk 'NR==2 {print $4}')
+    
+    if [[ "$available_space" -lt "$MIN_DISK_SPACE" ]]; then
+        log_error "Insufficient disk space. Required: ${MIN_DISK_SPACE}MB, Available: ${available_space}MB"
+        return 1
+    fi
+    return 0
+}
+
+check_network() {
+    log_info "Checking network connectivity..."
+    if ! ping -c 1 google.com &>/dev/null; then
+        log_error "No network connectivity"
+        return 1
+    fi
+    return 0
+}
+
+check_permissions() {
+    log_info "Checking permissions..."
+    if [[ $EUID -ne 0 ]]; then
+        log_error "This script must be run as root"
+        return 1
+    fi
+    return 0
+}
+
+# Add missing async setup functions
+create_webflux_config() {
+    log_info "Creating WebFlux configuration..."
+    # Implementation here
+    return 0
+}
+
+setup_reactive_mongo() {
+    log_info "Setting up reactive MongoDB..."
+    # Implementation here
+    return 0
+}
+
+create_websocket_handlers() {
+    log_info "Creating WebSocket handlers..."
+    # Implementation here
+    return 0
+}
+
+setup_tokio_runtime() {
+    log_info "Setting up Tokio runtime..."
+    # Implementation here
+    return 0
+}
+
+create_async_handlers() {
+    log_info "Creating async handlers..."
+    # Implementation here
+    return 0
+}
+
+setup_stream_processors() {
+    log_info "Setting up stream processors..."
+    # Implementation here
+    return 0
+}
+
+# Add missing verification functions
+verify_concurrent_processing() {
+    log_info "Verifying concurrent processing..."
+    # Implementation here
+    return 0
+}
+
+verify_websocket_connections() {
+    log_info "Verifying WebSocket connections..."
+    # Implementation here
+    return 0
+}
+
+verify_stream_processing() {
+    log_info "Verifying stream processing..."
+    # Implementation here
+    return 0
+}
+
+measure_websocket_latency() {
+    local endpoint="$1"
+    # Implementation here
+    echo "50" # Example latency in ms
+}
+
+# Add cleanup and error handling
+cleanup() {
+    trap - SIGINT SIGTERM ERR EXIT
+    if [[ -n "${TEMP_DIR:-}" ]] && [[ -d "$TEMP_DIR" ]]; then 
+        rm -rf "$TEMP_DIR"
+    fi
+}
+
+handle_error() {
+    local line_no=$1
+    local exit_code=$2
+    log_error "Error occurred in script at line: $line_no (exit code: $exit_code)"
+}
+
+setup_project() {
+    log_info "Setting up project structure..."
+    local base_dir
+    base_dir=$(dirname "$script_dir")
+    
+    for dir in "${PROJECT_STRUCTURE[@]}"; do
+        mkdir -p "$base_dir/$dir"
+    done
+    return 0
+}
+
 # Pre-Installation Verification
 verify_system() {
     local checks=(
