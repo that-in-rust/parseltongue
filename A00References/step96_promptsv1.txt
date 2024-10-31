@@ -1,5 +1,47 @@
 =============== 
 
+WE FIRST NEED TO CHECK @step02_module.txt  IS IT IN LINE WITH @step01_scope.txt 
+
+Update @step02_module.txt  as per the following
+
+Prompt:
+
+Using the following updated project scope @step01_scope.txt   as input, create or update a @step02_module.txt  file that serves as a comprehensive, detailed blueprint of the codebase. It should include:
+
+Hierarchical Structure:
+
+Detailed folder hierarchy with folder names.
+File names within each folder.
+Module Details:
+
+Module names and descriptions.
+For each module, list the necessary classes, functions, methods, interfaces, and other relevant code elements.
+Specify language-specific features, including generics, templates, and design patterns to be used.
+Include "do's and don'ts" for implementation, highlighting best practices and pitfalls to avoid.
+Implementation Status:
+
+Use checkmarks to indicate the status of each component:
+✅ Done
+❌ Missing
+⚠️ Extra (not required)
+🛑 Wrong or needs correction
+Dependencies and Relationships:
+
+Detail dependencies between modules and files.
+Specify interfaces between components and how they interact.
+Terminal Commands for Codebase Management:
+
+Provide terminal commands for gracefully removing or moving unneeded components from the codebase.
+Ensure that any removal or modification reutilizes existing work to prevent loss of effort.
+Update Mechanism:
+
+Include sections for both creation and updating of the module.txt, so it can be maintained as the codebase evolves.
+Highlight changes from the previous version, indicating additions, modifications, or deletions.
+Additional Guidelines:
+
+Exclude actual code implementations; focus on providing a detailed plan that is one level above the actual code.
+Ensure the output is suitable for an LLM to understand and implement the codebase.
+Make the @step02_module.txt  a living document that can be updated incrementally.
 
 ==
 

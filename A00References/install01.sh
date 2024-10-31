@@ -29,6 +29,10 @@
 # - Database initialization
 # ===========================
 
+# Initialize global arrays
+declare -a MISSING_DEPS=()
+declare -a failed_verifications=()
+
 # Robust shell options
 set -Eeuo pipefail
 IFS=$'\n\t'
@@ -723,8 +727,107 @@ install_mongodb() {
     fi
 }
 
+# Function to check network connectivity
+check_network() {
+    log_info "Checking network connectivity..."
+    local test_urls=(
+        "https://www.google.com"
+        "https://registry.npmjs.org"
+        "https://repo.spring.io"
+        "https://repo.mongodb.org"
+    )
+    
+    for url in "${test_urls[@]}"; do
+        if ! curl --silent --head --fail "$url" >/dev/null; then
+            log_error "Cannot reach $url"
+            return 1
+        fi
+    done
+    log_success "Network connectivity verified"
+    return 0
+}
+
+# Function to check disk space
+check_disk_space() {
+    log_info "Checking disk space..."
+    local required_space=5120  # 5GB in MB
+    local available_space
+    available_space=$(df -m . | awk 'NR==2 {print $4}')
+    
+    if [ "$available_space" -lt "$required_space" ]; then
+        log_error "Insufficient disk space. Required: ${required_space}MB, Available: ${available_space}MB"
+        return 1
+    fi
+    log_success "Sufficient disk space available"
+    return 0
+}
+
+# Function to create project structure
+create_project_structure() {
+    log_info "Creating project structure..."
+    
+    local dirs=(
+        "frontend/src/{components,services,types}"
+        "backend-java/src/main/java/com/parseltongue/{config,controller,model,repository,service}"
+        "backend-rust/src/{config,handlers,models,services}"
+        "shared/{types,config}"
+    )
+    
+    for dir in "${dirs[@]}"; do
+        mkdir -p "$dir" || {
+            log_error "Failed to create directory structure: $dir"
+            return 1
+        }
+    done
+    log_success "Project structure created"
+}
+
+# Function to backup existing files
+backup_existing() {
+    log_info "Creating backup of existing files..."
+    local backup_dir="backup_$(date +%Y%m%d_%H%M%S)"
+    
+    # Create backup directory
+    mkdir -p "$backup_dir"
+    
+    # Backup existing configuration files
+    for file in frontend backend-java backend-rust shared; do
+        if [ -d "$file" ]; then
+            cp -r "$file" "$backup_dir/" || {
+                log_error "Failed to backup $file"
+                return 1
+            }
+        fi
+    done
+    
+    log_success "Backup created in $backup_dir"
+    return 0
+}
+
+# Function to check sudo privileges
+check_sudo() {
+    log_info "Checking sudo privileges..."
+    if ! sudo -v; then
+        log_error "Script requires sudo privileges"
+        return 1
+    fi
+    log_success "Sudo privileges confirmed"
+    return 0
+}
+
 # Main installation process
 main() {
+    # Initial checks
+    check_sudo || exit 1
+    check_network || exit 1
+    check_disk_space || exit 1
+    
+    # Backup existing files
+    backup_existing || exit 1
+    
+    # Create project structure
+    create_project_structure || exit 1
+    
     # Verify system requirements first
     verify_system_requirements
     

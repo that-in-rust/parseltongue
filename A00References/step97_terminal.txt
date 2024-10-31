@@ -124,9 +124,37 @@ find . -type f -not -path '*/\.*' > step98_current_files.txt
 # 5. Logging: No standardized logging functions
 # 6. Cleanup: No proper cleanup mechanism on script exit or error
 
-Sources:
-- https://www.shell-tips.com/bash/debug-script/
-- https://stackoverflow.com/questions/20034614/what-are-the-rules-to-write-robust-shell-scripts
+# === Mistakes v3 ===
+# 1. Global Arrays: Script was using arrays without declaring them first
+# 2. Function Dependencies: Functions were using variables that might not exist
+# 3. Error Context: Error messages didn't provide enough context
+# 4. Variable Scope: Some variables were not properly scoped
+# 5. Array Handling: Arrays were not properly initialized before use
+# 6. Debug Support: No proper debugging support for troubleshooting
+
+# === Mistakes v4 ===
+# 1. Directory Structure: Script didn't create directories before setup
+# 2. Network Checks: No verification of network connectivity
+# 3. Disk Space: No check for available disk space
+# 4. Backup: No backup of existing files
+# 5. Sudo Privileges: No proper sudo privilege check
+# 6. Error Recovery: No recovery mechanism for failed operations
+# 7. Installation Order: Dependencies weren't properly ordered
+# 8. Resource Cleanup: Temporary files might not be cleaned up
+
+# Debugging Commands
+debug_script() {
+    # Syntax check
+    bash -n "$1"
+    
+    # Show script execution
+    DEBUG=true bash "$1"
+    
+    # Check for common issues
+    shellcheck "$1"
+}
+
+# Usage: debug_script path/to/script.sh
 
 
 ===
