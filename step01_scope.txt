@@ -107,10 +107,12 @@ cd analyzer
 
 ### Infrastructure Requirements
 - MongoDB 6.0+
-- Java 17 JDK
-- Node.js 18+
-- Rust 1.56+
+- Java 21 JDK
+- Node.js 20+ 
+- Rust 1.70+ # Updated to latest stable version for better features
 - Spring Boot CLI
+- Tailwind CSS 3.x # Added version
+- Next.js 14+ # Spring Boot 3.x removed since it's already in Framework Requirements
 
 ## Out of Scope
 1. Authentication/Authorization

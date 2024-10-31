@@ -1,120 +1,177 @@
-# Parseltongue v0.1: Current Implementation Status
+# Parseltongue v0.1: Project Blueprint
 
-## Core Modules [Reality Check]
+## Directory Structure
+```
+parseltongue/
+├── frontend/                 🔄 React Frontend
+│   ├── src/
+│   │   ├── components/      🔄 UI Components
+│   │   ├── services/        ❌ API Integration
+│   │   └── types/           🔄 TypeScript Definitions
+│   └── package.json         ✅ Dependencies
+├── backend-java/            🔄 Spring Boot Backend
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/
+│   │   │   │   └── com/parseltongue/
+│   │   │   │       ├── config/       🔄 Configurations
+│   │   │   │       ├── controller/   ❌ REST Controllers
+│   │   │   │       ├── model/        🔄 Domain Models
+│   │   │   │       ├── repository/   ❌ MongoDB Repos
+│   │   │   │       └── service/      ❌ Business Logic
+│   │   │   └── resources/
+│   │   └── test/
+│   └── build.gradle         ✅ Build Config
+├── backend-rust/            🔄 Rust Backend
+│   ├── src/
+│   │   ├── main.rs         🔄 Entry Point
+│   │   ├── config/         🔄 Configuration
+│   │   ├── handlers/       ❌ Request Handlers
+│   │   ├── models/         🔄 Domain Models
+│   │   └── services/       ❌ Business Logic
+│   └── Cargo.toml          ✅ Dependencies
+└── shared/                  🔄 Shared Resources
+    ├── types/              🔄 Common Types
+    └── config/             🔄 Shared Config
+```
 
-### 1. Analysis Engine 🔄
-- Core analysis (Java) 🔄
-- Basic file processing 🔄
-- Progress tracking 🔄
+## Module Details
 
-### 2. Database Layer 🔄
-- MongoDB schema 🔄
-- CRUD operations ❌
-- Basic queries ❌
+### Frontend Module
+#### Components
+- `AnalysisDashboard` 🔄 Main analysis interface
+- `FileUploader` 🔄 Handles file uploads
+- `ProgressTracker` 🔄 Shows analysis progress
+- `ResultsViewer` ❌ Displays analysis results
 
-### 3. Frontend Components 🔄
-- File upload UI 🔄
-- Progress display 🔄
-- Basic results view ❌
-- Error handling 🔄
+#### Services
+- `AnalysisService` ❌ Backend API integration
+- `FileService` ❌ File handling utilities
+- `StatusService` ❌ Progress tracking
 
-### 4. API Layer 🔄
-- /analyze endpoint ❌
-- /status endpoint ❌
-- /results endpoint ❌
-- Error handling 🔄
+DO:
+- Use React Query for API state management
+- Implement proper error boundaries
+- Use TypeScript for all components
 
-### 5. Configuration 🔄
-- Environment vars 🔄
-- MongoDB setup ❌
-- Cache directories 🔄
+DON'T:
+- Mix presentation and business logic
+- Use class components
+- Implement complex state management
 
-### 6. Type System 🔄
-- Core interfaces 🔄
-- Status types 🔄
-- Result types 🔄
+### Java Backend Module
+#### Core Components
+- `AnalysisController` ❌ REST endpoints
+- `AnalysisService` ❌ Analysis logic
+- `MongoConfig` 🔄 Database setup
+- `FileProcessor` 🔄 File handling
 
-## Build & Deployment Steps
+#### Models
+- `AnalysisJob` 🔄 Job tracking
+- `AnalysisResult` ❌ Analysis output
+- `FileMetadata` 🔄 File information
 
-### 1. Prerequisites ✅
-- Node.js v18+ ✅
-- Java 17 JDK ✅
-- MongoDB 6.0+ ✅
-- Rust 1.56+ and Cargo ✅
-- Spring Boot CLI ✅
+DO:
+- Use constructor injection
+- Implement proper exception handling
+- Follow Spring Boot best practices
 
-### 2. Frontend Build 🔄
-- Install dependencies ❌
-- Start development server ❌
+DON'T:
+- Use field injection
+- Mix concerns in services
+- Skip validation
 
-### 3. Java Backend Build 🔄
-- Build with Gradle ❌
+### Rust Backend Module
+#### Core Components
+- `analysis_handler` ❌ Request handling
+- `file_processor` 🔄 File processing
+- `mongo_client` ❌ Database operations
 
-### 4. Rust Backend Build 🔄
-- Build with Cargo ❌
+#### Models
+- `AnalysisJob` 🔄 Job representation
+- `FileMetadata` 🔄 File information
+- `AnalysisResult` ❌ Results structure
 
-### 5. Database Setup ❌
-- Start MongoDB ❌
-- Create indexes ❌
+DO:
+- Use async/await properly
+- Implement proper error handling
+- Follow Rust idioms
 
-### 6. Environment Configuration 🔄
-- Frontend (.env) 🔄
-- Java Backend (application.yml) ❌
+DON'T:
+- Block the event loop
+- Use unwrap() in production code
+- Skip error propagation
 
-### 7. Launch Sequence ❌
-1. Start MongoDB ❌
-2. Start Java backend ❌
-3. Start Rust backend ❌
-4. Start frontend ❌
+## Dependencies
+```mermaid
+graph TD
+    Frontend --> JavaBackend
+    Frontend --> RustBackend
+    JavaBackend --> MongoDB
+    RustBackend --> MongoDB
+```
 
-### 8. Verification Steps ❌
-- MongoDB connection test ❌
-- Java API health check ❌
-- Rust API health check ❌
-- Frontend loads ❌
-- File upload works ❌
-- Analysis completes ❌
-- Results display correctly ❌
+## Terminal Commands
+```bash
+# Remove unused components
+./scripts/cleanup.sh
 
-## Implementation Notes:
-- Core functionality in progress 🔄
-- Build process defined ✅
-- Launch sequence documented ✅
-- Verification steps outlined ✅
+# Update module documentation
+./scripts/update-modules.sh
+
+# Validate project structure
+./scripts/validate-structure.sh
+```
+
+## Update Mechanism
+1. Run structure validator:
+   ```bash
+   ./scripts/validate-structure.sh
+   ```
+
+2. Update module status:
+   ```bash
+   ./scripts/update-status.sh
+   ```
+
+3. Generate new documentation:
+   ```bash
+   ./scripts/generate-docs.sh
+   ```
+
+## Implementation Status
+
+### Core Features
+- File Upload: 🔄
+- Analysis Engine: 🔄
+- Progress Tracking: 🔄
+- Results Display: ❌
+- Error Handling: 🔄
+- Database Operations: ❌
+
+### Infrastructure
+- MongoDB Setup: 🔄
+- Java Backend: 🔄
+- Rust Backend: 🔄
+- Frontend Setup: ✅
 
 Legend:
-✅ - Working/Complete
-🔄 - Partial/In Progress
-❌ - Not Started/Incomplete
+✅ - Complete
+🔄 - In Progress
+❌ - Not Started
+⚠️ - Extra Feature
+🛑 - Needs Correction
 
-Current Priority:
-1. Setup Spring Boot project structure ❌
-2. Fix dependency issues ❌
-3. Implement AnalysisJob.java ❌
-4. Implement AnalysisService.java ❌
-5. Update AnalysisRepository.java ❌
-6. Setup Rust project with Cargo.toml ❌
+## Next Steps
+1. Complete MongoDB integration
+2. Implement REST endpoints
+3. Add file analysis logic
+4. Create results viewer
+5. Add error handling
+6. Implement progress tracking
 
-## Integration Status
-
-### Integrated Components 🔄
-1. AnalysisJob Schema
-   - Complete field definitions 🔄
-   - Proper serialization ❌
-   - MongoDB compatibility ❌
-
-2. Error Handling
-   - Async error propagation ❌
-   - Structured logging ❌
-   - Database error updates ❌
-
-3. Configuration
-   - Directory validation 🔄
-   - Environment variables 🔄
-   - Default settings 🔄
-
-### Removed Components ❌
-1. Duplicate implementations ❌
-2. Old build artifacts ❌
-3. Temporary files ❌
-4. Outdated configurations ❌
+## Version History
+- v0.1.0: Initial structure
+- v0.1.1: Added component status
+- v0.1.2: Updated directory structure
+- v0.1.3: Added implementation details

@@ -1,3 +1,9 @@
+=== Current Files ===
+
+find . -type f ! -path "*/.git/*" > step98_current_files.txt
+
+
+
 === terminal commands version 1.0 ===
 
 # Version checks
