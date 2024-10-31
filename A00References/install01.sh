@@ -87,7 +87,7 @@ script_dir=$(dirname "$(realpath "$0")")
 
 # Logging functions
 log_info() {
-    echo -e "\e[34m[INFO] $1\e[0m"
+    echo -e "\e[34m[INFO] $1\e[0m" >&2
 }
 
 log_error() {
@@ -95,7 +95,7 @@ log_error() {
 }
 
 log_success() {
-    echo -e "\e[32m[SUCCESS] $1\e[0m"
+    echo -e "\e[32m[SUCCESS] $1\e[0m" >&2
 }
 
 # Core check functions
@@ -429,10 +429,11 @@ verify_websocket_latency() {
     local measured_latency
 
     measured_latency=$(measure_websocket_latency "$test_endpoint")
+
     if [[ $measured_latency -le $WEBSOCKET_LATENCY ]]; then
         return 0
     else
-        log_error "WebSocket latency $measured_latency ms exceeds the maximum allowed $WEBSOCKET_LATENCY ms"
+        log_error "WebSocket latency ${measured_latency} ms exceeds the maximum allowed ${WEBSOCKET_LATENCY} ms"
         return 1
     fi
 }
