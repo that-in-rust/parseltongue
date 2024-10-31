@@ -1,69 +1,46 @@
 /**
- * Type System Pyramid:
- * L1: Core enums and constants
- * L2: Progress and status interfaces
- * L3: Results and metrics interfaces
- * L4: Job management interfaces
+ * Types Pyramid:
+ * L1: Core type definitions
+ * L2: State interfaces
+ * L3: API responses
+ * L4: Utility types
  */
 
-// L1: Core Enums and Constants
+// L1: Core types
 export type Backend = 'java' | 'rust';
-export type AnalysisStatus = 'queued' | 'processing' | 'complete' | 'error';
-export type AnalysisStage = 'cloning' | 'scanning' | 'analyzing' | 'complete';
 
-// L2: Progress Tracking
-export interface ProgressUpdate {
-    backend: Backend;
-    stage: AnalysisStage;
-    currentFile: string;
-    progress: number;
-    speed?: number;
-    memoryUsage?: number;
-}
-
-// L3: Results and Metrics
 export interface AnalysisResult {
-    processingTimeMs: number;
-    totalFiles: number;
-    languageBreakdown: Record<string, number>;
-    filesPerSecond: number;
-    memoryUsage: number;
-    timestamp: Date;
-    backend: Backend;
-}
-
-// L4: Job Management
-export interface AnalysisJob {
     jobId: string;
-    status: AnalysisStatus;
-    stage: AnalysisStage;
-    currentFile: string;
-    progress: number;
-    results?: {
-        java?: AnalysisResult;
-        rust?: AnalysisResult;
-    };
-    error?: {
-        message: string;
-        code: string;
-        timestamp: Date;
-        retryCount?: number;
-    };
-    createdAt: Date;
-    updatedAt: Date;
-    performance?: {
-        cpuUsage: number;
-        memoryUsage: number;
-        diskIO: number;
-    };
+    backend: Backend;
+    totalFiles: number;
+    filesPerSecond: number;
+    processingTimeMs: number;
+    languageBreakdown: Record<string, number>;
+    memoryUsage: number;
 }
 
-// L4: Performance Monitoring
-export interface PerformanceStats {
-    avgProcessingTime: number;
-    maxMemoryUsage: number;
-    totalFilesProcessed: number;
-    errorRate: number;
-    successRate: number;
+// L2: State interfaces
+export interface AnalysisProgress {
+    status: 'queued' | 'processing' | 'complete' | 'error';
+    stage: 'cloning' | 'analyzing' | 'aggregating';
+    currentFile?: string;
+    progress: number;
+}
+
+// L3: API responses
+export interface AnalysisResponse {
+    jobId: string;
+    status: string;
     backend: Backend;
-} 
+}
+
+export interface ErrorResponse {
+    code: string;
+    message: string;
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    retryable: boolean;
+}
+
+// L4: Utility types
+export type ProgressCallback = (progress: AnalysisProgress) => void;
+export type ErrorCallback = (error: ErrorResponse) => void; 

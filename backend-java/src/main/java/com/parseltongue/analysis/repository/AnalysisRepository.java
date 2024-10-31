@@ -9,23 +9,14 @@ import java.time.LocalDateTime;
 
 @Repository
 public interface AnalysisRepository extends MongoRepository<AnalysisJob, String> {
-    @Aggregation(pipeline = {
-        "{ $match: { 'status': 'complete' } }",
-        "{ $group: { " +
-            "_id: '$backend', " +
-            "avgTime: { $avg: '$result.processingTimeMs' }, " +
-            "totalFiles: { $sum: '$result.totalFiles' }, " +
-            "avgMemory: { $avg: '$result.memoryUsage' }" +
-        "} }",
-        "{ $project: { " +
-            "backend: '$_id', " +
-            "avgTime: 1, " +
-            "totalFiles: 1, " +
-            "avgMemory: 1, " +
-            "_id: 0" +
-        "} }"
-    })
-    List<BackendPerformanceStats> getBackendPerformanceStats();
+    @Query("{ 'backend': ?0 }")
+    List<AnalysisJob> findByBackend(String backend);
+    
+    @Query("{ 'status': 'complete' }")
+    List<AnalysisJob> findCompleted();
+    
+    @Query(value = "{ 'status': 'complete' }", sort = "{ 'processingTimeMs': 1 }")
+    List<AnalysisJob> findFastest();
 
     @Query("{ 'status': ?0 }")
     List<AnalysisJob> findByStatus(String status);

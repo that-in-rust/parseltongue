@@ -1,116 +1,79 @@
 /**
- * Analysis Controller Pyramid:
- * L1: Core analysis orchestration
- * L2: Backend communication
- * L3: Progress tracking
- * L4: Error handling & metrics
+ * Analysis Service Pyramid:
+ * L1: Core API client
+ * L2: Progress tracking
+ * L3: Error handling
+ * L4: Performance monitoring
  */
 
-import { AnalysisProgress, AnalysisResult, Backend } from '../types/common';
-import { MonitoringService } from './monitoring';
+import { Backend, AnalysisProgress, AnalysisResult, ErrorResponse } from '../types/common';
 import { CONFIG } from '../config/constants';
+import { MonitoringService } from './monitoring';
 
 export class AnalysisController {
-  private jobId: string;
-  private monitor: MonitoringService;
-  private baseUrl: string;
+    private monitoring = MonitoringService.getInstance();
+    private pollInterval?: NodeJS.Timeout;
 
-  constructor(private backend: Backend) {
-    this.baseUrl = CONFIG.BACKENDS[backend].URL;
-    this.monitor = MonitoringService.getInstance();
-  }
+    constructor(private backend: Backend) {}
 
-  async startAnalysis(): Promise<string> {
-    const startTime = Date.now();
-    try {
-      const response = await fetch(`${this.baseUrl}/api/analyze`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      const { jobId } = await response.json();
-      this.jobId = jobId;
-      
-      this.monitor.trackMetrics(jobId, {
-        gitCloneTime: Date.now() - startTime,
-        analysisTime: 0,
-        filesPerSecond: 0,
-        memoryUsage: 0,
-        timestamp: new Date()
-      });
-      
-      return jobId;
-    } catch (error) {
-      this.monitor.trackError(this.jobId, error as Error);
-      throw error;
+    async startAnalysis(): Promise<string> {
+        const response = await fetch(`${CONFIG.BACKENDS[this.backend].url}/api/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) {
+            const error = await response.json() as ErrorResponse;
+            this.monitoring.trackError(error);
+            throw new Error(error.message);
+        }
+
+        const { jobId } = await response.json();
+        return jobId;
     }
-  }
 
-  async getProgress(): Promise<AnalysisProgress> {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/status/${this.jobId}`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    } catch (error) {
-      this.monitor.trackError(this.jobId, error as Error);
-      throw error;
+    async pollProgress(jobId: string, onProgress: (progress: AnalysisProgress) => void): Promise<void> {
+        this.pollInterval = setInterval(async () => {
+            try {
+                const response = await fetch(
+                    `${CONFIG.BACKENDS[this.backend].url}/api/status/${jobId}`
+                );
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch progress');
+                }
+
+                const progress = await response.json();
+                onProgress(progress);
+
+                if (progress.status === 'complete' || progress.status === 'error') {
+                    this.stopPolling();
+                }
+            } catch (error) {
+                this.stopPolling();
+                throw error;
+            }
+        }, CONFIG.POLL_INTERVAL);
     }
-  }
 
-  async getResults(): Promise<AnalysisResult> {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/results/${this.jobId}`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    } catch (error) {
-      this.monitor.trackError(this.jobId, error as Error);
-      throw error;
+    async getResults(jobId: string): Promise<AnalysisResult> {
+        const response = await fetch(
+            `${CONFIG.BACKENDS[this.backend].url}/api/results/${jobId}`
+        );
+
+        if (!response.ok) {
+            const error = await response.json() as ErrorResponse;
+            this.monitoring.trackError(error);
+            throw new Error(error.message);
+        }
+
+        return response.json();
     }
-  }
-}
 
-export class SequentialAnalysisController {
-  private monitor: MonitoringService;
-  private jobId?: string;
-
-  constructor() {
-    this.monitor = MonitoringService.getInstance();
-  }
-  
-  async startAnalysis(): Promise<void> {
-    const startTime = Date.now();
-
-    try {
-      // 1. Java Analysis
-      const javaController = new AnalysisController('java');
-      this.jobId = await javaController.startAnalysis();
-      await this.waitForCompletion(javaController);
-      
-      // 2. Rust Analysis
-      const rustController = new AnalysisController('rust');
-      await rustController.startAnalysis();
-      await this.waitForCompletion(rustController);
-
-      this.monitor.trackMetrics(this.jobId, {
-        analysisTime: Date.now() - startTime,
-        gitCloneTime: 0,
-        filesPerSecond: 0,
-        memoryUsage: 0,
-        timestamp: new Date()
-      });
-    } catch (error) {
-      this.monitor.trackError(this.jobId || 'sequential', error as Error);
-      throw error;
+    private stopPolling() {
+        if (this.pollInterval) {
+            clearInterval(this.pollInterval);
+            this.pollInterval = undefined;
+        }
     }
-  }
-
-  private async waitForCompletion(controller: AnalysisController): Promise<void> {
-    while (true) {
-      const progress = await controller.getProgress();
-      if (progress.status === 'complete') break;
-      await new Promise(r => setTimeout(r, 1000));
-    }
-  }
 } 

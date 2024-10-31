@@ -1,64 +1,51 @@
 /**
  * Domain Model Pyramid:
  * L1: Core entity attributes
- * L2: Status and progress tracking
- * L3: Results and metrics
- * L4: Audit and performance data
+ * L2: Status tracking
+ * L3: Results aggregation
+ * L4: Audit fields
  */
 
 @Data
 @Document(collection = "analysis_jobs")
 public class AnalysisJob {
-    // L1: Core entity
     @Id
     private String jobId;
     private String backend = "java";
-    
-    // L2: Status tracking
-    @NotNull
-    private String status;
-    private String stage;
+    private String status = "queued";
+    private String stage = "cloning";
     private String currentFile;
     private double progress;
-    
-    // L3: Analysis results
-    private AnalysisResult result;
-    private Map<String, Integer> languageBreakdown;
-    
-    // L4: Performance metrics
-    private Long memoryUsage;
-    private Double filesPerSecond;
+    private Map<String, Integer> languageBreakdown = new HashMap<>();
     private Long processingTimeMs;
+    private Double filesPerSecond;
+    private Integer totalFiles;
     
-    // Audit fields
     @CreatedDate
     private LocalDateTime createdAt;
+    
     @LastModifiedDate
     private LocalDateTime updatedAt;
-    
+
     public AnalysisJob(String jobId) {
         this.jobId = jobId;
-        this.status = "queued";
-        this.progress = 0.0;
-        this.stage = "cloning";
-        this.languageBreakdown = new HashMap<>();
     }
 
     public void updateProgress(String currentFile, double progress) {
         this.currentFile = currentFile;
         this.progress = progress;
-        this.updatedAt = LocalDateTime.now();
     }
 
-    public void complete(AnalysisResult result) {
+    public void complete(Map<String, Integer> breakdown, long timeMs) {
         this.status = "complete";
         this.progress = 100.0;
-        this.result = result;
-        this.updatedAt = LocalDateTime.now();
+        this.languageBreakdown = breakdown;
+        this.processingTimeMs = timeMs;
+        this.totalFiles = breakdown.values().stream().mapToInt(Integer::intValue).sum();
+        this.filesPerSecond = this.totalFiles / (timeMs / 1000.0);
     }
 
     public void fail(String error) {
         this.status = "error";
-        this.updatedAt = LocalDateTime.now();
     }
 } 
