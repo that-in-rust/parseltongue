@@ -45,18 +45,50 @@ fi
 # Error handling
 trap cleanup SIGINT SIGTERM ERR EXIT
 
-# Get script location
+# Get script location and use it
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+export script_dir  # Export it since we'll use it for relative paths
 
-# Cleanup function
+# Enhanced cleanup function
 cleanup() {
     trap - SIGINT SIGTERM ERR EXIT
-    # Add cleanup code here
+    
+    # Clean up temp files
+    if [ -n "${TEMP_DIR:-}" ] && [ -d "$TEMP_DIR" ]; then
+        rm -rf "$TEMP_DIR"
+    fi
+    
+    # Kill any background processes
+    jobs -p | xargs -r kill
+    
+    # Reset any modified system configs
+    if [ -f "/tmp/mongod.conf.backup" ]; then
+        sudo mv /tmp/mongod.conf.backup /etc/mongod/mongod.conf
+    fi
 }
+
+# Enhanced error handling function
+handle_error() {
+    local line_no=$1
+    local error_code=$2
+    log_error "Error occurred in line ${line_no} (exit code: ${error_code})"
+    cleanup
+    exit "$error_code"
+}
+
+# Add this after the existing trap
+trap 'handle_error ${LINENO} $?' ERR
 
 # Path safety function
 safe_cd() {
-    cd "$1" || exit 1
+    if [ -z "$1" ]; then
+        log_error "No directory specified for safe_cd"
+        exit 1
+    fi
+    if ! cd "$1"; then
+        log_error "Failed to change directory to $1"
+        exit 1
+    fi
 }
 
 # Logging functions
@@ -65,22 +97,47 @@ log_warn() { echo "⚠️ $*" >&2; }
 log_error() { echo "❌ $*" >&2; }
 log_success() { echo "✅ $*" >&2; }
 
-# Function to check if command exists
+# Improved command existence check
 command_exists() {
+    if [ -z "$1" ]; then
+        log_error "No command specified for command_exists"
+        return 1
+    fi
     command -v "$1" >/dev/null 2>&1
 }
 
-# Function to verify tool versions
+# Add this function for better version comparison
+version_compare() {
+    local v1="$1"
+    local v2="$2"
+    
+    # Remove any leading 'v' from version strings
+    v1="${v1#v}"
+    v2="${v2#v}"
+    
+    if [ "$(printf '%s\n' "$v1" "$v2" | sort -V | head -n1)" = "$v1" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Improved version check
 verify_tool_version() {
-    local tool=$1
-    local min_version=$2
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        log_error "Tool name or version not specified for verify_tool_version"
+        return 1
+    fi
+    local tool="$1"
+    local min_version="$2"
     local version_check_failed=false
     
     case $tool in
         "node")
             if command_exists node; then
-                local version=$(node -v | cut -d'v' -f2)
-                if [ "$(echo "$version $min_version" | awk '{if ($1 < $2) print 1}')" ]; then
+                local version
+                version=$(node -v | cut -d'v' -f2)
+                if ! version_compare "$version" "$min_version"; then
                     version_check_failed=true
                 fi
             else
@@ -89,8 +146,9 @@ verify_tool_version() {
             ;;
         "java")
             if command_exists java; then
-                local version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
-                if [ "$version" -lt "$min_version" ]; then
+                local version
+                version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
+                if ! version_compare "$version" "$min_version"; then
                     version_check_failed=true
                 fi
             else
@@ -99,8 +157,9 @@ verify_tool_version() {
             ;;
         "rust")
             if command_exists rustc; then
-                local version=$(rustc --version | cut -d' ' -f2)
-                if [ "$(echo "$version $min_version" | awk '{if ($1 < $2) print 1}')" ]; then
+                local version
+                version=$(rustc --version | cut -d' ' -f2)
+                if ! version_compare "$version" "$min_version"; then
                     version_check_failed=true
                 fi
             else
@@ -109,8 +168,9 @@ verify_tool_version() {
             ;;
         "mongodb")
             if command_exists mongod; then
-                local version=$(mongod --version | grep "db version" | cut -d' ' -f3)
-                if [ "$(echo "$version $min_version" | awk '{if ($1 < $2) print 1}')" ]; then
+                local version
+                version=$(mongod --version | grep "db version" | cut -d' ' -f3)
+                if ! version_compare "$version" "$min_version"; then
                     version_check_failed=true
                 fi
             else
@@ -177,26 +237,14 @@ install_missing_deps() {
     local missing=("$@")
     
     for dep in "${missing[@]}"; do
-        echo "Installing $dep..."
         case $dep in
-            "java")
-                install_java
-                ;;
-            "gradle")
-                install_gradle
-                ;;
-            "spring")
-                install_spring_boot_cli
-                ;;
-            "node"|"npm")
-                install_node
-                ;;
-            "cargo")
-                install_rust
-                ;;
-            "mongodb"|"mongosh")
-                install_mongodb
-                ;;
+            "java") install_java ;;
+            "gradle") install_gradle ;;
+            "spring") install_spring_boot_cli ;;
+            "node"|"npm") install_node ;;
+            "cargo") install_rust ;;
+            "mongodb"|"mongosh") install_mongodb ;;
+            *) log_error "Unknown dependency: $dep" ;;
         esac
     done
 }
@@ -208,29 +256,29 @@ verify_installation() {
     local retries=3
     local verified=false
 
-    echo "🔍 Verifying $component installation..."
+    log_info "Verifying $component installation..."
 
     for ((i=1; i<=retries; i++)); do
         if verify_tool_version "$component" "$version"; then
             verified=true
             break
         fi
-        echo "⚠️ Verification attempt $i failed, retrying..."
+        log_warn "Verification attempt $i failed, retrying..."
         sleep 2
     done
 
     if ! $verified; then
-        echo "❌ Failed to verify $component installation after $retries attempts"
+        log_error "Failed to verify $component installation after $retries attempts"
         return 1
     fi
 
-    echo "✅ $component installation verified"
+    log_success "$component installation verified"
     return 0
 }
 
 # Function to setup frontend
 setup_frontend() {
-    echo "Setting up Next.js frontend..."
+    log_info "Setting up frontend..."
     (
         cd frontend || exit 1
         npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
@@ -253,7 +301,7 @@ setup_frontend() {
 
 # Function to setup Java backend
 setup_java_backend() {
-    echo "Setting up Java backend..."
+    log_info "Setting up Java backend..."
     (
         cd backend-java || exit 1
         
@@ -290,7 +338,7 @@ EOL
 
 # Function to setup Rust backend
 setup_rust_backend() {
-    echo "Setting up Rust backend..."
+    log_info "Setting up Rust backend..."
     (
         cd backend-rust || exit 1
         cargo init
@@ -324,7 +372,7 @@ EOL
 
 # Function to setup MongoDB
 setup_mongodb() {
-    echo "Setting up MongoDB..."
+    log_info "Setting up MongoDB..."
     
     # Create MongoDB configuration
     sudo mkdir -p /etc/mongod/
@@ -503,7 +551,7 @@ install_gradle() {
     if command_exists gradle; then
         log_success "Gradle is already installed"
         return 0
-    }
+    fi
 
     # Install required packages
     sudo apt-get install -y unzip
@@ -546,13 +594,14 @@ install_spring_boot_cli() {
     if command_exists spring; then
         log_success "Spring Boot CLI is already installed"
         return 0
-    }
+    fi
 
     # Install required packages
     sudo apt-get install -y unzip wget
 
     # Create temporary directory
-    local TEMP_DIR=$(mktemp -d)
+    local TEMP_DIR
+    TEMP_DIR=$(mktemp -d)
     safe_cd "$TEMP_DIR"
 
     # Download Spring Boot CLI with retry mechanism
@@ -603,7 +652,7 @@ install_node() {
     if command_exists node && [[ $(node -v) == *"20"* ]]; then
         log_success "Node.js 20 is already installed"
         return 0
-    }
+    fi
 
     # Remove old versions
     sudo apt-get remove -y nodejs npm || true
@@ -639,7 +688,7 @@ install_rust() {
     if command_exists rustc && command_exists cargo; then
         log_success "Rust is already installed"
         return 0
-    }
+    fi
 
     # Download and install Rust with retry mechanism
     local MAX_RETRIES=3
@@ -660,7 +709,13 @@ install_rust() {
     fi
 
     # Source cargo environment
-    source "$HOME/.cargo/env"
+    if [ -f "$HOME/.cargo/env" ]; then
+        # shellcheck source=/dev/null
+        source "$HOME/.cargo/env"
+    else
+        log_error "Cargo environment file not found"
+        exit 1
+    fi
 
     # Verify installation
     if ! command_exists rustc || ! command_exists cargo; then
@@ -677,7 +732,7 @@ install_mongodb() {
     if command_exists mongod && systemctl is-active --quiet mongod; then
         log_success "MongoDB is already installed and running"
         return 0
-    }
+    fi
 
     # Install required packages
     sudo apt-get install -y gnupg curl
@@ -745,14 +800,23 @@ check_network() {
         "https://registry.npmjs.org"
         "https://repo.spring.io"
         "https://repo.mongodb.org"
+        "https://sh.rustup.rs"
+        "https://deb.nodesource.com"
     )
     
+    local failed_urls=()
     for url in "${test_urls[@]}"; do
-        if ! curl --silent --head --fail "$url" >/dev/null; then
-            log_error "Cannot reach $url"
-            return 1
+        if ! timeout 10 curl --silent --head --fail "$url" >/dev/null; then
+            failed_urls+=("$url")
         fi
     done
+    
+    if [ ${#failed_urls[@]} -ne 0 ]; then
+        log_error "Cannot reach the following URLs:"
+        printf '%s\n' "${failed_urls[@]}"
+        return 1
+    fi
+    
     log_success "Network connectivity verified"
     return 0
 }
@@ -795,7 +859,8 @@ create_project_structure() {
 # Function to backup existing files
 backup_existing() {
     log_info "Creating backup of existing files..."
-    local backup_dir="backup_$(date +%Y%m%d_%H%M%S)"
+    local backup_dir
+    backup_dir="backup_$(date +%Y%m%d_%H%M%S)"
     
     # Create backup directory
     mkdir -p "$backup_dir"
@@ -825,12 +890,66 @@ check_sudo() {
     return 0
 }
 
+# Function to safely download files
+safe_download() {
+    local url="$1"
+    local output="$2"
+    local max_retries="${3:-3}"
+    local retry_count=0
+    
+    while [ $retry_count -lt $max_retries ]; do
+        if wget -q "$url" -O "$output"; then
+            return 0
+        fi
+        retry_count=$((retry_count + 1))
+        log_warn "Download failed, retrying... ($retry_count/$max_retries)"
+        sleep 2
+    done
+    
+    return 1
+}
+
+# Function to safely handle arrays
+append_to_array() {
+    local -n arr=$1  # nameref to array
+    local value="$2"
+    
+    if [ -z "${value}" ]; then
+        log_warn "Attempting to append empty value to array"
+        return 1
+    fi
+    
+    arr+=("$value")
+}
+
+# Add these at the start of the script for better variable management
+declare -r REQUIRED_UBUNTU_VERSION="22.04"
+declare -r MIN_DISK_SPACE=5120
+declare -r TIMEOUT_SECONDS=30
+declare -r MAX_RETRIES=3
+
+# Make temporary directory handling more robust
+declare -g TEMP_DIR=""
+
 # Main installation process
 main() {
+    # Add timing information
+    local start_time
+    start_time=$(date +%s)
+    
     # Initial checks
     check_sudo || exit 1
+    check_permissions || exit 1
     check_network || exit 1
     check_disk_space || exit 1
+    
+    # Create lockfile to prevent multiple instances
+    local lockfile="/tmp/parseltongue_install.lock"
+    if ! mkdir "$lockfile" 2>/dev/null; then
+        log_error "Another instance is running"
+        exit 1
+    fi
+    trap 'rm -rf "$lockfile"' EXIT
     
     # Backup existing files
     backup_existing || exit 1
@@ -873,7 +992,66 @@ main() {
 
     # Generate summary
     generate_summary
+
+    # Calculate and display execution time
+    local end_time
+    end_time=$(date +%s)
+    local duration=$((end_time - start_time))
+    log_info "Installation completed in ${duration} seconds"
 }
 
 # Run the script
 main "$@"
+
+validate_project_structure() {
+    log_info "Validating project structure..."
+    local required_dirs=(
+        "frontend/src/components"
+        "frontend/src/services"
+        "backend-java/src/main/java/com/parseltongue/config"
+        "backend-rust/src/handlers"
+        "shared/types"
+    )
+    
+    local missing_dirs=()
+    for dir in "${required_dirs[@]}"; do
+        if [ ! -d "$dir" ]; then
+            missing_dirs+=("$dir")
+        fi
+    done
+    
+    if [ ${#missing_dirs[@]} -ne 0 ]; then
+        log_error "Missing required directories:"
+        printf '%s\n' "${missing_dirs[@]}"
+        return 1
+    fi
+    
+    log_success "Project structure validated"
+    return 0
+}
+
+check_permissions() {
+    log_info "Checking required permissions..."
+    local paths_to_check=(
+        "/opt"
+        "/usr/local/bin"
+        "/etc/mongod"
+        "/var/lib/mongodb"
+    )
+    
+    local permission_errors=()
+    for path in "${paths_to_check[@]}"; do
+        if [ -e "$path" ] && ! sudo -n test -w "$path"; then
+            permission_errors+=("$path")
+        fi
+    done
+    
+    if [ ${#permission_errors[@]} -ne 0 ]; then
+        log_error "Insufficient permissions for:"
+        printf '%s\n' "${permission_errors[@]}"
+        return 1
+    fi
+    
+    log_success "Permission checks passed"
+    return 0
+}
