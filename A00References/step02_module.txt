@@ -1,0 +1,177 @@
+# Parseltongue v0.1: Project Blueprint
+
+## Directory Structure
+```
+parseltongue/
+├── frontend/                 🔄 React Frontend
+│   ├── src/
+│   │   ├── components/      🔄 UI Components
+│   │   ├── services/        ❌ API Integration
+│   │   └── types/           🔄 TypeScript Definitions
+│   └── package.json         ✅ Dependencies
+├── backend-java/            🔄 Spring Boot Backend
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/
+│   │   │   │   └── com/parseltongue/
+│   │   │   │       ├── config/       🔄 Configurations
+│   │   │   │       ├── controller/   ❌ REST Controllers
+│   │   │   │       ├── model/        🔄 Domain Models
+│   │   │   │       ├── repository/   ❌ MongoDB Repos
+│   │   │   │       └── service/      ❌ Business Logic
+│   │   │   └── resources/
+│   │   └── test/
+│   └── build.gradle         ✅ Build Config
+├── backend-rust/            🔄 Rust Backend
+│   ├── src/
+│   │   ├── main.rs         🔄 Entry Point
+│   │   ├── config/         🔄 Configuration
+│   │   ├── handlers/       ❌ Request Handlers
+│   │   ├── models/         🔄 Domain Models
+│   │   └── services/       ❌ Business Logic
+│   └── Cargo.toml          ✅ Dependencies
+└── shared/                  🔄 Shared Resources
+    ├── types/              🔄 Common Types
+    └── config/             🔄 Shared Config
+```
+
+## Module Details
+
+### Frontend Module
+#### Components
+- `AnalysisDashboard` 🔄 Main analysis interface
+- `FileUploader` 🔄 Handles file uploads
+- `ProgressTracker` 🔄 Shows analysis progress
+- `ResultsViewer` ❌ Displays analysis results
+
+#### Services
+- `AnalysisService` ❌ Backend API integration
+- `FileService` ❌ File handling utilities
+- `StatusService` ❌ Progress tracking
+
+DO:
+- Use React Query for API state management
+- Implement proper error boundaries
+- Use TypeScript for all components
+
+DON'T:
+- Mix presentation and business logic
+- Use class components
+- Implement complex state management
+
+### Java Backend Module
+#### Core Components
+- `AnalysisController` ❌ REST endpoints
+- `AnalysisService` ❌ Analysis logic
+- `MongoConfig` 🔄 Database setup
+- `FileProcessor` 🔄 File handling
+
+#### Models
+- `AnalysisJob` 🔄 Job tracking
+- `AnalysisResult` ❌ Analysis output
+- `FileMetadata` 🔄 File information
+
+DO:
+- Use constructor injection
+- Implement proper exception handling
+- Follow Spring Boot best practices
+
+DON'T:
+- Use field injection
+- Mix concerns in services
+- Skip validation
+
+### Rust Backend Module
+#### Core Components
+- `analysis_handler` ❌ Request handling
+- `file_processor` 🔄 File processing
+- `mongo_client` ❌ Database operations
+
+#### Models
+- `AnalysisJob` 🔄 Job representation
+- `FileMetadata` 🔄 File information
+- `AnalysisResult` ❌ Results structure
+
+DO:
+- Use async/await properly
+- Implement proper error handling
+- Follow Rust idioms
+
+DON'T:
+- Block the event loop
+- Use unwrap() in production code
+- Skip error propagation
+
+## Dependencies
+```mermaid
+graph TD
+    Frontend --> JavaBackend
+    Frontend --> RustBackend
+    JavaBackend --> MongoDB
+    RustBackend --> MongoDB
+```
+
+## Terminal Commands
+```bash
+# Remove unused components
+./scripts/cleanup.sh
+
+# Update module documentation
+./scripts/update-modules.sh
+
+# Validate project structure
+./scripts/validate-structure.sh
+```
+
+## Update Mechanism
+1. Run structure validator:
+   ```bash
+   ./scripts/validate-structure.sh
+   ```
+
+2. Update module status:
+   ```bash
+   ./scripts/update-status.sh
+   ```
+
+3. Generate new documentation:
+   ```bash
+   ./scripts/generate-docs.sh
+   ```
+
+## Implementation Status
+
+### Core Features
+- File Upload: 🔄
+- Analysis Engine: 🔄
+- Progress Tracking: 🔄
+- Results Display: ❌
+- Error Handling: 🔄
+- Database Operations: ❌
+
+### Infrastructure
+- MongoDB Setup: 🔄
+- Java Backend: 🔄
+- Rust Backend: 🔄
+- Frontend Setup: ✅
+
+Legend:
+✅ - Complete
+🔄 - In Progress
+❌ - Not Started
+⚠️ - Extra Feature
+🛑 - Needs Correction
+
+## Next Steps
+1. Complete MongoDB integration
+2. Implement REST endpoints
+3. Add file analysis logic
+4. Create results viewer
+5. Add error handling
+6. Implement progress tracking
+
+## Version History
+- v0.1.0: Initial structure
+- v0.1.1: Added component status
+- v0.1.2: Updated directory structure
+- v0.1.3: Added implementation details

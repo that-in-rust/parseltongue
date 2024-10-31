@@ -59,3 +59,25 @@ case "$1" in
     "all") all_checks ;;
     *) echo "Usage: $0 {structure|git|build|clean|all}" ;;
 esac
+
+# Initial Setup Commands
+
+# Check current structure
+tree -a -I 'node_modules|target|build|.git'
+
+# Initialize git if not already done
+git init
+
+# Create main directories
+mkdir -p parseltongue/{frontend,backend-java,backend-rust,shared}/{src,config}
+mkdir -p parseltongue/frontend/src/{components,services,types}
+mkdir -p parseltongue/backend-java/src/main/java/com/parseltongue/{config,controller,model,repository,service}
+mkdir -p parseltongue/backend-rust/src/{config,handlers,models,services}
+mkdir -p parseltongue/shared/{types,config}
+
+# Track current files
+find . -type f -not -path '*/\.*' > step98_current_files.txt
+
+
+===
+

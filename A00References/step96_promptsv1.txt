@@ -48,7 +48,6 @@
    - *Avoid including actual code implementations; focus on the structural and organizational aspects.*
    - *Make the `module.txt` a living document that can be maintained as the codebase evolves.*
 
-**Project Scope and Existing `module.txt`:**
 
 
 ---

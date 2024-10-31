@@ -1,0 +1,4 @@
+find . -type f ! -path "*/.git/*" > step98_current_files.txt
+
+
+chmod +x install.sh && ./install.sh

@@ -1,159 +1,182 @@
-# Parseltongue v0.1: Project Blueprint
+# Parseltongue v0.1.2: Project Blueprint
 
 ## Directory Structure
 ```
-parseltongue/
-├── frontend/                 🔄 React Frontend
+.
+├── frontend/                    # Next.js 14+ Frontend
 │   ├── src/
-│   │   ├── components/      🔄 UI Components
-│   │   ├── services/        ❌ API Integration
-│   │   └── types/           🔄 TypeScript Definitions
-│   └── package.json         ✅ Dependencies
-├── backend-java/            🔄 Spring Boot Backend
+│   │   ├── app/                ❌ Next.js App Router
+│   │   │   ├── page.tsx           # Landing page
+│   │   │   ├── layout.tsx         # Root layout
+│   │   │   └── analyze/           # Analysis routes
+│   │   ├── components/         🔄 React Components
+│   │   │   ├── AnalysisDashboard/ # Main dashboard
+│   │   │   ├── FileUpload/        # File upload (100MB limit)
+│   │   │   ├── BackendSelector/   # Java/Rust toggle
+│   │   │   ├── ProgressBar/       # Real-time progress
+│   │   │   └── ResultsView/       # Analysis results
+│   │   ├── services/          ❌ API Integration
+│   │   │   ├── analysisApi.ts     # Analysis endpoints
+│   │   │   ├── progressApi.ts     # Progress tracking
+│   │   │   └── resultsApi.ts      # Results fetching
+│   │   └── types/             🔄 Type Definitions
+│   ├── tailwind.config.js     ❌ Tailwind 3.x config
+│   └── package.json           ✅ Dependencies
+
+├── backend-java/              # Spring Boot 3.x Backend
+│   ├── src/main/java/com/parseltongue/
+│   │   ├── config/           🔄 Configurations
+│   │   │   ├── MongoConfig      # MongoDB setup
+│   │   │   └── WebConfig        # CORS, security
+│   │   ├── controller/       ❌ REST Controllers
+│   │   │   ├── AnalysisController  # Analysis endpoints
+│   │   │   └── HealthController    # Health checks
+│   │   ├── model/            🔄 Domain Models
+│   │   │   ├── AnalysisJob       # Job tracking
+│   │   │   └── AnalysisResult    # Analysis output
+│   │   ├── repository/       ❌ MongoDB Repos
+│   │   │   └── AnalysisRepository # Data access
+│   │   └── service/          ❌ Business Logic
+│   │       ├── AnalysisService    # Core analysis
+│   │       └── FileService        # File handling
+│   └── build.gradle          ✅ Build config
+
+├── backend-rust/             # Rust 1.70+ Backend
 │   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/parseltongue/
-│   │   │   │       ├── config/       🔄 Configurations
-│   │   │   │       ├── controller/   ❌ REST Controllers
-│   │   │   │       ├── model/        🔄 Domain Models
-│   │   │   │       ├── repository/   ❌ MongoDB Repos
-│   │   │   │       └── service/      ❌ Business Logic
-│   │   │   └── resources/
-│   │   └── test/
-│   └── build.gradle         ✅ Build Config
-├── backend-rust/            🔄 Rust Backend
-│   ├── src/
-│   │   ├── main.rs         🔄 Entry Point
-│   │   ├── config/         🔄 Configuration
-│   │   ├── handlers/       ❌ Request Handlers
-│   │   ├── models/         🔄 Domain Models
-│   │   └── services/       ❌ Business Logic
-│   └── Cargo.toml          ✅ Dependencies
-└── shared/                  🔄 Shared Resources
-    ├── types/              🔄 Common Types
-    └── config/             🔄 Shared Config
+│   │   ├── main.rs          🔄 Entry point
+│   │   ├── config/          🔄 Configuration
+│   │   │   ├── app.rs          # App settings
+│   │   │   └── db.rs           # MongoDB config
+│   │   ├── handlers/        ❌ Request Handlers
+│   │   │   ├── analysis.rs     # Analysis routes
+│   │   │   └── health.rs       # Health checks
+│   │   ├── models/          🔄 Domain Models
+│   │   │   ├── job.rs          # Analysis job
+│   │   │   └── result.rs       # Analysis result
+│   │   └── services/        ❌ Business Logic
+│   │       ├── analyzer.rs     # Analysis service
+│   │       └── file.rs         # File processing
+│   └── Cargo.toml           ✅ Dependencies
+
+└── shared/                   # Shared Resources
+    ├── types/               🔄 Common Types
+    └── config/              🔄 Shared Config
 ```
 
-## Module Details
+## Implementation Details
 
-### Frontend Module
-#### Components
-- `AnalysisDashboard` 🔄 Main analysis interface
-- `FileUploader` 🔄 Handles file uploads
-- `ProgressTracker` 🔄 Shows analysis progress
-- `ResultsViewer` ❌ Displays analysis results
+### Frontend (Next.js 14+)
+#### Key Features
+- File upload interface ❌
+- Backend selection (Java/Rust) ❌
+- Progress tracking display ❌
+- Results visualization ❌
 
-#### Services
-- `AnalysisService` ❌ Backend API integration
-- `FileService` ❌ File handling utilities
-- `StatusService` ❌ Progress tracking
+#### Technical Stack
+- Next.js 14+ ✅
+- Tailwind CSS 3.x ❌
+- TypeScript ✅
+- React Query ❌
 
 DO:
-- Use React Query for API state management
-- Implement proper error boundaries
-- Use TypeScript for all components
+- Use Next.js App Router
+- Implement Server Components where beneficial
+- Follow Tailwind best practices
+- Use TypeScript strictly
 
 DON'T:
-- Mix presentation and business logic
-- Use class components
-- Implement complex state management
+- Mix client/server concerns
+- Skip error boundaries
+- Ignore TypeScript types
+- Over-engineer state management
 
-### Java Backend Module
-#### Core Components
-- `AnalysisController` ❌ REST endpoints
-- `AnalysisService` ❌ Analysis logic
-- `MongoConfig` 🔄 Database setup
-- `FileProcessor` 🔄 File handling
+### Java Backend (Spring Boot 3.x)
+#### Key Features
+- File analysis service ❌
+- MongoDB integration ❌
+- REST endpoints ❌
+- Progress tracking ❌
 
-#### Models
-- `AnalysisJob` 🔄 Job tracking
-- `AnalysisResult` ❌ Analysis output
-- `FileMetadata` 🔄 File information
+#### Technical Stack
+- Java 21 JDK ✅
+- Spring Boot 3.x ✅
+- Spring Data MongoDB ❌
+- Gradle ✅
 
 DO:
+- Use Java 21 features
+- Implement proper error handling
 - Use constructor injection
-- Implement proper exception handling
-- Follow Spring Boot best practices
+- Follow reactive patterns
 
 DON'T:
+- Block I/O operations
+- Skip input validation
+- Mix service responsibilities
 - Use field injection
-- Mix concerns in services
-- Skip validation
 
-### Rust Backend Module
-#### Core Components
-- `analysis_handler` ❌ Request handling
-- `file_processor` 🔄 File processing
-- `mongo_client` ❌ Database operations
+### Rust Backend (1.70+)
+#### Key Features
+- Parallel file analysis ❌
+- MongoDB operations ❌
+- REST implementation ❌
+- Status management ❌
 
-#### Models
-- `AnalysisJob` 🔄 Job representation
-- `FileMetadata` 🔄 File information
-- `AnalysisResult` ❌ Results structure
+#### Technical Stack
+- Rust 1.70+ ✅
+- Actix-web ❌
+- Tokio runtime ❌
+- MongoDB driver ❌
 
 DO:
 - Use async/await properly
-- Implement proper error handling
+- Implement proper error types
 - Follow Rust idioms
+- Use type-safe MongoDB operations
 
 DON'T:
 - Block the event loop
-- Use unwrap() in production code
-- Skip error propagation
+- Use unwrap() in production
+- Skip error handling
+- Mix sync/async code
 
-## Dependencies
-```mermaid
-graph TD
-    Frontend --> JavaBackend
-    Frontend --> RustBackend
-    JavaBackend --> MongoDB
-    RustBackend --> MongoDB
-```
+## Performance Requirements
+- Page Load: < 2s
+- Repo Validation: < 1s
+- Analysis Start: < 3s
+- Full Analysis: < 5min (100MB)
+- Results View: < 2s
 
 ## Terminal Commands
 ```bash
-# Remove unused components
+# Validate project structure
+./scripts/validate.sh
+
+# Check component status
+./scripts/status.sh
+
+# Clean unused components
 ./scripts/cleanup.sh
 
-# Update module documentation
-./scripts/update-modules.sh
-
-# Validate project structure
-./scripts/validate-structure.sh
+# Update documentation
+./scripts/update-docs.sh
 ```
-
-## Update Mechanism
-1. Run structure validator:
-   ```bash
-   ./scripts/validate-structure.sh
-   ```
-
-2. Update module status:
-   ```bash
-   ./scripts/update-status.sh
-   ```
-
-3. Generate new documentation:
-   ```bash
-   ./scripts/generate-docs.sh
-   ```
 
 ## Implementation Status
 
 ### Core Features
-- File Upload: 🔄
-- Analysis Engine: 🔄
-- Progress Tracking: 🔄
+- File Upload: ❌
+- Analysis Engine: ❌
+- Progress Tracking: ❌
 - Results Display: ❌
-- Error Handling: 🔄
+- Error Handling: ❌
 - Database Operations: ❌
 
 ### Infrastructure
 - MongoDB Setup: 🔄
 - Java Backend: 🔄
 - Rust Backend: 🔄
-- Frontend Setup: ✅
+- Frontend Setup: 🔄
 
 Legend:
 ✅ - Complete
@@ -163,15 +186,14 @@ Legend:
 🛑 - Needs Correction
 
 ## Next Steps
-1. Complete MongoDB integration
-2. Implement REST endpoints
-3. Add file analysis logic
-4. Create results viewer
-5. Add error handling
-6. Implement progress tracking
+1. Complete infrastructure setup
+2. Implement file upload
+3. Add backend selection
+4. Create analysis services
+5. Add progress tracking
+6. Implement results display
 
 ## Version History
-- v0.1.0: Initial structure
-- v0.1.1: Added component status
-- v0.1.2: Updated directory structure
-- v0.1.3: Added implementation details
+v0.1.2 - Updated for Next.js 14, Java 21, Rust 1.70+
+v0.1.1 - Added implementation details
+v0.1.0 - Initial structure 
