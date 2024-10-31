@@ -58,17 +58,44 @@ install_spring_boot_cli() {
 # Function to install Node.js and npm
 install_node() {
     echo "Installing Node.js and npm..."
+    
+    # Remove old Node.js if exists
+    sudo apt-get remove -y nodejs npm
+    sudo apt-get autoremove -y
+    
+    # Clean up any old Node.js related files
+    sudo rm -rf /usr/local/bin/npm /usr/local/share/man/man1/node* /usr/local/lib/dtrace/node.d ~/.npm ~/.node-gyp /opt/local/bin/node /opt/local/include/node /opt/local/lib/node_modules
+    
+    # Add NodeSource repository
     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    
+    # Install Node.js (which includes npm)
     sudo apt-get install -y nodejs
     
-    # Install required global packages
-    sudo npm install -g typescript @types/node
-    
-    # Verify installation
-    if ! command_exists node || ! command_exists npm; then
-        echo "❌ Node.js/npm installation failed"
+    # Verify Node.js installation
+    if ! command_exists node; then
+        echo "❌ Node.js installation failed"
         exit 1
     fi
+    
+    # Verify npm installation specifically
+    if ! command_exists npm; then
+        echo "npm not found after Node.js installation. Attempting direct npm installation..."
+        sudo apt-get install -y npm
+        
+        if ! command_exists npm; then
+            echo "❌ npm installation failed"
+            exit 1
+        fi
+    fi
+    
+    # Install global packages
+    echo "Installing global npm packages..."
+    sudo npm install -g typescript @types/node
+    
+    # Display versions
+    echo "Node.js version: $(node -v)"
+    echo "npm version: $(npm -v)"
 }
 
 # Function to install Rust and Cargo
