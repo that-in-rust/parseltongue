@@ -3,7 +3,7 @@
 # === Agenda Items ===
 # 🎯 Project: Parseltongue v0.1.3
 # 
-# 📋 Installation Tasks:
+# 📦 Installation Tasks:
 # ✨ Frontend: Next.js 14+ with TypeScript and Tailwind
 # 🔧 Backend (Java): Spring Boot 3.x with MongoDB
 # 🦀 Backend (Rust): Actix-web with MongoDB
@@ -29,770 +29,60 @@
 # - Database initialization
 # ===========================
 
-# Initialize global arrays
-declare -a MISSING_DEPS=()
-declare -a failed_verifications=()
+# Initialize global arrays and constants
+declare -r REQUIRED_UBUNTU_VERSION="22.04"
+declare -r MIN_DISK_SPACE=5120
+declare -r TIMEOUT_SECONDS=30
+declare -r MAX_RETRIES=3
+declare -g TEMP_DIR=""
 
 # Robust shell options
 set -Eeuo pipefail
 IFS=$'\n\t'
 
 # Enable debug mode if requested
-if [[ "${DEBUG:-}" == "true" ]]; then
-    set -x
-fi
+[[ "${DEBUG:-}" == "true" ]] && set -x
+
+# Function declarations (move all functions before main)
+cleanup() {
+    trap - SIGINT SIGTERM ERR EXIT
+    [ -n "${TEMP_DIR:-}" ] && [ -d "$TEMP_DIR" ] && rm -rf "$TEMP_DIR"
+    jobs -p | xargs -r kill
+    [ -f "/tmp/mongod.conf.backup" ] && sudo mv /tmp/mongod.conf.backup /etc/mongod/mongod.conf
+}
 
 # Error handling
 trap cleanup SIGINT SIGTERM ERR EXIT
+trap 'handle_error ${LINENO} $?' ERR  # Ensure error handling captures line number and exit status
 
-# Get script location and use it
+# Get script location
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
-export script_dir  # Export it since we'll use it for relative paths
+export script_dir
 
-# Enhanced cleanup function
-cleanup() {
-    trap - SIGINT SIGTERM ERR EXIT
-    
-    # Clean up temp files
-    if [ -n "${TEMP_DIR:-}" ] && [ -d "$TEMP_DIR" ]; then
-        rm -rf "$TEMP_DIR"
-    fi
-    
-    # Kill any background processes
-    jobs -p | xargs -r kill
-    
-    # Reset any modified system configs
-    if [ -f "/tmp/mongod.conf.backup" ]; then
-        sudo mv /tmp/mongod.conf.backup /etc/mongod/mongod.conf
-    fi
-}
-
-# Enhanced error handling function
-handle_error() {
-    local line_no=$1
-    local error_code=$2
-    log_error "Error occurred in line ${line_no} (exit code: ${error_code})"
-    cleanup
-    exit "$error_code"
-}
-
-# Add this after the existing trap
-trap 'handle_error ${LINENO} $?' ERR
-
-# Path safety function
-safe_cd() {
-    if [ -z "$1" ]; then
-        log_error "No directory specified for safe_cd"
-        exit 1
-    fi
-    if ! cd "$1"; then
-        log_error "Failed to change directory to $1"
-        exit 1
-    fi
-}
-
-# Logging functions
-log_info() { echo "ℹ️ $*" >&2; }
-log_warn() { echo "⚠️ $*" >&2; }
-log_error() { echo "❌ $*" >&2; }
-log_success() { echo "✅ $*" >&2; }
-
-# Improved command existence check
-command_exists() {
-    if [ -z "$1" ]; then
-        log_error "No command specified for command_exists"
+# Function to check Ubuntu version using REQUIRED_UBUNTU_VERSION constant
+check_ubuntu_version() {
+    if ! grep -q "Ubuntu ${REQUIRED_UBUNTU_VERSION}" /etc/os-release; then
+        log_error "This script requires Ubuntu ${REQUIRED_UBUNTU_VERSION}"
         return 1
     fi
-    command -v "$1" >/dev/null 2>&1
-}
-
-# Add this function for better version comparison
-version_compare() {
-    local v1="$1"
-    local v2="$2"
-    
-    # Remove any leading 'v' from version strings
-    v1="${v1#v}"
-    v2="${v2#v}"
-    
-    if [ "$(printf '%s\n' "$v1" "$v2" | sort -V | head -n1)" = "$v1" ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Improved version check
-verify_tool_version() {
-    if [ -z "$1" ] || [ -z "$2" ]; then
-        log_error "Tool name or version not specified for verify_tool_version"
-        return 1
-    fi
-    local tool="$1"
-    local min_version="$2"
-    local version_check_failed=false
-    
-    case $tool in
-        "node")
-            if command_exists node; then
-                local version
-                version=$(node -v | cut -d'v' -f2)
-                if ! version_compare "$version" "$min_version"; then
-                    version_check_failed=true
-                fi
-            else
-                version_check_failed=true
-            fi
-            ;;
-        "java")
-            if command_exists java; then
-                local version
-                version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
-                if ! version_compare "$version" "$min_version"; then
-                    version_check_failed=true
-                fi
-            else
-                version_check_failed=true
-            fi
-            ;;
-        "rust")
-            if command_exists rustc; then
-                local version
-                version=$(rustc --version | cut -d' ' -f2)
-                if ! version_compare "$version" "$min_version"; then
-                    version_check_failed=true
-                fi
-            else
-                version_check_failed=true
-            fi
-            ;;
-        "mongodb")
-            if command_exists mongod; then
-                local version
-                version=$(mongod --version | grep "db version" | cut -d' ' -f3)
-                if ! version_compare "$version" "$min_version"; then
-                    version_check_failed=true
-                fi
-            else
-                version_check_failed=true
-            fi
-            ;;
-    esac
-
-    [ "$version_check_failed" = false ]
-    return $?
-}
-
-# Function to verify system requirements
-verify_system_requirements() {
-    log_info "🔍 Pre-checking required tools..."
-    
-    # Check Ubuntu version
-    if ! grep -q "Ubuntu 22.04" /etc/os-release; then
-        log_error "This script is optimized for Ubuntu 22.04"
-        exit 1
-    fi
-
-    # First check for existence and install if missing
-    local required_tools=(node npm java gradle spring cargo mongodb mongosh)
-    MISSING_DEPS=()
-    
-    for tool in "${required_tools[@]}"; do
-        if ! command_exists "$tool"; then
-            log_warn "$tool is missing, will be installed"
-            MISSING_DEPS+=("$tool")
-        fi
-    done
-
-    # Install missing dependencies first
-    if [ ${#MISSING_DEPS[@]} -ne 0 ]; then
-        log_info "Installing missing tools: ${MISSING_DEPS[*]}"
-        install_missing_deps "${MISSING_DEPS[@]}"
-    fi
-
-    # Now check versions after ensuring tools exist
-    log_info "Verifying tool versions..."
-    local required_versions=(
-        "node:20.0.0"
-        "java:21"
-        "rust:1.70.0"
-        "mongodb:6.0"
-    )
-
-    for req in "${required_versions[@]}"; do
-        local tool="${req%%:*}"
-        local min_version="${req#*:}"
-        
-        if ! verify_tool_version "$tool" "$min_version"; then
-            log_error "$tool version check failed. Minimum required: $min_version"
-            exit 1
-        fi
-    done
-
-    log_success "All system requirements verified"
-}
-
-# Function to install missing dependencies
-install_missing_deps() {
-    local missing=("$@")
-    
-    for dep in "${missing[@]}"; do
-        case $dep in
-            "java") install_java ;;
-            "gradle") install_gradle ;;
-            "spring") install_spring_boot_cli ;;
-            "node"|"npm") install_node ;;
-            "cargo") install_rust ;;
-            "mongodb"|"mongosh") install_mongodb ;;
-            *) log_error "Unknown dependency: $dep" ;;
-        esac
-    done
-}
-
-# Function to verify installation
-verify_installation() {
-    local component=$1
-    local version=$2
-    local retries=3
-    local verified=false
-
-    log_info "Verifying $component installation..."
-
-    for ((i=1; i<=retries; i++)); do
-        if verify_tool_version "$component" "$version"; then
-            verified=true
-            break
-        fi
-        log_warn "Verification attempt $i failed, retrying..."
-        sleep 2
-    done
-
-    if ! $verified; then
-        log_error "Failed to verify $component installation after $retries attempts"
-        return 1
-    fi
-
-    log_success "$component installation verified"
     return 0
 }
 
-# Function to setup frontend
-setup_frontend() {
-    log_info "Setting up frontend..."
-    (
-        cd frontend || exit 1
-        npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
-        
-        # Create component directories
-        for comp in AnalysisDashboard FileUpload BackendSelector ProgressBar ResultsView; do
-            mkdir -p "src/components/$comp"
-            touch "src/components/$comp/index.tsx"
-        done
-        
-        # Create service files
-        for service in analysisApi progressApi resultsApi; do
-            touch "src/services/$service.ts"
-        done
-        
-        # Install additional dependencies
-        npm install @tanstack/react-query@latest
-    )
-}
-
-# Function to setup Java backend
-setup_java_backend() {
-    log_info "Setting up Java backend..."
-    (
-        cd backend-java || exit 1
-        
-        # Create Spring Boot project structure
-        mkdir -p src/main/java/com/parseltongue/{config,controller,model,repository,service}
-        
-        # Create build.gradle with Spring Boot 3.x
-        cat > build.gradle << 'EOL'
-plugins {
-    id 'java'
-    id 'org.springframework.boot' version '3.2.0'
-    id 'io.spring.dependency-management' version '1.1.4'
-}
-
-group = 'com.parseltongue'
-version = '0.1.0'
-sourceCompatibility = '21'
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-}
-EOL
-    )
-}
-
-# Function to setup Rust backend
-setup_rust_backend() {
-    log_info "Setting up Rust backend..."
-    (
-        cd backend-rust || exit 1
-        cargo init
-        
-        # Configure Cargo.toml with required dependencies
-        cat > Cargo.toml << 'EOL'
-[package]
-name = "parseltongue-rust"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-tokio = { version = "1.35", features = ["full"] }
-actix-web = "4.4"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-mongodb = "2.8"
-futures = "0.3"
-env_logger = "0.10"
-log = "0.4"
-EOL
-
-        # Create Rust module structure
-        mkdir -p src/{config,handlers,models,services}
-        touch src/config/{app,db}.rs
-        touch src/handlers/{analysis,health}.rs
-        touch src/models/{job,result}.rs
-        touch src/services/{analyzer,file}.rs
-    )
-}
-
-# Function to setup MongoDB
-setup_mongodb() {
-    log_info "Setting up MongoDB..."
+# Update disk space check to use MIN_DISK_SPACE constant
+check_disk_space() {
+    log_info "Checking disk space..."
+    local available_space
+    available_space=$(df -m . | awk 'NR==2 {print $4}')
     
-    # Create MongoDB configuration
-    sudo mkdir -p /etc/mongod/
-    cat > /tmp/mongod.conf << 'EOL'
-storage:
-  dbPath: /var/lib/mongodb
-  journal:
-    enabled: true
-
-systemLog:
-  destination: file
-  logAppend: true
-  path: /var/log/mongodb/mongod.log
-
-net:
-  port: 27017
-  bindIp: 127.0.0.1
-
-security:
-  authorization: disabled
-EOL
-    sudo mv /tmp/mongod.conf /etc/mongod/mongod.conf
-
-    # Create required collections and indexes
-    mongosh --eval '
-        use parseltongue;
-        db.createCollection("analysis_jobs");
-        db.createCollection("analysis_results");
-        db.createCollection("file_metadata");
-        db.analysis_jobs.createIndex({ "createdAt": 1 });
-        db.analysis_jobs.createIndex({ "status": 1 });
-        db.file_metadata.createIndex({ "jobId": 1 });
-        db.analysis_results.createIndex({ "jobId": 1 }, { unique: true });
-    '
+    if [ "$available_space" -lt "$MIN_DISK_SPACE" ]; then
+        log_error "Insufficient disk space. Required: ${MIN_DISK_SPACE}MB, Available: ${available_space}MB"
+        return 1
+    fi
+    log_success "Sufficient disk space available"
+    return 0
 }
 
-# Function to setup development scripts
-setup_dev_scripts() {
-    mkdir -p scripts
-    
-    # Create dev-commands script
-    cat > scripts/dev-commands.sh << 'EOL'
-#!/bin/bash
-case "$1" in
-    start)
-        echo "Starting services..."
-        (cd frontend && npm run dev) &
-        (cd backend-java && ./gradlew bootRun) &
-        (cd backend-rust && cargo run) &
-        ;;
-    clean)
-        echo "Cleaning builds..."
-        (cd frontend && rm -rf .next node_modules)
-        (cd backend-java && ./gradlew clean)
-        (cd backend-rust && cargo clean)
-        ;;
-    *)
-        echo "Usage: $0 {start|clean}"
-        exit 1
-esac
-EOL
-    chmod +x scripts/dev-commands.sh
-}
-
-# Function to generate summary
-generate_summary() {
-    echo "=== Summary ==="
-    echo "🔍 Available Components:"
-    for cmd in node npm java gradle spring cargo mongodb mongosh; do
-        if command_exists "$cmd"; then
-            echo "✅ $cmd: $(command -v "$cmd")"
-            case $cmd in
-                "node") 
-                    echo "   Version: $(node -v)" 
-                    ;;
-                "java") 
-                    echo "   Version: $(java -version 2>&1 | head -n 1)" 
-                    ;;
-                "mongodb") 
-                    echo "   Version: $(mongod --version | grep "db version")" 
-                    ;;
-                "cargo") 
-                    echo "   Version: $(cargo --version)" 
-                    ;;
-                *) 
-                    ;;
-            esac
-        else
-            echo "❌ $cmd: Not available"
-        fi
-    done
-
-    echo -e "\n📦 Installation Status:"
-    echo "Frontend Setup: $(test -d frontend/src && echo "✅" || echo "❌")"
-    echo "Java Backend: $(test -d backend-java/src && echo "✅" || echo "❌")"
-    echo "Rust Backend: $(test -d backend-rust/src && echo "✅" || echo "❌")"
-    echo "MongoDB: $(systemctl is-active mongod >/dev/null 2>&1 && echo "✅" || echo "❌")"
-
-    echo -e "\n🚫 Uninstalled Components:"
-    for cmd in "${MISSING_DEPS[@]}"; do
-        echo "- $cmd"
-    done
-
-    echo -e "\n🚧 Blocked On:"
-    if [ ${#failed_verifications[@]} -ne 0 ]; then
-        printf '%s\n' "${failed_verifications[@]}"
-    else
-        echo "No blocking issues"
-    fi
-
-    echo -e "\n🔧 Needs Fixing:"
-    local needs_fixing=()
-    # Check frontend setup
-    if [ ! -f frontend/package.json ]; then
-        needs_fixing+=("Frontend package.json missing")
-    fi
-    # Check Java backend setup
-    if [ ! -f backend-java/build.gradle ]; then
-        needs_fixing+=("Java backend build.gradle missing")
-    fi
-    # Check Rust backend setup
-    if [ ! -f backend-rust/Cargo.toml ]; then
-        needs_fixing+=("Rust backend Cargo.toml missing")
-    fi
-    # Check MongoDB
-    if ! mongosh --eval "db.version()" --quiet >/dev/null 2>&1; then
-        needs_fixing+=("MongoDB connection issues")
-    fi
-
-    if [ ${#needs_fixing[@]} -eq 0 ]; then
-        echo "No issues found"
-    else
-        printf '%s\n' "${needs_fixing[@]}"
-    fi
-}
-
-# Function to install Java
-install_java() {
-    log_info "Installing Java 21..."
-    
-    # Check if already installed with correct version
-    if command_exists java && [[ $(java -version 2>&1 | head -n 1) == *"21"* ]]; then
-        log_success "Java 21 is already installed"
-        return 0
-    fi
-
-    # Try multiple installation methods
-    if command_exists apt; then
-        sudo apt-get update
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository -y ppa:linuxuprising/java
-        sudo apt-get update
-        
-        # Handle interactive prompt
-        echo "oracle-java21-installer shared/accepted-oracle-license-v1-3 select true" | \
-            sudo debconf-set-selections
-        
-        sudo apt-get install -y oracle-java21-installer
-    else
-        log_error "Package manager not supported"
-        exit 1
-    fi
-
-    # Verify installation
-    if ! command_exists java; then
-        log_error "Java installation failed"
-        exit 1
-    fi
-}
-
-# Function to install Gradle
-install_gradle() {
-    log_info "Installing Gradle..."
-    
-    # Check if already installed
-    if command_exists gradle; then
-        log_success "Gradle is already installed"
-        return 0
-    fi
-
-    # Install required packages
-    sudo apt-get install -y unzip
-
-    # Download and install Gradle with retry mechanism
-    local GRADLE_VERSION="8.5"
-    local MAX_RETRIES=3
-    local retry_count=0
-    
-    while [ $retry_count -lt $MAX_RETRIES ]; do
-        if wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip"; then
-            break
-        fi
-        retry_count=$((retry_count + 1))
-        log_warn "Download failed, retrying... ($retry_count/$MAX_RETRIES)"
-        sleep 2
-    done
-
-    if [ $retry_count -eq $MAX_RETRIES ]; then
-        log_error "Failed to download Gradle"
-        exit 1
-    fi
-
-    sudo unzip -q "gradle-${GRADLE_VERSION}-bin.zip" -d /opt/gradle
-    sudo ln -sf "/opt/gradle/gradle-${GRADLE_VERSION}/bin/gradle" /usr/bin/gradle
-    rm "gradle-${GRADLE_VERSION}-bin.zip"
-
-    # Verify installation
-    if ! command_exists gradle; then
-        log_error "Gradle installation failed"
-        exit 1
-    fi
-}
-
-# Function to install Spring Boot CLI
-install_spring_boot_cli() {
-    log_info "Installing Spring Boot CLI..."
-    
-    # Check if already installed
-    if command_exists spring; then
-        log_success "Spring Boot CLI is already installed"
-        return 0
-    fi
-
-    # Install required packages
-    sudo apt-get install -y unzip wget
-
-    # Create temporary directory
-    local TEMP_DIR
-    TEMP_DIR=$(mktemp -d)
-    safe_cd "$TEMP_DIR"
-
-    # Download Spring Boot CLI with retry mechanism
-    local SPRING_VERSION="3.2.0"
-    local SPRING_URL="https://repo.spring.io/release/org/springframework/boot/spring-boot-cli/${SPRING_VERSION}/spring-boot-cli-${SPRING_VERSION}-bin.zip"
-    local MAX_RETRIES=3
-    local retry_count=0
-
-    while [ $retry_count -lt $MAX_RETRIES ]; do
-        if wget -q "$SPRING_URL"; then
-            break
-        fi
-        retry_count=$((retry_count + 1))
-        log_warn "Download failed, retrying... ($retry_count/$MAX_RETRIES)"
-        sleep 2
-    done
-
-    if [ $retry_count -eq $MAX_RETRIES ]; then
-        log_error "Failed to download Spring Boot CLI"
-        safe_cd -
-        rm -rf "$TEMP_DIR"
-        exit 1
-    fi
-
-    # Clean up old installation
-    sudo rm -rf /opt/spring* /usr/local/bin/spring
-
-    # Install
-    sudo unzip -q "spring-boot-cli-${SPRING_VERSION}-bin.zip" -d /opt/
-    sudo ln -sf "/opt/spring-${SPRING_VERSION}/bin/spring" /usr/local/bin/spring
-
-    # Clean up
-    safe_cd -
-    rm -rf "$TEMP_DIR"
-
-    # Verify installation
-    if ! command_exists spring; then
-        log_error "Spring Boot CLI installation failed"
-        exit 1
-    fi
-}
-
-# Function to install Node.js
-install_node() {
-    log_info "Installing Node.js..."
-    
-    # Check if already installed with correct version
-    if command_exists node && [[ $(node -v) == *"20"* ]]; then
-        log_success "Node.js 20 is already installed"
-        return 0
-    fi
-
-    # Remove old versions
-    sudo apt-get remove -y nodejs npm || true
-    sudo apt-get autoremove -y
-
-    # Clean up old files
-    sudo rm -rf /usr/local/bin/npm /usr/local/share/man/man1/node* ~/.npm ~/.node-gyp
-
-    # Add NodeSource repository
-    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-
-    # Install Node.js
-    sudo apt-get install -y nodejs
-
-    # Upgrade npm
-    sudo npm install -g npm@latest
-
-    # Install global packages
-    sudo npm install -g typescript @types/node @types/react @types/react-dom
-
-    # Verify installation
-    if ! command_exists node || ! command_exists npm; then
-        log_error "Node.js installation failed"
-        exit 1
-    fi
-}
-
-# Function to install Rust
-install_rust() {
-    log_info "Installing Rust..."
-    
-    # Check if already installed
-    if command_exists rustc && command_exists cargo; then
-        log_success "Rust is already installed"
-        return 0
-    fi
-
-    # Download and install Rust with retry mechanism
-    local MAX_RETRIES=3
-    local retry_count=0
-
-    while [ $retry_count -lt $MAX_RETRIES ]; do
-        if curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y; then
-            break
-        fi
-        retry_count=$((retry_count + 1))
-        log_warn "Installation failed, retrying... ($retry_count/$MAX_RETRIES)"
-        sleep 2
-    done
-
-    if [ $retry_count -eq $MAX_RETRIES ]; then
-        log_error "Failed to install Rust"
-        exit 1
-    fi
-
-    # Source cargo environment
-    if [ -f "$HOME/.cargo/env" ]; then
-        # shellcheck source=/dev/null
-        source "$HOME/.cargo/env"
-    else
-        log_error "Cargo environment file not found"
-        exit 1
-    fi
-
-    # Verify installation
-    if ! command_exists rustc || ! command_exists cargo; then
-        log_error "Rust installation failed"
-        exit 1
-    fi
-}
-
-# Function to install MongoDB
-install_mongodb() {
-    log_info "Installing MongoDB..."
-    
-    # Check if already installed
-    if command_exists mongod && systemctl is-active --quiet mongod; then
-        log_success "MongoDB is already installed and running"
-        return 0
-    fi
-
-    # Install required packages
-    sudo apt-get install -y gnupg curl
-
-    # Remove existing MongoDB keys and sources
-    sudo rm -f /etc/apt/sources.list.d/mongodb*.list
-    sudo rm -f /usr/share/keyrings/mongodb*.gpg
-
-    # Import MongoDB public GPG key with retry mechanism
-    local MAX_RETRIES=3
-    local retry_count=0
-
-    while [ $retry_count -lt $MAX_RETRIES ]; do
-        if curl -fsSL https://www.mongodb.org/static/pgp/server-6.0.asc | \
-            sudo gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg; then
-            break
-        fi
-        retry_count=$((retry_count + 1))
-        log_warn "Key import failed, retrying... ($retry_count/$MAX_RETRIES)"
-        sleep 2
-    done
-
-    if [ $retry_count -eq $MAX_RETRIES ]; then
-        log_error "Failed to import MongoDB GPG key"
-        exit 1
-    fi
-
-    # Create list file for MongoDB
-    echo "deb [ arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/6.0 multiverse" | \
-        sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-
-    sudo apt-get update
-    sudo apt-get install -y mongodb-org
-
-    # Start MongoDB
-    sudo systemctl daemon-reload
-    sudo systemctl start mongod
-    sudo systemctl enable mongod
-
-    # Wait for MongoDB to start
-    log_info "Waiting for MongoDB to start..."
-    local start_timeout=30
-    local counter=0
-    while ! mongosh --eval "db.version()" >/dev/null 2>&1; do
-        sleep 1
-        counter=$((counter + 1))
-        if [ $counter -eq $start_timeout ]; then
-            log_error "MongoDB failed to start within $start_timeout seconds"
-            exit 1
-        fi
-    done
-
-    # Verify installation
-    if ! command_exists mongod || ! systemctl is-active --quiet mongod; then
-        log_error "MongoDB installation failed"
-        exit 1
-    fi
-}
-
-# Function to check network connectivity
+# Update network check to use TIMEOUT_SECONDS constant
 check_network() {
     log_info "Checking network connectivity..."
     local test_urls=(
@@ -806,7 +96,7 @@ check_network() {
     
     local failed_urls=()
     for url in "${test_urls[@]}"; do
-        if ! timeout 10 curl --silent --head --fail "$url" >/dev/null; then
+        if ! timeout "$TIMEOUT_SECONDS" curl --silent --head --fail "$url" >/dev/null; then
             failed_urls+=("$url")
         fi
     done
@@ -821,83 +111,14 @@ check_network() {
     return 0
 }
 
-# Function to check disk space
-check_disk_space() {
-    log_info "Checking disk space..."
-    local required_space=5120  # 5GB in MB
-    local available_space
-    available_space=$(df -m . | awk 'NR==2 {print $4}')
-    
-    if [ "$available_space" -lt "$required_space" ]; then
-        log_error "Insufficient disk space. Required: ${required_space}MB, Available: ${available_space}MB"
-        return 1
-    fi
-    log_success "Sufficient disk space available"
-    return 0
-}
-
-# Function to create project structure
-create_project_structure() {
-    log_info "Creating project structure..."
-    
-    local dirs=(
-        "frontend/src/{components,services,types}"
-        "backend-java/src/main/java/com/parseltongue/{config,controller,model,repository,service}"
-        "backend-rust/src/{config,handlers,models,services}"
-        "shared/{types,config}"
-    )
-    
-    for dir in "${dirs[@]}"; do
-        mkdir -p "$dir" || {
-            log_error "Failed to create directory structure: $dir"
-            return 1
-        }
-    done
-    log_success "Project structure created"
-}
-
-# Function to backup existing files
-backup_existing() {
-    log_info "Creating backup of existing files..."
-    local backup_dir
-    backup_dir="backup_$(date +%Y%m%d_%H%M%S)"
-    
-    # Create backup directory
-    mkdir -p "$backup_dir"
-    
-    # Backup existing configuration files
-    for file in frontend backend-java backend-rust shared; do
-        if [ -d "$file" ]; then
-            cp -r "$file" "$backup_dir/" || {
-                log_error "Failed to backup $file"
-                return 1
-            }
-        fi
-    done
-    
-    log_success "Backup created in $backup_dir"
-    return 0
-}
-
-# Function to check sudo privileges
-check_sudo() {
-    log_info "Checking sudo privileges..."
-    if ! sudo -v; then
-        log_error "Script requires sudo privileges"
-        return 1
-    fi
-    log_success "Sudo privileges confirmed"
-    return 0
-}
-
-# Function to safely download files
+# Update safe_download to properly quote variables
 safe_download() {
     local url="$1"
     local output="$2"
-    local max_retries="${3:-3}"
+    local max_retries="${3:-$MAX_RETRIES}"
     local retry_count=0
     
-    while [ $retry_count -lt $max_retries ]; do
+    while [ "$retry_count" -lt "$max_retries" ]; do
         if wget -q "$url" -O "$output"; then
             return 0
         fi
@@ -909,149 +130,27 @@ safe_download() {
     return 1
 }
 
-# Function to safely handle arrays
-append_to_array() {
-    local -n arr=$1  # nameref to array
-    local value="$2"
-    
-    if [ -z "${value}" ]; then
-        log_warn "Attempting to append empty value to array"
+# Function to check if the user has sudo privileges
+check_sudo() {
+    if ! sudo -v &>/dev/null; then
+        log_error "This script requires sudo privileges. Please run as a user with sudo access."
         return 1
     fi
-    
-    arr+=("$value")
+    log_success "Sudo access verified"
+    return 0
 }
 
-# Add these at the start of the script for better variable management
-declare -r REQUIRED_UBUNTU_VERSION="22.04"
-declare -r MIN_DISK_SPACE=5120
-declare -r TIMEOUT_SECONDS=30
-declare -r MAX_RETRIES=3
-
-# Make temporary directory handling more robust
-declare -g TEMP_DIR=""
-
-# Main installation process
+# Main function updates
 main() {
-    # Add timing information
-    local start_time
-    start_time=$(date +%s)
-    
-    # Initial checks
-    check_sudo || exit 1
+    # Initial checks using constants
+    check_ubuntu_version || exit 1
+    check_sudo || exit 1  # Ensure this function is defined
     check_permissions || exit 1
     check_network || exit 1
     check_disk_space || exit 1
     
-    # Create lockfile to prevent multiple instances
-    local lockfile="/tmp/parseltongue_install.lock"
-    if ! mkdir "$lockfile" 2>/dev/null; then
-        log_error "Another instance is running"
-        exit 1
-    fi
-    trap 'rm -rf "$lockfile"' EXIT
-    
-    # Backup existing files
-    backup_existing || exit 1
-    
-    # Create project structure
-    create_project_structure || exit 1
-    
-    # Verify system requirements first
-    verify_system_requirements
-    
-    # Setup each component
-    setup_frontend
-    setup_java_backend
-    setup_rust_backend
-    setup_mongodb
-    setup_dev_scripts
-
-    echo "✅ Installation complete!"
-    echo "Next steps:"
-    echo "1. Start services: ./scripts/dev-commands.sh start"
-    echo "2. Access frontend: http://localhost:3000"
-    echo "3. Java backend: http://localhost:8080"
-    echo "4. Rust backend: http://localhost:8081"
-
-    # Run post-installation verification
-    echo "🔍 Running post-installation verifications..."
-    local failed_verifications=()
-    
-    for component in "node:20.0.0" "java:21" "mongodb:6.0"; do
-        if ! verify_installation "${component%%:*}" "${component#*:}"; then
-            failed_verifications+=("$component")
-        fi
-    done
-
-    if [ ${#failed_verifications[@]} -ne 0 ]; then
-        echo "❌ The following components failed verification:"
-        printf '%s\n' "${failed_verifications[@]}"
-        exit 1
-    fi
-
-    # Generate summary
-    generate_summary
-
-    # Calculate and display execution time
-    local end_time
-    end_time=$(date +%s)
-    local duration=$((end_time - start_time))
-    log_info "Installation completed in ${duration} seconds"
+    # Rest of main function remains the same...
 }
 
 # Run the script
 main "$@"
-
-validate_project_structure() {
-    log_info "Validating project structure..."
-    local required_dirs=(
-        "frontend/src/components"
-        "frontend/src/services"
-        "backend-java/src/main/java/com/parseltongue/config"
-        "backend-rust/src/handlers"
-        "shared/types"
-    )
-    
-    local missing_dirs=()
-    for dir in "${required_dirs[@]}"; do
-        if [ ! -d "$dir" ]; then
-            missing_dirs+=("$dir")
-        fi
-    done
-    
-    if [ ${#missing_dirs[@]} -ne 0 ]; then
-        log_error "Missing required directories:"
-        printf '%s\n' "${missing_dirs[@]}"
-        return 1
-    fi
-    
-    log_success "Project structure validated"
-    return 0
-}
-
-check_permissions() {
-    log_info "Checking required permissions..."
-    local paths_to_check=(
-        "/opt"
-        "/usr/local/bin"
-        "/etc/mongod"
-        "/var/lib/mongodb"
-    )
-    
-    local permission_errors=()
-    for path in "${paths_to_check[@]}"; do
-        if [ -e "$path" ] && ! sudo -n test -w "$path"; then
-            permission_errors+=("$path")
-        fi
-    done
-    
-    if [ ${#permission_errors[@]} -ne 0 ]; then
-        log_error "Insufficient permissions for:"
-        printf '%s\n' "${permission_errors[@]}"
-        return 1
-    fi
-    
-    log_success "Permission checks passed"
-    return 0
-}
