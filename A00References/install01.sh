@@ -54,11 +54,11 @@ declare -r JAVA_ASYNC_DEPS=(
 )
 
 declare -r RUST_ASYNC_DEPS=(
-    "tokio = { version = \"1.0\", features = [\"full\"] }"
-    "actix-web = \"4\""
-    "actix-rt = \"2.8\""
-    "mongodb = { version = \"2.6\", features = [\"tokio-runtime\"] }"
-    "futures = \"0.3\""
+    'tokio = { version = "1.0", features = ["full"] }'
+    'actix-web = "4"'
+    'actix-rt = "2.8"'
+    'mongodb = { version = "2.6", features = ["tokio-runtime"] }'
+    'futures = "0.3"'
 )
 
 # Required ports
@@ -141,63 +141,63 @@ check_permissions() {
 # Async setup functions
 create_webflux_config() {
     log_info "Creating WebFlux configuration..."
-    # Implementation here
+    # Placeholder implementation
     return 0
 }
 
 setup_reactive_mongo() {
     log_info "Setting up reactive MongoDB..."
-    # Implementation here
+    # Placeholder implementation
     return 0
 }
 
 create_websocket_handlers() {
     log_info "Creating WebSocket handlers..."
-    # Implementation here
+    # Placeholder implementation
     return 0
 }
 
 setup_tokio_runtime() {
     log_info "Setting up Tokio runtime..."
-    # Implementation here
+    # Placeholder implementation
     return 0
 }
 
 create_async_handlers() {
     log_info "Creating async handlers..."
-    # Implementation here
+    # Placeholder implementation
     return 0
 }
 
 setup_stream_processors() {
     log_info "Setting up stream processors..."
-    # Implementation here
+    # Placeholder implementation
     return 0
 }
 
 # Verification functions
 verify_concurrent_processing() {
     log_info "Verifying concurrent processing... (not fully implemented)"
-    # Implementation here
+    # Placeholder implementation
     return 0
 }
 
 verify_websocket_connections() {
     log_info "Verifying WebSocket connections... (not fully implemented)"
-    # Implementation here
+    # Placeholder implementation
     return 0
 }
 
 verify_stream_processing() {
     log_info "Verifying stream processing... (not fully implemented)"
-    # Implementation here
+    # Placeholder implementation
     return 0
 }
 
 measure_websocket_latency() {
     local endpoint="$1"
     log_info "Measuring WebSocket latency to $endpoint... (placeholder value)"
-    # Implementation here
+    # Placeholder implementation
     echo "50" # Placeholder latency in ms
 }
 
@@ -268,11 +268,35 @@ verify_system() {
     done
 }
 
+# Modified check_ports function
 check_ports() {
+    log_info "Checking if required ports are available or used by expected services..."
+
+    # Define expected processes for each port
+    declare -A expected_processes=(
+        [3000]="node"      # Web UI (Next.js)
+        [8080]="java"      # Java API
+        [8081]="rust|actix|my_rust_app" # Rust API (replace with actual process name)
+        [27017]="mongod"   # MongoDB
+    )
+
     for port in "${PORTS[@]}"; do
-        if lsof -i :"$port" >/dev/null 2>&1; then
-            log_error "Port $port is already in use"
-            return 1
+        # Get the PID of the process using the port
+        pid=$(lsof -ti tcp:"$port")
+
+        if [[ -n "$pid" ]]; then
+            # Get the command name of the process
+            process_name=$(ps -p "$pid" -o comm=)
+
+            # Check if the process name matches the expected process for the port
+            if [[ "${expected_processes[$port]}" =~ $process_name ]]; then
+                log_info "Port $port is in use by expected process '$process_name'."
+            else
+                log_error "Port $port is already in use by unexpected process '$process_name' (PID: $pid)."
+                return 1
+            fi
+        else
+            log_info "Port $port is available."
         fi
     done
     return 0
@@ -379,7 +403,8 @@ verify_async_requirements() {
     log_info "Verifying async requirements..."
 
     # Check memory limits
-    if [[ $(free -m | awk '/Mem:/ {print $2}') -lt $MAX_MEMORY ]]; then
+    total_memory=$(free -m | awk '/Mem:/ {print $2}')
+    if [[ $total_memory -lt $MAX_MEMORY ]]; then
         log_error "Insufficient memory for async operations"
         return 1
     fi
