@@ -232,3 +232,52 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 5. WHEN checking architectural constraints THEN the system SHALL validate Rust-specific rules (e.g., "no service layer calls repository directly", "no blocking calls in async functions")
 6. WHEN constraint violations are detected THEN the system SHALL provide specific Rust code locations and suggested fixes
 7. WHEN validating patterns THEN the system SHALL recognize and enforce Rust idioms like newtype patterns, error propagation with ?, and proper ownership transfer
+
+### Requirement 17
+
+**User Story:** As a Rust developer analyzing unfamiliar codebases from code dumps, I want comprehensive support for separated dump formats with virtual file system capabilities, so that I can perform the same architectural analysis on dumped code as I do on live filesystems.
+
+#### Acceptance Criteria
+
+1. WHEN processing separated dump format THEN the system SHALL detect FILE: markers and parse individual .rs files from the dump with 99.3% compression (2.1MB → 15KB)
+2. WHEN creating virtual file system THEN the system SHALL provide the same interface as live file monitoring for seamless integration
+3. WHEN processing large dumps THEN the system SHALL support streaming mode for dumps larger than available RAM without performance degradation
+4. WHEN querying dump interfaces THEN the system SHALL maintain identical performance to live mode (<100μs for trait implementations, <500μs for blast-radius)
+5. WHEN extracting from dumps THEN the system SHALL complete processing in <60 seconds for dumps up to 500MB using efficient Rust parsing
+6. WHEN detecting dump formats THEN the system SHALL support separated (FILE: markers), concatenated, archive (tar.gz/zip), and git bundle formats
+7. WHEN generating metadata THEN the system SHALL extract project information, file counts, language detection, and file tree structure from dumps
+8. WHEN providing CLI access THEN the system SHALL support `aim extract-dump`, `aim query-dump`, and `aim dump-context` commands for complete dump workflow
+
+### Requirement 18
+
+**User Story:** As a Rust developer working with complex production codebases, I want optimized parsing strategies that handle real-world Rust complexity patterns efficiently, so that the daemon can process enterprise-scale Rust code with trait-heavy architectures and complex generics within performance targets.
+
+#### Acceptance Criteria
+
+1. WHEN parsing complex generic constraints THEN the system SHALL handle multiple generic parameters, where clauses, and lifetime constraints using `syn` crate with 85-90% pattern coverage
+2. WHEN extracting trait implementations THEN the system SHALL process trait objects (Box<dyn Trait<Generic>>), complex bounds, and associated types with perfect accuracy
+3. WHEN handling async patterns THEN the system SHALL extract async functions, async closures, and Future types with no performance impact over sync functions
+4. WHEN processing function pointers THEN the system SHALL extract function signatures as struct fields and generic parameters in function types
+5. WHEN scaling to enterprise codebases THEN the system SHALL maintain performance targets: 10K LOC (0.5-1.5s), 50K LOC (2-6s), 200K LOC (8-20s), 500K LOC (20-60s)
+6. WHEN encountering complex patterns THEN the system SHALL use 80/20 approach: 80% pure `syn` parsing, 20% selective `rustdoc` JSON for edge cases
+7. WHEN processing trait-heavy codebases THEN the system SHALL leverage Rust's explicit interface relationships for superior architectural intelligence extraction
+8. WHEN updating complex files THEN the system SHALL maintain 3-12ms incremental update latency even for files with deep generic nesting and complex trait bounds
+
+## MVP 1.0 Scope
+
+The above 18 requirements represent the **MVP 1.0 scope** for Parseltongue AIM Daemon. Additional advanced features have been moved to the [backlog](./backlog.md) to ensure focused delivery of core functionality.
+
+### MVP 1.0 Success Criteria
+
+1. **Core Functionality**: Extract architectural intelligence from Rust codebases using `syn` crate
+2. **Real-time Updates**: <12ms latency from file save to query readiness
+3. **Essential Queries**: Support who-implements, blast-radius, find-cycles, and generate-context
+4. **LLM Integration**: Provide compressed context for AI tools with 95%+ token reduction
+5. **Code Dump Support**: Handle separated dump format for analyzing unfamiliar codebases
+6. **CLI Interface**: Terminal commands optimized for developer and LLM usage
+7. **Performance**: Handle up to 100K LOC Rust projects with sub-millisecond query responses
+8. **Reliability**: Robust error handling and graceful degradation
+
+### Post-MVP Features
+
+Advanced features including lock-free data structures, plugin architecture, intelligent file discovery, advanced hashing algorithms, multi-source merging, and enterprise-scale optimizations have been moved to the [backlog](./backlog.md) for future releases.
