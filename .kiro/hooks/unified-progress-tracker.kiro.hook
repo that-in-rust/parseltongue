@@ -4,16 +4,14 @@
   "description": "Single comprehensive hook that handles repository snapshots, file change tracking, session context updates, and git operations. Replaces repository-snapshot, file-change-tracker, and session-context-updater hooks.",
   "version": "1",
   "when": {
-    "type": "fileSaved",
+    "type": "fileEdited",
     "patterns": [
-      "**/*"
-    ],
-    "excludePatterns": [
-      ".git/**/*"
+      "**/*",
+      "!.git/**/*"
     ]
   },
   "then": {
     "type": "askAgent",
-    "prompt": "A file has been saved in the repository. Please run the unified progress tracking system:\n\n1. Generate a comprehensive repository snapshot including file counts, line counts, and word counts\n2. Update the session context in .kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md with current progress\n3. Create a delta report showing changes since the last snapshot\n4. Commit only .kiro/ directory changes to the v01 branch with an intelligent commit message\n\nUse the existing shell script .kiro/unified-progress-tracker.sh to perform these operations. The script handles repository snapshots, session context updates, progress tracking, and git operations automatically."
+    "prompt": "Run the unified progress tracker script: ./.kiro/unified-progress-tracker.sh"
   }
 }
