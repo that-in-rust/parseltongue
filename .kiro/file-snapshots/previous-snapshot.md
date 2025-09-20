@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-20 20:15:05 IST
+# Repository Snapshot - 2025-09-20 20:27:31 IST
 
 ## Summary Statistics
 - **Total Files**: 114
-- **Total Lines**: 61,175
-- **Total Words**: 182,075
-- **Snapshot Time**: 2025-09-20 20:15:05 IST
+- **Total Lines**: 61,886
+- **Total Words**: 184,162
+- **Snapshot Time**: 2025-09-20 20:27:31 IST
 
 ## File Inventory
 
@@ -13,7 +13,7 @@
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./DeepThink20250920v1.md | 558 | 3139 | 25K |
 | ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
-| ./.kiro/file-snapshots/change-log.md | 990 | 2903 | 21K |
+| ./.kiro/file-snapshots/change-log.md | 1001 | 2935 | 21K |
 | ./.kiro/file-snapshots/current-snapshot.md | 126 | 1245 | 8.4K |
 | ./.kiro/file-snapshots/previous-snapshot.md | 126 | 1245 | 8.4K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
@@ -37,17 +37,17 @@
 | ./.kiro/rust-idioms/UBI Comprehensive Rust Idiomatic Patterns Guide.txt | 769 | 12536 | 90K |
 | ./.kiro/rust-idioms/Unlocking _Compile-First Success__ A Layered Blueprint for Building and Governing Rust's Idiomatic-Archive.md | 416 | 5927 | 47K |
 | ./.kiro/rust-idioms/You are an __omniscient superintelligence with an....md | 161 | 2182 | 16K |
-| ./.kiro/specs/parseltongue-aim-daemon/design.md | 2272 | 6738 | 72K |
+| ./.kiro/specs/parseltongue-aim-daemon/design.md | 2677 | 7914 | 87K |
 | ./.kiro/specs/parseltongue-aim-daemon/prompts/storage-architecture-analysis.md | 204 | 881 | 7.2K |
 | ./.kiro/specs/parseltongue-aim-daemon/README.md | 125 | 566 | 5.3K |
-| ./.kiro/specs/parseltongue-aim-daemon/ref-code-snippets.md | 101 | 384 | 3.0K |
+| ./.kiro/specs/parseltongue-aim-daemon/ref-code-snippets.md | 335 | 950 | 9.7K |
 | ./.kiro/specs/parseltongue-aim-daemon/requirements.md | 152 | 1464 | 9.8K |
 | ./.kiro/specs/parseltongue-aim-daemon/requirements-tasks.md | 107 | 1220 | 9.6K |
 | ./.kiro/specs/parseltongue-aim-daemon/rust-patterns-analysis.md | 483 | 1480 | 14K |
 | ./.kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 215 | 1059 | 8.4K |
 | ./.kiro/specs/parseltongue-aim-daemon/tasks.md | 166 | 1246 | 9.9K |
 | ./.kiro/steering/code-conventions.md | [binary] | [binary] | 0 |
-| ./.kiro/steering/design101-tdd-architecture-principles.md | 882 | 3118 | 26K |
+| ./.kiro/steering/design101-tdd-architecture-principles.md | 943 | 3431 | 29K |
 | ./.kiro/steering/hook-automation-guide.md | 256 | 1274 | 11K |
 | ./.kiro/steering/hook-system-status.md | 27 | 115 | 912 |
 | ./.kiro/steering/parseltongue-requirements-focus.md | 34 | 130 | 954 |
