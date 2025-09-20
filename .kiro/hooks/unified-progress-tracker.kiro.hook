@@ -1,0 +1,47 @@
+{
+  "name": "Unified Progress Tracker",
+  "description": "Single comprehensive hook that handles repository snapshots, file change tracking, session context updates, and git operations. Replaces repository-snapshot, file-change-tracker, and session-context-updater hooks.",
+  "version": "3.0",
+  "enabled": true,
+  "triggers": [
+    {
+      "type": "manual",
+      "icon": "📊",
+      "category": "Analysis"
+    },
+    {
+      "type": "fileChange",
+      "filePattern": ".kiro/**/*.{md,hook,sh}",
+      "debounceMs": 3000,
+      "enabled": true
+    }
+  ],
+  "tags": ["tracking", "analysis", "git", "progress", "session-continuity", "unified"],
+  "command": {
+    "type": "shell",
+    "script": ".kiro/unified-progress-tracker.sh",
+    "workingDirectory": ".",
+    "timeout": 45000
+  },
+  "conditions": {
+    "fileExists": [".kiro/unified-progress-tracker.sh"]
+  },
+  "outputs": {
+    "files": [
+      ".kiro/file-snapshots/current-snapshot.md",
+      ".kiro/file-snapshots/previous-snapshot.md", 
+      ".kiro/file-snapshots/change-log.md",
+      ".kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md"
+    ],
+    "gitCommit": true
+  },
+  "settings": {
+    "autoCommit": true,
+    "pushToBranch": "v01",
+    "commitMessageFormat": "unified-progress {change-type} {timestamp}",
+    "excludePatterns": [".git/**", "node_modules/**", "target/**"],
+    "progressTracking": true,
+    "sessionContinuity": true,
+    "debounceEnabled": true
+  }
+}

@@ -1040,3 +1040,534 @@ rkyv = "latest"        # Zero-copy serialization
 **Implementation Priority**: CRITICAL - This provides the complete technical implementation roadmap and validated TDD code for MVP development
 
 **Key Validation**: Performance simulations confirm architecture viability across all target scales with clear optimization paths
+## Analys
+is of z02.html (Lines 1-1000) - Web Content Structure
+
+**Document Type**: HTML web page with CSS styling and JavaScript framework content
+**Analysis Date**: Current session
+**MVP Relevance**: Limited - primarily web frontend content, not directly applicable to Rust-only architectural intelligence system
+
+### Key Findings:
+
+#### 1. **CSS Framework Architecture** (Non-MVP)
+- **Tailwind CSS v4.1.1**: Modern utility-first CSS framework
+- **Design System Variables**: Comprehensive color palette, spacing, typography scales
+- **Component Architecture**: Modular CSS with layer-based organization (@layer theme, @layer base, @layer components, @layer utilities)
+- **Dark Mode Support**: Complete dark/light theme system with CSS custom properties
+- **Responsive Design**: Breakpoint-based responsive system
+
+#### 2. **Performance Optimization Patterns** (Potentially MVP-Relevant)
+- **CSS Custom Properties**: Efficient variable system for theming and configuration
+- **Layer-based CSS**: Organized CSS architecture preventing specificity conflicts
+- **Utility-first Approach**: Atomic CSS classes for rapid development
+- **Preload Directives**: Resource optimization with `<link rel="preload">`
+
+#### 3. **Color System Architecture** (Design Pattern Reference)
+- **Systematic Color Naming**: Consistent naming convention (brand-burgundy, brand-orange, etc.)
+- **Semantic Color Mapping**: Functional color assignments (primary, secondary, accent, destructive)
+- **Context-aware Theming**: Different color schemes for different UI contexts
+
+### MVP Extraction:
+
+#### **Configuration Architecture Patterns**:
+```rust
+// Inspired by CSS custom properties approach
+pub struct SystemConfig {
+    pub performance_targets: PerformanceConfig,
+    pub storage_config: StorageConfig,
+    pub ui_config: UIConfig,
+}
+
+pub struct PerformanceConfig {
+    pub update_latency_ms: u32,      // <12ms target
+    pub query_response_us: u32,      // <500μs target
+    pub memory_limit_mb: u32,        // <25MB target
+}
+```
+
+#### **Layered Architecture Concept**:
+- **Layer Separation**: Clear separation of concerns (theme, base, components, utilities)
+- **Cascade Management**: Controlled inheritance and override patterns
+- **Modular Organization**: Independent, composable modules
+
+### Non-MVP Concepts (Moved to Backlog):
+- **Web Frontend Architecture**: Not applicable to Rust-only CLI/daemon system
+- **CSS Framework Patterns**: Frontend-specific, not relevant to architectural intelligence
+- **JavaScript Integration**: Outside Rust-only constraint
+- **Responsive Design**: Not applicable to terminal-based tool
+
+### Architectural Insights for MVP:
+1. **Systematic Configuration**: Use consistent naming conventions for configuration variables
+2. **Layer-based Organization**: Organize code modules with clear separation of concerns
+3. **Theme/Context Switching**: Support for different operational modes (debug, production, etc.)
+4. **Performance-first Design**: Optimize for speed and efficiency from the ground up
+
+**Conclusion**: This HTML content provides limited direct value for MVP 1.0 but offers some architectural organization patterns that could inform configuration and module organization strategies.
+## Analysis of z02.html (Lines 1001-2000) - AIM Daemon Core Architecture
+
+**Document Type**: Technical specification for AIM Daemon system
+**Analysis Date**: Current session
+**MVP Relevance**: EXTREMELY HIGH - This is the core architectural specification for our system
+
+### Key MVP-Relevant Findings:
+
+#### 1. **Four Core Components Architecture** ✅ **DIRECTLY MVP APPLICABLE**
+- **File System Watcher**: High-performance OS-native monitoring with `notify-rs`
+  - Microsecond precision file change detection
+  - Filters relevant file extensions, ignores build artifacts
+  - Queue limit of 1000 entries to prevent memory bloat
+- **In-Memory Graph**: `InterfaceGraph` with two primary hashmaps
+  - `nodes` (keyed by `SigHash`)
+  - `edges` (keyed by `EdgeId`)
+  - Memory-resident for sub-millisecond traversals
+  - Content-based hashing for change detection
+- **Embedded SQLite Database**: Persistence layer with optimizations
+  - Mirrors in-memory graph
+  - Bloom filters for rapid existence checks
+  - Materialized views for common queries
+  - WAL mode for consistency without blocking reads
+- **Query Server**: HTTP/gRPC API exposure
+  - Connection pooling
+  - Query result caching with LRU eviction
+  - JSON for tooling, compressed binary for LLMs
+
+#### 2. **Performance Pipeline with Exact Latency Targets** ✅ **MVP CRITICAL**
+**Total Target: 3-12ms end-to-end**
+1. **File Change Detection**: 50-200μs (OS inotify events)
+2. **Event Filtering**: 10-50μs (extension/path validation)
+3. **Queue Processing**: 100-500μs (batching and deduplication)
+4. **AST Parsing**: 1-3ms (language-specific parsers)
+5. **Graph Update**: 2-5ms (atomic remove/insert operations)
+6. **Database Sync**: 3-8ms (SQLite batched updates)
+7. **Query Ready**: **Total 3-12ms** ✅ **MATCHES OUR <12ms TARGET**
+
+#### 3. **Graph Schema - 7 Node Types, 9 Relationship Types** ✅ **MVP ESSENTIAL**
+
+**Node Types**:
+- `Module`: Namespaces, packages, compilation units
+- `Trait`: Interfaces, abstract classes, behavioral contracts
+- `Struct`: Data structures, classes, value objects
+- `Function`: Methods, functions, callable entities
+- `Field`: Properties, attributes, data members
+- `Constant`: Static values, enums, configuration
+- `Import`: Dependencies and external references
+
+**Relationship Types**:
+- `IMPL`: Implementation relationships (trait to struct)
+- `CALLS`: Function invocation dependencies
+- `EXTENDS`: Inheritance and composition chains
+- `USES`: Variable and type references
+- `CONTAINS`: Structural ownership (module contains struct)
+- `IMPORTS`: External dependency relationships
+- `OVERRIDES`: Method overriding in inheritance
+- `ACCESSES`: Field and property access patterns
+- `CONSTRAINS`: Generic bounds and type constraints
+
+**Node Data Structure**:
+```rust
+struct Node {
+    sig_hash: SigHash,        // Content-based signature
+    kind: NodeType,           // One of 7 types above
+    full_signature: String,   // Complete signature
+    file_path: PathBuf,       // Source file location
+    line_range: (u32, u32),   // Start/end line numbers
+}
+
+struct Edge {
+    source_hash: SigHash,
+    target_hash: SigHash,
+    relationship_type: RelationType,  // One of 9 types above
+    context_info: String,            // Disambiguation data
+}
+```
+
+#### 4. **Value Proposition - Deterministic Architectural Navigation** ✅ **MVP CORE**
+- **For LLMs**: Eliminates hallucinations with factual dependency graphs
+- **For Developers**: Sub-millisecond queries for real-time exploration
+- **Deterministic Traversal**: No probabilistic matching, only factual relationships
+- **Architectural Constraints**: Enforces system boundaries for confident code generation
+
+#### 5. **Technical Implementation Patterns** ✅ **MVP APPLICABLE**
+- **Content-based Hashing**: `SigHash` for change detection
+- **Lock-free Queues**: High-performance event processing
+- **Atomic Updates**: Remove old data, insert new data atomically
+- **Prepared Statements**: SQLite performance optimization
+- **Bloom Filters**: Rapid existence checks
+- **Materialized Views**: Pre-computed common query results
+
+### MVP Implementation Priorities:
+
+#### **Phase 1: Core Data Structures** (Immediate)
+```rust
+// Core graph structures matching specification
+pub struct InterfaceGraph {
+    nodes: HashMap<SigHash, Node>,
+    edges: HashMap<EdgeId, Edge>,
+}
+
+pub enum NodeType {
+    Module, Trait, Struct, Function, Field, Constant, Import
+}
+
+pub enum RelationType {
+    Impl, Calls, Extends, Uses, Contains, Imports, 
+    Overrides, Accesses, Constrains
+}
+```
+
+#### **Phase 2: Performance Pipeline** (Critical)
+- File system watcher with `notify-rs`
+- Event filtering and queue management
+- AST parsing with `syn` crate
+- Atomic graph updates
+- SQLite integration with WAL mode
+
+#### **Phase 3: Query Interface** (Essential)
+- CLI commands for architectural queries
+- JSON output for tooling integration
+- Compressed binary for LLM consumption
+
+### Non-MVP Concepts (Future Versions):
+- **Multi-language Support**: Mentioned but not core to Rust-only MVP
+- **gRPC Server**: HTTP sufficient for MVP
+- **Advanced Caching**: Basic LRU sufficient initially
+- **Complex Query Optimization**: Start with simple queries
+
+### Critical Success Metrics Validated:
+- ✅ **<12ms Update Latency**: Specification shows 3-12ms is achievable
+- ✅ **Sub-millisecond Queries**: In-memory graph enables this
+- ✅ **Deterministic Results**: Content-based hashing ensures consistency
+- ✅ **LLM Integration**: Structured output formats specified
+
+**Conclusion**: This specification provides the complete technical blueprint for MVP 1.0. All core constraints (Rust-only, <12ms, LLM-terminal) are directly addressed with specific implementation details.## Analys
+is of z02.html (Lines 2001-3000) - Implementation Details & CLI Design
+
+**Document Type**: Detailed implementation specifications and CLI design
+**Analysis Date**: Current session
+**MVP Relevance**: EXTREMELY HIGH - Provides specific implementation details and CLI patterns
+
+### Key MVP-Relevant Findings:
+
+#### 1. **Refined Performance Pipeline** ✅ **MVP CRITICAL**
+**Updated Latency Breakdown (Total: 3-12ms)**:
+1. **File Save Event**: 0.1-1ms (file system watcher detection + queue)
+2. **AST Parsing**: 1-5ms (language-specific parser extraction)
+3. **Graph Update**: 0.5-2ms (atomic in-memory graph updates)
+4. **Database Sync**: 1-4ms (SQLite persistence with transaction batching)
+5. **Query Ready**: **Total 3-12ms** ✅ **CONFIRMED TARGET**
+
+**Key Optimizations**:
+- **Transaction Batching**: Multiple changes grouped for SQLite efficiency
+- **Atomic Updates**: Prevent inconsistent intermediate states
+- **Queue Management**: Prevents memory bloat with bounded queues
+
+#### 2. **Refined Graph Schema** ✅ **MVP ESSENTIAL**
+
+**Updated Node Types (7)**:
+1. `Module` - Namespace/package/module containers
+2. `Struct` - Data structure definitions  
+3. `Trait`/`Interface` - Behavior contracts
+4. `Function`/`Method` - Executable code units
+5. `Type` - Custom type definitions
+6. `Constant` - Immutable values
+7. `Import` - Dependency references
+
+**Updated Relationship Types (9)**:
+1. `CONTAINS` - Parent-child containment (module → function)
+2. `IMPLEMENTS` - Implementation relationship (struct → trait)
+3. `CALLS` - Function/method invocation
+4. `REFERENCES` - Type usage reference
+5. `EXTENDS` - Inheritance relationship
+6. `DEPENDS_ON` - Module/package dependency
+7. `OVERRIDES` - Method override relationship
+8. `ASSOCIATED_WITH` - Type association
+9. `ANNOTATES` - Annotation/attribute relationship
+
+#### 3. **Graph Compression Strategy** ✅ **MVP OPTIMIZATION**
+- **Eliminates redundant syntactic details**: Focus on semantic meaning
+- **Preserves only meaningful relationships**: Architectural essence only
+- **Deterministic hashing for node identification**: Content-based SigHash
+- **Bidirectional navigation capabilities**: Efficient graph traversal
+
+#### 4. **Value Proposition Clarification** ✅ **MVP VALIDATION**
+
+**For LLMs**:
+- **Deterministic architectural context** vs probabilistic file content
+- **Precise navigation** through codebase relationships
+- **Reduces hallucination** by grounding in actual code structure
+- **Constraint-aware code generation** respecting existing architecture
+
+**For Developers**:
+- **Sub-millisecond architectural queries** for IDE integration
+- **Real-time impact analysis** for changes
+- **Architectural constraint enforcement** and validation
+- **100% accuracy** vs traditional search-based methods
+
+#### 5. **CLI Output Format** ✅ **MVP USER EXPERIENCE**
+
+**Example `aim extract` Output Pattern**:
+```
+# AIM Graph Extraction Complete
+Nodes: 1,243 | Edges: 4,567 | Duration: 2.1s
+
+Top Modules:
+- src/api/ (43 nodes, 127 edges)
+- src/core/ (87 nodes, 254 edges)
+- src/utils/ (56 nodes, 89 edges)
+
+Key Architectural Patterns:
+- Layered architecture with clear API → Core → Data separation
+- 3 trait implementations with 12 total implementors
+- 5 circular dependencies detected (see: aim query find-cycles)
+
+Critical Paths:
+- Authentication flow: 8 nodes, max depth 4
+- Data processing pipeline: 14 nodes, max depth 6
+
+Run `aim query [type] [target]` for detailed analysis
+```
+
+#### 6. **Technical Implementation Patterns** ✅ **MVP APPLICABLE**
+
+**File System Monitoring**:
+- **OS-native notifications**: inotify (Linux), FSEvents (macOS), ReadDirectoryChangesW (Windows)
+- **File extension filtering**: Only monitor relevant code files
+- **Build artifact exclusion**: Ignore generated/temporary files
+
+**In-Memory Graph Optimization**:
+- **Custom hashing**: Optimized Rust hashmaps with content-based keys
+- **Sub-millisecond queries**: Memory-resident data structures
+- **Atomic updates**: Consistent state management
+
+**SQLite Integration**:
+- **Carefully optimized indexes**: Performance-tuned for graph queries
+- **Persistence across restarts**: Daemon state recovery
+- **Additional query capabilities**: Complex analytical queries
+
+**Query Server Design**:
+- **HTTP/JSON-RPC**: Lightweight API exposure
+- **Synchronous queries**: Immediate response capability
+- **Subscription-based updates**: Real-time change notifications
+
+### MVP Implementation Priorities:
+
+#### **Phase 1: Core Data Pipeline** (Immediate)
+```rust
+// File system watcher with notify-rs
+use notify::{Watcher, RecursiveMode, watcher};
+
+// In-memory graph with optimized hashmaps
+pub struct InterfaceGraph {
+    nodes: HashMap<SigHash, Node>,
+    edges: HashMap<EdgeId, Edge>,
+}
+
+// SQLite integration with WAL mode
+use sqlx::sqlite::{SqlitePool, SqliteConnectOptions};
+```
+
+#### **Phase 2: CLI Interface** (Critical)
+- `aim extract` - Initial codebase analysis
+- `aim query [type] [target]` - Architectural queries
+- `aim daemon start/stop` - Background service management
+- Structured output formats (JSON, human-readable)
+
+#### **Phase 3: Performance Optimization** (Essential)
+- Transaction batching for SQLite writes
+- Query result caching with LRU eviction
+- Connection pooling for concurrent access
+- Bloom filters for existence checks
+
+### Non-MVP Concepts (Future Versions):
+- **Multi-language Strategy**: Mentioned but not core to Rust-only MVP
+- **gRPC Server**: HTTP sufficient for initial version
+- **Advanced Subscription System**: Basic polling sufficient initially
+- **Complex Query Optimization**: Start with simple graph traversals
+
+### Critical Validation Points:
+- ✅ **3-12ms Total Latency**: Confirmed achievable with specified pipeline
+- ✅ **Sub-millisecond Queries**: In-memory graph enables this performance
+- ✅ **100% Accuracy**: Deterministic hashing eliminates false positives
+- ✅ **Real-time Updates**: File system watcher + atomic updates
+- ✅ **LLM Integration**: Structured output formats specified
+
+**Conclusion**: This section provides the detailed implementation blueprint for achieving our MVP performance targets. The CLI design patterns and output formats give clear guidance for user experience design.##
+ Analysis of z02.html (Lines 3001-4000) - Core Query Types & LLM Integration
+
+**Document Type**: Query implementation and LLM integration specifications
+**Analysis Date**: Current session
+**MVP Relevance**: EXTREMELY HIGH - Defines core query types and LLM integration patterns
+
+### Key MVP-Relevant Findings:
+
+#### 1. **Core Query Types** ✅ **MVP ESSENTIAL**
+
+**`what-implements` Query**:
+- **Purpose**: Find all nodes (Struct, Enum) that implement a given Trait
+- **Implementation**: Query edges with `kind == IMPL` and filter by target trait's node ID
+- **Use Case**: Understand polymorphism, discover implementations for interface-based programming
+
+**`find-cycles` Query** (implied):
+- **Purpose**: Identify and break architectural antipatterns (cyclic module dependencies)
+- **Implementation**: Graph traversal to detect circular dependencies
+- **Use Case**: Architectural governance and constraint enforcement
+
+**`blast-radius` Query** (referenced):
+- **Purpose**: Determine impact scope of changes to a specific component
+- **Implementation**: Traverse dependency graph from a given node
+- **Use Case**: Change impact analysis and risk assessment
+
+#### 2. **LLM Integration Architecture** ✅ **MVP CRITICAL**
+
+**`aim generate-context` Command**:
+- **Input**: Code entity (`focus`) and traversal `depth`
+- **Output**: Compact representation of relevant subgraph
+- **Example Usage**: `aim generate-context --focus auth::AuthService::login --depth 2`
+
+**Prompt Generation Pattern**:
+```
+You are a senior Rust developer. Refactor the `AuthService::login` method to use asynchronous database operations. Ensure adherence to the provided architectural context.
+
+Context:
+---
+Focus: auth::AuthService::login
+
+NODE:67890|Function|login|auth::AuthService::login|src/auth.rs
+NODE:12345|Struct|AuthService|auth::AuthService|src/auth.rs
+NODE:11111|Function|validate_credentials|auth::validate_credentials|src/auth.rs
+NODE:22222|Function|async_db_query_user|auth::async_db_query_user|src/db.rs
+
+EDGE:67890->12345|Contains
+EDGE:67890->11111|Calls
+EDGE:67890->22222|Calls // Hypothetical: Shows login uses an async DB call
+---
+
+Task: Modify `AuthService::login` to be async and utilize `auth::async_db_query_user`. Update necessary signatures and imports.
+```
+
+#### 3. **Structured Context Format** ✅ **MVP OUTPUT FORMAT**
+
+**Node Format**: `NODE:ID|Type|Name|FullPath|FilePath`
+- **ID**: Unique node identifier (likely SigHash)
+- **Type**: One of 7 node types (Function, Struct, Trait, etc.)
+- **Name**: Simple name of the entity
+- **FullPath**: Fully qualified path (e.g., `auth::AuthService::login`)
+- **FilePath**: Source file location
+
+**Edge Format**: `EDGE:SourceID->TargetID|RelationType`
+- **SourceID/TargetID**: Node identifiers
+- **RelationType**: One of 9 relationship types (Contains, Calls, etc.)
+
+#### 4. **User Journey Example** ✅ **MVP WORKFLOW VALIDATION**
+
+**Adding JWT Auth to Axum**:
+1. **Discovery**: `aim query Dependencies AuthService` → find related modules
+2. **Contextualization**: `aim generate-context --focus AuthService --depth 2` → structured view
+3. **AI-Assisted Refactoring**: LLM uses context to suggest `JWTService`, `Authenticator` trait
+4. **Verification**: `aim query blast-radius JWTService` → confirm contained impact
+5. **Outcome**: Quick, accurate integration with reduced manual effort
+
+#### 5. **Multi-Source Architecture** ✅ **MVP EXTENSIBILITY**
+
+**InputSource Enum** (Future):
+- Git repositories
+- Code archives
+- Multiple source merging
+
+**GraphMerger Struct** (Future):
+- Conflict resolution strategies
+- Source prioritization
+- Timestamp-based merging
+
+**CLI Command Examples**:
+- `aim analyze git https://github.com/user/repo.git`
+- `aim analyze archive ./code.zip`
+- Multi-source combination capabilities
+
+### MVP Implementation Priorities:
+
+#### **Phase 1: Core Query Engine** (Immediate)
+```rust
+// Core query types for MVP
+pub enum QueryType {
+    WhatImplements(String),    // Find implementors of trait
+    BlastRadius(String),       // Find impact scope
+    FindCycles,                // Detect circular dependencies
+    GenerateContext {          // LLM context generation
+        focus: String,
+        depth: u32,
+    },
+}
+
+pub struct QueryEngine {
+    graph: Arc<InterfaceGraph>,
+}
+
+impl QueryEngine {
+    pub fn execute(&self, query: QueryType) -> QueryResult {
+        match query {
+            QueryType::WhatImplements(trait_name) => {
+                // Find edges with kind == IMPL targeting trait
+            },
+            QueryType::BlastRadius(entity) => {
+                // Traverse dependency graph from entity
+            },
+            // ... other implementations
+        }
+    }
+}
+```
+
+#### **Phase 2: LLM Context Generation** (Critical)
+```rust
+pub struct ContextGenerator {
+    graph: Arc<InterfaceGraph>,
+}
+
+impl ContextGenerator {
+    pub fn generate_context(&self, focus: &str, depth: u32) -> String {
+        // 1. Find focus node by name/path
+        // 2. Traverse graph to specified depth
+        // 3. Format as NODE:|Type|Name|FullPath|FilePath
+        // 4. Format edges as EDGE:Source->Target|RelationType
+        // 5. Return structured context string
+    }
+}
+```
+
+#### **Phase 3: CLI Query Interface** (Essential)
+- `aim query what-implements <trait>`
+- `aim query blast-radius <entity>`
+- `aim query find-cycles`
+- `aim generate-context --focus <entity> --depth <n>`
+
+### Revolutionary Benefits Validation:
+
+**Real-time + Deterministic + Performant**:
+- ✅ **Real-time**: File system watcher + <12ms updates
+- ✅ **Deterministic**: Content-based hashing eliminates probabilistic matching
+- ✅ **Performant**: Sub-millisecond queries from in-memory graph
+
+**Architectural Governance**:
+- ✅ **Constraint Enforcement**: find-cycles detects violations
+- ✅ **Impact Analysis**: blast-radius quantifies change scope
+- ✅ **Pattern Discovery**: what-implements reveals architectural patterns
+
+**AI Coding Assistant Enhancement**:
+- ✅ **Accurate Structural Understanding**: Deterministic graph vs text search
+- ✅ **Context-Aware Generation**: Structured context eliminates hallucination
+- ✅ **Architectural Compliance**: Generated code respects existing patterns
+
+### Non-MVP Concepts (Future Versions):
+- **Multi-Source Architecture**: Git/archive analysis beyond local files
+- **Advanced Conflict Resolution**: Complex merging strategies
+- **Subscription-based Updates**: Real-time change notifications
+- **Complex Query Optimization**: Advanced graph algorithms
+
+### Critical Success Metrics Confirmed:
+- ✅ **Query Performance**: Sub-millisecond for simple traversals
+- ✅ **Context Compression**: Structured format reduces token usage
+- ✅ **LLM Integration**: Deterministic context eliminates hallucinations
+- ✅ **Developer Workflow**: Complete user journey validated
+
+**Conclusion**: This section provides the complete query engine specification and LLM integration patterns. The structured context format and user journey validation confirm our MVP approach will deliver the promised value proposition.
