@@ -925,3 +925,22 @@
 
 ---
 
+
+## Delta Report - 2025-09-20 19:36:25 IST
+
+### Summary Changes
+- **File Count**: 0 (114 total)
+- **Line Count**: 957 (60,332 total)
+- **Word Count**: 4,610 (179,862 total)
+
+### File-Level Changes
+**Added Files:**
+- ./.kiro/specs/parseltongue-aim-daemon/tasks.md
+- ./.kiro/steering/design101-tdd-architecture-principles.md
+
+**Removed Files:**
+- ./.kiro/rust-idioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx (1).md
+- ./.kiro/steering/tdd-architecture-principles.md
+
+---
+
