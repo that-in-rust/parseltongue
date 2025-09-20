@@ -37,14 +37,6 @@
 
 ### Key Findings from Completed Analysis
 **MVP-Relevant Concepts Extracted:**
-- **Hybrid Storage Architecture**: DashMap + SQLite with specific performance optimizations
-- **3-12ms Update Pipeline**: Detailed technical implementation with millisecond breakdown
-- **SigHash Implementation**: Blake3-based content addressing for deterministic node identification
-- **CLI Command Structure**: `parseltongue speak/ask/feed-llm` with specific query types
-- **Performance Targets**: Validated <12ms updates, <500μs queries, <25MB memory for 100K LOC
-- **80/20 Implementation Strategy**: 80% coverage with syn parsing, 20% compiler assistance
-- **Core Query Types**: blast-radius, what-implements, find-cycles, generate-context
-- **Anti-coordination Principles**: Simple SQLite approach validated over complex systems
 
 ## Remaining Tasks for MVP 1.0 Completion
 
