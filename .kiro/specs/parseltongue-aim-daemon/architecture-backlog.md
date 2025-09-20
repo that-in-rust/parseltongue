@@ -64,6 +64,11 @@ pub struct HybridStorage {
 - **Measurement**: Wall-time vs cycles/instructions for variance control
 - **Scopes**: Micro-benchmarks (operations) + Macro-benchmarks (end-to-end pipeline)
 
+**Graph Database Performance Analysis** (from zz03 lines 5001-6000):
+- **Memgraph**: In-memory, 120x faster than Neo4j, 1/4 memory usage, snapshot isolation
+- **SurrealDB**: Multi-model database, flexible scalability (embedded to distributed)
+- **Performance Context**: Real-time analytics requirements, concurrent workload optimization
+
 **Implementation Strategy**:
 ```rust
 pub struct UpdatePipeline {

@@ -605,6 +605,56 @@ PRAGMA synchronous = NORMAL;  -- Faster, acceptable durability loss risk
 
 **Security Considerations**: Schema-driven formats (rkyv, Cap'n Proto) provide stronger validation and compatibility guarantees
 
+### Rust-Native Database Options (from zz03 lines 5001-6000)
+
+#### LMDB via heed
+**Architecture**: C-based KV store with Rust wrapper
+- **MVCC**: Non-blocking read path, single-writer constraint
+- **ACID**: Full transactional guarantees
+- **Performance**: Efficient reads, proven durability
+
+#### redb (Pure Rust)
+**Architecture**: Embedded key-value store, pure Rust implementation
+- **ACID**: Full transactional compliance
+- **MVCC**: Concurrent readers & writer without blocking
+- **Trade-offs**: Larger on-disk footprint, slower bulk loads vs LMDB
+- **Status**: 1.0 stable release, mature
+
+#### sled (Beta Status)
+**Architecture**: Rust-native KV store with BTreeMap-like API
+- **ACID**: Serializable transactions
+- **Operations**: Atomic single-key operations, compare-and-swap
+- **Limitation**: Beta status, unstable on-disk format
+
+#### Fjall (Modern LSM)
+**Architecture**: LSM-tree-based storage (RocksDB-like)
+- **Capabilities**: Range & prefix searching, forward/reverse iteration
+- **Design**: Modern Rust implementation of LSM concepts
+
+### C++ vs Pure Rust Trade-offs (from zz03 lines 6001-7000)
+
+#### Speedb/RocksDB (C++ with Rust Bindings)
+**Architecture**: C++ KV engine with Rust wrapper
+- **Performance**: High-performance, battle-tested
+- **Trade-offs**: Build complexity, FFI overhead, longer compile times
+- **Usage**: `use speedb::{DB, Options}; let db = DB::open_default(path).unwrap();`
+
+#### Pure Rust Alternatives
+**Benefits**: 
+- Simpler build/deployment (no C++ dependencies)
+- Memory safety guarantees
+- Faster compilation in Rust-only projects
+- Better integration with Rust tooling
+
+**Options**:
+- **redb**: Comparable performance to RocksDB/LMDB, memory-safe
+- **sled**: BTreeMap-like API, ACID transactions (beta status)
+- **Fjall**: Modern LSM-tree implementation
+
+#### Decision Framework
+**Choose C++ + FFI if**: Maximum performance required, proven stability critical
+**Choose Pure Rust if**: Build simplicity, memory safety, faster development cycles preferred
+
 **Last Updated**: 2025-01-20  
 **Status**: Research Complete, Decision Deferred  
 **Next Review**: After MVP requirements finalization
