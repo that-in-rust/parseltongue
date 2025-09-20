@@ -19,8 +19,12 @@ pub struct SigHash(pub u64);
 
 impl SigHash {
     pub fn from_signature(signature: &str) -> Self {
-        // TODO: Implement in GREEN phase
-        Self(0)
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        
+        let mut hasher = DefaultHasher::new();
+        signature.hash(&mut hasher);
+        Self(hasher.finish())
     }
 }
 
@@ -175,17 +179,17 @@ pub enum ISGError {
 }
 
 // Internal mutable state protected by single RwLock
-struct ISGState {
+pub(crate) struct ISGState {
     // StableDiGraph ensures indices remain valid upon deletion
-    graph: StableDiGraph<NodeData, EdgeKind>,
+    pub(crate) graph: StableDiGraph<NodeData, EdgeKind>,
     // FxHashMap provides fast O(1) lookups
-    id_map: FxHashMap<SigHash, NodeIndex>,
+    pub(crate) id_map: FxHashMap<SigHash, NodeIndex>,
 }
 
 /// OptimizedISG - High-performance in-memory Interface Signature Graph
 #[derive(Clone)]
 pub struct OptimizedISG {
-    state: Arc<RwLock<ISGState>>,
+    pub(crate) state: Arc<RwLock<ISGState>>,
 }
 
 impl Default for OptimizedISG {
@@ -196,48 +200,124 @@ impl Default for OptimizedISG {
 
 impl OptimizedISG {
     pub fn new() -> Self {
-        // TODO: Implement in GREEN phase
-        todo!("Implement in GREEN phase")
+        Self {
+            state: Arc::new(RwLock::new(ISGState {
+                graph: StableDiGraph::new(),
+                id_map: FxHashMap::default(),
+            })),
+        }
     }
 
     pub fn node_count(&self) -> usize {
-        // TODO: Implement in GREEN phase
-        0
+        let state = self.state.read();
+        state.graph.node_count()
     }
 
     pub fn edge_count(&self) -> usize {
-        // TODO: Implement in GREEN phase
-        0
+        let state = self.state.read();
+        state.graph.edge_count()
     }
 
     /// Upsert node - O(1) operation with RwLock
     pub fn upsert_node(&self, node: NodeData) {
-        // TODO: Implement in GREEN phase
-        todo!("Implement in GREEN phase")
+        let mut state = self.state.write();
+        
+        if let Some(&node_idx) = state.id_map.get(&node.hash) {
+            // Update existing node
+            if let Some(node_weight) = state.graph.node_weight_mut(node_idx) {
+                *node_weight = node;
+            }
+        } else {
+            // Insert new node
+            let node_idx = state.graph.add_node(node.clone());
+            state.id_map.insert(node.hash, node_idx);
+        }
     }
 
     /// Get node - O(1) operation
     pub fn get_node(&self, hash: SigHash) -> Result<NodeData, ISGError> {
-        // TODO: Implement in GREEN phase
-        Err(ISGError::NodeNotFound(hash))
+        let state = self.state.read();
+        
+        if let Some(&node_idx) = state.id_map.get(&hash) {
+            if let Some(node_data) = state.graph.node_weight(node_idx) {
+                Ok(node_data.clone())
+            } else {
+                Err(ISGError::NodeNotFound(hash))
+            }
+        } else {
+            Err(ISGError::NodeNotFound(hash))
+        }
     }
 
     /// Upsert edge - O(1) operation
     pub fn upsert_edge(&self, from: SigHash, to: SigHash, kind: EdgeKind) -> Result<(), ISGError> {
-        // TODO: Implement in GREEN phase
-        Err(ISGError::NodeNotFound(from))
+        let mut state = self.state.write();
+        
+        // Get node indices
+        let from_idx = state.id_map.get(&from).copied().ok_or(ISGError::NodeNotFound(from))?;
+        let to_idx = state.id_map.get(&to).copied().ok_or(ISGError::NodeNotFound(to))?;
+        
+        // Check if edge already exists and update or add
+        let existing_edge = state.graph.edges_connecting(from_idx, to_idx).next();
+        
+        if let Some(edge_ref) = existing_edge {
+            // Update existing edge
+            let edge_idx = edge_ref.id();
+            if let Some(edge_weight) = state.graph.edge_weight_mut(edge_idx) {
+                *edge_weight = kind;
+            }
+        } else {
+            // Add new edge
+            state.graph.add_edge(from_idx, to_idx, kind);
+        }
+        
+        Ok(())
     }
 
     /// Query: what-implements - Target: <500μs
     pub fn find_implementors(&self, trait_hash: SigHash) -> Result<Vec<NodeData>, ISGError> {
-        // TODO: Implement in GREEN phase
-        Err(ISGError::NodeNotFound(trait_hash))
+        let state = self.state.read();
+        
+        // Get trait node index
+        let trait_idx = state.id_map.get(&trait_hash).copied().ok_or(ISGError::NodeNotFound(trait_hash))?;
+        
+        let mut implementors = Vec::new();
+        
+        // Find all nodes that have "Implements" edges pointing to this trait
+        for edge_ref in state.graph.edges_directed(trait_idx, Direction::Incoming) {
+            if *edge_ref.weight() == EdgeKind::Implements {
+                let implementor_idx = edge_ref.source();
+                if let Some(node_data) = state.graph.node_weight(implementor_idx) {
+                    implementors.push(node_data.clone());
+                }
+            }
+        }
+        
+        Ok(implementors)
     }
 
     /// Query: blast-radius - Target: <1ms
     pub fn calculate_blast_radius(&self, start_hash: SigHash) -> Result<HashSet<SigHash>, ISGError> {
-        // TODO: Implement in GREEN phase
-        Err(ISGError::NodeNotFound(start_hash))
+        let state = self.state.read();
+        
+        // Get start node index
+        let start_idx = state.id_map.get(&start_hash).copied().ok_or(ISGError::NodeNotFound(start_hash))?;
+        
+        let mut visited = HashSet::new();
+        
+        // Use BFS to traverse all reachable nodes
+        let mut bfs = Bfs::new(&state.graph, start_idx);
+        
+        // Skip the start node itself
+        bfs.next(&state.graph);
+        
+        while let Some(node_idx) = bfs.next(&state.graph) {
+            if let Some(node_data) = state.graph.node_weight(node_idx) {
+                visited.insert(node_data.hash);
+            }
+        }
+        
+        Ok(visited)
     }
 
     /// Query: find-cycles - MVP stub

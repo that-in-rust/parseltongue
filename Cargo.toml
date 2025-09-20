@@ -12,6 +12,7 @@ thiserror = "1.0"
 
 # Rust parsing and file monitoring
 syn = { version = "2.0", features = ["full"] }
+quote = "1.0"
 notify = "6.0"
 
 # CLI and serialization

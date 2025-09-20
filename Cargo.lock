@@ -517,6 +517,7 @@ dependencies = [
  "notify",
  "parking_lot",
  "petgraph",
+ "quote",
  "serde",
  "serde_json",
  "syn",

@@ -170,7 +170,7 @@ mod tests {
     #[test]
     fn test_cli_help_output() {
         use clap::CommandFactory;
-        let cli = Cli::command();
+        let mut cli = Cli::command();
         let help = cli.render_help();
         
         // Should contain all required commands
