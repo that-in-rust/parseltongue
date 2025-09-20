@@ -10,15 +10,20 @@
 
 ### Document Analysis Flow
 1. **Read 1000 lines max** per chunk
-2. **Extract MVP concepts** → architecture-backlog.md
-3. **Non-MVP concepts** → version backlogs
+2. **Classify information** by type and MVP relevance
+3. **Route to appropriate docs** (see Information Routing)
 4. **Update progress** in requirements-tasks.md
+5. **Mark chunk complete** with ✅ status
 
 ### Information Routing
-- **Architecture patterns** → architecture-backlog.md
-- **Implementation details** → design.md (when ready)
-- **Advanced features** → backlog.md
+- **MVP architecture patterns** → architecture-backlog.md
+- **Storage/database concepts** → storage-architecture-options.md
+- **Code examples/snippets** → ref-code-snippets.md
+- **Advanced/future features** → backlog.md
 - **Progress tracking** → requirements-tasks.md
+- **Session state** → SESSION_CONTEXT.md
+- **Implementation details** → design.md (when created)
+- **Task breakdown** → tasks.md (when created)
 
 ### Task Hierarchy
 - **Phase 1**: Document Analysis (current)
