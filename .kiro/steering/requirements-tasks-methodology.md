@@ -15,14 +15,19 @@
 4. **Update progress** in requirements-tasks.md
 5. **Mark chunk complete** with ✅ status
 
-### Information Routing
-- **MVP architecture patterns** → architecture-backlog.md
-- **Storage/database concepts** → storage-architecture-options.md
-- **User workflows/journeys** → user-journey-options.md
-- **Code examples/snippets** → ref-code-snippets.md
-- **Advanced/future features** → backlog.md
-- **Progress tracking** → requirements-tasks.md
-- **Session state** → SESSION_CONTEXT.md
+### Information Routing (Decision Tree)
+
+```
+IF storage/database concept → storage-architecture-options.md
+ELSE IF user workflow/journey → user-journey-options.md  
+ELSE IF code example/snippet → ref-code-snippets.md
+ELSE IF advanced/future feature → backlog.md
+ELSE IF progress/task update → requirements-tasks.md
+ELSE IF session state change → SESSION_CONTEXT.md
+ELSE → architecture-backlog.md (DEFAULT)
+```
+
+**Default Rule**: All MVP-relevant technical concepts go to architecture-backlog.md unless they fit a specific category above.
 
 ### Task Hierarchy
 - **Phase 1**: Document Analysis (current)
