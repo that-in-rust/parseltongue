@@ -341,6 +341,41 @@ This document preserves all storage architecture discussions and provides a fram
 
 **Future Evolution**: Will be driven by actual usage patterns and measured performance requirements, not theoretical optimization.
 
+## Hybrid Storage Model (from Notes06.md)
+**Concept**: Dual-storage architecture optimizing for different workloads
+
+**Architecture**:
+```rust
+pub struct HybridStorage {
+    // Hot path: In-memory for real-time updates
+    memory_graph: DashMap<SigHash, Node>,
+    
+    // Cold path: SQLite for complex queries and persistence
+    sqlite_db: SqlitePool,
+}
+```
+
+**Design Rationale**:
+- **Developer Loop**: Demands low-latency, write-heavy operations on file saves
+- **LLM Queries**: Requires read-heavy, complex analytical queries with joins
+- **Conflict Resolution**: Single storage can't optimize for both competing demands
+
+**Performance Characteristics**:
+- **In-memory DashMap**: Near-instantaneous point-writes, minimal lock contention
+- **SQLite with WAL**: Complex joins, recursive queries, powerful query planner
+- **Update Pipeline**: 3-12ms total latency from file save to query readiness
+
+**Implementation Details**:
+- **SQLite Configuration**: `PRAGMA journal_mode = WAL`, `PRAGMA synchronous = NORMAL`
+- **Schema Design**: WITHOUT ROWID optimization, clustered indexes on SigHash
+- **Covering Indexes**: `(from_sig_hash, relationship_kind)`, `(to_sig_hash, relationship_kind)`
+- **Atomic Consistency**: Single transaction wraps entire write operation
+
+**Query Performance**:
+- **Sub-millisecond**: Most architectural queries satisfied by index-only reads
+- **Complex Analysis**: Recursive CTEs for blast-radius, cycle detection
+- **Deterministic Results**: Byte-for-byte identical output, versionable architecture
+
 ## Storage Architecture Analysis from Reference Documents
 
 ### SQLite WAL Mode Optimization (From zz01.md Analysis)

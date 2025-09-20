@@ -15,4 +15,46 @@
 <!-- Result<T,E>, Option<T>, error propagation strategies will be added here -->
 
 ## Type System Patterns
-<!-- Generics, trait objects, associated types, phantom types will be added here -->
+
+### Complex Generic Constraints (from rust-parsing-complexity-analysis.md)
+**Complexity**: High - requires careful where clause parsing
+
+**Pattern**: Multiple generic parameters with complex bounds
+```rust
+impl<H, S> ErasedIntoRoute<S, Infallible> for MakeErasedHandler<H, S>
+where
+    H: Clone + Send + Sync + 'static,
+    S: 'static,
+```
+
+**Parsing Strategy**: 
+- ✅ `syn` handles basic generics well
+- ⚠️ Complex associated types may need compiler assistance
+- ✅ Where clauses are parseable systematically
+
+### Trait Object Patterns
+**Complexity**: Medium-High - clear AST patterns
+
+**Pattern**: Dynamic dispatch with generic parameters
+```rust
+fn clone_box(&self) -> Box<dyn ErasedIntoRoute<S, Infallible>>
+```
+
+**ISG Extraction**:
+```
+[F] clone_box → RETURNS → Box<dyn ErasedIntoRoute<S, Infallible>>
+[T] ErasedIntoRoute<S, Infallible> → BOUND_BY → [G] S
+```
+
+### Function Pointer Types  
+**Complexity**: Medium - well-defined in AST
+
+**Pattern**: Function signatures as struct fields
+```rust
+struct MakeErasedHandler<H, S> {
+    handler: H,
+    into_route: fn(H, S) -> Route,
+}
+```
+
+**Feasibility**: ✅ Highly feasible with `syn` crate

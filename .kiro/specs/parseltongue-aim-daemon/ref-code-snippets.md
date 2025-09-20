@@ -59,3 +59,44 @@ thiserror = "1.0"
 - **Updates**: 1-5μs (O(1) operations)
 - **Queries**: <500μs for complex traversals (BFS)
 - **Concurrency**: Single RwLock, atomic consistency
+
+### Rust Parsing Patterns (rust-parsing-complexity-analysis.md)
+**Text parsing with `syn` crate - 80/20 approach**
+
+```rust
+// Core parsing engine
+pub struct RustExtractor {
+    parser: syn::File,
+    graph: InterfaceGraph,
+}
+
+impl RustExtractor {
+    pub fn extract_impl_block(&self, item: &syn::ItemImpl) -> Vec<GraphNode> {
+        // Extract: impl<T> Trait for Type where T: Bound
+    }
+    
+    pub fn extract_struct_def(&self, item: &syn::ItemStruct) -> GraphNode {
+        // Extract: struct Name<T> { field: Type }
+    }
+    
+    pub fn extract_function_sig(&self, item: &syn::ItemFn) -> GraphNode {
+        // Extract: async fn name<T>(args) -> RetType where T: Bound
+    }
+}
+```
+
+**Complex Pattern Examples**:
+```rust
+// Trait objects - Medium-High complexity
+fn clone_box(&self) -> Box<dyn ErasedIntoRoute<S, Infallible>>
+
+// Generic constraints - High complexity  
+impl<H, S> ErasedIntoRoute<S, Infallible> for MakeErasedHandler<H, S>
+where H: Clone + Send + Sync + 'static, S: 'static
+
+// Function pointers - Medium complexity
+struct MakeErasedHandler<H, S> {
+    handler: H,
+    into_route: fn(H, S) -> Route,
+}
+```

@@ -96,7 +96,30 @@ aim generate-context <function>     # Bounded context for LLMs
 - **Real-time Feedback Loop**: Continuous ISG updates during development with architectural impact analysis
 - **Legacy Module Refactoring**: Dependency analysis → impact assessment → real-time validation during changes
 
-### 4. OptimizedISG Design Analysis (DeepThink20250920v1.md)
+### 4. Rust Parsing Performance Analysis (rust-parsing-complexity-analysis.md)
+**Source**: Real-world complexity analysis using Axum codebase
+**Alignment**: ✅ **VALIDATES** MVP performance targets
+
+**Key Findings**:
+- **80/20 Strategy**: 85-90% coverage with pure `syn` parsing, 95-98% with selective compiler assistance
+- **Performance Projections**: 3-12ms update latency achievable for complex codebases
+- **Text Parsing Feasibility**: Most Rust patterns are syntactic and visible in AST
+
+**Performance Targets by Scale**:
+- **10K LOC**: 2-5ms updates, 5-8MB memory
+- **50K LOC**: 3-8ms updates, 15-25MB memory  
+- **200K LOC**: 5-12ms updates, 50-80MB memory
+- **500K LOC**: 8-15ms updates, 120-200MB memory
+
+**Implementation Strategy**:
+1. **Phase 1**: Text-based core with `syn` crate (85-90% coverage)
+2. **Phase 2**: Selective `rustdoc` JSON for edge cases (95-98% coverage)
+3. **Phase 3**: Advanced pattern recognition (98-99% coverage)
+
+**What `syn` Handles Well**: Struct definitions, trait implementations, function signatures, basic generics
+**What Needs Compiler**: Type resolution, macro expansion, complex trait resolution, lifetime inference
+
+### 5. OptimizedISG Design Analysis (DeepThink20250920v1.md)
 **Source**: DeepThink analysis document
 **Alignment**: ✅ **EXCELLENT MATCH** with Parseltongue requirements
 
