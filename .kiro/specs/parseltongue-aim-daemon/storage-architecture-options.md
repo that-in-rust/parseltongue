@@ -532,6 +532,50 @@ All options remain viable and will be evaluated based on actual performance requ
 
 ---
 
-**Last Updated**: 2025-09-20  
+### Advanced Graph Storage Research (from zz03 lines 3001-4000)
+
+#### LiveGraph Performance Analysis
+**Concept**: Transactional Edge Log (TEL) with sequential adjacency scans
+- **Performance**: 36.4× faster than competitors on HTAP workloads
+- **Architecture**: Log-based sequential data layout + low-overhead concurrency control
+- **Key Insight**: Sequential scans never require random access even during concurrent transactions
+
+#### CSR (Compressed Sparse Row) Optimization
+**Memory Layout**: Two-array structure for optimal cache efficiency
+```rust
+// CSR representation for graph storage
+struct CSRGraph {
+    adjacency_lists: Vec<SigHash>,    // All edges in sequence
+    vertex_offsets: Vec<usize>,       // Start index for each vertex
+}
+```
+**Benefits**: Small storage footprint, reduced memory traffic, high cache efficiency
+
+#### SurrealDB Integration Analysis
+**Rust SDK Features**:
+- Native async/await support with tokio integration
+- Strongly-typed RecordId system
+- serde-based serialization/deserialization
+- Multi-model: graph + document + relational
+
+**API Examples**:
+```rust
+// SurrealDB graph queries
+db.query("SELECT ->implements->struct.sig_hash FROM trait:$trait_sig")
+  .bind(("trait_sig", trait_sig)).await
+```
+
+#### TigerGraph Enterprise Scale
+**Integration**: REST API + GraphQL endpoints (not native Rust)
+**Performance**: Optimized for 10B+ edges with massively parallel processing
+**Limitation**: HTTP/JSON overhead incompatible with <500μs targets
+
+#### Incremental Computation Patterns (Salsa)
+**Concept**: Reuse computations when inputs change
+- **Benefit**: Avoid full re-computation, support sub-millisecond queries
+- **Application**: Cache frequent ISG queries, incremental graph updates
+- **Integration**: Could optimize Parseltongue's real-time update pipeline
+
+**Last Updated**: 2025-01-20  
 **Status**: Research Complete, Decision Deferred  
 **Next Review**: After MVP requirements finalization
