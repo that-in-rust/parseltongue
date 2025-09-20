@@ -18,16 +18,29 @@
 ### Information Routing (Decision Tree)
 
 ```
-IF storage/database concept → storage-architecture-options.md
-ELSE IF user workflow/journey → user-journey-options.md  
-ELSE IF code example/snippet → ref-code-snippets.md
-ELSE IF advanced/future feature → backlog.md
-ELSE IF progress/task update → requirements-tasks.md
-ELSE IF session state change → SESSION_CONTEXT.md
-ELSE → architecture-backlog.md (DEFAULT)
+IF (database, storage, persistence, SQLite, in-memory, caching, CRUD, transactions, durability, WAL, indexes) 
+   → storage-architecture-options.md
+
+ELSE IF (user story, workflow, CLI commands, terminal usage, developer experience, use cases, scenarios, personas)
+   → user-journey-options.md
+
+ELSE IF (code samples, implementation examples, Rust snippets, function signatures, struct definitions, trait impls)
+   → ref-code-snippets.md
+
+ELSE IF (v2.0, v3.0, enterprise, distributed, multi-language, complex features, nice-to-have, post-MVP)
+   → backlog.md
+
+ELSE IF (task completion, progress updates, milestone tracking, phase transitions, analysis status)
+   → requirements-tasks.md
+
+ELSE IF (current session, next actions, priority tasks, context recovery, live status)
+   → SESSION_CONTEXT.md
+
+ELSE IF (performance, concurrency, memory, algorithms, data structures, Rust patterns, ISG design, <12ms constraints)
+   → architecture-backlog.md (DEFAULT)
 ```
 
-**Default Rule**: All MVP-relevant technical concepts go to architecture-backlog.md unless they fit a specific category above.
+**Default Rule**: MVP-relevant technical architecture concepts default to architecture-backlog.md
 
 ### Task Hierarchy
 - **Phase 1**: Document Analysis (current)
