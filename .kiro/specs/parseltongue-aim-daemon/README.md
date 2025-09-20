@@ -12,6 +12,16 @@ Located in `.kiro/steering/` - These files provide project-wide guidance and con
 | [parseltongue-requirements-focus.md](../../steering/parseltongue-requirements-focus.md) | Core constraints, decision framework, success metrics | ✅ Active |
 | [code-conventions.md](../../steering/code-conventions.md) | Coding standards and conventions | 🔴 Empty |
 
+### Automated Hooks
+Located in `.kiro/hooks/` - These files provide automated progress tracking:
+
+| Hook | Purpose | Trigger |
+|------|---------|---------|
+| [session-context-updater.kiro.hook](../../hooks/session-context-updater.kiro.hook) | Auto-updates SESSION_CONTEXT.md with progress | Spec file edits |
+| [file-change-tracker.kiro.hook](../../hooks/file-change-tracker.kiro.hook) | Tracks changes, commits to git with timestamps | .kiro file edits |
+| [analysis-progress-tracker.kiro.hook](../../hooks/analysis-progress-tracker.kiro.hook) | Monitors document analysis completion | requirements-tasks.md edits |
+| [repository-snapshot.kiro.hook](../../hooks/repository-snapshot.kiro.hook) | Generates comprehensive repo snapshots | Manual trigger |
+
 ### Specification Files (Feature-Specific)
 Located in `.kiro/specs/parseltongue-aim-daemon/` - These files define the specific feature:
 
@@ -19,11 +29,16 @@ Located in `.kiro/specs/parseltongue-aim-daemon/` - These files define the speci
 |----------|---------|--------|
 | [requirements.md](./requirements.md) | 18 MVP requirements with REQ-ID system | ✅ Complete |
 | [SESSION_CONTEXT.md](./SESSION_CONTEXT.md) | Progress tracking and session recovery | ✅ Complete |
-| [requirements-tasks.md](./requirements-tasks.md) | Task tracking and document analysis | 🟡 In Progress |
+| [requirements-tasks.md](./requirements-tasks.md) | Task tracking and document analysis (19/46 files) | 🟡 In Progress |
 | [architecture-backlog.md](./architecture-backlog.md) | Technical concepts from analysis | ✅ Complete |
 | [backlog.md](./backlog.md) | Post-MVP features by version | ✅ Complete |
-| [storage-architecture-options.md](./storage-architecture-options.md) | Storage research archive | ✅ Complete |
+| [storage-architecture-options.md](./storage-architecture-options.md) | Storage research archive (decisions TBD) | ✅ Complete |
 | [prompts/storage-architecture-analysis.md](./prompts/storage-architecture-analysis.md) | LLM analysis prompt | ✅ Complete |
+
+### Utility Scripts
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| [tree-with-wc.sh](../../tree-with-wc.sh) | Repository snapshot with line/word counts | `./.kiro/tree-with-wc.sh` |
 
 ## .kiro Guidance Hierarchy
 
@@ -79,9 +94,23 @@ cat .kiro/specs/parseltongue-aim-daemon/requirements.md
 
 # Check session progress
 cat .kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md
+
+# Generate repository snapshot with line/word counts
+./.kiro/tree-with-wc.sh
+
+# View analysis progress
+cat .kiro/specs/parseltongue-aim-daemon/requirements-tasks.md
 ```
+
+### Automated Hooks
+The repository includes 4 automated hooks in `.kiro/hooks/`:
+- **session-context-updater.kiro.hook**: Auto-updates progress tracking
+- **file-change-tracker.kiro.hook**: Tracks changes and commits to git
+- **analysis-progress-tracker.kiro.hook**: Monitors document analysis progress
+- **repository-snapshot.kiro.hook**: Manual repository state snapshots
 
 ### Quick Start
 - **New Contributors**: Read `.kiro/steering/parseltongue-requirements-focus.md` first
 - **Implementers**: Study [requirements.md](./requirements.md) (18 requirements with REQ-ID system)
-- **Current Status**: Requirements complete, design pending
+- **Current Status**: Requirements complete, Task 1 document analysis 19/46 files complete (41%)
+- **Storage Decisions**: Marked as TBD - see [storage-architecture-options.md](./storage-architecture-options.md)

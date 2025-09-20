@@ -16,10 +16,11 @@ find . -type f \
     # Get file size
     SIZE=$(ls -lh "$file" | awk '{print $5}')
     
-    # Check if file is text and get word count
+    # Check if file is text and get word count and line count
     if file "$file" | grep -q "text"; then
         WC=$(wc -w "$file" 2>/dev/null | awk '{print $1}')
-        echo "$file | $WC words | $SIZE"
+        LC=$(wc -l "$file" 2>/dev/null | awk '{print $1}')
+        echo "$file | $LC lines | $WC words | $SIZE"
     else
         echo "$file | [binary] | $SIZE"
     fi
@@ -34,24 +35,27 @@ echo "- **Total Files**: $TOTAL_FILES"
 echo "- **Text Files**: $TOTAL_TEXT_FILES"
 echo "- **Binary Files**: $((TOTAL_FILES - TOTAL_TEXT_FILES))"
 
-# Calculate total words for major directories
+# Calculate total lines and words for major directories
 echo ""
-echo "## Directory Word Counts"
+echo "## Directory Line & Word Counts"
 
 if [ -d "_refDocs" ]; then
+    REFDOCS_LINES=$(find _refDocs -name "*.md" -o -name "*.txt" -o -name "*.html" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
     REFDOCS_WORDS=$(find _refDocs -name "*.md" -o -name "*.txt" -o -name "*.html" | xargs wc -w 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
     REFDOCS_FILES=$(find _refDocs -type f | wc -l)
-    echo "- **_refDocs**: $REFDOCS_WORDS words across $REFDOCS_FILES files"
+    echo "- **_refDocs**: $REFDOCS_LINES lines | $REFDOCS_WORDS words across $REFDOCS_FILES files"
 fi
 
 if [ -d "_refIdioms" ]; then
+    REFIDIOMS_LINES=$(find _refIdioms -name "*.md" -o -name "*.txt" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
     REFIDIOMS_WORDS=$(find _refIdioms -name "*.md" -o -name "*.txt" | xargs wc -w 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
     REFIDIOMS_FILES=$(find _refIdioms -type f | wc -l)
-    echo "- **_refIdioms**: $REFIDIOMS_WORDS words across $REFIDIOMS_FILES files"
+    echo "- **_refIdioms**: $REFIDIOMS_LINES lines | $REFIDIOMS_WORDS words across $REFIDIOMS_FILES files"
 fi
 
 if [ -d ".kiro" ]; then
+    KIRO_LINES=$(find .kiro -name "*.md" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
     KIRO_WORDS=$(find .kiro -name "*.md" | xargs wc -w 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
     KIRO_FILES=$(find .kiro -type f | wc -l)
-    echo "- **.kiro**: $KIRO_WORDS words across $KIRO_FILES files"
+    echo "- **.kiro**: $KIRO_LINES lines | $KIRO_WORDS words across $KIRO_FILES files"
 fi

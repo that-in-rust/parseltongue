@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Repository Snapshot Generator",
+  "description": "Generates comprehensive repository snapshots with file tree, line counts, word counts, and directory summaries. Can be triggered manually or automatically to track repository evolution.",
+  "version": "1",
+  "when": {
+    "type": "manual"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Generate a comprehensive repository snapshot using the tree-with-wc.sh script functionality. Show all files with line counts, word counts, and sizes. Include directory summaries for _refDocs, _refIdioms, and .kiro folders. Calculate total files, text files, and binary files. Provide analysis of remaining work based on file sizes and current progress in requirements-tasks.md. Focus on identifying large files that need analysis and tracking progress through the systematic document analysis tasks. Save the snapshot for comparison with future states."
+  }
+}

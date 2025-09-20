@@ -305,3 +305,21 @@ pub struct CodeDumpParser {
 3. Implementation planning with specific technology choices
 
 This architecture backlog ensures no valuable technical insights are lost while maintaining clear separation between MVP implementation and future enhancements.
+## S
+torage Architecture Decisions - DEFERRED
+
+**Status**: All storage architecture decisions marked as **TBD** in requirements.md
+
+**Rationale**: Storage technology selection is premature at this stage. Focus should remain on:
+1. Finalizing functional requirements
+2. Establishing performance benchmarks  
+3. Validating core use cases
+
+**Research Completed**: Comprehensive analysis of SQLite, SurrealDB, MemGraph, TigerGraph, and in-memory options documented in `storage-architecture-options.md`
+
+**Decision Timeline**: Storage architecture will be decided during design phase after requirements are finalized.
+
+**Key Insight**: Three-phase evolution path (SQLite → In-Memory → Distributed) provides clear migration strategy regardless of initial choice.
+
+---
+**Added**: 2025-09-20 - Storage decisions deferred to design phase

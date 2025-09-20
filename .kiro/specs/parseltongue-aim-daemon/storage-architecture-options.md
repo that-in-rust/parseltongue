@@ -340,3 +340,163 @@ This document preserves all storage architecture discussions and provides a fram
 **Current Status**: SQLite chosen for MVP 1.0 based on simplicity and proven performance for target scale.
 
 **Future Evolution**: Will be driven by actual usage patterns and measured performance requirements, not theoretical optimization.
+
+## Storage Architecture Analysis from Reference Documents
+
+### SQLite WAL Mode Optimization (From zz01.md Analysis)
+
+#### Performance Characteristics
+- **WAL Mode Benefits**: `PRAGMA journal_mode = WAL` + `PRAGMA synchronous = NORMAL`
+- **Transaction Overhead**: Reduces to <1ms in ideal conditions
+- **Concurrency Model**: Single-writer, multiple-reader (perfect for Parseltongue workload)
+- **Memory Mapping**: `PRAGMA mmap_size` for improved performance on Linux
+
+#### Implementation Details
+```rust
+// Connection initialization for optimal performance
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
+PRAGMA foreign_keys = ON;
+PRAGMA mmap_size = 268435456; // 256MB
+```
+
+#### Performance Projections by Scale
+| Scale | who-implements | blast-radius (d=3) | Update Pipeline | Memory Usage |
+|-------|----------------|---------------------|-----------------|--------------|
+| Small (10K LOC) | <200μs | <500μs | <5ms | <25MB |
+| Medium (100K LOC) | <300μs | 1-3ms | <8ms | <100MB |
+| Large (500K LOC) | <500μs | 5-15ms | <12ms | <500MB |
+| Enterprise (10M+ LOC) | N/A | N/A | N/A | N/A |
+
+**Critical Limitation**: SQLite fails to meet sub-millisecond complex query targets beyond small scale.
+
+### Three-Phase Architecture Evolution
+
+#### Phase 1 (MVP 0-6 months): SQLite + WAL
+- **Technology**: `rusqlite` with `r2d2` connection pool
+- **Indexes**: Composite B-tree on `(from_sig, kind)` and `(to_sig, kind)`
+- **Background Tasks**: Periodic `PRAGMA wal_checkpoint(TRUNCATE)` and `PRAGMA optimize`
+
+**Migration Triggers**:
+- **Latency Trigger**: p99 blast-radius query >2ms
+- **Throughput Trigger**: Write queue >5ms delay
+- **Feature Trigger**: Complex graph algorithms needed
+
+#### Phase 2 (v2.0 6-18 months): Custom In-Memory + WAL
+- **Technology**: `FxHashMap` + `okaywal` crate for durability
+- **Serialization**: `bincode` for WAL operations
+- **Concurrency**: `DashMap` with inner mutability patterns
+- **Migration**: Command-line utility for SQLite → in-memory conversion
+
+#### Phase 3 (v3.0 18+ months): Distributed Hybrid
+- **Hot Storage**: Custom in-memory graph for active development
+- **Cold Storage**: SurrealDB for dependencies and libraries
+- **Coordination**: SyncManager for hot/cold data lifecycle
+- **Scaling**: Sharding layer for largest enterprise customers
+
+### Alternative Storage Technologies Evaluated
+
+#### SurrealDB (Rust-Native)
+**Advantages**:
+- Native Rust SDK with tokio integration
+- Embedded mode (like SQLite) or server mode
+- Multi-model: graph, document, relational
+- Clear scaling path to distributed clusters
+
+**Concerns**:
+- Performance maturity (relatively new)
+- Multi-model generalist vs. specialized graph performance
+- Query planner optimization for complex traversals
+
+#### MemGraph (In-Memory)
+**Advantages**:
+- High-performance C++ in-memory engine
+- Cypher query language
+- Excellent benchmarks vs. Neo4j
+
+**Disqualifying Issues**:
+- FFI wrapper (`rsmgclient`) violates Rust-only constraint
+- Build complexity (C compiler, CMake, OpenSSL)
+- Unsafe code boundary undermines memory safety
+
+#### TigerGraph (Enterprise Scale)
+**Advantages**:
+- Petabyte-scale graph processing
+- Massively parallel processing (MPP)
+- Designed for horizontal scaling
+
+**Disqualifying Issues**:
+- No low-level Rust client (REST API only)
+- HTTP/JSON overhead incompatible with <500μs targets
+- Extreme operational complexity
+
+### In-Memory Graph Structures Analysis
+
+#### Data Structure Options
+```rust
+// Option 1: DashMap with sharded locking
+pub struct ISG {
+    nodes: DashMap<SigHash, Node>,
+    edges: DashMap<SigHash, Vec<Edge>>,
+}
+
+// Option 2: Single RwLock with HashMap
+pub struct ISG {
+    state: Arc<RwLock<ISGState>>,
+}
+
+struct ISGState {
+    nodes: FxHashMap<SigHash, Node>,
+    edges: FxHashMap<SigHash, Vec<Edge>>,
+}
+```
+
+#### Memory Efficiency Concerns
+- **HashMap Overhead**: 73% overhead over raw data size
+- **Collection Overhead**: Minimum allocation sizes for small adjacency lists
+- **Projected Memory**: 100-150MB for 500K LOC (vs. 50MB raw data)
+
+#### Persistence Strategies
+1. **Simple Serialization**: Periodic snapshots with `bincode`
+   - Risk: Data loss between snapshots
+   - Benefit: Simple implementation
+
+2. **Write-Ahead Logging**: Production-grade durability
+   - Technology: `okaywal` crate
+   - Pattern: Log operation → fsync → apply to memory
+   - Recovery: Replay operations from log
+
+### Risk Mitigation Strategies
+
+#### Performance Monitoring
+- Automated performance monitoring from MVP launch
+- Dashboards and alerts for migration triggers
+- Memory profiling in CI/CD pipeline
+
+#### Implementation Risks
+- WAL implementation complexity → Use mature `okaywal` crate
+- Memory usage scaling → Proactive optimization (arena allocation, interning)
+- System complexity → Evolutionary development (no rewrites)
+
+### Decision Framework
+
+#### Storage Technology Selection Criteria
+1. **Rust Ecosystem Integration**: Native vs. FFI
+2. **Performance Ceiling**: Can it meet <500μs targets?
+3. **Operational Complexity**: Embedded vs. server deployment
+4. **Scaling Path**: Single-node vs. distributed options
+5. **Development Velocity**: Time to MVP vs. long-term optimization
+
+#### Current Status: TBD
+Storage architecture decisions are **intentionally deferred** until:
+1. MVP requirements are finalized
+2. Performance benchmarks are established
+3. Specific use cases are validated
+
+All options remain viable and will be evaluated based on actual performance requirements and constraints discovered during MVP development.
+
+---
+
+**Last Updated**: 2025-09-20  
+**Status**: Research Complete, Decision Deferred  
+**Next Review**: After MVP requirements finalization

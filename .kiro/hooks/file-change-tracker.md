@@ -50,17 +50,19 @@ generate_current_state() {
         -not -path "./.kiro/file-snapshots/*" \
         | sort | while read -r file; do
         
-        # Get word count (handle binary files gracefully)
+        # Get line count and word count (handle binary files gracefully)
         if file "$file" | grep -q "text"; then
+            LC=$(wc -l "$file" 2>/dev/null | awk '{print $1}')
             WC=$(wc -w "$file" 2>/dev/null | awk '{print $1}')
         else
+            LC="[binary]"
             WC="[binary]"
         fi
         
         # Get file size
         SIZE=$(ls -lh "$file" | awk '{print $5}')
         
-        echo "- \`$file\` | $WC words | $SIZE" >> "$CURRENT_SNAPSHOT.tmp"
+        echo "- \`$file\` | $LC lines | $WC words | $SIZE" >> "$CURRENT_SNAPSHOT.tmp"
     done
     
     echo "" >> "$CURRENT_SNAPSHOT.tmp"
@@ -69,9 +71,11 @@ generate_current_state() {
     
     # Count totals
     TOTAL_FILES=$(find . -type f -not -path "./.git/*" -not -path "./target/*" -not -path "./node_modules/*" -not -path "./.kiro/file-snapshots/*" | wc -l)
+    TOTAL_LINES=$(find . -name "*.md" -o -name "*.rs" -o -name "*.txt" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
     TOTAL_WORDS=$(find . -name "*.md" -o -name "*.rs" -o -name "*.txt" | xargs wc -w 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
     
     echo "- **Total Files**: $TOTAL_FILES" >> "$CURRENT_SNAPSHOT.tmp"
+    echo "- **Total Lines** (text files): $TOTAL_LINES" >> "$CURRENT_SNAPSHOT.tmp"
     echo "- **Total Words** (text files): $TOTAL_WORDS" >> "$CURRENT_SNAPSHOT.tmp"
     echo "- **Snapshot Time**: $TIMESTAMP" >> "$CURRENT_SNAPSHOT.tmp"
     

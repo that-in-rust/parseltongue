@@ -33,7 +33,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 1. WHEN the daemon is initialized THEN the system SHALL monitor the filesystem using the `notify` crate exclusively for .rs file changes with platform-specific optimizations (inotify/kqueue)
 2. WHEN a Rust file is modified and saved THEN the system SHALL detect the change within 1ms and queue it for high-speed processing using crossbeam channels
 3. WHEN processing incremental updates THEN the system SHALL complete ISG updates in less than 12ms from .rs file save to query readiness (CRITICAL PERFORMANCE CONSTRAINT)
-4. WHEN updating the ISG THEN the system SHALL perform atomic in-memory graph updates using SigHash-based O(1) lookups with SQLite WAL persistence
+4. WHEN updating the ISG THEN the system SHALL perform atomic in-memory graph updates using SigHash-based O(1) lookups with **[TBD: Storage Architecture]** persistence
 5. WHEN changes are processed THEN the system SHALL maintain sub-millisecond query response times throughout the update cycle using Arc<RwLock<HashMap<SigHash, Node>>>
 6. WHEN monitoring files THEN the system SHALL ignore all non-Rust files and focus exclusively on src/, tests/, and examples/ directories
 7. WHEN generating SigHash THEN the system SHALL create deterministic 64-bit hashes from full Rust signatures for O(1) node/edge lookup
@@ -87,7 +87,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 
 1. WHEN processing 100K lines of Rust code THEN the system SHALL maintain in-memory ISG footprint under 25MB using efficient Rust data structures
 2. WHEN handling concurrent queries THEN the system SHALL maintain sub-millisecond response times under load using Arc<RwLock<T>> for thread-safe access
-3. WHEN persisting data THEN the system SHALL use SQLite with WAL mode for atomic updates and crash recovery with sqlx compile-time query validation
+3. WHEN persisting data THEN the system SHALL use **[TBD: Storage Architecture]** for atomic updates and crash recovery with compile-time query validation
 4. WHEN managing memory THEN the system SHALL implement efficient graph data structures using Rust's ownership system and zero-cost abstractions
 5. WHEN scaling up THEN the system SHALL handle codebases up to 500K LOC while maintaining performance targets
 6. WHEN using smart pointers THEN the system SHALL follow the decision matrix: Box<T> for unique ownership, Arc<T> for shared ownership, RwLock<T> for interior mutability
@@ -154,7 +154,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 #### Acceptance Criteria
 
 1. WHEN analyzing function signatures THEN the system SHALL extract complete type contracts including all error cases for TDD validation
-2. WHEN examining database queries THEN the system SHALL recognize sqlx compile-time query validation patterns and flag runtime-only queries
+2. WHEN examining database queries THEN the system SHALL recognize compile-time query validation patterns and flag runtime-only queries **[TBD: Specific database technology]**
 3. WHEN detecting test patterns THEN the system SHALL identify property-based tests using proptest and integration tests with real database connections
 4. WHEN analyzing type safety THEN the system SHALL validate that invalid states are made unrepresentable through enum and struct design
 5. WHEN examining async code THEN the system SHALL recognize structured concurrency patterns and flag unstructured async spawning
@@ -199,7 +199,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 1. WHEN detecting file changes THEN the system SHALL achieve <1ms latency from file save event to daemon event queue using platform-specific optimizations (inotify/kqueue/ReadDirectoryChangesW)
 2. WHEN parsing Rust AST THEN the system SHALL complete parsing in 2-5ms for typical Rust files (500 lines) using `syn` crate with incremental parsing
 3. WHEN updating the graph THEN the system SHALL perform atomic updates in 1-3ms using Arc<Mutex<InterfaceGraph>> with HashMap<SigHash, Node> for O(1) lookups
-4. WHEN persisting to SQLite THEN the system SHALL complete database writes in 1-4ms using WAL mode with transaction batching and optimized indexes
+4. WHEN persisting to **[TBD: Storage Backend]** THEN the system SHALL complete database writes in 1-4ms using optimized transaction batching and indexes
 5. WHEN serving queries THEN the system SHALL respond in <500μs for simple graph traversals using in-memory HashMap lookups with SigHash keys
 6. WHEN processing total pipeline THEN the system SHALL maintain 3-12ms total latency from file save to query readiness (CRITICAL PERFORMANCE TARGET)
 7. WHEN handling concurrent access THEN the system SHALL use DashMap for lock-free concurrent access and crossbeam channels for event queuing with bounded capacity (1k items)
@@ -212,11 +212,11 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 #### Acceptance Criteria
 
 1. WHEN Rust file parsing fails THEN the system SHALL log the `syn` crate error details and continue processing other .rs files
-2. WHEN SQLite operations fail THEN the system SHALL retry up to 3 times with exponential backoff before logging failure
+2. WHEN **[TBD: Storage Backend]** operations fail THEN the system SHALL retry up to 3 times with exponential backoff before logging failure
 3. WHEN memory usage exceeds thresholds THEN the system SHALL trigger Rust's garbage collection and clear SigHash caches
 4. WHEN the `notify` crate file watcher fails THEN the system SHALL attempt to restart .rs file monitoring after a brief delay
 5. WHEN unrecoverable errors occur THEN the system SHALL log detailed Rust diagnostics and shut down gracefully
-6. WHEN database corruption is detected THEN the system SHALL trigger automatic rebuild from live Rust filesystem
+6. WHEN **[TBD: Storage Backend]** corruption is detected THEN the system SHALL trigger automatic rebuild from live Rust filesystem
 7. WHEN concurrent access conflicts occur THEN the system SHALL use Rust's Arc<RwLock<T>> patterns to handle contention gracefully
 
 ### REQ-ARCH-003.0: Advanced Constraint Validation
