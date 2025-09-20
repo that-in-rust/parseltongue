@@ -8,7 +8,12 @@ inclusion: always
 
 **Write Rust code that compiles correctly on the first try by leveraging the type system to prevent bugs at compile time.**
 
-*"Once the code compiles, developers can have a high degree of confidence that it is free from data races, null pointer dereferences, and a host of other pernicious issues that have plagued systems programming for decades."*
+*"Idiomatic Rust is the practice of leveraging the language's unique features—particularly its powerful type system and the revolutionary ownership model—to work with the compiler, not against it. This approach transforms the compiler from a simple translation tool into a partner that statically guarantees the absence of entire classes of bugs."*
+
+### The Core Philosophy
+- **Safety, Performance, and Concurrency** are deeply intertwined and mutually reinforcing
+- **Zero-Cost Abstractions** provide high-level features that compile to efficient machine code
+- **Fearless Development** where once code compiles, it's likely correct and safe
 
 ## THE THREE PILLARS
 
@@ -48,6 +53,12 @@ Extend ownership and borrowing rules to multi-threaded contexts
 - **Parse, Don't Validate**: Newtype pattern (`UserId(Uuid)`, `Email(String)`) with validation in constructors
 - **Make Invalid States Unrepresentable**: Enums to model only valid states
 - **Compile-Time Guarantees**: Move validation from runtime to type system
+- **Encode Business Logic in Types**: Use the type system to document and enforce domain rules
+
+### The Copy vs Move Distinction
+- **Copy Types**: Stack-only data (integers, booleans) - bit-for-bit copying is safe
+- **Move Types**: Heap-allocated data (String, Vec<T>) - ownership transfer prevents double-free
+- **Move Semantic**: Default behavior for non-Copy types, central to data flow understanding
 
 ---
 
@@ -64,8 +75,10 @@ Extend ownership and borrowing rules to multi-threaded contexts
 
 ### Send and Sync Traits (Auto-Implemented)
 - **Send**: Safe to transfer ownership to another thread
-- **Sync**: Safe to share references across threads  
+- **Sync**: Safe to share references across threads (`T` is `Sync` if `&T` is `Send`)
 - **Auto Traits**: Compiler automatically implements for structs if all fields are Send/Sync
+- **Thread Safety Examples**: `Rc<T>` is not Send (non-atomic), `Arc<T>` is Send (atomic)
+- **Interior Mutability**: `RefCell<T>` not Sync, `Mutex<T>` is Sync (with proper synchronization)
 
 ### Function Signatures
 ```rust
@@ -115,6 +128,68 @@ pub enum MessageState {
 ---
 
 ## LAYER 3: ADVANCED PATTERNS
+
+### Interior Mutability Patterns
+```rust
+// ✅ Cell<T> for Copy types (fast, never panics)
+use std::cell::Cell;
+
+pub struct Counter {
+    value: Cell<u32>,
+}
+
+impl Counter {
+    pub fn increment(&self) {
+        let current = self.value.get();
+        self.value.set(current + 1);
+    }
+}
+
+// ✅ RefCell<T> for non-Copy types (runtime borrow checking)
+use std::cell::RefCell;
+
+pub struct MessageBuffer {
+    messages: RefCell<Vec<String>>,
+}
+
+impl MessageBuffer {
+    pub fn add_message(&self, msg: String) {
+        self.messages.borrow_mut().push(msg);
+    }
+    
+    pub fn get_messages(&self) -> Vec<String> {
+        self.messages.borrow().clone()
+    }
+}
+```
+
+### Weak References for Cycle Breaking
+```rust
+// ✅ Break reference cycles with Weak<T>
+use std::rc::{Rc, Weak};
+use std::cell::RefCell;
+
+pub struct Node {
+    value: i32,
+    children: RefCell<Vec<Rc<Node>>>,
+    parent: RefCell<Weak<Node>>, // Weak reference prevents cycles
+}
+
+impl Node {
+    pub fn new(value: i32) -> Rc<Self> {
+        Rc::new(Node {
+            value,
+            children: RefCell::new(vec![]),
+            parent: RefCell::new(Weak::new()),
+        })
+    }
+    
+    pub fn add_child(parent: &Rc<Node>, child: Rc<Node>) {
+        child.parent.borrow_mut().clone_from(&Rc::downgrade(parent));
+        parent.children.borrow_mut().push(child);
+    }
+}
+```
 
 ### Builder Pattern Variations
 ```rust
@@ -254,6 +329,68 @@ pub struct ConnectionManager {
 
 ## LAYER 4: PERFORMANCE OPTIMIZATION
 
+### Iterator Patterns (Zero-Cost Abstractions)
+```rust
+// ✅ Functional style compiles to efficient loops
+pub fn process_messages(messages: &[Message]) -> Vec<ProcessedMessage> {
+    messages
+        .iter()
+        .filter(|msg| msg.is_valid())
+        .filter_map(|msg| msg.extract_content())
+        .map(|content| ProcessedMessage::new(content))
+        .collect()
+}
+
+// ✅ Custom iterators for domain-specific traversal
+pub struct MessageIterator<'a> {
+    messages: &'a [Message],
+    index: usize,
+    filter: fn(&Message) -> bool,
+}
+
+impl<'a> Iterator for MessageIterator<'a> {
+    type Item = &'a Message;
+    
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.index < self.messages.len() {
+            let msg = &self.messages[self.index];
+            self.index += 1;
+            if (self.filter)(msg) {
+                return Some(msg);
+            }
+        }
+        None
+    }
+}
+```
+
+### Lazy Initialization Patterns
+```rust
+// ✅ std::sync::Once for one-time initialization
+use std::sync::Once;
+
+static INIT: Once = Once::new();
+static mut GLOBAL_CONFIG: Option<Config> = None;
+
+pub fn get_config() -> &'static Config {
+    unsafe {
+        INIT.call_once(|| {
+            GLOBAL_CONFIG = Some(Config::load());
+        });
+        GLOBAL_CONFIG.as_ref().unwrap()
+    }
+}
+
+// ✅ OnceCell for lazy static initialization (safer)
+use std::sync::OnceLock;
+
+static CONFIG: OnceLock<Config> = OnceLock::new();
+
+pub fn get_config() -> &'static Config {
+    CONFIG.get_or_init(|| Config::load())
+}
+```
+
 ### Memory Layout Optimization
 ```rust
 // ✅ Packed structures for cache efficiency
@@ -352,6 +489,151 @@ pub fn filter_visible_messages(
 ---
 
 ## LAYER 5: ASYNC AND I/O PATTERNS
+
+### Future Combinators and Composition
+```rust
+// ✅ Combine futures efficiently
+use tokio::time::{timeout, Duration};
+
+pub async fn fetch_with_retry(url: &str, max_retries: u32) -> Result<String, FetchError> {
+    let mut attempts = 0;
+    
+    loop {
+        match timeout(Duration::from_secs(10), fetch_url(url)).await {
+            Ok(Ok(content)) => return Ok(content),
+            Ok(Err(e)) if attempts >= max_retries => return Err(e),
+            Ok(Err(_)) => {
+                attempts += 1;
+                tokio::time::sleep(Duration::from_millis(100 * attempts as u64)).await;
+            }
+            Err(_) => return Err(FetchError::Timeout),
+        }
+    }
+}
+
+// ✅ Parallel execution with join!
+use tokio::join;
+
+pub async fn fetch_user_data(user_id: UserId) -> Result<UserData, DataError> {
+    let (profile, messages, settings) = join!(
+        fetch_user_profile(user_id),
+        fetch_user_messages(user_id),
+        fetch_user_settings(user_id)
+    );
+    
+    Ok(UserData {
+        profile: profile?,
+        messages: messages?,
+        settings: settings?,
+    })
+}
+```
+
+### Async Trait Patterns
+```rust
+// ✅ Async traits with async-trait crate
+use async_trait::async_trait;
+
+#[async_trait]
+pub trait AsyncRepository<T> {
+    type Error;
+    
+    async fn find_by_id(&self, id: &str) -> Result<Option<T>, Self::Error>;
+    async fn save(&self, entity: &T) -> Result<(), Self::Error>;
+    async fn delete(&self, id: &str) -> Result<bool, Self::Error>;
+}
+
+// ✅ Implementation for concrete types
+pub struct DatabaseRepository {
+    pool: sqlx::PgPool,
+}
+
+#[async_trait]
+impl AsyncRepository<User> for DatabaseRepository {
+    type Error = sqlx::Error;
+    
+    async fn find_by_id(&self, id: &str) -> Result<Option<User>, Self::Error> {
+        sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", id)
+            .fetch_optional(&self.pool)
+            .await
+    }
+    
+    async fn save(&self, user: &User) -> Result<(), Self::Error> {
+        sqlx::query!(
+            "INSERT INTO users (id, name, email) VALUES ($1, $2, $3)",
+            user.id, user.name, user.email
+        )
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+    
+    async fn delete(&self, id: &str) -> Result<bool, Self::Error> {
+        let result = sqlx::query!("DELETE FROM users WHERE id = $1", id)
+            .execute(&self.pool)
+            .await?;
+        Ok(result.rows_affected() > 0)
+    }
+}
+```
+
+### Channel Patterns for Communication
+```rust
+// ✅ Different channel types for different use cases
+use tokio::sync::{mpsc, oneshot, broadcast};
+
+// MPSC for producer-consumer
+pub async fn message_processor() {
+    let (tx, mut rx) = mpsc::channel::<Message>(100);
+    
+    // Producer
+    tokio::spawn(async move {
+        for i in 0..1000 {
+            let msg = Message::new(format!("Message {}", i));
+            if tx.send(msg).await.is_err() {
+                break; // Receiver dropped
+            }
+        }
+    });
+    
+    // Consumer
+    while let Some(msg) = rx.recv().await {
+        process_message(msg).await;
+    }
+}
+
+// Oneshot for request-response
+pub async fn request_response_pattern() -> Result<String, RequestError> {
+    let (tx, rx) = oneshot::channel();
+    
+    tokio::spawn(async move {
+        let result = expensive_computation().await;
+        let _ = tx.send(result);
+    });
+    
+    rx.await.map_err(|_| RequestError::Cancelled)
+}
+
+// Broadcast for pub-sub
+pub async fn pubsub_pattern() {
+    let (tx, _rx) = broadcast::channel(100);
+    
+    // Multiple subscribers
+    for i in 0..3 {
+        let mut subscriber = tx.subscribe();
+        tokio::spawn(async move {
+            while let Ok(msg) = subscriber.recv().await {
+                println!("Subscriber {} received: {:?}", i, msg);
+            }
+        });
+    }
+    
+    // Publisher
+    for i in 0..10 {
+        let _ = tx.send(format!("Broadcast message {}", i));
+    }
+}
+```
 
 ### Stream Processing
 ```rust
@@ -802,7 +1084,119 @@ impl<const N: usize> FixedBuffer<N> {
 
 ---
 
-## LAYER 8: SERIALIZATION AND API PATTERNS
+## LAYER 8: MACRO AND METAPROGRAMMING PATTERNS
+
+### Declarative Macros for Code Generation
+```rust
+// ✅ Generate repetitive code with macros
+macro_rules! impl_id_type {
+    ($name:ident) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+        pub struct $name(pub Uuid);
+        
+        impl $name {
+            pub fn new() -> Self {
+                Self(Uuid::new_v4())
+            }
+        }
+        
+        impl From<Uuid> for $name {
+            fn from(uuid: Uuid) -> Self {
+                Self(uuid)
+            }
+        }
+        
+        impl From<$name> for Uuid {
+            fn from(id: $name) -> Self {
+                id.0
+            }
+        }
+    };
+}
+
+// Generate multiple ID types
+impl_id_type!(UserId);
+impl_id_type!(RoomId);
+impl_id_type!(MessageId);
+
+// ✅ Macro for creating enum with string conversion
+macro_rules! string_enum {
+    ($name:ident { $($variant:ident => $str:literal),* $(,)? }) => {
+        #[derive(Debug, Clone, PartialEq, Eq)]
+        pub enum $name {
+            $($variant,)*
+        }
+        
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                match self {
+                    $(Self::$variant => write!(f, $str),)*
+                }
+            }
+        }
+        
+        impl std::str::FromStr for $name {
+            type Err = String;
+            
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s {
+                    $($str => Ok(Self::$variant),)*
+                    _ => Err(format!("Invalid {}: {}", stringify!($name), s)),
+                }
+            }
+        }
+    };
+}
+
+string_enum!(MessageType {
+    Text => "text",
+    Image => "image",
+    File => "file",
+});
+```
+
+### Procedural Macros for Custom Derive
+```rust
+// ✅ Custom derive for builder pattern (conceptual)
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::{parse_macro_input, DeriveInput};
+
+#[proc_macro_derive(Builder)]
+pub fn derive_builder(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let name = &input.ident;
+    let builder_name = format!("{}Builder", name);
+    let builder_ident = syn::Ident::new(&builder_name, name.span());
+    
+    // Generate builder struct and implementation
+    let expanded = quote! {
+        impl #name {
+            pub fn builder() -> #builder_ident {
+                #builder_ident::default()
+            }
+        }
+        
+        #[derive(Default)]
+        pub struct #builder_ident {
+            // Builder fields would be generated here
+        }
+        
+        impl #builder_ident {
+            pub fn build(self) -> Result<#name, BuilderError> {
+                // Build logic would be generated here
+                todo!()
+            }
+        }
+    };
+    
+    TokenStream::from(expanded)
+}
+```
+
+---
+
+## LAYER 9: SERIALIZATION AND API PATTERNS
 
 ### Serde Best Practices
 ```rust
@@ -897,6 +1291,120 @@ pub fn create_user(id: impl Into<UserId>, name: impl Into<String>) -> User {
 
 ---
 
+## LAYER 10: UNSAFE CODE AND FFI PATTERNS
+
+### Safe Abstractions Over Unsafe Code
+```rust
+// ✅ Encapsulate unsafe operations in safe APIs
+pub struct RingBuffer<T> {
+    data: Vec<T>,
+    head: usize,
+    tail: usize,
+    capacity: usize,
+}
+
+impl<T> RingBuffer<T> {
+    pub fn new(capacity: usize) -> Self {
+        Self {
+            data: Vec::with_capacity(capacity),
+            head: 0,
+            tail: 0,
+            capacity,
+        }
+    }
+    
+    pub fn push(&mut self, item: T) -> Result<(), T> {
+        if self.is_full() {
+            return Err(item);
+        }
+        
+        // Safe: we've checked bounds above
+        unsafe {
+            let ptr = self.data.as_mut_ptr().add(self.tail);
+            std::ptr::write(ptr, item);
+        }
+        
+        self.tail = (self.tail + 1) % self.capacity;
+        Ok(())
+    }
+    
+    pub fn pop(&mut self) -> Option<T> {
+        if self.is_empty() {
+            return None;
+        }
+        
+        // Safe: we've checked bounds above
+        let item = unsafe {
+            let ptr = self.data.as_ptr().add(self.head);
+            std::ptr::read(ptr)
+        };
+        
+        self.head = (self.head + 1) % self.capacity;
+        Some(item)
+    }
+    
+    fn is_full(&self) -> bool {
+        (self.tail + 1) % self.capacity == self.head
+    }
+    
+    fn is_empty(&self) -> bool {
+        self.head == self.tail
+    }
+}
+```
+
+### FFI Patterns for C Interoperability
+```rust
+// ✅ Safe C API wrapper
+use std::ffi::{CStr, CString};
+use std::os::raw::{c_char, c_int};
+
+extern "C" {
+    fn c_process_string(input: *const c_char) -> *mut c_char;
+    fn c_free_string(ptr: *mut c_char);
+}
+
+pub fn process_string(input: &str) -> Result<String, ProcessError> {
+    let c_input = CString::new(input)
+        .map_err(|_| ProcessError::InvalidInput)?;
+    
+    let result_ptr = unsafe {
+        c_process_string(c_input.as_ptr())
+    };
+    
+    if result_ptr.is_null() {
+        return Err(ProcessError::ProcessingFailed);
+    }
+    
+    let result = unsafe {
+        let c_str = CStr::from_ptr(result_ptr);
+        c_str.to_string_lossy().into_owned()
+    };
+    
+    unsafe {
+        c_free_string(result_ptr);
+    }
+    
+    Ok(result)
+}
+
+// ✅ Export Rust functions to C
+#[no_mangle]
+pub extern "C" fn rust_add_numbers(a: c_int, b: c_int) -> c_int {
+    a + b
+}
+
+#[no_mangle]
+pub extern "C" fn rust_process_callback(
+    callback: extern "C" fn(c_int) -> c_int,
+    value: c_int,
+) -> c_int {
+    callback(value)
+}
+```
+
+---
+
 ## ANTI-PATTERNS TO AVOID
 
 ### Critical Mistakes
@@ -911,6 +1419,20 @@ let _ = risky_operation();
 fn bad_process(data: Vec<String>) -> Vec<String> {
     data.clone()
 }
+
+// ❌ NEVER: Mixing single-threaded and multi-threaded types
+let shared_data = Arc::new(Rc::new(data)); // Rc is not Send!
+
+// ❌ NEVER: Violating borrowing rules at runtime
+let cell = RefCell::new(vec![1, 2, 3]);
+let _borrow1 = cell.borrow();
+let _borrow2 = cell.borrow_mut(); // Panic!
+
+// ❌ NEVER: Creating reference cycles
+struct Node {
+    children: Vec<Rc<Node>>,
+    parent: Option<Rc<Node>>, // Should be Weak<Node>
+}
 ```
 
 ### Better Alternatives
@@ -923,13 +1445,54 @@ let value = risky_operation()
 fn good_process(data: &[String]) -> Vec<String> {
     data.iter().map(|s| s.to_uppercase()).collect()
 }
+
+// ✅ Use appropriate types for threading
+let shared_data = Arc::new(Mutex::new(data)); // Thread-safe
+
+// ✅ Check borrows before using RefCell
+if let Ok(mut borrow) = cell.try_borrow_mut() {
+    borrow.push(4);
+}
+
+// ✅ Use Weak references to break cycles
+struct Node {
+    children: Vec<Rc<Node>>,
+    parent: RefCell<Weak<Node>>, // Weak reference
+}
+```
+
+### Performance Anti-Patterns
+```rust
+// ❌ String concatenation in loops
+let mut result = String::new();
+for item in items {
+    result = result + &item.to_string(); // Allocates each time
+}
+
+// ✅ Use String::push_str or collect
+let result = items.iter()
+    .map(|item| item.to_string())
+    .collect::<Vec<_>>()
+    .join("");
+
+// ❌ Unnecessary allocations
+fn process_items(items: Vec<String>) -> Vec<String> {
+    items.into_iter()
+        .map(|s| s.clone()) // Unnecessary clone
+        .collect()
+}
+
+// ✅ Work with references
+fn process_items(items: &[String]) -> Vec<String> {
+    items.iter()
+        .map(|s| s.to_uppercase())
+        .collect()
+}
 ```
 
 ---
 
----
-
-## LAYER 9: WORKSPACE AND PROJECT ORGANIZATION
+## LAYER 11: WORKSPACE AND PROJECT ORGANIZATION
 
 ### Module Organization
 ```rust
