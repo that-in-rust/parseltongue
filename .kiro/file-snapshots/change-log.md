@@ -895,3 +895,33 @@
 ### File-Level Changes
 ---
 
+
+## Delta Report - 2025-09-20 18:34:33 IST
+
+### Summary Changes
+- **File Count**: 16 (114 total)
+- **Line Count**: -43,184 (59,375 total)
+- **Word Count**: -456,729 (175,252 total)
+
+### File-Level Changes
+**Added Files:**
+- ./.kiro/options/architecture-backlog.md
+- ./.kiro/options/backlog.md
+- ./.kiro/options/dev-steering-options.md
+- ./.kiro/options/storage-architecture-options.md
+- ./.kiro/options/user-journey-options.md
+- ./.kiro/rust-idioms/Comprehensive Rust Idiomatic Patterns Guide_.txt
+- ./.kiro/rust-idioms/comprehensive-rust-patterns-guidance.md
+- ./.kiro/rust-idioms/Executable Specifications_ Flawless One-Shot Code Generation (1).pdf
+- ./.kiro/rust-idioms/Executable Specifications for LLM Code Generation.md
+- ./.kiro/rust-idioms/Exploring Rust Idiomatic Patterns in Layers.pdf
+
+**Removed Files:**
+- ./.kiro/specs/parseltongue-aim-daemon/architecture-backlog.md
+- ./.kiro/specs/parseltongue-aim-daemon/backlog.md
+- ./.kiro/specs/parseltongue-aim-daemon/dev-steering-options.md
+- ./.kiro/specs/parseltongue-aim-daemon/storage-architecture-options.md
+- ./.kiro/specs/parseltongue-aim-daemon/user-journey-options.md
+
+---
+
