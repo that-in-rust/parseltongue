@@ -96,6 +96,53 @@ aim generate-context <function>     # Bounded context for LLMs
 - **Real-time Feedback Loop**: Continuous ISG updates during development with architectural impact analysis
 - **Legacy Module Refactoring**: Dependency analysis → impact assessment → real-time validation during changes
 
+### 4. OptimizedISG Design Analysis (DeepThink20250920v1.md)
+**Source**: DeepThink analysis document
+**Alignment**: ✅ **EXCELLENT MATCH** with Parseltongue requirements
+
+**Core Architecture**:
+```rust
+pub struct OptimizedISG {
+    state: Arc<RwLock<ISGState>>,
+}
+
+struct ISGState {
+    graph: StableDiGraph<NodeData, EdgeKind>,  // petgraph for algorithms
+    id_map: FxHashMap<SigHash, NodeIndex>,     // O(1) lookups
+}
+
+pub struct NodeData {
+    pub hash: SigHash,
+    pub kind: NodeKind,  // Function, Struct, Trait
+    pub name: Arc<str>,
+    pub signature: Arc<str>,
+}
+
+pub enum EdgeKind {
+    Calls, Implements, Uses  // Matches REQ-FUNC-001.0
+}
+```
+
+**Key Strengths for Parseltongue MVP**:
+- **SigHash-based identification**: Perfect match for REQ-PERF-001.0 deterministic identification
+- **Sub-millisecond queries**: Meets <500μs query targets through O(1) lookups + fast traversal
+- **Rust-native node types**: Function, Struct, Trait with CALLS, IMPL, USES edges (exact requirement match)
+- **Single RwLock design**: Atomic consistency, avoids DashMap deadlock complexity
+- **Memory efficient**: 350 bytes/node, L3 cache resident up to 1M LOC
+
+**Performance Analysis from DeepThink**:
+- **Small-Medium (10K-100K LOC)**: 1-5μs updates, <50μs complex queries ✅
+- **Large (1M LOC)**: 1-5μs updates, <500μs complex queries ✅ 
+- **Enterprise (10M+ LOC)**: Requires CSR optimization for <1ms constraint
+
+**TDD Implementation Ready**: Complete test suite with concurrency validation, production-ready code
+
+**Advantages over Hybrid Storage**:
+- **Simpler architecture**: Single data structure vs dual DashMap+SQLite
+- **Better performance**: No SQLite sync overhead, pure in-memory speed
+- **Atomic consistency**: Single lock vs coordinating multiple storage layers
+- **Matches requirements**: No persistence requirement in current specs
+
 **CLI Command Specifications**:
 ```bash
 # Installation and setup
