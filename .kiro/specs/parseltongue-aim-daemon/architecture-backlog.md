@@ -16,6 +16,7 @@
 
 ### 🟡 In Progress (_refDocs)
 - **z02.html**: Lines 4001-5000 analyzed - User journey patterns and LLM integration workflows extracted
+- **zz03MoreArchitectureIdeas**: Lines 1001-2000 analyzed - SQLite WAL performance and concurrency patterns extracted
 
 ---
 
