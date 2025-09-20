@@ -1,0 +1,14 @@
+{
+  "enabled": false,
+  "name": "Auto Repository Snapshot",
+  "description": "Automatically generates repository snapshots on significant file changes. Tracks all files except .git folder with comprehensive delta reporting.",
+  "version": "1",
+  "when": {
+    "type": "fileChange",
+    "filePattern": "**/*.{md,txt,sh,hook,rs,toml,json,yaml,yml}"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "./generate-repository-snapshot.sh"
+  }
+}
