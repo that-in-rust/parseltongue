@@ -1,158 +1,87 @@
-# Parseltongue AIM Daemon - Specification Documentation
+# Parseltongue AIM Daemon - Specification
 
-## Overview
+**Mission**: Rust-only architectural intelligence with <12ms updates and zero-hallucination LLM context.
 
-This directory contains the complete specification for Parseltongue AIM Daemon, a revolutionary Rust-only development tool that transforms code analysis from probabilistic text searches to deterministic, graph-based architectural navigation.
+## .kiro Guidance Structure
 
-**Core Mission**: Enable sub-millisecond architectural queries and zero-hallucination LLM context generation through Interface Signature Graphs (ISG).
+### Steering Rules (Global Guidance)
+Located in `.kiro/steering/` - These files provide project-wide guidance and constraints:
 
-## Table of Contents
+| File | Purpose | Status |
+|------|---------|--------|
+| [parseltongue-requirements-focus.md](../../steering/parseltongue-requirements-focus.md) | Core constraints, decision framework, success metrics | ✅ Active |
+| [code-conventions.md](../../steering/code-conventions.md) | Coding standards and conventions | 🔴 Empty |
 
-### 📋 Core Specification Documents
+### Specification Files (Feature-Specific)
+Located in `.kiro/specs/parseltongue-aim-daemon/` - These files define the specific feature:
 
-| Document | Purpose | Status | Last Updated |
-|----------|---------|--------|--------------|
-| [requirements.md](./requirements.md) | **MVP 1.0 Requirements** - 18 core requirements with detailed acceptance criteria | ✅ Complete | 2025-01-19 |
-| [backlog.md](./backlog.md) | **Post-MVP Features** - Advanced features organized by release version | ✅ Complete | 2025-01-19 |
-| [requirements-tasks.md](./requirements-tasks.md) | **Task Tracking** - Document analysis progress and quality gates | 🟡 In Progress | 2025-01-19 |
+| Document | Purpose | Status |
+|----------|---------|--------|
+| [requirements.md](./requirements.md) | 18 MVP requirements with REQ-ID system | ✅ Complete |
+| [SESSION_CONTEXT.md](./SESSION_CONTEXT.md) | Progress tracking and session recovery | ✅ Complete |
+| [requirements-tasks.md](./requirements-tasks.md) | Task tracking and document analysis | 🟡 In Progress |
+| [architecture-backlog.md](./architecture-backlog.md) | Technical concepts from analysis | ✅ Complete |
+| [backlog.md](./backlog.md) | Post-MVP features by version | ✅ Complete |
+| [storage-architecture-options.md](./storage-architecture-options.md) | Storage research archive | ✅ Complete |
+| [prompts/storage-architecture-analysis.md](./prompts/storage-architecture-analysis.md) | LLM analysis prompt | ✅ Complete |
 
-### 🎯 Analysis & Planning Documents
-
-| Document | Purpose | Status | Description |
-|----------|---------|--------|-------------|
-| [prompts/storage-architecture-analysis.md](./prompts/storage-architecture-analysis.md) | **LLM Prompt** - Comprehensive storage options analysis | ✅ Complete | Evaluates SQLite, graph databases, hybrid approaches |
-
-### 🏗️ Architecture & Design (Future)
-
-| Document | Purpose | Status | Description |
-|----------|---------|--------|-------------|
-| `design.md` | **Technical Architecture** | 🔴 Pending | Detailed system design based on finalized requirements |
-| `api-specification.md` | **API Design** | 🔴 Pending | CLI, HTTP, gRPC interface specifications |
-| `implementation-plan.md` | **Development Roadmap** | 🔴 Pending | Phased implementation strategy with task breakdown |
-
-## Document Relationships
+## .kiro Guidance Hierarchy
 
 ```mermaid
 graph TD
-    A[requirements.md] --> B[design.md]
-    A --> C[backlog.md]
-    B --> D[api-specification.md]
-    B --> E[implementation-plan.md]
-    F[requirements-tasks.md] --> A
-    G[prompts/storage-architecture-analysis.md] --> B
-    C --> H[Future Releases]
+    subgraph "Global Steering (.kiro/steering/)"
+        A[parseltongue-requirements-focus.md]
+        B[code-conventions.md]
+    end
+    
+    subgraph "Feature Spec (.kiro/specs/parseltongue-aim-daemon/)"
+        C[requirements.md]
+        D[design.md]
+        E[tasks.md]
+        F[backlog.md]
+        G[SESSION_CONTEXT.md]
+        H[requirements-tasks.md]
+        I[architecture-backlog.md]
+        J[storage-architecture-options.md]
+        K[prompts/storage-architecture-analysis.md]
+    end
+    
+    A --> C
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    C --> F
+    H --> C
+    K --> D
+    F --> L[Future Releases]
 ```
 
-## Key Constraints & Principles
+### Guidance Flow
+1. **Steering Rules** provide global constraints and decision frameworks
+2. **Requirements** are refined using steering guidance
+3. **Design** incorporates both steering rules and requirements
+4. **Tasks** are derived from approved design
+5. **Implementation** follows tasks while adhering to steering rules
 
-### Core Constraints (Non-Negotiable)
-- **Rust-Only Focus**: Exclusively designed for Rust codebases using `syn` crate
-- **High-Speed Updates**: <12ms total pipeline latency from file save to query readiness
-- **LLM-Terminal Integration**: Optimized for AI tools querying from terminal
+## .kiro Guidance Usage
 
-### Success Metrics
-- **Update Latency**: <12ms from file save to query readiness
-- **Query Performance**: <500μs for simple graph traversals
-- **Memory Efficiency**: <25MB for 100K LOC Rust codebase
-- **Compression Ratio**: >95% from raw code to architectural essence
+### Terminal Commands
+```bash
+# View all steering rules
+ls -la .kiro/steering/
 
-## Development Phases
+# Read core constraints
+cat .kiro/steering/parseltongue-requirements-focus.md
 
-### MVP 1.0 (Current Focus)
-**Scope**: Core functionality with 18 requirements
-- Basic Rust parsing with `syn` crate
-- Simple file monitoring with `notify` crate
-- Essential queries (who-implements, blast-radius, find-cycles)
-- LLM context generation with basic compression
-- CLI interface for terminal usage
-- SQLite persistence with basic schema
+# View current requirements
+cat .kiro/specs/parseltongue-aim-daemon/requirements.md
 
-### v1.5 (Performance & Usability)
-**Scope**: Enhanced user experience
-- Intelligent file discovery
-- Code convention validation
-- Performance optimizations for larger codebases
-- Enhanced CLI with better UX
+# Check session progress
+cat .kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md
+```
 
-### v2.0 (Advanced Features)
-**Scope**: Enterprise capabilities
-- Advanced SigHash and verification
-- Extensibility and plugin architecture
-- Machine-readable export formats
-- Property-based testing integration
-
-### v3.0 (Enterprise Scale)
-**Scope**: Distributed and advanced
-- Multi-source input handling
-- Distributed analysis capabilities
-- Enterprise integration features
-- Advanced graph databases
-
-## Quality Gates
-
-### Requirements Quality Gate ✅
-**Status**: PASSED
-- [x] All 18 requirements have detailed, measurable acceptance criteria
-- [x] Performance targets are specific and testable
-- [x] Rust-specific patterns and constraints are fully specified
-- [x] LLM integration requirements are complete and actionable
-- [x] All requirements align with core constraints
-
-### Design Quality Gate 🔴
-**Status**: PENDING
-- [ ] Technical architecture addresses all requirements
-- [ ] API specifications are complete and consistent
-- [ ] Performance design meets all latency targets
-- [ ] Concurrency and thread safety design is sound
-- [ ] Error handling and resilience design is comprehensive
-
-### Implementation Quality Gate 🔴
-**Status**: PENDING
-- [ ] All core requirements are implemented and tested
-- [ ] Performance targets are met in benchmarks
-- [ ] Error handling works as specified
-- [ ] API is stable and documented
-- [ ] System is production-ready for initial users
-
-## Contributing Guidelines
-
-### Document Updates
-1. **Requirements Changes**: Must maintain MVP 1.0 scope, advanced features go to backlog
-2. **Design Decisions**: Document rationale and trade-offs
-3. **Performance Targets**: Include specific measurements and benchmarks
-4. **Rust Integration**: Ensure all solutions leverage Rust ecosystem
-
-### Review Process
-1. **Technical Review**: Validate against core constraints
-2. **Performance Review**: Verify latency and memory targets
-3. **Simplicity Review**: Ensure solutions follow code conventions
-4. **Integration Review**: Check LLM-terminal optimization
-
-## Quick Start
-
-### For Reviewers
-1. Start with [requirements.md](./requirements.md) for complete MVP scope
-2. Check [backlog.md](./backlog.md) for post-MVP features
-3. Review [requirements-tasks.md](./requirements-tasks.md) for current progress
-
-### For Implementers
-1. Understand requirements and constraints in [requirements.md](./requirements.md)
-2. Wait for design.md completion (pending requirements approval)
-3. Follow implementation plan when available
-
-### For Architects
-1. Use [prompts/storage-architecture-analysis.md](./prompts/storage-architecture-analysis.md) for storage decisions
-2. Contribute to design.md based on requirements
-3. Validate all decisions against performance targets
-
-## Contact & Support
-
-- **Specification Questions**: Review requirements.md and backlog.md
-- **Technical Decisions**: Use provided LLM prompts for analysis
-- **Implementation Guidance**: Follow code conventions and performance targets
-
----
-
-**Last Updated**: 2025-01-19  
-**Version**: MVP 1.0 Specification  
-**Status**: Requirements Complete, Design Pending
+### Quick Start
+- **New Contributors**: Read `.kiro/steering/parseltongue-requirements-focus.md` first
+- **Implementers**: Study [requirements.md](./requirements.md) (18 requirements with REQ-ID system)
+- **Current Status**: Requirements complete, design pending
