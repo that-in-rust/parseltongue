@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-21 00:13:23 IST
+# Repository Snapshot - 2025-09-21 00:18:59 IST
 
 ## Summary Statistics
-- **Total Files**: 126
-- **Total Lines**: 66,688
-- **Total Words**: 199,903
-- **Snapshot Time**: 2025-09-21 00:13:23 IST
+- **Total Files**: 127
+- **Total Lines**: 66,726
+- **Total Words**: 200,040
+- **Snapshot Time**: 2025-09-21 00:18:59 IST
 
 ## File Inventory
 
@@ -16,10 +16,10 @@
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
 | ./.gitignore | 222 | 383 | 2.9K |
-| ./IMPLEMENTATION_NOTES.md | 210 | 1016 | 7.9K |
-| ./.kiro/file-snapshots/change-log.md | 1240 | 3646 | 27K |
-| ./.kiro/file-snapshots/current-snapshot.md | 136 | 1321 | 9.5K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 136 | 1321 | 9.5K |
+| ./IMPLEMENTATION_NOTES.md | 211 | 1027 | 8.0K |
+| ./.kiro/file-snapshots/change-log.md | 1255 | 3684 | 28K |
+| ./.kiro/file-snapshots/current-snapshot.md | 138 | 1339 | 9.6K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 138 | 1339 | 9.6K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
 | ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 545 |
 | ./.kiro/options/architecture-backlog.md | 2638 | 12791 | 104K |
@@ -42,7 +42,7 @@
 | ./.kiro/specs/parseltongue-aim-daemon/COMPLETION_SUMMARY.md | 163 | 761 | 5.7K |
 | ./.kiro/specs/parseltongue-aim-daemon/design.md | 2677 | 7914 | 87K |
 | ./.kiro/specs/parseltongue-aim-daemon/prompts/storage-architecture-analysis.md | 204 | 881 | 7.2K |
-| ./.kiro/specs/parseltongue-aim-daemon/README.md | 259 | 1172 | 11K |
+| ./.kiro/specs/parseltongue-aim-daemon/README.md | 260 | 1185 | 11K |
 | ./.kiro/specs/parseltongue-aim-daemon/ref-code-snippets.md | 335 | 950 | 9.7K |
 | ./.kiro/specs/parseltongue-aim-daemon/requirements.md | 152 | 1464 | 9.8K |
 | ./.kiro/specs/parseltongue-aim-daemon/requirements-tasks.md | 107 | 1220 | 9.6K |
@@ -57,9 +57,9 @@
 | ./.kiro/steering/requirements-tasks-methodology.md | 79 | 429 | 3.5K |
 | ./.kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | ./.kiro/unified-progress-tracker.sh | 242 | 1138 | 9.4K |
-| ./ONBOARDING_GUIDE.md | 328 | 1122 | 8.4K |
+| ./ONBOARDING_GUIDE.md | 340 | 1218 | 9.0K |
 | ./parseltongue_dump.txt | 24 | 64 | 514 |
-| ./README.md | 191 | 727 | 5.5K |
+| ./README.md | 198 | 751 | 5.8K |
 | ./_refDocs/_refIdioms/Comprehensive Rust Idiomatic Patterns Guide_.txt | 769 | 12536 | 90K |
 | ./_refDocs/_refIdioms/comprehensive-rust-patterns-guidance.md | 1846 | 5140 | 51K |
 | ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis (1).pdf | [binary] | [binary] | 81K |
@@ -128,11 +128,12 @@
 | ./_refDocs/zzzArchive/test-regular-file.md | 7 | 39 | 228 |
 | ./_refDocs/zzzArchive/test-spec.md | 7 | 38 | 217 |
 | ./_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
-| ./SPEC_UPDATE_SUMMARY.md | 110 | 601 | 4.6K |
+| ./SPEC_UPDATE_SUMMARY.md | 118 | 658 | 5.0K |
 | ./src/cli.rs | 511 | 1393 | 17K |
-| ./src/daemon.rs | 780 | 2274 | 28K |
+| ./src/daemon.rs | 783 | 2291 | 28K |
 | ./src/isg.rs | 602 | 1821 | 21K |
 | ./src/lib.rs | 23 | 79 | 591 |
 | ./src/main.rs | 13 | 34 | 280 |
+| ./test_axum_format.txt | 15 | 33 | 297 |
 | ./test_small.txt | 22 | 51 | 401 |
 | ./.vscode/settings.json | [binary] | [binary] | 44 |
