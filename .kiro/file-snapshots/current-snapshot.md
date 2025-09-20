@@ -1,20 +1,23 @@
-# Repository Snapshot - 2025-09-20 10:18:10 IST
+# Repository Snapshot - 2025-09-20 10:24:22 IST
 
 ## Summary Statistics
-- Total Files: 70
-- Total Lines: 112,117
-- Total Words: 998,094
+- Total Files: 80
+- Total Lines: 146,688
+- Total Words: 1,112,066
 
 ## File Inventory
 
 | File Path | Lines | Words |
 |-----------|-------|-------|
-| ./current_snapshot_temp.md | 7 | 25 |
-| ./.kiro/file-snapshots/change-log.md | 36 | 179 |
-| ./.kiro/file-snapshots/current-snapshot.md | 138 | 1069 |
+| ./.cursorignore | 135 | 202 |
+| ./generate-repository-snapshot.sh | 108 | 537 |
+| ./.kiro/file-snapshots/change-log.md | 83 | 426 |
+| ./.kiro/file-snapshots/current-snapshot.md | 109 | 744 |
+| ./.kiro/file-snapshots/previous-snapshot.md | 138 | 1069 |
+| ./.kiro/hooks/auto-repository-snapshot.kiro.hook | 13 | 43 |
 | ./.kiro/hooks/file-change-tracker.kiro.hook | 15 | 136 |
 | ./.kiro/hooks/file-change-tracker.md | 279 | 1182 |
-| ./.kiro/hooks/repository-snapshot.kiro.hook | 12 | 122 |
+| ./.kiro/hooks/repository-snapshot.kiro.hook | 12 | 47 |
 | ./.kiro/hooks/session-context-updater.kiro.hook | 18 | 123 |
 | ./.kiro/hooks/session-context-updater.md | 240 | 1048 |
 | ./.kiro/specs/parseltongue-aim-daemon/architecture-backlog.md | 1041 | 4922 |
@@ -53,8 +56,13 @@
 | ./_refDocs/zz04MoreNotes.md | 1188 | 14961 |
 | ./_refIdioms/Comprehensive Rust Idiomatic Patterns Guide_.txt | 769 | 12536 |
 | ./_refIdioms/comprehensive-rust-patterns-guidance.md | 1846 | 5140 |
+| ./_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis (1).pdf | 426 | 1965 |
+| ./_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.docx | 111 | 622 |
+| ./_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.pdf | 431 | 1945 |
 | ./_refIdioms/documentation-hierarchy-analysis.md | 198 | 1170 |
+| ./_refIdioms/Executable Specifications_ Flawless One-Shot Code Generation (1).pdf | 453 | 2048 |
 | ./_refIdioms/Executable Specifications for LLM Code Generation.md | 214 | 4231 |
+| ./_refIdioms/Exploring Rust Idiomatic Patterns in Layers.pdf | 13699 | 49084 |
 | ./_refIdioms/Exploring Rust in Layers_ Language Core to Idiomatic Patterns.docx.md | 270 | 12621 |
 | ./_refIdioms/i00-pattern-list.txt | 607 | 2069 |
 | ./_refIdioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx (1).md | 203 | 3756 |
@@ -62,6 +70,7 @@
 | ./_refIdioms/React Idiomatic Reference for LLMs.md | 424 | 8120 |
 | ./_refIdioms/react-patterns.md | 694 | 1980 |
 | ./_refIdioms/Rust Idiomatic Patterns Deep Dive_.md | 878 | 12280 |
+| ./_refIdioms/Rust Idiomatic Patterns Deep Dive_.rtf | 19044 | 56631 |
 | ./_refIdioms/rust-patterns.md | 434 | 1302 |
 | ./_refIdioms/Sig-Graph-Ideas.md | 345 | 1359 |
 | ./_refIdioms/tdd-patterns.md | 583 | 1784 |
@@ -70,6 +79,7 @@
 | ./_refIdioms/Unlocking _Compile-First Success__ A Layered Blueprint for Building and Governing Rust's Idiomatic-Archive.md | 416 | 5927 |
 | ./_refIdioms/You are an __omniscient superintelligence with an....md | 161 | 2182 |
 | ./_refTestData/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 |
+| ./.vscode/settings.json | 2 | 4 |
 | ./zzzArchive/analysis-progress-tracker.kiro.hook | 15 | 104 |
 | ./zzzArchive/install01.sh | 501 | 1386 |
 | ./zzzArchive/step01_scope.txt | 152 | 480 |
@@ -80,31 +90,7 @@
 | ./zzzArchive/step98_current_files.txt | 10 | 10 |
 | ./zzzArchive/step99_assignment_prompt01.txt | 396 | 1674 |
 
-## Analysis Progress Summary
-
-### _refDocs Analysis Status (18/18 Complete)
-- ✅ All reference documents analyzed
-- ✅ MVP-relevant concepts extracted to architecture-backlog.md
-- ✅ Advanced concepts moved to appropriate version backlogs
-
-### _refIdioms Analysis Status (0/24 Pending)
-- 🔴 Comprehensive analysis needed for Rust patterns and TDD methodologies
-- 🔴 24 documents containing advanced architectural concepts
-- 🔴 Critical for completing architecture research phase
-
-### Key Document Evolution
-- **architecture-backlog.md**: 1041 lines, 4922 words (Primary technical repository)
-- **requirements.md**: 282 lines, 3683 words (18 MVP requirements defined)
-- **requirements-tasks.md**: 295 lines, 2237 words (Task coordination hub)
-- **SESSION_CONTEXT.md**: 215 lines, 1059 words (Session continuity)
-
-### Major Reference Documents
-- **zz03MoreArchitectureIdeas20250920v1.md**: 21,030 lines, 314,808 words
-- **z02.html**: 6,060 lines, 295,759 words  
-- **Notes04.md**: 5,498 lines, 22,845 words
-- **Notes06.md**: 1,736 lines, 33,368 words
-
-### Repository Health
-- Total documentation: ~1M words across 70 files
-- Architecture research: Comprehensive technical foundation established
-- Implementation readiness: Requirements phase nearing completion
+## Changes Since Previous Snapshot
+- File Count Change: 10
+- Line Count Change: 34,571
+- Word Count Change: 113,972
