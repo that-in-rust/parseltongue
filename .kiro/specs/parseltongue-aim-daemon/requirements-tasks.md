@@ -1,52 +1,18 @@
-# Parseltongue AIM Daemon - MVP 1.0 Requirements & Tasks
+# Parseltongue AIM Daemon - Requirements & Tasks
 
-## MVP 1.0 Philosophy
+## MVP Constraints
+- **Rust-only**: .rs files, `syn` crate parsing
+- **<12ms updates**: File save to query readiness  
+- **In-memory ISG**: Arc<RwLock<HashMap<SigHash, Node>>>
+- **LLM-terminal**: Deterministic context generation
 
-**Core Principle**: Build the simplest possible system that delivers core value - fast, accurate Rust architectural intelligence for LLM integration.
+## Current Phase: Document Analysis
 
-### What MVP 1.0 IS
-- ✅ **Rust-only focus**: Parse .rs files exclusively with `syn` crate
-- ✅ **High-speed updates**: <12ms from file save to query readiness
-- ✅ **LLM-terminal integration**: Deterministic architectural context generation
-- ✅ **SQLite storage**: Proven, simple, meets performance requirements
-- ✅ **Core queries**: who-implements, blast-radius, find-cycles, generate-context
-- ✅ **Essential patterns**: 80% coverage with pure `syn` parsing
+**Status**: Systematic analysis of _refDocs and _refIdioms  
+**Process**: Read 1000 lines → classify → route to appropriate docs  
+**Progress**: 22 _refDocs + 15 _refIdioms remaining
 
-### What MVP 1.0 IS NOT
-- ❌ **Multi-language support**: No JavaScript, Python, Java, etc.
-- ❌ **Enterprise features**: No distributed analysis, advanced security, complex workflows
-
-### Backlog Strategy
-**Aggressive backlog management**: Any feature that doesn't directly support the three core constraints (Rust-only, <12ms, LLM-terminal) gets moved to backlog immediately. This keeps MVP focused and deliverable.
-
-## Current Status
-
-### Requirements Document
-- **Status**: ✅ **COMPLETE** - 18 MVP requirements with detailed EARS acceptance criteria
-- **Coverage**: Core functionality, performance targets, error handling, basic scalability
-- **Quality**: All requirements are specific, measurable, and testable
-- **Advanced Features**: Requirements 19-24 moved to [backlog.md](./backlog.md)
-
-### Document Analysis Progress
-- **_refDocs Remaining**: 4/22 documents analyzed (18% remaining) - 4 large files with 28,801 lines total
-- **_refIdioms Remaining**: 0/15 documents analyzed (0% complete) - 9 non-MD files skipped
-- **Status**: 🟡 **PARTIAL COMPLETION** - Major _refDocs files and all _refIdioms still need analysis
-- **Strategy**: Extract only ideas that align with MVP constraints (Rust-only, <12ms, LLM-terminal)
-- **Process**: wc count → read MAX 1000 lines at a time → extract MVP-relevant ideas → move advanced concepts to backlog
-- **Next**: Complete remaining _refDocs analysis (Tasks 1.19-1.22) then _refIdioms analysis (Tasks 1.23-1.24)
-
-### Key Findings from Completed Analysis
-**MVP-Relevant Concepts Extracted:**
-
-## Remaining Tasks for MVP 1.0 Completion
-
-### Phase 1: Complete Requirements Analysis (Current Priority)
-
-#### Task 1: Finish Reference Document Analysis
-**Goal**: Complete systematic analysis of ALL reference documents in _refDocs and _refIdioms
-**MVP Focus**: Extract only ideas that support Rust-only, <12ms, LLM-terminal constraints
-
-**_refDocs ANALYSIS STATUS** (18/22 documents completed, 4 remaining):
+## Document Analysis Tasks
 
 **Reference Documents**:
 - [ ] 1.1 `_refDocs/SESSION_CONTEXT.md` (241 lines) - Anti-coordination principles and context management
