@@ -575,3 +575,17 @@
 
 ---
 
+
+## Delta Report - 2025-09-20 13:31:07 IST
+
+### Summary Changes
+- **File Count**: 1 (95 total)
+- **Line Count**: 104 (99,334 total)
+- **Word Count**: 374 (619,879 total)
+
+### File-Level Changes
+**Added Files:**
+- ./.kiro/specs/parseltongue-aim-daemon/design.md
+
+---
+
