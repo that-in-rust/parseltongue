@@ -702,3 +702,17 @@
 ### File-Level Changes
 ---
 
+
+## Delta Report - 2025-09-20 14:09:29 IST
+
+### Summary Changes
+- **File Count**: 1 (97 total)
+- **Line Count**: 160 (99,971 total)
+- **Word Count**: 872 (622,679 total)
+
+### File-Level Changes
+**Added Files:**
+- ./.kiro/specs/parseltongue-aim-daemon/dev-steering-options.md
+
+---
+

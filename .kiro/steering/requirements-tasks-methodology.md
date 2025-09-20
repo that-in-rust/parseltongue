@@ -30,6 +30,9 @@ ELSE IF (code samples, implementation examples, Rust snippets, function signatur
 ELSE IF (Rust idioms, ownership patterns, borrowing, lifetimes, Arc/Rc, async/await, error handling, Result<T,E>, Option<T>, trait objects, generics, macros)
    → rust-patterns-analysis.md
 
+ELSE IF (TDD, test-driven development, pure functions, functional programming, software methodology, development approach, architectural patterns, implementation strategy, code organization)
+   → dev-steering-options.md
+
 ELSE IF (v2.0, v3.0, enterprise, distributed, multi-language, complex features, nice-to-have, post-MVP)
    → backlog.md
 
