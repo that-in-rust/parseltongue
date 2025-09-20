@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-20 18:34:33 IST
+# Repository Snapshot - 2025-09-20 19:36:25 IST
 
 ## Summary Statistics
 - **Total Files**: 114
-- **Total Lines**: 59,375
-- **Total Words**: 175,252
-- **Snapshot Time**: 2025-09-20 18:34:33 IST
+- **Total Lines**: 60,332
+- **Total Words**: 179,862
+- **Snapshot Time**: 2025-09-20 19:36:25 IST
 
 ## File Inventory
 
@@ -13,9 +13,9 @@
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./DeepThink20250920v1.md | 558 | 3139 | 25K |
 | ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
-| ./.kiro/file-snapshots/change-log.md | 897 | 2637 | 19K |
-| ./.kiro/file-snapshots/current-snapshot.md | 110 | 1032 | 7.0K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 110 | 1032 | 7.0K |
+| ./.kiro/file-snapshots/change-log.md | 927 | 2723 | 20K |
+| ./.kiro/file-snapshots/current-snapshot.md | 126 | 1253 | 8.4K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 126 | 1253 | 8.4K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
 | ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 545 |
 | ./.kiro/options/architecture-backlog.md | 2638 | 12791 | 104K |
@@ -30,7 +30,6 @@
 | ./.kiro/rust-idioms/Exploring Rust Idiomatic Patterns in Layers.pdf | [binary] | [binary] | 613K |
 | ./.kiro/rust-idioms/Exploring Rust in Layers_ Language Core to Idiomatic Patterns.docx.md | 270 | 12621 | 97K |
 | ./.kiro/rust-idioms/i00-pattern-list.txt | 607 | 2069 | 18K |
-| ./.kiro/rust-idioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx (1).md | 203 | 3756 | 28K |
 | ./.kiro/rust-idioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx.md | 203 | 3756 | 28K |
 | ./.kiro/rust-idioms/React Idiomatic Reference for LLMs.md | 424 | 8120 | 58K |
 | ./.kiro/rust-idioms/Rust Idiomatic Patterns Deep Dive_.md | 878 | 12280 | 95K |
@@ -46,12 +45,13 @@
 | ./.kiro/specs/parseltongue-aim-daemon/requirements-tasks.md | 107 | 1220 | 9.6K |
 | ./.kiro/specs/parseltongue-aim-daemon/rust-patterns-analysis.md | 483 | 1480 | 14K |
 | ./.kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 215 | 1059 | 8.4K |
+| ./.kiro/specs/parseltongue-aim-daemon/tasks.md | 166 | 1246 | 9.9K |
 | ./.kiro/steering/code-conventions.md | [binary] | [binary] | 0 |
+| ./.kiro/steering/design101-tdd-architecture-principles.md | 729 | 2836 | 23K |
 | ./.kiro/steering/hook-automation-guide.md | 256 | 1274 | 11K |
 | ./.kiro/steering/hook-system-status.md | 27 | 115 | 912 |
 | ./.kiro/steering/parseltongue-requirements-focus.md | 34 | 130 | 954 |
 | ./.kiro/steering/requirements-tasks-methodology.md | 79 | 429 | 3.5K |
-| ./.kiro/steering/tdd-architecture-principles.md | [binary] | [binary] | 0 |
 | ./.kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | ./.kiro/unified-progress-tracker.sh | 242 | 1138 | 9.4K |
 | ./README.md | 31 | 115 | 973 |
