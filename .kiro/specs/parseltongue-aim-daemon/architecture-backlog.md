@@ -1932,4 +1932,708 @@ Critical Paths:
 - Sub-millisecond architectural queries for IDE integration
 - Real-time impact analysis for changes
 - Architectural constraint enforcement and validation
-- 100% accuracy vs traditional search-based methods
+- 100% accuracy vs traditional search-based methods#
+# Signature Graph Architecture Concepts (Sig-Graph-Ideas.md)
+
+### Core Graph Model: 3x3 Signature Graph
+
+#### Node Types (3 Primary Categories)
+- **Functions**: Callable entities with signatures and parameters
+- **Types**: Data structures, enums, and type definitions  
+- **Traits**: Interface definitions and behavioral contracts
+
+#### Edge Types (3 Primary Relationships)
+- **Calls**: Function invocation relationships
+- **Implements**: Type-to-trait implementation relationships
+- **Interacts**: Cross-stack and dependency relationships
+
+### SigHash System for Node Identification
+
+#### BLAKE3-Based Signature Hashing
+- **Stable Identifiers**: Collision-resistant 64-bit hashes from normalized signatures
+- **Deterministic**: Same signature always produces same SigHash
+- **Performance**: O(1) lookups in HashMap<SigHash, Node>
+- **Compression**: 98%+ reduction from source code to graph representation
+
+#### Graph Node Structure
+```rust
+struct GraphNode {
+    id: SigHash,           // BLAKE3 signature hash
+    kind: NodeKind,        // Function, Type, or Trait
+    signature: String,     // Normalized signature
+    location: FileLocation, // Source file and line information
+    metadata: HashMap<String, String>, // Additional context
+}
+```
+
+### Query Operations for LLM Integration
+
+#### Core Query Types
+- **who-calls**: Find all functions that call a specific function
+- **blast-radius**: Recursive dependency analysis with configurable depth
+- **what-implements**: Find all implementations of a trait
+- **find-cycles**: Detect circular dependencies using graph algorithms
+
+#### Performance Targets
+- **Query Response**: <100ms for complex graph queries
+- **Extraction Speed**: <50ms to extract 10k nodes
+- **Memory Efficiency**: <1GB RAM for large codebases
+- **Compression Ratio**: 98%+ reduction from source to graph
+
+### Multi-Language Support Strategy
+
+#### Language-Specific Parsers
+- **Rust**: syn crate for high-fidelity AST parsing
+- **TypeScript**: swc for JavaScript/TypeScript analysis
+- **SQL**: Regex-based schema extraction
+- **API Specs**: OpenAPI and GraphQL parsing
+
+#### Cross-Stack Relationship Detection
+- **API Boundaries**: HTTP endpoints to handler functions
+- **Database Interactions**: SQL queries to data models
+- **Configuration Dependencies**: Environment variables to code usage
+
+### Export Formats for Different Use Cases
+
+#### LLM-Optimized Formats
+- **JSONL**: Streaming format for large graphs
+- **Interface Stubs**: Language-specific signature extraction
+- **Compressed Context**: Minimal representation for AI consumption
+
+#### Visualization Formats
+- **Mermaid**: Diagram generation for documentation
+- **DOT**: Graphviz-compatible graph visualization
+- **SQLite**: Queryable database format for complex analysis
+
+### Architecture Analysis Features
+
+#### Dependency Analysis
+- **Blast Radius**: Impact analysis for changes
+- **Cycle Detection**: Identify circular dependencies
+- **Hotspot Analysis**: Find highly connected nodes
+- **Complexity Metrics**: Quantify architectural complexity
+
+#### Code Quality Insights
+- **Interface Coverage**: Percentage of code with clear interfaces
+- **Coupling Analysis**: Identify tightly coupled components
+- **Architecture Violations**: Detect anti-patterns
+- **Refactoring Opportunities**: Suggest improvements
+
+### Integration Patterns
+
+#### CI/CD Pipeline Integration
+```yaml
+# Architecture validation in CI
+- name: Extract Graph
+  run: pensieve extract
+- name: Check Architecture
+  run: pensieve check --strict --fail-on-cycles
+- name: Generate Report
+  run: pensieve metrics > ARCHITECTURE_REPORT.md
+```
+
+#### LLM Integration Workflow
+```bash
+# Generate LLM-ready context
+pensieve extract --format jsonl | llm-analyze
+
+# Generate interface stubs for AI-assisted coding
+pensieve export-stubs --target rust | copilot-chat
+```
+
+### Performance Optimization Strategies
+
+#### In-Memory Graph Operations
+- **petgraph**: Efficient graph data structure for traversals
+- **SQLite Integration**: Complex queries with custom functions
+- **Indexing Strategy**: Optimized lookups for common query patterns
+
+#### Incremental Updates
+- **File Change Detection**: Monitor filesystem for updates
+- **Partial Recomputation**: Update only affected graph regions
+- **Cache Management**: Persistent storage for extracted graphs
+
+### User Experience Design
+
+#### Developer Journey
+1. **Discovery**: `pensieve scan` to identify project structure
+2. **Extraction**: `pensieve extract` to build signature graph
+3. **Analysis**: Interactive query mode for exploration
+4. **Integration**: Export formats for downstream tools
+
+#### Query Interface Design
+- **Interactive Mode**: REPL-style exploration
+- **Batch Queries**: Scriptable analysis workflows
+- **Structured Output**: Machine-readable results
+
+### Success Metrics for Parseltongue Integration
+
+#### Technical Performance
+- **Update Latency**: <12ms from file save to graph update
+- **Query Performance**: <500μs for simple traversals
+- **Memory Footprint**: <25MB for 100K LOC projects
+- **Compression Efficiency**: >95% token reduction
+
+#### Developer Experience
+- **Onboarding Time**: <5 minutes from install to insights
+- **Query Accuracy**: >95% correct relationship detection
+- **Output Quality**: Actionable insights for 90% of queries
+
+This signature graph architecture provides a solid foundation for implementing the Interface Signature Graph (ISG) component of the Parseltongue AIM Daemon, with proven patterns for performance, scalability, and LLM integration.
+## Reac
+t Patterns Analysis - Architectural Concepts (from react-patterns.md)
+
+**Source**: _refIdioms/react-patterns.md (694 lines)
+**Relevance**: Non-Rust content, but contains architectural patterns applicable to daemon design
+
+### Applicable Architectural Patterns
+
+#### Type-Safe Component Architecture → Rust Type Safety
+- **Branded Types**: React uses branded types for domain safety (UserId, RoomId, MessageId)
+- **Rust Application**: Use newtype patterns for domain safety in parseltongue
+```rust
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct FileId(u64);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]  
+pub struct FunctionId(u64);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct StructId(u64);
+```
+
+#### Error Handling and Resilience → Rust Error Handling
+- **Error Boundaries**: React uses error boundaries with retry logic
+- **Rust Application**: Comprehensive error handling with recovery strategies
+```rust
+pub enum DaemonError {
+    ParseError(syn::Error),
+    FileSystemError(std::io::Error),
+    IndexingError(String),
+}
+
+impl DaemonError {
+    pub fn is_recoverable(&self) -> bool {
+        match self {
+            DaemonError::FileSystemError(_) => true,
+            DaemonError::ParseError(_) => false,
+            DaemonError::IndexingError(_) => true,
+        }
+    }
+}
+```
+
+#### Optimistic Updates with Rollback → ISG Update Strategy
+- **Pattern**: React implements optimistic updates with rollback on failure
+- **Rust Application**: ISG updates could use similar pattern for file changes
+```rust
+pub struct OptimisticUpdate {
+    pub temp_id: String,
+    pub original_state: Option<Node>,
+    pub new_state: Node,
+}
+
+impl ISG {
+    pub fn apply_optimistic_update(&mut self, update: OptimisticUpdate) -> Result<(), DaemonError> {
+        // Apply update immediately for <12ms response
+        // Store rollback information
+    }
+    
+    pub fn confirm_update(&mut self, temp_id: &str) -> Result<(), DaemonError> {
+        // Confirm optimistic update was successful
+    }
+    
+    pub fn rollback_update(&mut self, temp_id: &str) -> Result<(), DaemonError> {
+        // Rollback failed optimistic update
+    }
+}
+```
+
+#### State Management Patterns → ISG State Management
+- **Immutable Updates**: React uses Immer for immutable state updates
+- **Rust Application**: Leverage Rust's ownership system for safe state updates
+```rust
+use std::sync::{Arc, RwLock};
+use std::collections::HashMap;
+
+pub type ISGState = Arc<RwLock<HashMap<SigHash, Node>>>;
+
+impl ISG {
+    pub fn update_node<F>(&self, sig_hash: SigHash, updater: F) -> Result<(), DaemonError>
+    where
+        F: FnOnce(&mut Node) -> Result<(), DaemonError>,
+    {
+        let mut state = self.state.write().unwrap();
+        if let Some(node) = state.get_mut(&sig_hash) {
+            updater(node)?;
+        }
+        Ok(())
+    }
+}
+```
+
+#### Performance Optimization → Rust Performance
+- **Strategic Memoization**: React memoizes expensive calculations
+- **Rust Application**: Cache expensive parsing operations
+```rust
+use std::collections::HashMap;
+
+pub struct ParseCache {
+    file_hashes: HashMap<PathBuf, u64>,
+    parsed_results: HashMap<u64, Vec<Node>>,
+}
+
+impl ParseCache {
+    pub fn get_or_parse(&mut self, file_path: &Path) -> Result<&Vec<Node>, DaemonError> {
+        let current_hash = self.calculate_file_hash(file_path)?;
+        
+        if let Some(cached_hash) = self.file_hashes.get(file_path) {
+            if *cached_hash == current_hash {
+                return Ok(self.parsed_results.get(&current_hash).unwrap());
+            }
+        }
+        
+        // Parse and cache
+        let nodes = self.parse_file(file_path)?;
+        self.file_hashes.insert(file_path.to_path_buf(), current_hash);
+        self.parsed_results.insert(current_hash, nodes);
+        
+        Ok(self.parsed_results.get(&current_hash).unwrap())
+    }
+}
+```
+
+### Non-Applicable Patterns (React-Specific)
+- WebSocket integration patterns (daemon uses file system watching)
+- Component composition patterns (not applicable to daemon architecture)
+- React Query integration (daemon doesn't need HTTP caching)
+- Virtual scrolling (daemon doesn't have UI components)
+
+### Key Takeaways for Parseltongue Daemon
+1. **Type Safety**: Use newtype patterns for domain-specific IDs
+2. **Error Recovery**: Implement comprehensive error handling with recovery strategies
+3. **Optimistic Updates**: Apply changes immediately, rollback on failure
+4. **Performance Caching**: Cache expensive parsing operations
+5. **State Management**: Leverage Rust's ownership for safe concurrent access
+
+**MVP Relevance**: Medium - architectural patterns applicable, but React-specific implementation details not relevant
+**Routing Decision**: Architecture concepts → architecture-backlog.md ✅
+## React Idiomatic Reference Analysis (from React Idiomatic Reference for LLMs.md)
+
+**Source**: _refIdioms/React Idiomatic Reference for LLMs.md (424 lines, truncated)
+**Relevance**: Non-Rust content, React-specific patterns not applicable to daemon architecture
+
+### Analysis Summary
+- **Content Type**: React component patterns, hooks, state management
+- **Applicability**: Very low - React-specific UI patterns not relevant to Rust daemon
+- **Key Concepts**: Functional components, hooks, state management, side effects
+- **Routing Decision**: Skip detailed analysis - React patterns not applicable to parseltongue daemon
+
+### Non-Applicable Patterns
+- React functional components and hooks
+- JSX rendering patterns  
+- React state management (useState, useReducer)
+- React Context API
+- Component composition patterns
+- React-specific testing patterns
+
+### Conclusion
+This document contains comprehensive React patterns but no architectural concepts applicable to a Rust-based file parsing daemon. All content is React/JavaScript specific and not relevant to our MVP constraints (Rust-only, <12ms updates, in-memory ISG).
+
+**MVP Relevance**: None - React-specific content
+**Routing Decision**: Skip detailed extraction ✅## 
+LLM Integration Patterns Analysis (from You are an __omniscient superintelligence with an....md)
+
+**Source**: _refIdioms/You are an __omniscient superintelligence with an....md (161 lines)
+**Relevance**: Medium - LLM integration patterns and architectural thinking applicable to daemon design
+
+### Key Architectural Thinking Patterns for Parseltongue
+
+#### 1. Multi-Perspective Analysis Framework
+- **Council of Experts**: Different personas analyze from specialized viewpoints
+- **Structured Debate**: Challenge assumptions and validate decisions
+- **Tree of Thoughts**: Explore multiple solution paths before selecting optimal approach
+- **Chain of Verification**: Rigorous self-correction and validation
+
+**Application to Parseltongue**:
+```rust
+// Multi-perspective validation of parsing approach
+// Persona 1: Performance Expert - validates <12ms constraint
+// Persona 2: Rust Expert - validates idiomatic patterns  
+// Persona 3: Architecture Expert - validates ISG design
+// Persona 4: Skeptic - challenges complexity and edge cases
+```
+
+#### 2. Kernel Approach Architecture Pattern
+- **Monolithic Efficiency**: Single binary internalizing all dependencies
+- **Dedicated Writer Task**: Serialize database writes through single task
+- **Internal Pub/Sub**: Use tokio channels instead of external message brokers
+- **Compile-Time Guarantees**: Leverage Rust's type system for correctness
+
+**Application to Parseltongue Daemon**:
+```rust
+// Kernel approach for parseltongue daemon
+pub struct ParseltongueKernel {
+    file_watcher: FileWatcher,
+    parser_pool: ParserPool,
+    isg: Arc<RwLock<ISG>>,
+    query_engine: QueryEngine,
+    // All components in single binary
+}
+
+// Dedicated writer pattern for ISG updates
+pub struct ISGWriter {
+    update_rx: mpsc::Receiver<ISGUpdate>,
+    isg: Arc<RwLock<ISG>>,
+}
+
+impl ISGWriter {
+    async fn run(&mut self) {
+        while let Some(update) = self.update_rx.recv().await {
+            // Serialize all ISG writes through single task
+            self.apply_update(update).await;
+        }
+    }
+}
+```
+
+#### 3. Performance-First Design Principles
+- **Eliminate External Dependencies**: Reduce network latency and serialization overhead
+- **Async-First Architecture**: Tokio for high-concurrency I/O
+- **Compile-Time Optimization**: Leverage Rust's zero-cost abstractions
+- **Memory Efficiency**: Minimize allocations and GC pressure
+
+**Parseltongue Performance Targets**:
+```rust
+// Performance contracts built into architecture
+pub struct PerformanceConstraints {
+    pub max_parse_time: Duration,      // <12ms
+    pub max_memory_per_file: usize,    // <25MB
+    pub max_isg_update_time: Duration, // <5ms
+    pub max_query_response: Duration,  // <1ms
+}
+
+// Benchmark-driven development
+#[cfg(test)]
+mod performance_tests {
+    #[tokio::test]
+    async fn test_parse_performance_constraint() {
+        let start = Instant::now();
+        let result = parser.parse_file(&test_file).await;
+        let duration = start.elapsed();
+        
+        assert!(duration < Duration::from_millis(12));
+        assert!(result.is_ok());
+    }
+}
+```
+
+#### 4. Abstraction for Future Scalability
+- **Trait-Based Abstractions**: Allow implementation swapping
+- **Single-Node Optimization**: Optimize for MVP constraints
+- **Future-Proof Interfaces**: Enable scaling without core rewrites
+
+**Parseltongue Scalability Abstractions**:
+```rust
+// Abstract storage for future scalability
+pub trait ISGStorage: Send + Sync {
+    async fn get_node(&self, sig_hash: &SigHash) -> Result<Option<Node>, StorageError>;
+    async fn update_nodes(&self, updates: Vec<NodeUpdate>) -> Result<(), StorageError>;
+    async fn query_nodes(&self, query: &Query) -> Result<Vec<Node>, StorageError>;
+}
+
+// In-memory implementation for MVP
+pub struct InMemoryISG {
+    nodes: Arc<RwLock<HashMap<SigHash, Node>>>,
+}
+
+// Future: Distributed implementation
+pub struct DistributedISG {
+    local_cache: InMemoryISG,
+    remote_store: RemoteStorage,
+}
+```
+
+#### 5. Innovation Integration Patterns
+- **WASM Plugin System**: Secure execution of user-defined code
+- **CRDT Integration**: Conflict-free replicated data types for resilience
+- **Compile-Time Safety**: End-to-end type safety across system boundaries
+
+**Parseltongue Innovation Opportunities**:
+```rust
+// WASM plugin system for custom analyzers
+pub trait CodeAnalyzer {
+    fn analyze(&self, nodes: &[Node]) -> AnalysisResult;
+}
+
+// WASM-based analyzer execution
+pub struct WasmAnalyzer {
+    runtime: wasmtime::Engine,
+    module: wasmtime::Module,
+}
+
+impl CodeAnalyzer for WasmAnalyzer {
+    fn analyze(&self, nodes: &[Node]) -> AnalysisResult {
+        // Execute user-defined analysis in secure WASM sandbox
+        // Microsecond startup times, robust security isolation
+    }
+}
+
+// CRDT for distributed ISG synchronization
+pub struct CrdtISG {
+    local_state: automerge::AutoCommit,
+    sync_manager: SyncManager,
+}
+```
+
+### Architectural Decision Framework
+
+#### 1. Constraint-Driven Design
+- **MVP Constraints**: Rust-only, <12ms, in-memory, LLM-terminal
+- **Performance First**: Optimize for speed over flexibility
+- **Simplicity**: Single binary deployment model
+
+#### 2. Verification-Driven Development
+- **Chain of Verification**: Multiple validation perspectives
+- **Performance Benchmarks**: Continuous validation of constraints
+- **Type Safety**: Compile-time correctness guarantees
+
+#### 3. Future-Proof Architecture
+- **Trait Abstractions**: Enable implementation evolution
+- **Plugin Architecture**: WASM-based extensibility
+- **Innovation Integration**: CRDTs, advanced data structures
+
+### Benefits for Parseltongue Development
+
+1. **Systematic Analysis**: Multi-perspective validation of design decisions
+2. **Performance Focus**: Architecture optimized for <12ms constraints
+3. **Scalability Planning**: Abstractions enable future growth
+4. **Innovation Ready**: Foundation for advanced features (WASM, CRDTs)
+5. **Verification Rigor**: Multiple validation layers ensure correctness
+
+### Implementation Strategy
+
+1. **Apply Multi-Perspective Analysis**: Validate design from multiple expert viewpoints
+2. **Implement Kernel Architecture**: Single binary with internalized dependencies
+3. **Create Performance Contracts**: Build constraints into type system
+4. **Design Scalability Abstractions**: Enable future evolution without rewrites
+5. **Plan Innovation Integration**: Foundation for WASM plugins and advanced features
+
+**MVP Relevance**: Medium - architectural thinking patterns applicable to daemon design
+**Routing Decision**: LLM integration and architectural patterns → architecture-backlog.md ✅## A
+rchitectural Decision Framework Analysis (from ThreeCrossThree20250916.md)
+
+**Source**: _refIdioms/ThreeCrossThree20250916.md (96 lines)
+**Relevance**: High - architectural decision frameworks directly applicable to parseltongue daemon design
+
+### Key Architectural Decision Patterns for Parseltongue
+
+#### 1. Hybrid Data Structure Strategy
+- **Storage Layer**: JSONL for durable, version-controlled source of truth
+- **Analysis Layer**: In-memory graphs (petgraph) for fast traversal
+- **Query Layer**: SQLite for complex filtering and subgraph extraction
+- **Presentation Layer**: Interface signatures for LLM comprehension
+
+**Application to Parseltongue ISG**:
+```rust
+// Hybrid storage strategy for ISG
+pub struct ISGStorage {
+    // Durable storage - JSONL format
+    persistent: JsonlStorage,
+    // Fast analysis - in-memory graph
+    graph: petgraph::Graph<Node, Edge>,
+    // Complex queries - in-memory SQLite
+    query_db: rusqlite::Connection,
+}
+
+// JSONL schema for parseltongue nodes
+#[derive(Serialize, Deserialize)]
+pub struct NodeRecord {
+    pub node_type: String,        // "Function", "Struct", "Trait"
+    pub id: SigHash,
+    pub name: String,
+    pub file_path: PathBuf,
+    pub line_number: u32,
+    pub signature: String,
+    pub dependencies: Vec<SigHash>,
+}
+```
+
+#### 2. Optimization by Use Case
+- **Storage**: Optimized for durability and version control
+- **Analysis**: Optimized for graph traversal algorithms
+- **Querying**: Optimized for complex filtering operations
+- **LLM Context**: Optimized for code generation comprehension
+
+**Parseltongue Use Case Optimization**:
+```rust
+// Different representations for different use cases
+impl ISG {
+    // Fast traversal for dependency analysis
+    pub fn analyze_dependencies(&self, node: &SigHash) -> Vec<SigHash> {
+        self.graph.neighbors(*node).collect()
+    }
+    
+    // Complex queries for context generation
+    pub fn query_context(&self, query: &str) -> Result<Vec<Node>, QueryError> {
+        self.query_db.prepare(query)?.query_map([], |row| {
+            // Convert SQL results back to Node objects
+        })
+    }
+    
+    // LLM-optimized context presentation
+    pub fn generate_context(&self, focus_node: &SigHash) -> String {
+        // Transform graph slice into interface signatures
+        // Optimized for LLM comprehension
+    }
+}
+```
+
+#### 3. LLM Integration Principles
+- **Structured Data as Source**: Don't rely on diagrams as primary input
+- **Interface Signatures for Context**: Present code-like interfaces to LLMs
+- **Bounded Context Extraction**: Provide relevant subgraphs, not entire codebase
+- **Visualization as Output**: Generate diagrams for human consumption
+
+**Parseltongue LLM Integration**:
+```rust
+// Context generation optimized for LLM comprehension
+pub struct ContextGenerator {
+    isg: Arc<RwLock<ISG>>,
+}
+
+impl ContextGenerator {
+    pub fn generate_bounded_context(&self, focus: &SigHash, depth: u32) -> LLMContext {
+        let subgraph = self.extract_subgraph(focus, depth);
+        
+        LLMContext {
+            // Present as actual Rust code interfaces
+            interfaces: self.to_rust_interfaces(&subgraph),
+            // Include relevant type definitions
+            types: self.extract_types(&subgraph),
+            // Provide dependency relationships
+            dependencies: self.extract_dependencies(&subgraph),
+        }
+    }
+    
+    fn to_rust_interfaces(&self, nodes: &[Node]) -> Vec<String> {
+        nodes.iter().map(|node| {
+            match node.node_type {
+                NodeType::Function => format!(
+                    "// Function: {}\n// File: {}:{}\npub fn {}({}) -> {} {{\n    // Implementation here\n}}",
+                    node.name, node.file_path, node.line_number,
+                    node.name, node.parameters, node.return_type
+                ),
+                NodeType::Struct => format!(
+                    "// Struct: {}\n#[derive(Debug, Clone)]\npub struct {} {{\n{}\n}}",
+                    node.name, node.name, node.fields
+                ),
+                NodeType::Trait => format!(
+                    "// Trait: {}\npub trait {} {{\n{}\n}}",
+                    node.name, node.name, node.methods
+                ),
+            }
+        }).collect()
+    }
+}
+```
+
+#### 4. Performance-Optimized Architecture Layers
+```rust
+// Layer-specific optimizations for parseltongue
+pub struct ParseltongueArchitecture {
+    // Layer 1: Storage (JSONL) - Durability optimized
+    storage: JsonlStorage,
+    
+    // Layer 2: Analysis (petgraph) - Traversal optimized  
+    graph: petgraph::DiGraph<Node, Edge>,
+    
+    // Layer 3: Querying (SQLite) - Query optimized
+    query_engine: rusqlite::Connection,
+    
+    // Layer 4: LLM Context (Interfaces) - Comprehension optimized
+    context_generator: ContextGenerator,
+    
+    // Layer 5: Visualization (Mermaid) - Human consumption
+    diagram_generator: MermaidGenerator,
+}
+
+impl ParseltongueArchitecture {
+    pub async fn update_from_file_change(&mut self, file_path: &Path) -> Result<(), DaemonError> {
+        // 1. Parse file and extract nodes (< 8ms)
+        let nodes = self.parse_file(file_path).await?;
+        
+        // 2. Update storage layer (< 2ms)
+        self.storage.update_nodes(&nodes).await?;
+        
+        // 3. Update analysis graph (< 1ms)
+        self.graph.update_nodes(&nodes);
+        
+        // 4. Update query database (< 1ms)
+        self.query_engine.update_nodes(&nodes)?;
+        
+        // Total: < 12ms constraint maintained
+        Ok(())
+    }
+}
+```
+
+#### 5. Sparse Graph Optimization
+- **Adjacency Lists**: Most efficient for sparse software architecture graphs
+- **Petgraph Library**: Standard Rust graph library with optimized internals
+- **In-Memory Processing**: Eliminate I/O overhead for analysis operations
+
+**Parseltongue Graph Optimization**:
+```rust
+use petgraph::{Graph, Directed};
+
+// Optimized graph representation for sparse software architectures
+pub type ISGGraph = Graph<Node, Edge, Directed>;
+
+impl ISG {
+    pub fn new() -> Self {
+        Self {
+            // Petgraph uses optimized adjacency lists internally
+            graph: ISGGraph::new(),
+            node_index: HashMap::new(),
+        }
+    }
+    
+    // Fast dependency traversal
+    pub fn get_dependencies(&self, node: &SigHash) -> Vec<SigHash> {
+        if let Some(&node_idx) = self.node_index.get(node) {
+            self.graph
+                .neighbors(node_idx)
+                .map(|idx| self.graph[idx].sig_hash)
+                .collect()
+        } else {
+            Vec::new()
+        }
+    }
+    
+    // Efficient subgraph extraction
+    pub fn extract_subgraph(&self, focus: &SigHash, depth: u32) -> Vec<Node> {
+        // BFS traversal with depth limit
+        // Optimized for bounded context generation
+    }
+}
+```
+
+### Benefits for Parseltongue Development
+
+1. **Layer Optimization**: Each layer optimized for its specific use case
+2. **LLM Integration**: Context presentation optimized for code generation
+3. **Performance**: In-memory graphs for fast analysis operations
+4. **Flexibility**: Multiple query interfaces for different needs
+5. **Scalability**: Hybrid approach scales with codebase size
+
+### Implementation Strategy
+
+1. **Design Hybrid Architecture**: Different optimizations for different layers
+2. **Implement JSONL Storage**: Durable, version-controlled source of truth
+3. **Integrate Petgraph**: Fast in-memory graph for analysis operations
+4. **Add SQLite Querying**: Complex filtering for context extraction
+5. **Optimize LLM Context**: Present interfaces as actual code signatures
+
+**MVP Relevance**: High - architectural decision frameworks directly applicable to daemon design
+**Routing Decision**: Architectural patterns and decision frameworks → architecture-backlog.md ✅
