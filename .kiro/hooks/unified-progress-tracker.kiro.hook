@@ -7,6 +7,9 @@
     "type": "fileSaved",
     "patterns": [
       "**/*"
+    ],
+    "excludePatterns": [
+      ".git/**/*"
     ]
   },
   "then": {

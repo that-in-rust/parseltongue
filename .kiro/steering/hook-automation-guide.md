@@ -24,10 +24,12 @@ The hook system implements the session continuity requirements from the requirem
 
 **Purpose**: Comprehensive automation that handles repository snapshots, file change tracking, session context updates, and git operations.
 
-**Trigger**: `fileSaved` on `**/*` (any file save in repository)
+**Trigger**: `fileSaved` on `**/*` excluding `.git/**/*` (any file save in repository except git folder)
 
 **Actions**:
-- Generates repository snapshots with file counts and delta tracking
+- Generates comprehensive repository snapshots with complete file inventory
+- Tracks ALL files (including .git) for accurate repository state
+- Counts lines/words across expanded file types (.md, .rs, .toml, .json, .txt, .yml, .yaml)
 - Updates SESSION_CONTEXT.md with current progress percentages
 - Calculates task completion from requirements-tasks.md
 - Creates intelligent git commit messages based on change types
@@ -59,15 +61,16 @@ The hook system implements the session continuity requirements from the requirem
 
 **File**: `.kiro/hooks/source-docs-sync.kiro.hook`
 
-**Purpose**: Monitors Rust source files and configuration changes to trigger documentation updates.
+**Purpose**: Monitors all source files and configuration changes to trigger documentation updates.
 
-**Trigger**: `userTriggered` on source files (`.rs`, `Cargo.toml`, etc.)
+**Trigger**: `fileSaved` on source files (`.rs`, `.py`, `.ts`, `.js`, etc.) with SHORT debounce
 
 **Actions**:
-- Analyzes source code changes
-- Updates README.md and docs/ folder
+- Analyzes source code changes across multiple languages
+- Updates README.md and docs/ folder automatically
 - Maintains synchronization between code and documentation
-- Focuses on API changes and architectural modifications
+- Focuses on API changes, new features, and architectural modifications
+- Provides comprehensive coverage for polyglot repositories
 
 ## Hook Integration with Steering Methodology
 
@@ -110,6 +113,11 @@ The hooks enforce MVP constraints through intelligent filtering:
 - **Location**: `.kiro/hooks/`
 - **Examples**: `unified-progress-tracker.kiro.hook`, `source-docs-sync.kiro.hook`
 
+### Pattern Configuration
+- **Include Patterns**: Use `patterns` array to specify which files to monitor
+- **Exclude Patterns**: Use `excludePatterns` array to exclude specific paths (e.g., `.git/**/*`)
+- **Common Exclusions**: `.git/**/*`, `target/**/*`, `node_modules/**/*`, `build/**/*`
+
 ### JSON Structure Requirements
 ```json
 {
@@ -119,7 +127,8 @@ The hooks enforce MVP constraints through intelligent filtering:
   "version": "1",
   "when": {
     "type": "fileSaved|manual|userTriggered",
-    "patterns": ["**/*"]
+    "patterns": ["**/*"],
+    "excludePatterns": [".git/**/*"]
   },
   "then": {
     "type": "shell|askAgent",
@@ -160,6 +169,12 @@ The hooks enforce MVP constraints through intelligent filtering:
 - **Memory Usage**: Minimal, processes files incrementally
 - **Disk Impact**: Only writes to `.kiro/` directory
 - **Network**: Only pushes when changes exist
+
+**File Tracking Scope**:
+- **File Count**: ALL files in repository (including .git) except target/ and node_modules/
+- **Line/Word Count**: Text files (.md, .rs, .toml, .json, .txt, .yml, .yaml)
+- **Inventory**: All non-binary files with detailed metrics
+- **Delta Tracking**: Comprehensive change detection between snapshots
 
 ## Troubleshooting Guide
 
@@ -239,5 +254,23 @@ The hooks enforce MVP constraints through intelligent filtering:
 - **Script Backup**: Maintain previous versions in zzzArchive
 - **Migration Guide**: Document changes when updating hook configurations
 - **Compatibility**: Ensure hooks work across Kiro IDE versions
+
+## Recent Updates
+
+### Enhanced File Tracking (2025-01-20)
+
+**Changes Made**:
+- **Complete Repository Coverage**: File count now includes ALL files (including .git directory)
+- **Expanded File Type Analysis**: Line/word counting extended to include .txt, .yml, .yaml files
+- **Comprehensive Inventory**: More accurate repository state representation
+- **Better Delta Detection**: Enhanced change tracking across all file types
+
+**Impact**:
+- More accurate repository statistics and progress tracking
+- Better visibility into complete project state including version control
+- Enhanced documentation and configuration file tracking
+- Improved delta reporting for comprehensive change analysis
+
+**Migration**: No action required - changes are backward compatible and enhance existing functionality.
 
 This hook automation system provides the foundation for maintaining the requirements-tasks methodology with zero manual overhead, ensuring complete session continuity and development progress tracking.

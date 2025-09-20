@@ -13,14 +13,19 @@ Located in `.kiro/steering/` - These files provide project-wide guidance and con
 | [code-conventions.md](../../steering/code-conventions.md) | Coding standards and conventions | 🔴 Empty |
 
 ### Automated Hooks
-Located in `.kiro/hooks/` - These files provide automated progress tracking:
+Located in `.kiro/hooks/` - Unified progress tracking system with comprehensive monitoring:
 
 | Hook | Purpose | Trigger |
 |------|---------|---------|
-| [session-context-updater.kiro.hook](../../hooks/session-context-updater.kiro.hook) | Auto-updates SESSION_CONTEXT.md with progress | Spec file edits |
-| [file-change-tracker.kiro.hook](../../hooks/file-change-tracker.kiro.hook) | Tracks changes, commits to git with timestamps | .kiro file edits |
-| [analysis-progress-tracker.kiro.hook](../../hooks/analysis-progress-tracker.kiro.hook) | Monitors document analysis completion | requirements-tasks.md edits |
-| [repository-snapshot.kiro.hook](../../hooks/repository-snapshot.kiro.hook) | Generates comprehensive repo snapshots | Manual trigger |
+| [unified-progress-tracker.kiro.hook](../../hooks/unified-progress-tracker.kiro.hook) | Complete automation: snapshots, progress, git ops | Any file save |
+| [unified-progress-manual.kiro.hook](../../hooks/unified-progress-manual.kiro.hook) | Manual trigger for comprehensive tracking | Manual |
+| [source-docs-sync.kiro.hook](../../hooks/source-docs-sync.kiro.hook) | Syncs source changes with documentation | Source file changes |
+
+**Enhanced Capabilities**:
+- **Complete File Inventory**: Tracks ALL repository files (including .git)
+- **Expanded Analysis**: Lines/words for .md, .rs, .toml, .json, .txt, .yml, .yaml
+- **Delta Reporting**: Detailed change detection between snapshots
+- **Intelligent Commits**: Categorized commit messages with v01 branch automation
 
 ### Specification Files (Feature-Specific)
 Located in `.kiro/specs/parseltongue-aim-daemon/` - These files define the specific feature:
@@ -103,11 +108,16 @@ cat .kiro/specs/parseltongue-aim-daemon/requirements-tasks.md
 ```
 
 ### Automated Hooks
-The repository includes 4 automated hooks in `.kiro/hooks/`:
-- **session-context-updater.kiro.hook**: Auto-updates progress tracking
-- **file-change-tracker.kiro.hook**: Tracks changes and commits to git
-- **analysis-progress-tracker.kiro.hook**: Monitors document analysis progress
-- **repository-snapshot.kiro.hook**: Manual repository state snapshots
+The repository includes unified progress tracking with comprehensive monitoring:
+- **unified-progress-tracker.kiro.hook**: Comprehensive automation with complete file inventory
+- **unified-progress-manual.kiro.hook**: Manual trigger for progress tracking
+- **source-docs-sync.kiro.hook**: Synchronizes source code changes with documentation
+
+**Enhanced Tracking Features**:
+- Complete repository state snapshots (ALL files including .git)
+- Expanded file type analysis (.md, .rs, .toml, .json, .txt, .yml, .yaml)
+- Delta reporting between snapshots with detailed change detection
+- Intelligent git commit categorization and automated v01 branch pushes
 
 ### Quick Start
 - **New Contributors**: Read `.kiro/steering/parseltongue-requirements-focus.md` first

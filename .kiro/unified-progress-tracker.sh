@@ -27,10 +27,10 @@ generate_repository_snapshot() {
     echo "# Repository Snapshot - $TIMESTAMP" > "$TEMP_SNAPSHOT"
     echo "" >> "$TEMP_SNAPSHOT"
 
-    # Summary statistics
+    # Summary statistics - exclude .git but include other hidden files
     TOTAL_FILES=$(find . -type f ! -path "./.git/*" ! -path "./target/*" ! -path "./node_modules/*" | wc -l)
-    TOTAL_LINES=$(find . -type f ! -path "./.git/*" -name "*.md" -o -name "*.rs" -o -name "*.toml" -o -name "*.json" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
-    TOTAL_WORDS=$(find . -type f ! -path "./.git/*" -name "*.md" -o -name "*.rs" -o -name "*.toml" -o -name "*.json" | xargs wc -w 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
+    TOTAL_LINES=$(find . -type f ! -path "./.git/*" -name "*.md" -o -name "*.rs" -o -name "*.toml" -o -name "*.json" -o -name "*.txt" -o -name "*.yml" -o -name "*.yaml" | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
+    TOTAL_WORDS=$(find . -type f ! -path "./.git/*" -name "*.md" -o -name "*.rs" -o -name "*.toml" -o -name "*.json" -o -name "*.txt" -o -name "*.yml" -o -name "*.yaml" | xargs wc -w 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
 
     echo "## Summary Statistics" >> "$TEMP_SNAPSHOT"
     echo "- **Total Files**: $(printf "%'d" $TOTAL_FILES)" >> "$TEMP_SNAPSHOT"
