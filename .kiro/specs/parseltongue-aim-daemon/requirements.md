@@ -92,19 +92,18 @@ Parseltongue AIM Daemon is a **Rust-only** development tool that transforms code
 5. WHEN memory usage grows THEN the system SHALL handle typical development projects (10-50K LOC) efficiently
 6. WHEN concurrent access occurs THEN the system SHALL prevent data races using Rust's ownership system
 
-### REQ-API-001.0: Structured Data Output and API Interfaces
+### REQ-MVP-007.0: Essential Error Handling
 
-**User Story:** As a developer integrating Parseltongue with other tools, I want structured data output and high-performance API interfaces, so that I can build additional tooling and integrations on top of the architectural intelligence.
+**User Story:** As a Rust developer using the daemon daily, I want clear error messages and graceful failure handling, so that temporary issues don't disrupt my development workflow.
 
 #### Acceptance Criteria
 
-1. WHEN outputting query results THEN the system SHALL provide structured JSON format alongside human-readable output
-2. WHEN running as a daemon THEN the system SHALL expose HTTP/gRPC query server API on configurable port (default 8080) with <1 second startup time
-3. WHEN generating context THEN the system SHALL support multiple output formats including markdown and structured data
-4. WHEN providing status updates THEN the system SHALL emit machine-readable progress information
-5. WHEN integrating with IDEs THEN the system SHALL support language server protocol for real-time architectural feedback
-6. WHEN handling concurrent requests THEN the system SHALL support at least 1000 concurrent connections using async Rust (tokio)
-7. WHEN serving gRPC requests THEN the system SHALL respond with binary-encoded results for maximum performance with Rust clients
+1. WHEN Rust file parsing fails THEN the system SHALL log the error details and continue processing other files
+2. WHEN file monitoring fails THEN the system SHALL attempt to restart monitoring after a brief delay
+3. WHEN storage operations fail THEN the system SHALL retry up to 3 times before reporting failure
+4. WHEN any command fails THEN the system SHALL show clear error message with suggested fix
+5. WHEN unrecoverable errors occur THEN the system SHALL shut down gracefully with diagnostic information
+6. WHEN the daemon crashes THEN it SHALL be able to restart and reload state from storage
 
 ### REQ-FUNC-003.0: Specialized Query Types for LLM Integration
 
