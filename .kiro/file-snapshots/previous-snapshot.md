@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-21 00:10:30 IST
+# Repository Snapshot - 2025-09-21 00:13:23 IST
 
 ## Summary Statistics
-- **Total Files**: 124
-- **Total Lines**: 66,631
-- **Total Words**: 199,756
-- **Snapshot Time**: 2025-09-21 00:10:30 IST
+- **Total Files**: 126
+- **Total Lines**: 66,688
+- **Total Words**: 199,903
+- **Snapshot Time**: 2025-09-21 00:13:23 IST
 
 ## File Inventory
 
@@ -17,7 +17,7 @@
 | ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
 | ./.gitignore | 222 | 383 | 2.9K |
 | ./IMPLEMENTATION_NOTES.md | 210 | 1016 | 7.9K |
-| ./.kiro/file-snapshots/change-log.md | 1229 | 3614 | 27K |
+| ./.kiro/file-snapshots/change-log.md | 1240 | 3646 | 27K |
 | ./.kiro/file-snapshots/current-snapshot.md | 136 | 1321 | 9.5K |
 | ./.kiro/file-snapshots/previous-snapshot.md | 136 | 1321 | 9.5K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
@@ -58,6 +58,7 @@
 | ./.kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | ./.kiro/unified-progress-tracker.sh | 242 | 1138 | 9.4K |
 | ./ONBOARDING_GUIDE.md | 328 | 1122 | 8.4K |
+| ./parseltongue_dump.txt | 24 | 64 | 514 |
 | ./README.md | 191 | 727 | 5.5K |
 | ./_refDocs/_refIdioms/Comprehensive Rust Idiomatic Patterns Guide_.txt | 769 | 12536 | 90K |
 | ./_refDocs/_refIdioms/comprehensive-rust-patterns-guidance.md | 1846 | 5140 | 51K |
@@ -133,4 +134,5 @@
 | ./src/isg.rs | 602 | 1821 | 21K |
 | ./src/lib.rs | 23 | 79 | 591 |
 | ./src/main.rs | 13 | 34 | 280 |
+| ./test_small.txt | 22 | 51 | 401 |
 | ./.vscode/settings.json | [binary] | [binary] | 44 |

@@ -13,6 +13,7 @@
 - ✅ **ISG Snapshot System**: Persistent graph state with <500ms performance
 - ✅ **Error Handling**: Comprehensive error propagation and user feedback
 - ✅ **Integration**: Full daemon and ISG integration
+- ✅ **Parser Robustness** (2025-01-21): Automatic handling of separator lines in code dumps
 
 ### Available Commands
 ```bash
