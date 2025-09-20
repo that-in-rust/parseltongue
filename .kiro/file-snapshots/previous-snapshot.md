@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-20 13:04:56 IST
+# Repository Snapshot - 2025-09-20 13:08:40 IST
 
 ## Summary Statistics
 - **Total Files**: 93
-- **Total Lines**: 98,569
-- **Total Words**: 616,265
-- **Snapshot Time**: 2025-09-20 13:04:56 IST
+- **Total Lines**: 98,496
+- **Total Words**: 615,685
+- **Snapshot Time**: 2025-09-20 13:08:40 IST
 
 ## File Inventory
 
@@ -13,7 +13,7 @@
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./hook-test.txt | 2 | 19 | 124 |
 | ./hook-trigger-check.txt | 1 | 12 | 113 |
-| ./.kiro/file-snapshots/change-log.md | 476 | 1449 | 11K |
+| ./.kiro/file-snapshots/change-log.md | 487 | 1481 | 11K |
 | ./.kiro/file-snapshots/current-snapshot.md | 105 | 987 | 6.7K |
 | ./.kiro/file-snapshots/previous-snapshot.md | 105 | 987 | 6.7K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
@@ -32,7 +32,7 @@
 | ./.kiro/steering/code-conventions.md | [binary] | [binary] | 0 |
 | ./.kiro/steering/hook-automation-guide.md | 256 | 1274 | 11K |
 | ./.kiro/steering/hook-system-status.md | 27 | 115 | 912 |
-| ./.kiro/steering/parseltongue-requirements-focus.md | 118 | 742 | 5.6K |
+| ./.kiro/steering/parseltongue-requirements-focus.md | 34 | 130 | 954 |
 | ./.kiro/steering/requirements-tasks-methodology.md | 57 | 259 | 2.2K |
 | ./.kiro/test-spec.md | 7 | 38 | 217 |
 | ./.kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
