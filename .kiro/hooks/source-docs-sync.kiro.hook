@@ -1,23 +1,13 @@
 {
   "enabled": true,
   "name": "Source to Docs Sync",
-  "description": "Monitors all Rust source files and related configuration files for changes, then triggers documentation updates in README or docs folder to maintain synchronization between code and documentation ",
+  "description": "On user trigger, analyzes recent changes in Rust sources/configs/docs and updates README or /docs folder for sync.",
   "version": "1",
   "when": {
-    "type": "userTriggered",
-    "patterns": [
-      "**/*.rs",
-      "Cargo.toml",
-      "Cargo.lock",
-      "**/*.md",
-      "**/*.toml",
-      "**/*.yaml",
-      "**/*.yml",
-      "**/*.json"
-    ]
+    "type": "manual"
   },
   "then": {
     "type": "askAgent",
-    "prompt": "Source files have been modified. Please analyze the changes and update the documentation accordingly. If there is a README.md file, update it to reflect any new features, API changes, or architectural modifications. If there is a /docs folder, update the relevant documentation files there as well. Focus on keeping the documentation accurate and up-to-date with the current implementation, including any new modules, functions, structs, traits, or significant changes to existing code."
+    "prompt": "Analyze recent code changes (use git diff if available) and update documentation: README.md for overviews, /docs for details on new/existing code elements."
   }
 }
