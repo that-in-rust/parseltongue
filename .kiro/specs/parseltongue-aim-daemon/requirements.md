@@ -2,96 +2,95 @@
 
 ## Introduction
 
-Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that transforms code analysis from probabilistic text searches to deterministic, graph-based architectural navigation. The system creates Interface Signature Graphs (ISG) exclusively from Rust codebases, enabling sub-millisecond queries, real-time architectural awareness, and zero-hallucination LLM context generation. The daemon provides developers with factual dependency analysis, blast-radius impact assessment, and constraint-aware AI assistance through compressed architectural intelligence.
+Parseltongue AIM Daemon is a **Rust-only** development tool that transforms code analysis from probabilistic text searches to deterministic, graph-based architectural navigation. The system creates Interface Signature Graphs (ISG) exclusively from Rust codebases, enabling sub-millisecond queries, real-time architectural awareness, and zero-hallucination LLM context generation.
 
-**Core Constraints:**
+**MVP v1.0 Focus**: Essential functionality to start using the daemon immediately for both code dumps and live codebases.
+
+**Core MVP Constraints:**
 - **Rust-Only Focus**: Exclusively designed for Rust codebases using `syn` crate for high-fidelity parsing
 - **High-Speed Updates**: Interface graph updates must complete in <12ms for real-time development workflow
 - **LLM-Terminal Integration**: Optimized for LLMs querying from terminal during active development sessions
+- **Immediate Usability**: Can be used productively from day one with minimal configuration
 
-## Requirements
+## MVP v1.0 Requirements
 
-### REQ-FUNC-001.0: Code Dump Ingestion and Processing
+### REQ-MVP-001.0: Code Dump Ingestion and Processing
 
-**User Story:** As a Rust developer analyzing unfamiliar Rust codebases, I want to ingest Rust-only code dumps and extract architectural intelligence deterministically, so that I can understand complex Rust systems in seconds rather than hours.
+**User Story:** As a Rust developer analyzing unfamiliar Rust codebases, I want to ingest Rust code dumps and extract architectural intelligence deterministically, so that I can understand complex Rust systems in seconds rather than hours.
 
 #### Acceptance Criteria
 
-1. WHEN a user provides a Rust code dump file THEN the system SHALL parse it using ONLY the `syn` crate and extract all Rust interface signatures
+1. WHEN I run `parseltongue ingest <file>` THEN the system SHALL parse separated dump format with FILE: markers and extract all Rust interface signatures using `syn` crate
 2. WHEN processing a 2.1MB Rust code dump THEN the system SHALL complete ISG construction in less than 5 seconds
-3. WHEN building the Interface Signature Graph THEN the system SHALL create nodes exclusively for Rust Function, Struct, and Trait entities with CALLS, IMPL, and USES relationships
-4. WHEN compression is applied THEN the system SHALL achieve 95%+ token compression ratio from raw Rust code to architectural essence
-5. WHEN ISG construction completes THEN the system SHALL provide real-time status updates showing Rust nodes created, edges established, and compression achieved
-6. WHEN encountering non-Rust files THEN the system SHALL ignore them and focus exclusively on .rs files
+3. WHEN building the Interface Signature Graph THEN the system SHALL create nodes for Rust Function, Struct, and Trait entities with basic relationships
+4. WHEN ISG construction completes THEN the system SHALL display basic status: "✓ Processed X files → Y nodes"
+5. WHEN encountering parse errors THEN the system SHALL log the error and continue processing other files
+6. WHEN ingestion completes THEN the system SHALL be ready for immediate queries
 
-### REQ-PERF-001.0: Real-Time Architectural Monitoring
+### REQ-MVP-002.0: Live Codebase Monitoring
 
-**User Story:** As a Rust developer working on live Rust codebases, I want high-speed real-time architectural monitoring with incremental updates using SigHash-based deterministic identification, so that I can receive immediate feedback on Rust architectural changes without workflow interruption.
-
-#### Acceptance Criteria
-
-1. WHEN the daemon is initialized THEN the system SHALL monitor the filesystem using the `notify` crate exclusively for .rs file changes with platform-specific optimizations (inotify/kqueue)
-2. WHEN a Rust file is modified and saved THEN the system SHALL detect the change within 1ms and queue it for high-speed processing using crossbeam channels
-3. WHEN processing incremental updates THEN the system SHALL complete ISG updates in less than 12ms from .rs file save to query readiness (CRITICAL PERFORMANCE CONSTRAINT)
-4. WHEN updating the ISG THEN the system SHALL perform atomic in-memory graph updates using SigHash-based O(1) lookups with **[TBD: Storage Architecture]** persistence
-5. WHEN changes are processed THEN the system SHALL maintain sub-millisecond query response times throughout the update cycle using Arc<RwLock<HashMap<SigHash, Node>>>
-6. WHEN monitoring files THEN the system SHALL ignore all non-Rust files and focus exclusively on src/, tests/, and examples/ directories
-7. WHEN generating SigHash THEN the system SHALL create deterministic 64-bit hashes from full Rust signatures for O(1) node/edge lookup
-
-### REQ-FUNC-002.0: Deterministic Graph-Based Queries
-
-**User Story:** As a Rust developer needing dependency analysis, I want deterministic graph-based queries that return factual results with Rust-specific pattern recognition, so that I can make confident architectural decisions without probabilistic guessing.
+**User Story:** As a Rust developer working on live Rust codebases, I want real-time architectural monitoring so that I can query the daemon immediately after making file changes.
 
 #### Acceptance Criteria
 
-1. WHEN querying trait implementations THEN the system SHALL traverse IMPL edges and return all implementing structs/functions in sub-millisecond time
-2. WHEN performing blast-radius analysis THEN the system SHALL execute recursive graph traversal to identify all affected functions and modules with Rust ownership implications
-3. WHEN detecting circular dependencies THEN the system SHALL run Tarjan's algorithm on the ISG and report any cycles found in Rust module hierarchy
+1. WHEN I run `parseltongue daemon --watch <directory>` THEN the system SHALL start monitoring all .rs files recursively using the `notify` crate
+2. WHEN I save a Rust file THEN the system SHALL detect the change and update the ISG within 12ms (CRITICAL PERFORMANCE CONSTRAINT)
+3. WHEN the daemon is running THEN I can query it immediately with `parseltongue query <type> <target>` and get current results
+4. WHEN I stop the daemon with Ctrl+C THEN it SHALL shut down gracefully and save state
+5. WHEN monitoring starts THEN the system SHALL display "🐍 Watching <directory> for .rs files"
+6. WHEN files are updated THEN the system SHALL show basic status: "✓ Updated <file> → <node_count> nodes"
+
+### REQ-MVP-003.0: Essential Graph Queries
+
+**User Story:** As a Rust developer needing dependency analysis, I want basic graph-based queries that return factual results, so that I can make confident architectural decisions.
+
+#### Acceptance Criteria
+
+1. WHEN I run `parseltongue query what-implements <trait>` THEN the system SHALL return all implementing structs/functions in sub-millisecond time
+2. WHEN I run `parseltongue query blast-radius <entity>` THEN the system SHALL show all functions and modules affected by changes to that entity
+3. WHEN I run `parseltongue query find-cycles` THEN the system SHALL detect and report circular dependencies in the codebase
 4. WHEN executing any query THEN the system SHALL respond in less than 1ms for simple graph traversals
-5. WHEN returning query results THEN the system SHALL provide zero false positives and complete dependency coverage
-6. WHEN analyzing Rust patterns THEN the system SHALL recognize newtype patterns, smart pointer usage (Arc, Rc, Box), and async patterns
-7. WHEN detecting anti-patterns THEN the system SHALL identify blocking calls in async contexts, unnecessary cloning, and error swallowing
+5. WHEN returning query results THEN the system SHALL provide clear, human-readable output by default
+6. WHEN I add `--format json` THEN the system SHALL return machine-readable JSON for LLM consumption
 
-### REQ-LLM-001.0: Compressed Context Generation for AI Tools
+### REQ-MVP-004.0: LLM Context Generation
 
-**User Story:** As a developer using LLMs for code assistance, I want compressed ISG context with deterministic SigHash-based relationships that eliminates hallucination, so that AI tools receive perfect architectural truth instead of raw code snippets.
-
-#### Acceptance Criteria
-
-1. WHEN generating bounded context THEN the system SHALL extract relevant ISG slices for specific Rust functions with their dependencies using SigHash traversal
-2. WHEN creating LLM prompts THEN the system SHALL include Rust function signatures, trait constraints, ownership patterns, and dependency relationships
-3. WHEN compressing context THEN the system SHALL achieve 95%+ token reduction (100k LOC → 15-25MB in-memory, 200-token summaries) while preserving all architectural relationships
-4. WHEN formatting for LLMs THEN the system SHALL structure prompts with clear sections for Rust signatures, trait bounds, ownership constraints, and blast radius
-5. WHEN providing context THEN the system SHALL include upstream callers, downstream dependencies, trait implementations, and integration requirements
-6. WHEN generating context THEN the system SHALL use deterministic SigHash-based node identification to ensure consistent, reproducible results
-7. WHEN creating prompts THEN the system SHALL include Rust-specific constraints like Send + Sync bounds, lifetime parameters, and error propagation patterns
-
-### REQ-CLI-001.0: Terminal-Optimized Command Interface
-
-**User Story:** As a Rust developer and LLMs working from terminal, I want a comprehensive CLI interface optimized for quick queries during active development, so that architectural intelligence can be accessed instantly during coding sessions.
+**User Story:** As a developer using LLMs for code assistance, I want compressed architectural context that eliminates hallucination, so that AI tools receive factual architectural information.
 
 #### Acceptance Criteria
 
-1. WHEN ingesting Rust code dumps THEN the system SHALL provide `parseltongue ingest-code --source CodeDump <file>` command for Rust-only processing
-2. WHEN LLMs or developers query the ISG THEN the system SHALL support `parseltongue query <query-type> <target>` with multiple Rust-specific query types
-3. WHEN starting daemon mode THEN the system SHALL provide `parseltongue daemon --watch <directory>` for real-time Rust file monitoring
-4. WHEN executing commands THEN the system SHALL provide real-time progress updates optimized for terminal consumption
-5. WHEN operations complete THEN the system SHALL display performance metrics including execution time and Rust-specific resource usage
-6. WHEN LLMs query from terminal THEN the system SHALL provide structured output formats suitable for AI consumption and human readability
+1. WHEN I run `parseltongue generate-context <entity>` THEN the system SHALL extract relevant ISG slice for that entity and its immediate dependencies
+2. WHEN generating context THEN the system SHALL include function signatures, trait constraints, and basic dependency relationships
+3. WHEN formatting for LLMs THEN the system SHALL structure output with clear sections for signatures, dependencies, and relationships
+4. WHEN providing context THEN the system SHALL include upstream callers and downstream dependencies within 2 hops
+5. WHEN I add `--format json` THEN the system SHALL return structured JSON suitable for LLM consumption
+6. WHEN context is generated THEN the system SHALL ensure deterministic, reproducible results for the same entity
 
-### REQ-PERF-002.0: Memory Management and Performance Optimization
+### REQ-MVP-005.0: Essential CLI Interface
 
-**User Story:** As a developer working with large Rust projects, I want efficient memory management and performance optimization using Rust's zero-cost abstractions, so that the daemon can handle enterprise-scale codebases without resource constraints.
+**User Story:** As a Rust developer working from terminal, I want a simple CLI interface for essential operations, so that I can start using the daemon immediately.
 
 #### Acceptance Criteria
 
-1. WHEN processing 100K lines of Rust code THEN the system SHALL maintain in-memory ISG footprint under 25MB using efficient Rust data structures
-2. WHEN handling concurrent queries THEN the system SHALL maintain sub-millisecond response times under load using Arc<RwLock<T>> for thread-safe access
-3. WHEN persisting data THEN the system SHALL use **[TBD: Storage Architecture]** for atomic updates and crash recovery with compile-time query validation
-4. WHEN managing memory THEN the system SHALL implement efficient graph data structures using Rust's ownership system and zero-cost abstractions
-5. WHEN scaling up THEN the system SHALL handle codebases up to 500K LOC while maintaining performance targets
-6. WHEN using smart pointers THEN the system SHALL follow the decision matrix: Box<T> for unique ownership, Arc<T> for shared ownership, RwLock<T> for interior mutability
-7. WHEN processing iteratively THEN the system SHALL use iterator chains for zero-cost functional programming patterns
+1. WHEN I run `parseltongue ingest <file>` THEN the system SHALL process code dumps and build the ISG
+2. WHEN I run `parseltongue daemon --watch <directory>` THEN the system SHALL start monitoring live files
+3. WHEN I run `parseltongue query <type> <target>` THEN the system SHALL support what-implements, blast-radius, and find-cycles queries
+4. WHEN I run `parseltongue generate-context <entity>` THEN the system SHALL output LLM-ready context
+5. WHEN any command fails THEN the system SHALL show clear error message and suggested fix
+6. WHEN I run `parseltongue --help` THEN the system SHALL show usage for all commands
+
+### REQ-MVP-006.0: Basic Performance and Storage
+
+**User Story:** As a developer working with typical Rust projects, I want the daemon to handle common codebases efficiently with simple storage, so that it works reliably for everyday development.
+
+#### Acceptance Criteria
+
+1. WHEN processing up to 100K lines of Rust code THEN the system SHALL maintain reasonable memory usage (under 100MB)
+2. WHEN handling queries THEN the system SHALL maintain sub-millisecond response times using Arc<RwLock<T>> for thread-safe access
+3. WHEN persisting data THEN the system SHALL use SQLite for simple, reliable storage with atomic updates
+4. WHEN the daemon restarts THEN the system SHALL reload the ISG from storage within 2 seconds
+5. WHEN memory usage grows THEN the system SHALL handle typical development projects (10-50K LOC) efficiently
+6. WHEN concurrent access occurs THEN the system SHALL prevent data races using Rust's ownership system
 
 ### REQ-API-001.0: Structured Data Output and API Interfaces
 
