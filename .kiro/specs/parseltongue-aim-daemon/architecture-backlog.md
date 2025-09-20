@@ -14,6 +14,9 @@
 - Contains Rust patterns, TDD methodologies, and advanced architectural concepts
 - Analysis needed to complete architecture research
 
+### 🟡 In Progress (_refDocs)
+- **z02.html**: Lines 4001-5000 analyzed - User journey patterns and LLM integration workflows extracted
+
 ---
 
 ## Core Technical Architecture (MVP-Relevant)
@@ -48,6 +51,184 @@ pub struct HybridStorage {
 pub struct UpdatePipeline {
     watcher: RecommendedWatcher,      // notify crate
     parser: SynParser,                // syn-based AST parsing
+    graph: Arc<DashMap<SigHash, Node>>,
+    sqlite: SqlitePool,
+}
+```
+
+### 3. User Journey Integration Patterns
+**Source**: z02.html (lines 4001-5000)
+**Key Workflows**:
+- **Real-time Architectural Awareness**: File change → ISG update → sub-millisecond queries
+- **LLM-Terminal Integration**: Context generation optimized for AI tools during active development
+- **Constraint-Aware AI Assistance**: Architectural context prevents hallucination in code generation
+
+**CLI Command Patterns**:
+```bash
+# Core query commands for LLM integration
+aim query blast-radius <target>     # Impact analysis
+aim query what-implements <trait>   # Implementation discovery  
+aim query find-cycles               # Dependency cycle detection
+aim generate-context <function>     # Bounded context for LLMs
+```
+
+**Performance Requirements from User Journeys**:
+- Sub-millisecond query response for real-time development flow
+- <12ms total pipeline latency from file save to query readiness
+- Zero-hallucination context generation through deterministic graph traversal
+
+**Detailed Workflow Patterns** (z02.html lines 5001-6000):
+- **Incremental Update Workflow**: File change → ISG update (<12ms) → query → deterministic results
+- **LLM-Assisted Implementation**: `aim generate-context` → constraint-aware prompts → architectural validation
+- **Real-time Feedback Loop**: Continuous ISG updates during development with architectural impact analysis
+- **Legacy Module Refactoring**: Dependency analysis → impact assessment → real-time validation during changes
+
+**CLI Command Specifications**:
+```bash
+# Installation and setup
+cargo install parseltongue-aim-daemon
+aim extract                         # Initial ISG generation
+
+# Core query operations  
+aim query blast-radius <target>     # "What is the blast radius of changing X?"
+aim query what-implements <trait>   # Implementation discovery
+aim query find-cycles               # Dependency cycle detection
+aim generate-context <function>     # LLM-optimized context generation
+
+# Real-time monitoring
+aim daemon --watch <directory>      # File system monitoring mode
+```
+
+**LLM Integration Patterns**:
+- **Context Generation**: Perfectly formatted, constraint-aware prompts for LLMs
+- **Architectural Validation**: "Does this code comply with existing architecture?"
+- **Zero-Hallucination**: Deterministic feedback through graph traversal instead of probabilistic analysis
+
+**Advanced LLM Integration Scenario** (z02.html lines 6001-6060):
+- **Real-world Example**: RateLimiter middleware implementation for Axum web service
+- **Focus-based Context Generation**: `aim generate-context --focus "Router, AppState, AppError"`
+- **Compressed Architectural Intelligence**: Exact types, signatures, relationships → LLM context window
+- **Deterministic Results**: Correct AppState fields, Router integration, AppError variants without hallucination
+- **Pipeline Integration**: `aim generate-context | llm-assistant generate-code` workflow
+
+**Key Technical Features Demonstrated**:
+- Zero-hallucination LLM context generation
+- Constraint-aware AI assistance  
+- LLM-terminal integration
+- Compressed architectural intelligence (95%+ token reduction)
+- Deterministic ISG queries for perfect type accuracy
+
+### 4. Storage Architecture Analysis (MVP-Critical)
+**Source**: zz01.md (lines 1-300)
+**Executive Summary**: Comprehensive analysis of storage architectures with phased evolution strategy
+
+**Recommended Phased Approach**:
+1. **MVP (v1.0)**: SQLite with WAL mode - fastest path to functional product
+2. **Growth (v2.0)**: Custom In-Memory Graph with WAL - purpose-built performance
+3. **Enterprise (v3.0)**: Distributed Hybrid Architecture - horizontal scalability
+
+**SQLite MVP Configuration** (Critical Performance Tuning):
+```sql
+PRAGMA journal_mode = WAL;        -- Write-Ahead Logging for <1ms writes
+PRAGMA synchronous = NORMAL;      -- Relaxed sync for performance
+PRAGMA mmap_size = 268435456;     -- Memory-mapped I/O (256MB)
+PRAGMA optimize;                  -- Query planner statistics
+```
+
+**Performance Targets Validation**:
+- **Update Latency**: <12ms total pipeline (WAL mode enables <1ms per transaction)
+- **Query Latency**: <500μs simple lookups, <1ms complex traversals with proper indexing
+- **Concurrency**: Single-writer, multiple-reader model perfect for daemon workload
+- **Critical Indexes**: `(from_sig, kind)` and `(to_sig, kind)` for graph traversals
+
+**Technical Implementation Details**:
+- **rusqlite** crate provides mature, type-safe integration
+- **Recursive CTEs** for multi-hop graph traversals (blast-radius, cycle detection)
+- **WAL checkpoint management** to prevent performance degradation
+- **Memory-mapped I/O** for databases fitting in RAM
+
+**Migration Strategy**:
+- **v1.0 → v2.0**: Complete data access layer rewrite (planned architectural debt)
+- **Performance Triggers**: p99 query latency monitoring for migration timing
+- **Risk Mitigation**: Clear quantitative thresholds to avoid "boiling frog" scenario
+
+**Performance Projections by Scale** (zz01.md lines 301-523):
+
+| Scale | SQLite blast-radius | In-Memory blast-radius | SurrealDB blast-radius | Update Pipeline |
+|-------|-------------------|----------------------|----------------------|----------------|
+| Small (10K LOC) | < 500µs | < 50µs | < 400µs | < 5ms |
+| Medium (100K LOC) | 1-3ms | < 100µs | < 800µs | < 8ms |
+| Large (500K LOC) | 5-15ms ❌ | < 200µs | 1.5-4ms | < 12ms |
+| Enterprise (10M+ LOC) | N/A ❌ | N/A (RAM limit) | 5-20ms | < 15ms |
+
+**Critical Findings**:
+- **SQLite fails sub-millisecond target** beyond small projects (blast-radius becomes bottleneck)
+- **In-memory solution** beats all targets until RAM exhaustion
+- **SurrealDB** remains viable at enterprise scale when others fail
+
+**Detailed Implementation Roadmap**:
+
+**Phase 1 (MVP 0-6 months)**: SQLite + WAL
+- **Connection Pool**: r2d2 for concurrent read access
+- **Critical Indexes**: `edges(from_sig, kind)` and `edges(to_sig, kind)`
+- **Recursive CTEs**: Multi-hop traversals (blast-radius, cycle detection)
+- **Background Tasks**: `PRAGMA wal_checkpoint(TRUNCATE)` and `PRAGMA optimize`
+- **Migration Triggers**: p99 blast-radius > 2ms, write queue > 5ms delay
+
+**Phase 2 (v2.0 6-18 months)**: Custom In-Memory + WAL
+- **WAL Implementation**: okaywal crate foundation
+- **Data Structures**: FxHashMap + RwLock inner mutability
+- **Serialization**: bincode for WAL records (NodeAdded, EdgeRemoved)
+- **Migration Utility**: SQLite → in-memory bootstrap tool
+- **Shadow Deployment**: Parallel v1.0/v2.0 validation
+
+**Phase 3 (v3.0 18+ months)**: Distributed Hybrid
+- **Tiered Storage**: Hot (active development) vs Cold (dependencies)
+- **Cold Backend**: SurrealDB server mode for scalable persistence
+- **SyncManager**: On-demand loading/eviction between tiers
+- **Federated Queries**: Cross-node and cold-storage query merging
+
+### 5. Comprehensive Architecture Analysis (Enterprise-Grade)
+**Source**: zz03MoreArchitectureIdeas (lines 1-1000)
+**Scope**: Detailed technical analysis of all storage options with decision matrices
+
+**Executive Summary Findings**:
+- **Phased evolutionary approach** is optimal strategy for MVP → Enterprise scale
+- **SQLite WAL mode** confirmed as best MVP choice (speed-to-market + reliability)
+- **Hybrid architecture** (in-memory + SQLite) for v2.0 performance scaling
+- **Custom Rust store** or mature graph DB for v3.0 enterprise scale
+
+**Decision Matrix Analysis** (Weighted Scoring):
+- **Performance (40%)**: Query speed, update latency, memory efficiency
+- **Simplicity (25%)**: Implementation complexity, operational overhead  
+- **Rust Integration (20%)**: Ecosystem fit, type safety, ergonomics
+- **Scalability (15%)**: Growth path, enterprise readiness
+
+**SQLite MVP Validation** (Weighted Score: 3.3/4.0):
+- **Performance**: 3/4 - 12-15µs mixed workload latency, sufficient for SLOs
+- **Simplicity**: 4/4 - Embedded, serverless, minimal operational overhead
+- **Rust Integration**: 4/4 - Mature rusqlite/sqlx crates, type-safe APIs
+- **Scalability**: 2/4 - Single-node limitation, no horizontal scaling
+
+**Critical SQLite Tuning** (Performance-Critical):
+```sql
+PRAGMA journal_mode = WAL;           -- Multi-reader, single-writer
+PRAGMA synchronous = NORMAL;         -- <1ms commits vs >30ms default
+PRAGMA wal_autocheckpoint = 1000;    -- Manage WAL file growth
+PRAGMA mmap_size = 268435456;        -- Memory-mapped I/O (256MB)
+PRAGMA temp_store = MEMORY;          -- In-memory temp tables for CTEs
+```
+
+**In-Memory Architecture Analysis**:
+- **Data Structures**: DashMap<SigHash, Node> + FxHashMap for adjacency lists
+- **Concurrency**: Sharded locking, deadlock risks with DashMap guards
+- **Memory Scaling**: ~73% HashMap overhead, compression strategies needed
+- **Persistence**: Append-only commit log + periodic snapshots (bincode/rkyv)
+
+**Graph Database Integration Challenges**:
+- **MemGraph**: FFI wrapper (rsmgclient), C toolchain dependency, breaks Rust-only focus
+- **SurrealDB**: Non-durable default config, requires SURREAL_SYNC_DATA=true
+- **TigerGraph**: REST API only, HTTP overhead incompatible with sub-ms targets
     graph: Arc<RwLock<InMemoryGraph>>, // DashMap-based
     db: SqlitePool,                   // WAL mode
 }
