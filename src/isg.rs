@@ -172,10 +172,14 @@ pub enum EdgeKind {
 pub enum ISGError {
     #[error("Node with SigHash {0:?} not found")]
     NodeNotFound(SigHash),
+    #[error("Entity '{0}' not found in the graph")]
+    EntityNotFound(String),
     #[error("Parse error: {0}")]
     ParseError(String),
     #[error("IO error: {0}")]
     IoError(String),
+    #[error("Invalid input: {0}")]
+    InvalidInput(String),
 }
 
 // Internal mutable state protected by single RwLock

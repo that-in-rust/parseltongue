@@ -104,6 +104,10 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     
     match cli.command {
         Commands::Ingest { file } => {
+            if !file.exists() {
+                return Err(format!("File not found: {}", file.display()).into());
+            }
+            
             let start = Instant::now();
             let stats = daemon.ingest_code_dump(&file)?;
             let elapsed = start.elapsed();
@@ -120,10 +124,21 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         }
         
         Commands::Daemon { watch } => {
+            if !watch.exists() {
+                return Err(format!("Directory not found: {}", watch.display()).into());
+            }
+            if !watch.is_dir() {
+                return Err(format!("Path is not a directory: {}", watch.display()).into());
+            }
+            
             daemon.start_daemon(&watch)?;
         }
         
         Commands::Query { query_type, target, format } => {
+            if target.trim().is_empty() {
+                return Err("Target entity name cannot be empty".into());
+            }
+            
             let start = Instant::now();
             
             let result = match query_type {
@@ -178,6 +193,10 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         }
         
         Commands::GenerateContext { entity, format } => {
+            if entity.trim().is_empty() {
+                return Err("Entity name cannot be empty".into());
+            }
+            
             let context = generate_context(&daemon, &entity, format.clone())?;
             println!("{}", context);
         }
