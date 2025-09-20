@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-20 12:42:06 IST
+# Repository Snapshot - 2025-09-20 12:42:31 IST
 
 ## Summary Statistics
-- **Total Files**: 90
-- **Total Lines**: 98,394
-- **Total Words**: 616,257
-- **Snapshot Time**: 2025-09-20 12:42:06 IST
+- **Total Files**: 91
+- **Total Lines**: 98,468
+- **Total Words**: 616,541
+- **Snapshot Time**: 2025-09-20 12:42:31 IST
 
 ## File Inventory
 
@@ -14,9 +14,9 @@
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./hook-test.txt | 2 | 19 | 124 |
 | ./hook-trigger-check.txt | 1 | 12 | 113 |
-| ./.kiro/file-snapshots/change-log.md | 271 | 879 | 6.9K |
-| ./.kiro/file-snapshots/current-snapshot.md | 101 | 951 | 6.4K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 101 | 951 | 6.4K |
+| ./.kiro/file-snapshots/change-log.md | 285 | 915 | 7.2K |
+| ./.kiro/file-snapshots/current-snapshot.md | 102 | 960 | 6.5K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 102 | 960 | 6.5K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
 | ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 545 |
 | ./.kiro/specs/parseltongue-aim-daemon/architecture-backlog.md | 1753 | 8772 | 71K |
@@ -30,12 +30,13 @@
 | ./.kiro/specs/parseltongue-aim-daemon/storage-architecture-options.md | 501 | 2147 | 17K |
 | ./.kiro/steering/code-conventions.md | [binary] | [binary] | 0 |
 | ./.kiro/steering/hook-automation-guide.md | 275 | 1401 | 12K |
-| ./.kiro/steering/hook-system-status.md | [binary] | [binary] | 0 |
+| ./.kiro/steering/hook-system-status.md | 27 | 115 | 912 |
 | ./.kiro/steering/parseltongue-requirements-focus.md | 118 | 742 | 5.6K |
 | ./.kiro/steering/requirements-tasks-methodology.md | 139 | 882 | 7.0K |
 | ./.kiro/test-spec.md | 7 | 38 | 217 |
 | ./.kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | ./.kiro/unified-progress-tracker.sh | 242 | 1138 | 9.4K |
+| ./README.md | 31 | 115 | 973 |
 | ./_refDocs/aim-backlog.md | 111 | 694 | 5.4K |
 | ./_refDocs/aim-daemon-analysis.md | 74 | 566 | 4.2K |
 | ./_refDocs/aim-daemon-code-dump-parser.md | 527 | 1565 | 17K |

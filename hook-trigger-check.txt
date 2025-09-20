@@ -1,0 +1,2 @@
+Testing if the simplified agent hook triggers automatically.
+This should run: ./.kiro/unified-progress-tracker.sh
