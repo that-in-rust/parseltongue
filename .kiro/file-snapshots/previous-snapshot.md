@@ -1,26 +1,22 @@
-# Repository Snapshot - 2025-09-20 11:37:37 IST
+# Repository Snapshot - 2025-09-20 11:53:11 IST
 
 ## Summary Statistics
-- **Total Files**: 81
-- **Total Lines**: 41,777
-- **Total Words**: 452,245
-- **Snapshot Time**: 2025-09-20 11:37:37 IST
+- **Total Files**: 82
+- **Total Lines**: 41,789
+- **Total Words**: 452,601
+- **Snapshot Time**: 2025-09-20 11:53:11 IST
 
 ## File Inventory
 
 | File Path | Lines | Words | Size |
 |-----------|-------|-------|------|
 | ./.cursorignore | 135 | 202 | 1.7K |
-| ./.kiro/file-snapshots/change-log.md | 109 | 497 | 3.7K |
-| ./.kiro/file-snapshots/current-snapshot.md | 96 | 722 | 5.3K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 96 | 722 | 5.3K |
+| ./.kiro/file-snapshots/change-log.md | 127 | 539 | 4.1K |
+| ./.kiro/file-snapshots/current-snapshot.md | 93 | 879 | 6.0K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 93 | 879 | 6.0K |
 | ./.kiro/generate-repository-snapshot.sh | 108 | 537 | 4.1K |
-| ./.kiro/hooks/file-change-tracker.kiro.hook | [binary] | [binary] | 1.1K |
-| ./.kiro/hooks/file-change-tracker.md | 279 | 1182 | 9.2K |
-| ./.kiro/hooks/repository-snapshot.kiro.hook | [binary] | [binary] | 1.4K |
-| ./.kiro/hooks/session-context-updater.kiro.hook | 18 | 123 | 1.3K |
-| ./.kiro/hooks/session-context-updater.md | 240 | 1048 | 8.1K |
-| ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 1.5K |
+| ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.1K |
+| ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 486 |
 | ./.kiro/specs/parseltongue-aim-daemon/architecture-backlog.md | 1572 | 7624 | 62K |
 | ./.kiro/specs/parseltongue-aim-daemon/backlog.md | 198 | 1427 | 12K |
 | ./.kiro/specs/parseltongue-aim-daemon/prompts/storage-architecture-analysis.md | 204 | 881 | 7.2K |
@@ -83,7 +79,12 @@
 | ./_refTestData/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
 | ./.vscode/settings.json | [binary] | [binary] | 44 |
 | ./zzzArchive/analysis-progress-tracker.kiro.hook | [binary] | [binary] | 867 |
+| ./zzzArchive/file-change-tracker.kiro.hook | [binary] | [binary] | 1.1K |
+| ./zzzArchive/file-change-tracker.md | 279 | 1182 | 9.2K |
 | ./zzzArchive/install01.sh | 501 | 1386 | 13K |
+| ./zzzArchive/repository-snapshot.kiro.hook | [binary] | [binary] | 1.4K |
+| ./zzzArchive/session-context-updater.kiro.hook | 18 | 123 | 1.3K |
+| ./zzzArchive/session-context-updater.md | 240 | 1048 | 8.1K |
 | ./zzzArchive/step01_scope.txt | 152 | 480 | 3.3K |
 | ./zzzArchive/step02_module.txt | 281 | 861 | 8.3K |
 | ./zzzArchive/step95_fav.txt | 28 | 29 | 242 |

@@ -151,3 +151,23 @@
 
 ---
 
+
+## Delta Report - 2025-09-20 12:22:02 IST
+
+### Summary Changes
+- **File Count**: 3 (85 total)
+- **Line Count**: 451 (42,240 total)
+- **Word Count**: 2,402 (455,003 total)
+
+### File-Level Changes
+**Added Files:**
+- ./.kiro/hooks/unified-progress-manual.kiro.hook
+- ./.kiro/specs/parseltongue-aim-daemon/ref-code-snippets.md
+- ./.kiro/steering/hook-automation-guide.md
+- ./zzzArchive/generate-repository-snapshot.sh
+
+**Removed Files:**
+- ./.kiro/generate-repository-snapshot.sh
+
+---
+

@@ -1,31 +1,33 @@
-# Repository Snapshot - 2025-09-20 11:53:11 IST
+# Repository Snapshot - 2025-09-20 12:22:02 IST
 
 ## Summary Statistics
-- **Total Files**: 82
-- **Total Lines**: 41,789
-- **Total Words**: 452,601
-- **Snapshot Time**: 2025-09-20 11:53:11 IST
+- **Total Files**: 85
+- **Total Lines**: 42,240
+- **Total Words**: 455,003
+- **Snapshot Time**: 2025-09-20 12:22:02 IST
 
 ## File Inventory
 
 | File Path | Lines | Words | Size |
 |-----------|-------|-------|------|
 | ./.cursorignore | 135 | 202 | 1.7K |
-| ./.kiro/file-snapshots/change-log.md | 127 | 539 | 4.1K |
-| ./.kiro/file-snapshots/current-snapshot.md | 93 | 879 | 6.0K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 93 | 879 | 6.0K |
-| ./.kiro/generate-repository-snapshot.sh | 108 | 537 | 4.1K |
-| ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.1K |
-| ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 486 |
-| ./.kiro/specs/parseltongue-aim-daemon/architecture-backlog.md | 1572 | 7624 | 62K |
+| ./.kiro/file-snapshots/change-log.md | 153 | 597 | 4.8K |
+| ./.kiro/file-snapshots/current-snapshot.md | 94 | 888 | 6.0K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 94 | 888 | 6.0K |
+| ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
+| ./.kiro/hooks/unified-progress-manual.kiro.hook | [binary] | [binary] | 339 |
+| ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 479 |
+| ./.kiro/specs/parseltongue-aim-daemon/architecture-backlog.md | 1753 | 8772 | 71K |
 | ./.kiro/specs/parseltongue-aim-daemon/backlog.md | 198 | 1427 | 12K |
 | ./.kiro/specs/parseltongue-aim-daemon/prompts/storage-architecture-analysis.md | 204 | 881 | 7.2K |
 | ./.kiro/specs/parseltongue-aim-daemon/README.md | 115 | 492 | 4.8K |
+| ./.kiro/specs/parseltongue-aim-daemon/ref-code-snippets.md | [binary] | [binary] | 0 |
 | ./.kiro/specs/parseltongue-aim-daemon/requirements.md | 282 | 3683 | 26K |
-| ./.kiro/specs/parseltongue-aim-daemon/requirements-tasks.md | 314 | 2611 | 19K |
+| ./.kiro/specs/parseltongue-aim-daemon/requirements-tasks.md | 314 | 2617 | 19K |
 | ./.kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 215 | 1059 | 8.4K |
 | ./.kiro/specs/parseltongue-aim-daemon/storage-architecture-options.md | 501 | 2147 | 17K |
 | ./.kiro/steering/code-conventions.md | [binary] | [binary] | 0 |
+| ./.kiro/steering/hook-automation-guide.md | 242 | 1172 | 9.4K |
 | ./.kiro/steering/parseltongue-requirements-focus.md | 118 | 742 | 5.6K |
 | ./.kiro/steering/requirements-tasks-methodology.md | 139 | 882 | 7.0K |
 | ./.kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
@@ -81,6 +83,7 @@
 | ./zzzArchive/analysis-progress-tracker.kiro.hook | [binary] | [binary] | 867 |
 | ./zzzArchive/file-change-tracker.kiro.hook | [binary] | [binary] | 1.1K |
 | ./zzzArchive/file-change-tracker.md | 279 | 1182 | 9.2K |
+| ./zzzArchive/generate-repository-snapshot.sh | 108 | 537 | 4.1K |
 | ./zzzArchive/install01.sh | 501 | 1386 | 13K |
 | ./zzzArchive/repository-snapshot.kiro.hook | [binary] | [binary] | 1.4K |
 | ./zzzArchive/session-context-updater.kiro.hook | 18 | 123 | 1.3K |
