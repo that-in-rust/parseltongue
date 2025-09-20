@@ -46,23 +46,23 @@ This document provides steering guidance for managing the requirements-tasks.md 
 - ✅ **Rust-only focus**: Parse .rs files exclusively with `syn` crate
 - ✅ **High-speed updates**: <12ms from file save to query readiness
 - ✅ **LLM-terminal integration**: Deterministic architectural context generation
-- ✅ **SQLite storage**: Proven, simple, meets performance requirements
+- ✅ **In-memory ISG storage**: Arc<RwLock<HashMap<SigHash, Node>>> for sub-ms queries
 - ✅ **Core queries**: who-implements, blast-radius, find-cycles, generate-context
-- ✅ **Essential patterns**: 80% coverage with pure `syn` parsing
+- ✅ **Interface Signature Graphs**: Function, Struct, Trait nodes with CALLS, IMPL, USES edges
 
 #### What MVP 1.0 IS NOT
-- ❌ **Multi-language support**: No JavaScript, Python, Java, etc.
-- ❌ **Advanced graph databases**: No MemGraph, SurrealDB, TigerGraph
+- ❌ **Multi-language support**: No JavaScript, Python, Java, etc. - Rust .rs files only
+- ❌ **External databases**: No SQLite, PostgreSQL, or graph databases - pure in-memory ISG
 - ❌ **Complex coordination**: No Redis, message queues, microservices
 - ❌ **ML/AI features**: No vector embeddings, fuzzy matching, probabilistic analysis
-- ❌ **Enterprise features**: No distributed analysis, advanced security, complex workflows
+- ❌ **Persistent storage**: No file-based persistence - runtime-only architectural intelligence
 
 #### Backlog Decision Framework
 **Move to backlog if**:
 1. Doesn't directly support Rust-only constraint
 2. Would compromise <12ms update performance
 3. Adds complexity without clear LLM-terminal value
-4. Requires technologies beyond SQLite + Rust ecosystem
+4. Requires technologies beyond in-memory ISG + Rust ecosystem
 5. Serves enterprise needs beyond MVP scope
 
 ### Progress Tracking Standards
