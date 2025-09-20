@@ -39,11 +39,30 @@ ELSE IF (task completion, progress updates, milestone tracking, phase transition
 ELSE IF (current session, next actions, priority tasks, context recovery, live status)
    → SESSION_CONTEXT.md
 
+ELSE IF (new methodology, novel approach, architectural breakthrough, problem-solving framework, decision matrix, analysis technique, workflow innovation)
+   → NEW STEERING DOC (create new .md file in .kiro/steering/)
+
 ELSE IF (performance, concurrency, memory, algorithms, data structures, Rust patterns, ISG design, <12ms constraints)
    → architecture-backlog.md (DEFAULT)
 ```
 
 **Default Rule**: MVP-relevant technical architecture concepts default to architecture-backlog.md
+
+### New Steering Document Creation
+When discovering novel methodologies, architectural breakthroughs, or innovative problem-solving frameworks:
+
+1. **Identify the Pattern**: Recognize when content represents a new way to break down problems or architectures
+2. **Create New Steering Doc**: Create a new .md file in `.kiro/steering/` with descriptive name
+3. **Document the Methodology**: Structure the new approach with clear decision trees, examples, and applications
+4. **Update This File**: Add the new routing rule to the Information Routing decision tree above
+5. **Cross-Reference**: Link from relevant existing steering docs to maintain methodology coherence
+
+**Examples of New Steering Doc Triggers**:
+- Novel architectural decision frameworks
+- Innovative problem decomposition techniques  
+- New ways to classify and route information
+- Breakthrough analysis methodologies
+- Advanced workflow optimization patterns
 
 ### Task Hierarchy
 - **Phase 1**: Document Analysis (current)
