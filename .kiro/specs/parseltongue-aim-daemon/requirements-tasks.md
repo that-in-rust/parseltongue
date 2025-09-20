@@ -31,12 +31,12 @@
 - **Advanced Features**: Requirements 19-24 moved to [backlog.md](./backlog.md)
 
 ### Document Analysis Progress
-- **_refDocs Completed**: 18/18 documents analyzed (100% complete this session)
-- **_refIdioms Remaining**: 0/24 documents analyzed (0% complete)
-- **Status**: 🟡 **PARTIAL COMPLETION** - Only _refDocs analyzed, _refIdioms directory not yet processed
+- **_refDocs Remaining**: 4/22 documents analyzed (18% remaining) - 4 large files with 28,801 lines total
+- **_refIdioms Remaining**: 0/15 documents analyzed (0% complete) - 9 non-MD files skipped
+- **Status**: 🟡 **PARTIAL COMPLETION** - Major _refDocs files and all _refIdioms still need analysis
 - **Strategy**: Extract only ideas that align with MVP constraints (Rust-only, <12ms, LLM-terminal)
-- **Process**: wc count → read 1000 lines at a time → extract MVP-relevant ideas → move advanced concepts to backlog
-- **Next**: Need to analyze _refIdioms documents to complete Task 1
+- **Process**: wc count → read MAX 1000 lines at a time → extract MVP-relevant ideas → move advanced concepts to backlog
+- **Next**: Complete remaining _refDocs analysis (Tasks 1.19-1.22) then _refIdioms analysis (Tasks 1.23-1.24)
 
 ### Key Findings from Completed Analysis
 **MVP-Relevant Concepts Extracted:**
@@ -87,20 +87,35 @@
 - [ ] 1.19.3 Read z02.html lines 2001-3000 - identify architectural patterns and performance concepts
 - [ ] 1.19.4 Read z02.html lines 3001-4000 - continue concept extraction and document findings
 - [ ] 1.19.5 Read z02.html lines 4001-5000 - extract remaining technical content
-- [ ] 1.19.6 Read z02.html lines 5001-6060 - complete analysis and document all findings
+- [ ] 1.19.6 Read z02.html lines 5001-6000 - continue technical content extraction
+- [ ] 1.19.7 Read z02.html lines 6001-6060 - complete analysis and document all findings
 
 #### Task 1.20: Analyze zz01.md (523 lines)
 - [ ] 1.20.1 Read zz01.md lines 1-300 - storage architecture analysis and performance concepts
 - [ ] 1.20.2 Read zz01.md lines 301-523 - complete storage analysis and extract MVP concepts
 
 #### Task 1.21: Analyze zz03MoreArchitectureIdeas20250920v1.md (21,030 lines)
-- [ ] 1.21.1 Read zz03 lines 1-3000 - comprehensive architecture analysis start
-- [ ] 1.21.2 Read zz03 lines 3001-6000 - continue architecture analysis and extract storage concepts
-- [ ] 1.21.3 Read zz03 lines 6001-9000 - extract performance concepts and Rust patterns
-- [ ] 1.21.4 Read zz03 lines 9001-12000 - identify storage patterns and graph structures
-- [ ] 1.21.5 Read zz03 lines 12001-15000 - extract Rust-specific concepts and CLI patterns
-- [ ] 1.21.6 Read zz03 lines 15001-18000 - continue concept extraction and implementation details
-- [ ] 1.21.7 Read zz03 lines 18001-21030 - complete analysis and document all findings
+- [ ] 1.21.1 Read zz03 lines 1-1000 - comprehensive architecture analysis start
+- [ ] 1.21.2 Read zz03 lines 1001-2000 - continue architecture analysis and extract storage concepts
+- [ ] 1.21.3 Read zz03 lines 2001-3000 - extract performance concepts and Rust patterns
+- [ ] 1.21.4 Read zz03 lines 3001-4000 - identify storage patterns and graph structures
+- [ ] 1.21.5 Read zz03 lines 4001-5000 - extract Rust-specific concepts and CLI patterns
+- [ ] 1.21.6 Read zz03 lines 5001-6000 - continue concept extraction and implementation details
+- [ ] 1.21.7 Read zz03 lines 6001-7000 - analyze architectural patterns and performance targets
+- [ ] 1.21.8 Read zz03 lines 7001-8000 - extract storage architectures and optimization strategies
+- [ ] 1.21.9 Read zz03 lines 8001-9000 - identify graph structures and relationship patterns
+- [ ] 1.21.10 Read zz03 lines 9001-10000 - extract CLI patterns and command structures
+- [ ] 1.21.11 Read zz03 lines 10001-11000 - analyze performance benchmarks and targets
+- [ ] 1.21.12 Read zz03 lines 11001-12000 - extract Rust-specific implementation patterns
+- [ ] 1.21.13 Read zz03 lines 12001-13000 - identify concurrency patterns and thread safety
+- [ ] 1.21.14 Read zz03 lines 13001-14000 - extract error handling and resilience patterns
+- [ ] 1.21.15 Read zz03 lines 14001-15000 - analyze testing strategies and TDD approaches
+- [ ] 1.21.16 Read zz03 lines 15001-16000 - extract LLM integration patterns and context generation
+- [ ] 1.21.17 Read zz03 lines 16001-17000 - identify optimization techniques and performance tuning
+- [ ] 1.21.18 Read zz03 lines 17001-18000 - extract architectural decision rationales
+- [ ] 1.21.19 Read zz03 lines 18001-19000 - analyze system boundaries and interface design
+- [ ] 1.21.20 Read zz03 lines 19001-20000 - extract final architectural concepts
+- [ ] 1.21.21 Read zz03 lines 20001-21030 - complete analysis and document all findings
 
 #### Task 1.22: Analyze zz04MoreNotes.md (1,188 lines)
 - [ ] 1.22.1 Read zz04 lines 1-600 - TDD implementation analysis and OptimizedISG concepts
@@ -108,33 +123,37 @@
 
 **Total Lines Analyzed**: ~13,000+ lines across 18 documents
 **Remaining Lines**: **28,801 lines** across 4 large documents
-- z02.html: 6,060 lines (6 subtasks)
-- zz03MoreArchitectureIdeas: 21,030 lines (7 subtasks) 
+- z02.html: 6,060 lines (7 subtasks)
+- zz03MoreArchitectureIdeas: 21,030 lines (21 subtasks) 
 - zz04MoreNotes: 1,188 lines (2 subtasks)
 - zz01.md: 523 lines (2 subtasks)
 
-**_refIdioms REMAINING** (0/24 documents analyzed):
-- [ ] 1.19 `_refIdioms/documentation-hierarchy-analysis.md`
-- [ ] 1.20 `_refIdioms/Executable Specifications for LLM Code Generation.md`
-- [ ] 1.21 `_refIdioms/Exploring Rust in Layers_ Language Core to Idiomatic Patterns.docx.md`
-- [ ] 1.22 `_refIdioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx (1).md`
-- [ ] 1.23 `_refIdioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx.md`
-- [ ] 1.24 `_refIdioms/Sig-Graph-Ideas.md`
-- [ ] 1.25 `_refIdioms/ThreeCrossThree20250916.md`
-- [ ] 1.26 `_refIdioms/Unlocking _Compile-First Success__ A Layered Blueprint for Building and Governing Rust's Idiomatic-Archive.md`
-- [ ] 1.27 `_refIdioms/You are an __omniscient superintelligence with an....md`
-- [ ] 1.28 `_refIdioms/comprehensive-rust-patterns-guidance.md`
-- [ ] 1.29 `_refIdioms/React Idiomatic Reference for LLMs.md`
-- [ ] 1.30 `_refIdioms/react-patterns.md`
-- [ ] 1.31 `_refIdioms/Rust Idiomatic Patterns Deep Dive_.md`
-- [ ] 1.32 `_refIdioms/rust-patterns.md`
-- [ ] 1.33 `_refIdioms/tdd-patterns.md`
-- And 9 more files (PDFs, TXT, RTF files to be skipped)
+**_refIdioms REMAINING** (0/15 documents analyzed, 9 non-MD files skipped):
+
+#### Task 1.23: Analyze _refIdioms/comprehensive-rust-patterns-guidance.md (1,846 lines)
+- [ ] 1.23.1 Read comprehensive-rust-patterns-guidance.md lines 1-1000 - extract Rust pattern fundamentals
+- [ ] 1.23.2 Read comprehensive-rust-patterns-guidance.md lines 1001-1846 - complete pattern analysis and extract MVP concepts
+
+#### Task 1.24: Analyze remaining _refIdioms files (≤878 lines each)
+- [ ] 1.24.1 Analyze `_refIdioms/Rust Idiomatic Patterns Deep Dive_.md` (878 lines) - extract advanced Rust patterns
+- [ ] 1.24.2 Analyze `_refIdioms/react-patterns.md` (694 lines) - skip non-Rust content, focus on architectural patterns
+- [ ] 1.24.3 Analyze `_refIdioms/tdd-patterns.md` (583 lines) - extract TDD methodologies for Rust
+- [ ] 1.24.4 Analyze `_refIdioms/rust-patterns.md` (434 lines) - extract core Rust idioms and patterns
+- [ ] 1.24.5 Analyze `_refIdioms/React Idiomatic Reference for LLMs.md` (424 lines) - skip non-Rust content
+- [ ] 1.24.6 Analyze `_refIdioms/Unlocking _Compile-First Success__.md` (416 lines) - extract Rust compilation strategies
+- [ ] 1.24.7 Analyze `_refIdioms/Sig-Graph-Ideas.md` (345 lines) - extract graph architecture concepts
+- [ ] 1.24.8 Analyze `_refIdioms/Exploring Rust in Layers_.md` (270 lines) - extract layered architecture patterns
+- [ ] 1.24.9 Analyze `_refIdioms/Executable Specifications for LLM Code Generation.md` (214 lines) - extract specification patterns
+- [ ] 1.24.10 Analyze `_refIdioms/Proposal_ Enhancing Documentation for TDD.md` (203 lines) - extract TDD documentation patterns
+- [ ] 1.24.11 Analyze `_refIdioms/Proposal_ Enhancing Documentation for TDD (1).md` (203 lines) - extract additional TDD patterns
+- [ ] 1.24.12 Analyze `_refIdioms/documentation-hierarchy-analysis.md` (198 lines) - extract documentation strategies
+- [ ] 1.24.13 Analyze `_refIdioms/You are an __omniscient superintelligence__.md` (161 lines) - extract LLM integration patterns
+- [ ] 1.24.14 Analyze `_refIdioms/ThreeCrossThree20250916.md` (96 lines) - extract architectural decision frameworks
 
 **🟡 TASK 1 PARTIAL**:
-- _refDocs: 19/22 documents analyzed (86% complete) - 3 large files remaining  
-- _refIdioms: 0/24 documents analyzed (0% complete)
-- **Status**: Need to complete remaining _refDocs analysis (3 files, ~27,000 lines) AND _refIdioms analysis to finish Task 1
+- _refDocs: 18/22 documents analyzed (82% complete) - 4 large files remaining  
+- _refIdioms: 0/15 documents analyzed (0% complete) - 9 non-MD files skipped
+- **Status**: Need to complete remaining _refDocs analysis (4 files, 28,801 lines) AND _refIdioms analysis (15 files, ~6,500 lines) to finish Task 1
 - MVP-relevant ideas from completed _refDocs extracted and documented in [architecture-backlog.md](./architecture-backlog.md)
 - **Hooks Created**: 4 executable .kiro.hook files created for automated progress tracking
 
@@ -281,7 +300,7 @@
 
 ### Requirements Phase (Current)
 - ✅ **Requirements Document**: 18/18 complete with EARS format
-- 🟡 **Document Analysis**: 18/42 documents analyzed (43% complete) - _refDocs done, _refIdioms remaining
+- 🟡 **Document Analysis**: 18/37 documents analyzed (49% complete) - 4 large _refDocs + 15 _refIdioms remaining
 - 🔴 **Quality Assurance**: Not started
 - 🔴 **Design Document**: Not started
 

@@ -9,6 +9,6 @@
   },
   "then": {
     "type": "runCommand",
-    "command": "./generate-repository-snapshot.sh"
+    "command": "/home/amuldotexe/Desktop/GitHub202410/parseltongue/.kiro/generate-repository-snapshot.sh"
   }
 }

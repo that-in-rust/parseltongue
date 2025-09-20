@@ -8,6 +8,6 @@
   },
   "then": {
     "type": "runCommand",
-    "command": "./generate-repository-snapshot.sh"
+    "command": ".kiro/generate-repository-snapshot.sh"
   }
 }
