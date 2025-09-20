@@ -265,3 +265,76 @@ The following requirements were moved from MVP to ensure focused delivery of ess
 - Enterprise integration
 
 This backlog ensures MVP stays focused while capturing valuable ideas for systematic future development.
+##
+ Critical Scope Reduction (Based on Technical Review)
+
+**Analysis**: The original MVP scope was overloaded with v2.0 features that would prevent successful delivery. The following requirements have been moved to ensure MVP focuses on core ISG functionality.
+
+### Moved Due to Architectural Conflicts
+
+#### SQLite Storage Conflict (RESOLVED)
+- **Original**: REQ-MVP-006.0 mandated SQLite storage
+- **Problem**: SQLite cannot meet sub-millisecond graph traversal requirements
+- **Resolution**: Updated to use OptimizedISG in-memory architecture with rkyv snapshotting
+- **Technical Basis**: Prior architectural analysis proved SQLite incompatible with performance targets
+
+#### Concurrency Model Conflicts (RESOLVED)  
+- **Original**: Requirements specified conflicting Arc<RwLock<T>>, Arc<Mutex<T>>, and DashMap
+- **Problem**: Mutex bottlenecks reads, DashMap adds synchronization complexity
+- **Resolution**: Standardized on single Arc<RwLock<ISGState>> (parking_lot::RwLock)
+- **Technical Basis**: OptimizedISG architecture requires atomic consistency
+
+### Moved Due to Scope Overload
+
+#### Advanced Static Analysis Features → v2.0
+- **REQ-RUST-001.0**: Idiomatic Pattern Recognition (newtype validation, ownership analysis)
+- **REQ-TDD-001.0**: Testing Pattern Detection (property-based test recognition)
+- **Reason**: These describe an advanced static analyzer like Clippy, requiring deep semantic understanding beyond structural ISG
+- **MVP Focus**: Structure only (who calls what, who implements what)
+
+#### Network APIs and LSP → v2.0  
+- **REQ-API-001.0**: HTTP/gRPC server, Language Server Protocol, 1000 concurrent connections
+- **Reason**: LSP is massive undertaking, network serving adds complexity
+- **MVP Focus**: CLI sufficient for both human and LLM consumption (via --format json)
+
+#### Advanced Rule Engines → v2.0
+- **REQ-QUAL-001.0**: Architectural debt detection, health metrics over time
+- **REQ-ARCH-003.0**: Advanced constraint validation, domain rule enforcement
+- **Reason**: Requires configuration and rule engine, MVP should provide raw data
+- **MVP Focus**: Basic queries (find-cycles, blast-radius) without interpretation
+
+#### Multi-Source Complexity → v3.0
+- **REQ-ARCH-002.0**: Multi-source graph merging (LiveFS + Dumps + Git simultaneously)
+- **Reason**: Deterministic conflict resolution across sources is highly complex
+- **MVP Focus**: Analyze one source at a time (EITHER live directory OR dump file)
+
+### Technical Corrections Applied
+
+#### Parsing Strategy Simplified
+- **Original**: REQ-RUST-002.0 AC 6 relied on rustdoc JSON for edge cases
+- **Problem**: Heavy external dependencies, operational complexity
+- **Resolution**: MVP uses syn exclusively, gracefully skips unparseable constructs
+
+#### Code Dump Formats Simplified
+- **Original**: REQ-FUNC-004.0 AC 6 supported tar.gz, zip, git bundles
+- **Problem**: Adds unnecessary complexity
+- **Resolution**: Support only separated dump format (FILE: markers)
+
+#### Technical Terminology Fixed
+- **"Rust's garbage collection"** → **"compact in-memory structures"** (Rust has no GC)
+- **"SigHash compression"** → **"optimized data structures"** (hashes can't compress)
+- **"struct inheritance patterns"** → **"trait inheritance"** (Rust has no classical inheritance)
+
+## Revised Leaner MVP Scope
+
+The MVP now focuses exclusively on core ISG functionality:
+
+1. **REQ-MVP-001.0**: Code Dump Ingestion (separated format only)
+2. **REQ-MVP-002.0**: Live Codebase Monitoring (<12ms updates)  
+3. **REQ-MVP-003.0**: Essential Graph Queries (<1ms latency)
+4. **REQ-MVP-004.0**: LLM Context Generation (via CLI)
+5. **REQ-MVP-005.0**: Essential CLI Interface
+6. **REQ-MVP-006.0**: In-Memory Performance (OptimizedISG + snapshotting)
+7. **REQ-MVP-007.0**: Essential Error Handling
+
+**Result**: Technically aligned with OptimizedISG architecture, achievable scope, validates core hypothesis of deterministic sub-millisecond architectural intelligence.

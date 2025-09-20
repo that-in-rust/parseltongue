@@ -79,18 +79,18 @@ Parseltongue AIM Daemon is a **Rust-only** development tool that transforms code
 5. WHEN any command fails THEN the system SHALL show clear error message and suggested fix
 6. WHEN I run `parseltongue --help` THEN the system SHALL show usage for all commands
 
-### REQ-MVP-006.0: Basic Performance and Storage
+### REQ-MVP-006.0: In-Memory Performance and Persistence
 
-**User Story:** As a developer working with typical Rust projects, I want the daemon to handle common codebases efficiently with simple storage, so that it works reliably for everyday development.
+**User Story:** As a developer working with typical Rust projects, I want the daemon to handle common codebases with sub-millisecond query performance using in-memory architecture, so that it meets the <12ms update and <1ms query constraints.
 
 #### Acceptance Criteria
 
-1. WHEN processing up to 100K lines of Rust code THEN the system SHALL maintain reasonable memory usage (under 100MB)
-2. WHEN handling queries THEN the system SHALL maintain sub-millisecond response times using Arc<RwLock<T>> for thread-safe access
-3. WHEN persisting data THEN the system SHALL use SQLite for simple, reliable storage with atomic updates
-4. WHEN the daemon restarts THEN the system SHALL reload the ISG from storage within 2 seconds
-5. WHEN memory usage grows THEN the system SHALL handle typical development projects (10-50K LOC) efficiently
-6. WHEN concurrent access occurs THEN the system SHALL prevent data races using Rust's ownership system
+1. WHEN processing up to 100K lines of Rust code THEN the system SHALL maintain memory usage under 25MB using OptimizedISG architecture
+2. WHEN handling queries THEN the system SHALL maintain sub-millisecond response times using Arc<RwLock<ISGState>> for thread-safe access
+3. WHEN persisting data THEN the system SHALL use high-performance, asynchronous snapshotting (rkyv serialization) of the in-memory graph
+4. WHEN the daemon restarts THEN the system SHALL reload the ISG from snapshot within 500ms
+5. WHEN memory usage grows THEN the system SHALL use efficient data structures (FxHashMap, Arc<str> interning)
+6. WHEN concurrent access occurs THEN the system SHALL use single RwLock for atomic consistency
 
 ### REQ-MVP-007.0: Essential Error Handling
 
@@ -109,15 +109,17 @@ Parseltongue AIM Daemon is a **Rust-only** development tool that transforms code
 
 The above 7 requirements represent the **complete MVP v1.0 scope** for Parseltongue AIM Daemon. This focused scope ensures you can start using the daemon immediately for both code dumps and live codebases.
 
-### MVP v1.0 Success Criteria
+### MVP v1.0 Success Criteria (Revised - Technically Aligned)
 
 1. **Code Dump Analysis**: Process separated dump format and build ISG in <5 seconds
-2. **Live File Monitoring**: Watch .rs files and update ISG in <12ms 
-3. **Essential Queries**: Support what-implements, blast-radius, find-cycles
-4. **LLM Context**: Generate compressed architectural context for AI tools
-5. **Simple CLI**: 4 core commands that work reliably
-6. **Basic Storage**: SQLite persistence with crash recovery
+2. **Live File Monitoring**: Watch .rs files and update ISG in <12ms using OptimizedISG
+3. **Essential Queries**: Support what-implements, blast-radius, find-cycles in <1ms
+4. **LLM Context**: Generate compressed architectural context via CLI
+5. **Simple CLI**: 4 core commands with --format json support
+6. **In-Memory Performance**: OptimizedISG with rkyv snapshotting, <25MB for 100K LOC
 7. **Error Handling**: Clear messages and graceful failure recovery
+
+**Core Validation**: Proves deterministic, sub-millisecond architectural intelligence on live Rust codebases using structural ISG analysis.
 
 ### Implementation Priority
 
