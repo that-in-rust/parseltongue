@@ -14,9 +14,6 @@
 
 ### What MVP 1.0 IS NOT
 - ❌ **Multi-language support**: No JavaScript, Python, Java, etc.
-- ❌ **Advanced graph databases**: No MemGraph, SurrealDB, TigerGraph
-- ❌ **Complex coordination**: No Redis, message queues, microservices
-- ❌ **ML/AI features**: No vector embeddings, fuzzy matching, probabilistic analysis
 - ❌ **Enterprise features**: No distributed analysis, advanced security, complex workflows
 
 ### Backlog Strategy

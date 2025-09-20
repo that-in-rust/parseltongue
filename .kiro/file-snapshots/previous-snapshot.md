@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-20 12:58:28 IST
+# Repository Snapshot - 2025-09-20 12:59:14 IST
 
 ## Summary Statistics
-- **Total Files**: 91
-- **Total Lines**: 98,520
-- **Total Words**: 616,325
-- **Snapshot Time**: 2025-09-20 12:58:28 IST
+- **Total Files**: 93
+- **Total Lines**: 98,562
+- **Total Words**: 616,542
+- **Snapshot Time**: 2025-09-20 12:59:14 IST
 
 ## File Inventory
 
@@ -13,7 +13,7 @@
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./hook-test.txt | 2 | 19 | 124 |
 | ./hook-trigger-check.txt | 1 | 12 | 113 |
-| ./.kiro/file-snapshots/change-log.md | 417 | 1283 | 9.5K |
+| ./.kiro/file-snapshots/change-log.md | 428 | 1315 | 9.7K |
 | ./.kiro/file-snapshots/current-snapshot.md | 103 | 969 | 6.5K |
 | ./.kiro/file-snapshots/previous-snapshot.md | 103 | 969 | 6.5K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
@@ -25,8 +25,10 @@
 | ./.kiro/specs/parseltongue-aim-daemon/ref-code-snippets.md | [binary] | [binary] | 0 |
 | ./.kiro/specs/parseltongue-aim-daemon/requirements.md | 282 | 3683 | 26K |
 | ./.kiro/specs/parseltongue-aim-daemon/requirements-tasks.md | 314 | 2619 | 19K |
+| ./.kiro/specs/parseltongue-aim-daemon/rust-patterns-analysis.md | 17 | 101 | 740 |
 | ./.kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 215 | 1059 | 8.4K |
 | ./.kiro/specs/parseltongue-aim-daemon/storage-architecture-options.md | 501 | 2147 | 17K |
+| ./.kiro/specs/parseltongue-aim-daemon/user-journey-options.md | 14 | 84 | 571 |
 | ./.kiro/steering/code-conventions.md | [binary] | [binary] | 0 |
 | ./.kiro/steering/hook-automation-guide.md | 256 | 1274 | 11K |
 | ./.kiro/steering/hook-system-status.md | 27 | 115 | 912 |
