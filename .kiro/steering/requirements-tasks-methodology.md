@@ -18,8 +18,8 @@
 ### Information Routing
 - **MVP architecture patterns** → architecture-backlog.md
 - **Storage/database concepts** → storage-architecture-options.md
+- **User workflows/journeys** → user-journey-options.md
 - **Code examples/snippets** → ref-code-snippets.md
-- **User workflows/journeys** → requirements.md (enhance user stories)
 - **Advanced/future features** → backlog.md
 - **Progress tracking** → requirements-tasks.md
 - **Session state** → SESSION_CONTEXT.md
