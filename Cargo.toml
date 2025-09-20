@@ -1,0 +1,24 @@
+[package]
+name = "parseltongue"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Core OptimizedISG dependencies (proven architecture)
+petgraph = "0.6"
+parking_lot = "0.12"
+fxhash = "0.2"
+thiserror = "1.0"
+
+# Rust parsing and file monitoring
+syn = { version = "2.0", features = ["full"] }
+notify = "6.0"
+
+# CLI and serialization
+clap = { version = "4.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.0"
