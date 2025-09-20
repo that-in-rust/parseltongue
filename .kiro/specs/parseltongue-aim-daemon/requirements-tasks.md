@@ -85,13 +85,13 @@
 **_refIdioms REMAINING** (0/15 documents analyzed, 9 non-MD files skipped):
 
 #### Task 1.23: Analyze _refIdioms/comprehensive-rust-patterns-guidance.md (1,846 lines)
-- [ ] 1.23.1 Read comprehensive-rust-patterns-guidance.md lines 1-1000 - extract Rust pattern fundamentals
-- [ ] 1.23.2 Read comprehensive-rust-patterns-guidance.md lines 1001-1846 - complete pattern analysis and extract MVP concepts
+- [x] 1.23.1 Read comprehensive-rust-patterns-guidance.md lines 1-1000 - comprehensive Rust patterns routed to rust-patterns-analysis.md and dev-steering-options.md ✅
+- [x] 1.23.2 Read comprehensive-rust-patterns-guidance.md lines 1001-1846 - advanced Rust patterns and performance optimization routed to rust-patterns-analysis.md ✅
 
 #### Task 1.24: Analyze remaining _refIdioms files (≤878 lines each)
-- [ ] 1.24.1 Analyze `_refIdioms/Rust Idiomatic Patterns Deep Dive_.md` (878 lines) - extract advanced Rust patterns
+- [x] 1.24.1 Analyze `_refIdioms/Rust Idiomatic Patterns Deep Dive_.md` (878 lines) - advanced Rust idioms routed to rust-patterns-analysis.md ✅
 - [ ] 1.24.2 Analyze `_refIdioms/react-patterns.md` (694 lines) - skip non-Rust content, focus on architectural patterns
-- [ ] 1.24.3 Analyze `_refIdioms/tdd-patterns.md` (583 lines) - extract TDD methodologies for Rust
+- [x] 1.24.3 Analyze `_refIdioms/tdd-patterns.md` (583 lines) - comprehensive TDD patterns routed to dev-steering-options.md ✅
 - [ ] 1.24.4 Analyze `_refIdioms/rust-patterns.md` (434 lines) - extract core Rust idioms and patterns
 - [ ] 1.24.5 Analyze `_refIdioms/React Idiomatic Reference for LLMs.md` (424 lines) - skip non-Rust content
 - [ ] 1.24.6 Analyze `_refIdioms/Unlocking _Compile-First Success__.md` (416 lines) - extract Rust compilation strategies
