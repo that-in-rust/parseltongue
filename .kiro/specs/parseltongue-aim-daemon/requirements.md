@@ -11,7 +11,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 
 ## Requirements
 
-### Requirement 1
+### REQ-FUNC-001.0: Code Dump Ingestion and Processing
 
 **User Story:** As a Rust developer analyzing unfamiliar Rust codebases, I want to ingest Rust-only code dumps and extract architectural intelligence deterministically, so that I can understand complex Rust systems in seconds rather than hours.
 
@@ -24,7 +24,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 5. WHEN ISG construction completes THEN the system SHALL provide real-time status updates showing Rust nodes created, edges established, and compression achieved
 6. WHEN encountering non-Rust files THEN the system SHALL ignore them and focus exclusively on .rs files
 
-### Requirement 2
+### REQ-PERF-001.0: Real-Time Architectural Monitoring
 
 **User Story:** As a Rust developer working on live Rust codebases, I want high-speed real-time architectural monitoring with incremental updates using SigHash-based deterministic identification, so that I can receive immediate feedback on Rust architectural changes without workflow interruption.
 
@@ -38,7 +38,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 6. WHEN monitoring files THEN the system SHALL ignore all non-Rust files and focus exclusively on src/, tests/, and examples/ directories
 7. WHEN generating SigHash THEN the system SHALL create deterministic 64-bit hashes from full Rust signatures for O(1) node/edge lookup
 
-### Requirement 3
+### REQ-FUNC-002.0: Deterministic Graph-Based Queries
 
 **User Story:** As a Rust developer needing dependency analysis, I want deterministic graph-based queries that return factual results with Rust-specific pattern recognition, so that I can make confident architectural decisions without probabilistic guessing.
 
@@ -52,7 +52,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 6. WHEN analyzing Rust patterns THEN the system SHALL recognize newtype patterns, smart pointer usage (Arc, Rc, Box), and async patterns
 7. WHEN detecting anti-patterns THEN the system SHALL identify blocking calls in async contexts, unnecessary cloning, and error swallowing
 
-### Requirement 4
+### REQ-LLM-001.0: Compressed Context Generation for AI Tools
 
 **User Story:** As a developer using LLMs for code assistance, I want compressed ISG context with deterministic SigHash-based relationships that eliminates hallucination, so that AI tools receive perfect architectural truth instead of raw code snippets.
 
@@ -66,7 +66,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 6. WHEN generating context THEN the system SHALL use deterministic SigHash-based node identification to ensure consistent, reproducible results
 7. WHEN creating prompts THEN the system SHALL include Rust-specific constraints like Send + Sync bounds, lifetime parameters, and error propagation patterns
 
-### Requirement 5
+### REQ-CLI-001.0: Terminal-Optimized Command Interface
 
 **User Story:** As a Rust developer and LLMs working from terminal, I want a comprehensive CLI interface optimized for quick queries during active development, so that architectural intelligence can be accessed instantly during coding sessions.
 
@@ -79,7 +79,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 5. WHEN operations complete THEN the system SHALL display performance metrics including execution time and Rust-specific resource usage
 6. WHEN LLMs query from terminal THEN the system SHALL provide structured output formats suitable for AI consumption and human readability
 
-### Requirement 6
+### REQ-PERF-002.0: Memory Management and Performance Optimization
 
 **User Story:** As a developer working with large Rust projects, I want efficient memory management and performance optimization using Rust's zero-cost abstractions, so that the daemon can handle enterprise-scale codebases without resource constraints.
 
@@ -93,7 +93,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 6. WHEN using smart pointers THEN the system SHALL follow the decision matrix: Box<T> for unique ownership, Arc<T> for shared ownership, RwLock<T> for interior mutability
 7. WHEN processing iteratively THEN the system SHALL use iterator chains for zero-cost functional programming patterns
 
-### Requirement 7
+### REQ-API-001.0: Structured Data Output and API Interfaces
 
 **User Story:** As a developer integrating Parseltongue with other tools, I want structured data output and high-performance API interfaces, so that I can build additional tooling and integrations on top of the architectural intelligence.
 
@@ -107,7 +107,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 6. WHEN handling concurrent requests THEN the system SHALL support at least 1000 concurrent connections using async Rust (tokio)
 7. WHEN serving gRPC requests THEN the system SHALL respond with binary-encoded results for maximum performance with Rust clients
 
-### Requirement 8
+### REQ-FUNC-003.0: Specialized Query Types for LLM Integration
 
 **User Story:** As an LLM querying Parseltongue from terminal during active Rust development, I want a variety of specialized query types with instant responses, so that I can provide accurate architectural guidance without interrupting the developer's flow.
 
@@ -121,7 +121,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 6. WHEN executing any query THEN the system SHALL respond in <1ms to maintain development flow
 7. WHEN providing results THEN the system SHALL format output for both human developers and LLM consumption
 
-### Requirement 9
+### REQ-QUAL-001.0: Architectural Validation and Debt Detection
 
 **User Story:** As a developer concerned with Rust code quality, I want architectural validation and debt detection specific to Rust patterns, so that I can maintain clean Rust architecture and prevent technical debt accumulation.
 
@@ -133,7 +133,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 4. WHEN monitoring continuously THEN the system SHALL track Rust architectural health metrics over time
 5. WHEN detecting issues THEN the system SHALL provide actionable recommendations for Rust architectural improvements
 
-### Requirement 10
+### REQ-RUST-001.0: Idiomatic Rust Pattern Recognition
 
 **User Story:** As a Rust developer following idiomatic patterns, I want the daemon to recognize and validate Rust-specific type safety and error handling patterns, so that I can maintain compile-first success and prevent runtime errors.
 
@@ -147,7 +147,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 6. WHEN examining smart pointers THEN the system SHALL validate appropriate usage of Box<T>, Arc<T>, Rc<T>, and interior mutability patterns
 7. WHEN detecting anti-patterns THEN the system SHALL flag blocking calls in async contexts, error swallowing with let _, and manual loops instead of iterators
 
-### Requirement 11
+### REQ-TDD-001.0: Compile-Time Validation and Testing Patterns
 
 **User Story:** As a Rust developer following TDD-first development, I want the daemon to support compile-time validation and property-based testing patterns, so that I can achieve one-shot correctness and prevent coordination complexity.
 
@@ -161,7 +161,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 6. WHEN checking error propagation THEN the system SHALL validate proper use of ? operator and Result<T, E> patterns throughout call chains
 7. WHEN analyzing dependencies THEN the system SHALL flag forbidden coordination dependencies (Redis, message queues, ORMs) that violate TDD-first simplicity
 
-### Requirement 12
+### REQ-ARCH-001.0: Comprehensive Graph Schema for Rust Semantics
 
 **User Story:** As a Rust developer needing precise architectural representation, I want a comprehensive graph schema with 7 node types and 9 relationship types optimized for Rust semantics, so that I can query exact structural relationships with deterministic results.
 
@@ -176,7 +176,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 7. WHEN detecting inheritance THEN the system SHALL use INHERITS edges for struct inheritance patterns in Rust
 8. WHEN tracking calls THEN the system SHALL use CALLS edges to map function invocation relationships with precise line numbers
 
-### Requirement 13
+### REQ-ARCH-002.0: Multi-Source Graph Merging
 
 **User Story:** As a Rust developer working with multiple code sources (live filesystem, code dumps, git repositories), I want unified graph merging with deterministic conflict resolution, so that I can analyze architectural relationships across different Rust codebases simultaneously.
 
@@ -190,7 +190,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 6. WHEN updating sources THEN the system SHALL support incremental updates to individual sources without full re-extraction
 7. WHEN handling conflicts THEN the system SHALL preserve all source metadata to enable rollback and source-specific queries
 
-### Requirement 14
+### REQ-PERF-003.0: Enterprise-Grade Performance Targets
 
 **User Story:** As a Rust developer requiring enterprise-grade performance, I want specific latency targets and technical implementation details that guarantee sub-millisecond query performance with deterministic SigHash-based operations, so that the daemon can handle production-scale Rust codebases without performance degradation.
 
@@ -205,7 +205,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 7. WHEN handling concurrent access THEN the system SHALL use DashMap for lock-free concurrent access and crossbeam channels for event queuing with bounded capacity (1k items)
 8. WHEN managing memory THEN the system SHALL compress 100k LOC Rust codebases to 15-25MB in-memory footprint using deterministic SigHash compression
 
-### Requirement 15
+### REQ-RESIL-001.0: Error Handling and System Recovery
 
 **User Story:** As a Rust developer requiring system resilience, I want comprehensive error handling and recovery mechanisms specific to Rust development workflows, so that temporary issues don't disrupt my development process or architectural analysis.
 
@@ -219,7 +219,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 6. WHEN database corruption is detected THEN the system SHALL trigger automatic rebuild from live Rust filesystem
 7. WHEN concurrent access conflicts occur THEN the system SHALL use Rust's Arc<RwLock<T>> patterns to handle contention gracefully
 
-### Requirement 16
+### REQ-ARCH-003.0: Advanced Constraint Validation
 
 **User Story:** As a Rust software architect enforcing design patterns, I want advanced architectural constraint validation and rule enforcement, so that I can maintain clean Rust architecture and prevent violations of established patterns.
 
@@ -233,7 +233,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 6. WHEN constraint violations are detected THEN the system SHALL provide specific Rust code locations and suggested fixes
 7. WHEN validating patterns THEN the system SHALL recognize and enforce Rust idioms like newtype patterns, error propagation with ?, and proper ownership transfer
 
-### Requirement 17
+### REQ-FUNC-004.0: Code Dump Processing with Virtual File System
 
 **User Story:** As a Rust developer analyzing unfamiliar codebases from code dumps, I want comprehensive support for separated dump formats with virtual file system capabilities, so that I can perform the same architectural analysis on dumped code as I do on live filesystems.
 
@@ -248,7 +248,7 @@ Parseltongue AIM Daemon is a revolutionary **Rust-only** development tool that t
 7. WHEN generating metadata THEN the system SHALL extract project information, file counts, language detection, and file tree structure from dumps
 8. WHEN providing CLI access THEN the system SHALL support `aim extract-dump`, `aim query-dump`, and `aim dump-context` commands for complete dump workflow
 
-### Requirement 18
+### REQ-RUST-002.0: Complex Rust Pattern Parsing
 
 **User Story:** As a Rust developer working with complex production codebases, I want optimized parsing strategies that handle real-world Rust complexity patterns efficiently, so that the daemon can process enterprise-scale Rust code with trait-heavy architectures and complex generics within performance targets.
 

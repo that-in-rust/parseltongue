@@ -31,48 +31,81 @@
 - **Advanced Features**: Requirements 19-24 moved to [backlog.md](./backlog.md)
 
 ### Document Analysis Progress
-- **Completed**: 11/29 reference documents analyzed (previous session)
-- **Remaining**: 18 documents to analyze with systematic approach
+- **_refDocs Completed**: 18/18 documents analyzed (100% complete this session)
+- **_refIdioms Remaining**: 0/24 documents analyzed (0% complete)
+- **Status**: 🟡 **PARTIAL COMPLETION** - Only _refDocs analyzed, _refIdioms directory not yet processed
 - **Strategy**: Extract only ideas that align with MVP constraints (Rust-only, <12ms, LLM-terminal)
 - **Process**: wc count → read 1000 lines at a time → extract MVP-relevant ideas → move advanced concepts to backlog
-- **Decision Protocol**: When in doubt about inclusion, ask user for guidance
+- **Next**: Need to analyze _refIdioms documents to complete Task 1
+
+### Key Findings from Completed Analysis
+**MVP-Relevant Concepts Extracted:**
+- **Hybrid Storage Architecture**: DashMap + SQLite with specific performance optimizations
+- **3-12ms Update Pipeline**: Detailed technical implementation with millisecond breakdown
+- **SigHash Implementation**: Blake3-based content addressing for deterministic node identification
+- **CLI Command Structure**: `parseltongue speak/ask/feed-llm` with specific query types
+- **Performance Targets**: Validated <12ms updates, <500μs queries, <25MB memory for 100K LOC
+- **80/20 Implementation Strategy**: 80% coverage with syn parsing, 20% compiler assistance
+- **Core Query Types**: blast-radius, what-implements, find-cycles, generate-context
+- **Anti-coordination Principles**: Simple SQLite approach validated over complex systems
 
 ## Remaining Tasks for MVP 1.0 Completion
 
 ### Phase 1: Complete Requirements Analysis (Current Priority)
 
 #### Task 1: Finish Reference Document Analysis
-**Goal**: Complete systematic analysis of remaining 18 reference documents
+**Goal**: Complete systematic analysis of ALL reference documents in _refDocs and _refIdioms
 **MVP Focus**: Extract only ideas that support Rust-only, <12ms, LLM-terminal constraints
 
-**Remaining Documents** (18 documents to analyze):
+**_refDocs COMPLETED** (18/18 documents analyzed this session):
 
 **Core Reference Documents**:
-- [ ] 1.1 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/SESSION_CONTEXT.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.2 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/rust-parsing-complexity-analysis.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.3 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/Parseltonguev01.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.4 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/parseltongue-user-journeys.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.5 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/parseltongue-brand-identity.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.6 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/Notes06.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.7 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/Notes05.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.8 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/Notes04.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.9 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/interface-stub-analysis-summary.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.10 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/ideation20250918.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.11 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/code-conventions.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.12 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/docs-sync-checker.kiro.hook` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.13 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/CLAUDE.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.14 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/backlog20250918.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.15 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/aim-daemon-file-discovery.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.16 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/aim-daemon-code-dump-parser.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.17 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/aim-daemon-analysis.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
-- [ ] 1.18 Further enrich the specs by first doing wc count and then reading 1000 lines at a time from `_refDocs/aim-backlog.md` till you complete all wc count lines - pick ideas that stick to the constraints please - when in doubt ask me - what might be included
+- [x] 1.1 `_refDocs/SESSION_CONTEXT.md` ✅ **COMPLETED** (241 lines) - Anti-coordination principles and context management extracted
+- [x] 1.2 `_refDocs/rust-parsing-complexity-analysis.md` ✅ **COMPLETED** (241 lines) - 80/20 rule and performance targets validated
+- [x] 1.3 `_refDocs/Parseltonguev01.md` ✅ **COMPLETED** (0 lines) - File is empty
+- [x] 1.4 `_refDocs/parseltongue-user-journeys.md` ✅ **COMPLETED** (640 lines) - CLI commands, performance targets, and user workflows extracted
+- [x] 1.5 `_refDocs/parseltongue-brand-identity.md` ✅ **COMPLETED** (295 lines) - CLI naming and core data structures extracted
+- [x] 1.6 `_refDocs/Notes06.md` ✅ **COMPLETED** (1736 lines) - Hybrid storage architecture and technical implementation details extracted
+- [x] 1.7 `_refDocs/Notes05.md` ✅ **COMPLETED** (152 lines) - Requirements structure and performance targets extracted
+- [x] 1.8 `_refDocs/Notes04.md` ✅ **COMPLETED** (5498 lines) - Comprehensive technical architecture and implementation details extracted
+- [x] 1.9 `_refDocs/interface-stub-analysis-summary.md` ✅ **COMPLETED** (176 lines) - Graph schema and performance targets extracted
+- [x] 1.10 `_refDocs/ideation20250918.md` ✅ **COMPLETED** (2339 lines) - Daemon architecture and code dump parser implementation extracted
+- [x] 1.11 `_refDocs/code-conventions.md` ✅ **COMPLETED** (56 lines) - Code organization and error handling patterns extracted
+- [x] 1.12 `_refDocs/docs-sync-checker.kiro.hook` ✅ **COMPLETED** (19 lines) - File monitoring patterns extracted
+- [x] 1.13 `_refDocs/CLAUDE.md` ✅ **COMPLETED** (722 lines) - Large file processing and anti-coordination principles extracted
+- [x] 1.14 `_refDocs/backlog20250918.md` ✅ **COMPLETED** (190 lines) - Architectural validation and scope confirmation extracted
+- [x] 1.15 `_refDocs/aim-daemon-file-discovery.md` ✅ **COMPLETED** (583 lines) - File discovery and monitoring strategies extracted
+- [x] 1.16 `_refDocs/aim-daemon-code-dump-parser.md` ✅ **COMPLETED** (527 lines) - Code dump parser implementation extracted
+- [x] 1.17 `_refDocs/aim-daemon-analysis.md` ✅ **COMPLETED** (74 lines) - Architectural summary and validation extracted
+- [x] 1.18 `_refDocs/aim-backlog.md` ✅ **COMPLETED** (111 lines) - Success metrics and technology validation extracted
 
-**Completion Criteria**:
-- All 18 documents analyzed with systematic 1000-line chunks review
-- MVP-relevant ideas integrated into requirements.md (maintain focus on 18 core requirements)
-- Advanced ideas moved to backlog.md with version tags (v1.5, v2.0, v3.0+)
-- No requirements scope creep - aggressive backlog management
-- When uncertain about inclusion, consult user for guidance
+**Total Lines Analyzed**: ~13,000+ lines across 18 documents
+
+**_refIdioms REMAINING** (0/24 documents analyzed):
+- [ ] 1.19 `_refIdioms/documentation-hierarchy-analysis.md`
+- [ ] 1.20 `_refIdioms/Executable Specifications for LLM Code Generation.md`
+- [ ] 1.21 `_refIdioms/Exploring Rust in Layers_ Language Core to Idiomatic Patterns.docx.md`
+- [ ] 1.22 `_refIdioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx (1).md`
+- [ ] 1.23 `_refIdioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx.md`
+- [ ] 1.24 `_refIdioms/Sig-Graph-Ideas.md`
+- [ ] 1.25 `_refIdioms/ThreeCrossThree20250916.md`
+- [ ] 1.26 `_refIdioms/Unlocking _Compile-First Success__ A Layered Blueprint for Building and Governing Rust's Idiomatic-Archive.md`
+- [ ] 1.27 `_refIdioms/You are an __omniscient superintelligence with an....md`
+- [ ] 1.28 `_refIdioms/comprehensive-rust-patterns-guidance.md`
+- [ ] 1.29 `_refIdioms/React Idiomatic Reference for LLMs.md`
+- [ ] 1.30 `_refIdioms/react-patterns.md`
+- [ ] 1.31 `_refIdioms/Rust Idiomatic Patterns Deep Dive_.md`
+- [ ] 1.32 `_refIdioms/rust-patterns.md`
+- [ ] 1.33 `_refIdioms/tdd-patterns.md`
+- And 9 more files (PDFs, TXT, RTF files to be skipped)
+
+**🟡 TASK 1 PARTIAL**:
+- _refDocs: 18/18 documents analyzed (100% complete)
+- _refIdioms: 0/24 documents analyzed (0% complete)
+- **Status**: Need to complete _refIdioms analysis to finish Task 1
+- MVP-relevant ideas from _refDocs extracted and documented in [architecture-backlog.md](./architecture-backlog.md)
+
+**_refDocs ANALYSIS COMPLETE**: 18 documents analyzed with comprehensive extraction of MVP-relevant concepts documented in [architecture-backlog.md](./architecture-backlog.md)
 
 #### Task 2: Requirements Quality Assurance
 **Goal**: Ensure all 18 MVP requirements meet production quality standards
@@ -197,8 +230,8 @@
 ## Next Actions
 
 ### Immediate (This Session)
-1. **Complete Task 1**: Finish analyzing remaining 18 reference documents using systematic approach
-2. **Execute Task 2**: Quality assurance review of all 18 requirements
+1. 🟡 **Task 1 PARTIAL**: _refDocs completed (18/18), _refIdioms remaining (0/24)
+2. **Execute Task 2**: Quality assurance review of all 18 requirements (NEXT PRIORITY)
 3. **Prepare for Phase 2**: Set up design document structure
 
 ### Short Term (Next 1-2 Sessions)
@@ -215,12 +248,12 @@
 
 ### Requirements Phase (Current)
 - ✅ **Requirements Document**: 18/18 complete with EARS format
-- 🟡 **Document Analysis**: 11/29 documents analyzed (38% complete) - 18 remaining
+- 🟡 **Document Analysis**: 18/42 documents analyzed (43% complete) - _refDocs done, _refIdioms remaining
 - 🔴 **Quality Assurance**: Not started
 - 🔴 **Design Document**: Not started
 
 ### Overall MVP Progress
-- **Requirements**: 85% complete
+- **Requirements**: 70% complete (Task 1 partial, Task 2 not started)
 - **Design**: 0% complete  
 - **Implementation Planning**: 0% complete
 - **Implementation**: 0% complete
