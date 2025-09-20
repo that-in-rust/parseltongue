@@ -1,19 +1,21 @@
-# Repository Snapshot - 2025-09-20 20:56:59 IST
+# Repository Snapshot - 2025-09-20 22:10:31 IST
 
 ## Summary Statistics
-- **Total Files**: 114
-- **Total Lines**: 62,042
-- **Total Words**: 185,168
-- **Snapshot Time**: 2025-09-20 20:56:59 IST
+- **Total Files**: 120
+- **Total Lines**: 63,368
+- **Total Words**: 189,129
+- **Snapshot Time**: 2025-09-20 22:10:31 IST
 
 ## File Inventory
 
 | File Path | Lines | Words | Size |
 |-----------|-------|-------|------|
+| ./Cargo.lock | 1053 | 2107 | 28K |
+| ./Cargo.toml | 23 | 82 | 507 |
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./DeepThink20250920v1.md | 558 | 3139 | 25K |
 | ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
-| ./.kiro/file-snapshots/change-log.md | 1023 | 2999 | 22K |
+| ./.kiro/file-snapshots/change-log.md | 1034 | 3031 | 22K |
 | ./.kiro/file-snapshots/current-snapshot.md | 126 | 1245 | 8.4K |
 | ./.kiro/file-snapshots/previous-snapshot.md | 126 | 1245 | 8.4K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
@@ -31,7 +33,6 @@
 | ./.kiro/rust-idioms/Exploring Rust in Layers_ Language Core to Idiomatic Patterns.docx.md | 270 | 12621 | 97K |
 | ./.kiro/rust-idioms/i00-pattern-list.txt | 607 | 2069 | 18K |
 | ./.kiro/rust-idioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx.md | 203 | 3756 | 28K |
-| ./.kiro/rust-idioms/React Idiomatic Reference for LLMs.md | 424 | 8120 | 58K |
 | ./.kiro/rust-idioms/Rust Idiomatic Patterns Deep Dive_.md | 878 | 12280 | 95K |
 | ./.kiro/rust-idioms/Rust Idiomatic Patterns Deep Dive_.rtf | [binary] | [binary] | 5.9M |
 | ./.kiro/rust-idioms/UBI Comprehensive Rust Idiomatic Patterns Guide.txt | 769 | 12536 | 90K |
@@ -61,7 +62,7 @@
 | ./_refDocs/aim-daemon-file-discovery.md | 583 | 1545 | 16K |
 | ./_refDocs/backlog20250918.md | 190 | 773 | 5.9K |
 | ./_refDocs/CLAUDE.md | 722 | 4120 | 32K |
-| ./_refDocs/code-conventions.md | 56 | 290 | 2.0K |
+| ./_refDocs/code-conventions.md | 365 | 1125 | 9.2K |
 | ./_refDocs/docs-sync-checker.kiro.hook | [binary] | [binary] | 1.5K |
 | ./_refDocs/ideation20250918.md | 2339 | 8402 | 76K |
 | ./_refDocs/interface-stub-analysis-summary.md | 176 | 1398 | 11K |
@@ -71,37 +72,42 @@
 | ./_refDocs/parseltongue-brand-identity.md | 295 | 1296 | 9.8K |
 | ./_refDocs/parseltongue-user-journeys.md | 640 | 2766 | 22K |
 | ./_refDocs/Parseltonguev01.md | [binary] | [binary] | 0 |
+| ./_refDocs/_refIdioms/Comprehensive Rust Idiomatic Patterns Guide_.txt | 769 | 12536 | 90K |
+| ./_refDocs/_refIdioms/comprehensive-rust-patterns-guidance.md | 1846 | 5140 | 51K |
+| ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis (1).pdf | [binary] | [binary] | 81K |
+| ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.docx | [binary] | [binary] | 30K |
+| ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.pdf | [binary] | [binary] | 81K |
+| ./_refDocs/_refIdioms/documentation-hierarchy-analysis.md | 198 | 1170 | 8.9K |
+| ./_refDocs/_refIdioms/Executable Specifications_ Flawless One-Shot Code Generation (1).pdf | [binary] | [binary] | 83K |
+| ./_refDocs/_refIdioms/Executable Specifications for LLM Code Generation.md | 214 | 4231 | 33K |
+| ./_refDocs/_refIdioms/Exploring Rust Idiomatic Patterns in Layers.pdf | [binary] | [binary] | 613K |
+| ./_refDocs/_refIdioms/Exploring Rust in Layers_ Language Core to Idiomatic Patterns.docx.md | 270 | 12621 | 97K |
+| ./_refDocs/_refIdioms/i00-pattern-list.txt | 607 | 2069 | 18K |
+| ./_refDocs/_refIdioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx (1).md | 203 | 3756 | 28K |
+| ./_refDocs/_refIdioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx.md | 203 | 3756 | 28K |
+| ./_refDocs/_refIdioms/React Idiomatic Reference for LLMs.md | 424 | 8120 | 58K |
+| ./_refDocs/_refIdioms/react-patterns.md | 694 | 1980 | 20K |
+| ./_refDocs/_refIdioms/Rust Idiomatic Patterns Deep Dive_.md | 878 | 12280 | 95K |
+| ./_refDocs/_refIdioms/Rust Idiomatic Patterns Deep Dive_.rtf | [binary] | [binary] | 5.9M |
+| ./_refDocs/_refIdioms/rust-patterns.md | 434 | 1302 | 12K |
+| ./_refDocs/_refIdioms/Sig-Graph-Ideas.md | 345 | 1359 | 11K |
+| ./_refDocs/_refIdioms/tdd-patterns.md | 583 | 1784 | 20K |
+| ./_refDocs/_refIdioms/ThreeCrossThree20250916.md | 96 | 787 | 5.3K |
+| ./_refDocs/_refIdioms/UBI Comprehensive Rust Idiomatic Patterns Guide.txt | 769 | 12536 | 90K |
+| ./_refDocs/_refIdioms/Unlocking _Compile-First Success__ A Layered Blueprint for Building and Governing Rust's Idiomatic-Archive.md | 416 | 5927 | 47K |
+| ./_refDocs/_refIdioms/You are an __omniscient superintelligence with an....md | 161 | 2182 | 16K |
 | ./_refDocs/rust-parsing-complexity-analysis.md | 241 | 1172 | 8.4K |
 | ./_refDocs/SESSION_CONTEXT.md | 26 | 120 | 830 |
 | ./_refDocs/z02.html | 6060 | 295759 | 5.2M |
 | ./_refDocs/zz01.md | 523 | 9178 | 66K |
 | ./_refDocs/zz03MoreArchitectureIdeas20250920v1.md | [binary] | [binary] | 2.5M |
 | ./_refDocs/zz04MoreNotes.md | 1188 | 14961 | 112K |
-| ./_refIdioms/Comprehensive Rust Idiomatic Patterns Guide_.txt | 769 | 12536 | 90K |
-| ./_refIdioms/comprehensive-rust-patterns-guidance.md | 1846 | 5140 | 51K |
-| ./_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis (1).pdf | [binary] | [binary] | 81K |
-| ./_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.docx | [binary] | [binary] | 30K |
-| ./_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.pdf | [binary] | [binary] | 81K |
-| ./_refIdioms/documentation-hierarchy-analysis.md | 198 | 1170 | 8.9K |
-| ./_refIdioms/Executable Specifications_ Flawless One-Shot Code Generation (1).pdf | [binary] | [binary] | 83K |
-| ./_refIdioms/Executable Specifications for LLM Code Generation.md | 214 | 4231 | 33K |
-| ./_refIdioms/Exploring Rust Idiomatic Patterns in Layers.pdf | [binary] | [binary] | 613K |
-| ./_refIdioms/Exploring Rust in Layers_ Language Core to Idiomatic Patterns.docx.md | 270 | 12621 | 97K |
-| ./_refIdioms/i00-pattern-list.txt | 607 | 2069 | 18K |
-| ./_refIdioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx (1).md | 203 | 3756 | 28K |
-| ./_refIdioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx.md | 203 | 3756 | 28K |
-| ./_refIdioms/React Idiomatic Reference for LLMs.md | 424 | 8120 | 58K |
-| ./_refIdioms/react-patterns.md | 694 | 1980 | 20K |
-| ./_refIdioms/Rust Idiomatic Patterns Deep Dive_.md | 878 | 12280 | 95K |
-| ./_refIdioms/Rust Idiomatic Patterns Deep Dive_.rtf | [binary] | [binary] | 5.9M |
-| ./_refIdioms/rust-patterns.md | 434 | 1302 | 12K |
-| ./_refIdioms/Sig-Graph-Ideas.md | 345 | 1359 | 11K |
-| ./_refIdioms/tdd-patterns.md | 583 | 1784 | 20K |
-| ./_refIdioms/ThreeCrossThree20250916.md | 96 | 787 | 5.3K |
-| ./_refIdioms/UBI Comprehensive Rust Idiomatic Patterns Guide.txt | 769 | 12536 | 90K |
-| ./_refIdioms/Unlocking _Compile-First Success__ A Layered Blueprint for Building and Governing Rust's Idiomatic-Archive.md | 416 | 5927 | 47K |
-| ./_refIdioms/You are an __omniscient superintelligence with an....md | 161 | 2182 | 16K |
-| ./_refTestData/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
+| ./_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
+| ./src/cli.rs | 381 | 1024 | 12K |
+| ./src/daemon.rs | 370 | 1175 | 12K |
+| ./src/isg.rs | 518 | 1595 | 18K |
+| ./src/lib.rs | 33 | 101 | 875 |
+| ./src/main.rs | 13 | 34 | 280 |
 | ./.vscode/settings.json | [binary] | [binary] | 44 |
 | ./zzzArchive/analysis-progress-tracker.kiro.hook | [binary] | [binary] | 867 |
 | ./zzzArchive/auto-trigger-test.md | 6 | 37 | 226 |

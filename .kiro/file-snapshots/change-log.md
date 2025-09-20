@@ -1032,3 +1032,38 @@
 ### File-Level Changes
 ---
 
+
+## Delta Report - 2025-09-20 22:10:31 IST
+
+### Summary Changes
+- **File Count**: 6 (120 total)
+- **Line Count**: 1,326 (63,368 total)
+- **Word Count**: 3,961 (189,129 total)
+
+### File-Level Changes
+**Added Files:**
+- ./Cargo.lock
+- ./Cargo.toml
+- ./_refDocs/_refIdioms/Comprehensive Rust Idiomatic Patterns Guide_.txt
+- ./_refDocs/_refIdioms/comprehensive-rust-patterns-guidance.md
+- ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis (1).pdf
+- ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.docx
+- ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.pdf
+- ./_refDocs/_refIdioms/documentation-hierarchy-analysis.md
+- ./_refDocs/_refIdioms/Executable Specifications_ Flawless One-Shot Code Generation (1).pdf
+- ./_refDocs/_refIdioms/Executable Specifications for LLM Code Generation.md
+
+**Removed Files:**
+- ./.kiro/rust-idioms/React Idiomatic Reference for LLMs.md
+- ./_refIdioms/Comprehensive Rust Idiomatic Patterns Guide_.txt
+- ./_refIdioms/comprehensive-rust-patterns-guidance.md
+- ./_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis (1).pdf
+- ./_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.docx
+- ./_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.pdf
+- ./_refIdioms/documentation-hierarchy-analysis.md
+- ./_refIdioms/Executable Specifications_ Flawless One-Shot Code Generation (1).pdf
+- ./_refIdioms/Executable Specifications for LLM Code Generation.md
+- ./_refIdioms/Exploring Rust Idiomatic Patterns in Layers.pdf
+
+---
+
