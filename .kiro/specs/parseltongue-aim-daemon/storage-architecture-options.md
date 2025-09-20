@@ -576,6 +576,35 @@ db.query("SELECT ->implements->struct.sig_hash FROM trait:$trait_sig")
 - **Application**: Cache frequent ISG queries, incremental graph updates
 - **Integration**: Could optimize Parseltongue's real-time update pipeline
 
+### SQLite Crash Consistency Analysis (from zz03 lines 4001-5000)
+
+#### Failure Scenario Analysis
+**Application Crashes**: Transactions durable regardless of synchronous setting
+**OS Power Loss**: 
+- `synchronous=NORMAL`: Integrity preserved, recent transactions may roll back
+- `synchronous=FULL`: Additional fsync after each commit, better durability
+
+#### WAL Mode Durability Trade-offs
+```sql
+-- Performance-optimized configuration
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;  -- Faster, acceptable durability loss risk
+```
+
+**Durability Characteristics**:
+- **NORMAL**: WAL synced at checkpoints, faster performance
+- **FULL**: WAL synced after each commit, stronger durability
+- **Trade-off**: Performance vs durability for development use case
+
+#### Serialization Format Analysis
+**High-Performance Binary Options**:
+- **rkyv**: Zero-copy deserialization, schema-driven compatibility
+- **bincode**: Tiny binary strategy, serde-based
+- **postcard**: `#![no_std]` focused, constrained environments
+- **Cap'n Proto**: Schema-driven, distributed systems focus
+
+**Security Considerations**: Schema-driven formats (rkyv, Cap'n Proto) provide stronger validation and compatibility guarantees
+
 **Last Updated**: 2025-01-20  
 **Status**: Research Complete, Decision Deferred  
 **Next Review**: After MVP requirements finalization

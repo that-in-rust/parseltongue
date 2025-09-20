@@ -57,7 +57,12 @@ pub struct HybridStorage {
 - DashMap: Arc-shareable concurrent HashMap with shard-based locking
 - Deadlock risk: avoid holding references across calls
 - Memory footprint analysis: HashMap overhead ~73%, CSR more efficient for sparse graphs
-- Benchmarking: Criterion.rs as standard, deterministic seeds for reproducibility
+
+**Benchmarking Methodology** (from zz03 lines 4001-5000):
+- **Criterion.rs**: Standard framework with statistical analysis
+- **Divan**: Modern alternative with advanced features
+- **Measurement**: Wall-time vs cycles/instructions for variance control
+- **Scopes**: Micro-benchmarks (operations) + Macro-benchmarks (end-to-end pipeline)
 
 **Implementation Strategy**:
 ```rust
