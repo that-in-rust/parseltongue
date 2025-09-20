@@ -82,7 +82,7 @@
 **REMAINING Reference Documents** (4 files, **28,801 lines total**):
 
 #### Task 1.19: Analyze z02.html (6,060 lines)
-- [x] 1.19.1 Read z02.html lines 1-1000 - extract web content structure and identify technical sections ✅ **COMPLETED** - TailwindCSS styles, no MVP-relevant concepts
+- [ ] 1.19.1 Read z02.html lines 1-1000 - extract web content structure and identify technical sections
 - [ ] 1.19.2 Read z02.html lines 1001-2000 - continue content analysis and extract MVP-relevant concepts
 - [ ] 1.19.3 Read z02.html lines 2001-3000 - identify architectural patterns and performance concepts
 - [ ] 1.19.4 Read z02.html lines 3001-4000 - continue concept extraction and document findings
@@ -90,8 +90,8 @@
 - [ ] 1.19.6 Read z02.html lines 5001-6060 - complete analysis and document all findings
 
 #### Task 1.20: Analyze zz01.md (523 lines)
-- [x] 1.20.1 Read zz01.md lines 1-300 - storage architecture analysis and performance concepts ✅ **COMPLETED** - SQLite WAL optimization, phased roadmap, SurrealDB evaluation
-- [x] 1.20.2 Read zz01.md lines 301-523 - complete storage analysis and extract MVP concepts ✅ **COMPLETED** - Performance projections, 3-phase roadmap, migration triggers, risk mitigation
+- [ ] 1.20.1 Read zz01.md lines 1-300 - storage architecture analysis and performance concepts
+- [ ] 1.20.2 Read zz01.md lines 301-523 - complete storage analysis and extract MVP concepts
 
 #### Task 1.21: Analyze zz03MoreArchitectureIdeas20250920v1.md (21,030 lines)
 - [ ] 1.21.1 Read zz03 lines 1-3000 - comprehensive architecture analysis start

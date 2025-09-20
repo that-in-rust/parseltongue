@@ -323,3 +323,720 @@ torage Architecture Decisions - DEFERRED
 
 ---
 **Added**: 2025-09-20 - Storage decisions deferred to design phase
+
+## MVP-Relevant Concepts from zz03MoreArchitectureIdeas (Lines 1-3000)
+
+### Storage Architecture Validation
+**Source**: zz03MoreArchitectureIdeas20250920v1.md (lines 1-3000)
+**Key Finding**: Comprehensive analysis validates SQLite WAL mode as optimal MVP choice
+
+**SQLite Performance Characteristics**:
+- **Query Latency**: 12-15μs for mixed workloads (well within <500μs target)
+- **Write Latency**: 12μs individual writes with `synchronous=NORMAL`
+- **Throughput**: 100,000 QPS with 80% read/20% write workload
+- **Transaction Batching**: 2x-20x throughput improvement with batched writes
+
+**Critical Configuration**:
+```rust
+// Essential SQLite tuning for MVP
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;  // Critical for <12ms updates
+PRAGMA wal_autocheckpoint = 1000;
+PRAGMA cache_size = -64000;  // 64MB cache
+PRAGMA temp_store = MEMORY;
+```
+
+### Hybrid Architecture Pattern
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Concept**: Three-phase evolution strategy validated
+```rust
+pub struct HybridISG {
+    // Hot path: optimized in-memory structures
+    hot_cache: OptimizedISG,
+    // Complex queries: specialized graph database
+    graph_db: Box<dyn GraphDatabase>,
+    // Persistence: reliable storage
+    persistent: SqlitePool,
+    // Coordination
+    sync_manager: SyncManager,
+}
+```
+
+**Phase Evolution**:
+1. **MVP (v1.0)**: SQLite WAL mode only
+2. **v2.0**: Hybrid with in-memory cache + SQLite
+3. **v3.0**: Custom Rust store or specialized graph DB
+
+### In-Memory Rust Patterns
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Key Structures**:
+```rust
+pub struct OptimizedISG {
+    // Primary storage with fine-grained locking
+    nodes: DashMap<SigHash, Node>,
+    // Adjacency lists per relationship type
+    impl_edges: FxHashMap<SigHash, Vec<SigHash>>,
+    calls_edges: FxHashMap<SigHash, Vec<SigHash>>,
+    // Reverse indexes for backward traversal
+    reverse_impl: FxHashMap<SigHash, Vec<SigHash>>,
+}
+```
+
+**Concurrency Strategy**:
+- DashMap with sharded locking for reduced contention
+- Critical deadlock avoidance: drop references before subsequent calls
+- Alternative: `scc::HashMap` for write-heavy workloads
+
+### Memory Scaling Analysis
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Findings**:
+- HashMap overhead: ~73% over raw data size
+- Dense graph (150 nodes, 11K edges): 452KB with petgraph, 278KB custom
+- Compression strategies for 1M+ LOC:
+  - Dictionary encoding for strings
+  - Roaring bitmaps for adjacency lists
+  - `petgraph::Csr` for static graph partitions
+
+### Persistence Strategy
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Pattern**: Append-only commit log + periodic snapshots
+```rust
+// Recovery model
+1. Load most recent snapshot
+2. Replay commit log entries
+3. RTO = snapshot_load_time + log_replay_time
+4. RPO = time_since_last_flush
+```
+
+**Serialization Options**:
+- `bincode`: Speed-optimized
+- `postcard`: Size-optimized  
+- `rkyv`: Zero-copy deserialization
+
+### Graph Database Integration Analysis
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Memgraph Integration**:
+- Rust integration via `rsmgclient` FFI wrapper
+- Requires C toolchain (deviates from Rust-only)
+- Bolt protocol support with type mapping limitations
+
+**Risk Assessment**:
+- SurrealDB: Non-durable by default (requires `SURREAL_SYNC_DATA=true`)
+- Operational complexity vs SQLite simplicity
+- Ecosystem maturity concerns for Rust integration
+
+### Decision Matrix Validation
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**SQLite Scoring** (weighted):
+- Performance: 3/4 (sufficient for MVP targets)
+- Simplicity: 4/4 (embedded, serverless)
+- Rust Integration: 4/4 (mature crates)
+- Scalability: 2/4 (single-node limitation)
+- **Weighted Score**: 3.3/4 (optimal for MVP)
+
+### Implementation Roadmap Validation
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**MVP Milestones**:
+1. Finalize ISG schema (nodes/edges tables)
+2. Implement CRUD APIs with rusqlite
+3. Core queries: who-implements, blast-radius
+4. Tarjan's algorithm for cycle detection
+5. WAL mode configuration and tuning
+6. Benchmark suite with criterion crate
+
+**Performance Targets Confirmed**:
+- Small projects: 10K LOC, <25MB memory, <1s extraction
+- Medium projects: 100K LOC, <100MB memory, <10s extraction
+- Large projects: 500K LOC, <500MB memory, <60s extraction
+
+This analysis strongly validates our SQLite-first approach while providing clear technical details for implementation and future evolution paths.
+
+## MVP-Relevant Concepts from zz03MoreArchitectureIdeas (Lines 6001-9000)
+
+### Rust-Native Storage Options Analysis
+**Source**: zz03MoreArchitectureIdeas20250920v1.md (lines 6001-9000)
+**Key Finding**: Comprehensive evaluation of pure Rust vs C++ FFI storage solutions
+
+**Pure Rust Options Identified**:
+- **redb**: Pure Rust embedded KV store with ACID guarantees, comparable performance to RocksDB
+- **sled**: Threadsafe `BTreeMap<[u8], [u8]>` API with serializable transactions and atomic operations
+- **Fjall**: Modern Rust-native LSM-tree implementation
+
+**C++ FFI Options**:
+- **RocksDB via rust-rocksdb**: High performance but introduces C++ build complexity
+- **LMDB via heed**: Memory-mapped database with Rust bindings
+- **Speedb**: Rust wrapper around RocksDB with optimized performance
+
+### Storage Architecture Decision Matrix
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Concept**: Structured evaluation framework for storage options
+```rust
+pub struct StorageEvaluation {
+    performance_score: f32,      // Query speed, update latency, memory efficiency
+    simplicity_score: f32,       // Implementation complexity, operational overhead
+    rust_integration_score: f32, // Ecosystem fit, type safety, ergonomics
+    scalability_score: f32,      // Growth path, enterprise readiness
+    weighted_score: f32,         // Final score based on criteria weights
+}
+```
+
+**MVP Scoring Criteria**:
+- Performance: 30% weight (sufficient for <12ms targets)
+- Simplicity: 40% weight (critical for MVP delivery)
+- Rust Integration: 20% weight (ecosystem alignment)
+- Scalability: 10% weight (future-proofing)
+
+### Serialization Format Analysis
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Key Options for LLM Integration**:
+- **rkyv**: Zero-copy deserialization, fastest option for read-heavy workloads
+- **bincode**: Speed-optimized, good balance of performance and simplicity
+- **postcard**: Size-optimized, minimal serialized footprint
+- **MessagePack**: Cross-language compatibility for future integrations
+
+**MVP Recommendation**: bincode for simplicity, rkyv for performance-critical paths
+
+### Performance Projections by Scale
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Validated Targets**:
+- **Small Projects** (10K LOC): <25MB memory, <1s extraction, <100μs queries
+- **Medium Projects** (100K LOC): <100MB memory, <10s extraction, <500μs queries  
+- **Large Projects** (500K LOC): <500MB memory, <60s extraction, <1ms queries
+
+**SLO Breach Conditions**:
+- Memory usage exceeding 2x projected footprint
+- Query latency degrading beyond 10x baseline
+- Update pipeline exceeding 20ms total latency
+
+### Memory Efficiency Analysis
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Component Memory Footprint**:
+- HashMap overhead: ~73% over raw data size
+- Dense graph (150 nodes, 11K edges): 452KB with petgraph, 278KB custom
+- String interning: 40-60% reduction in memory for repeated identifiers
+
+**Compression Strategies**:
+- **Dictionary Encoding**: For repeated strings (module paths, type names)
+- **Roaring Bitmaps**: For sparse adjacency lists
+- **Elias-Fano Encoding**: For sorted integer sequences
+
+### Risk Assessment Framework
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Critical Risk Categories**:
+- **Technical**: Performance degradation, memory leaks, parsing failures
+- **Operational**: Build complexity, deployment issues, monitoring gaps
+- **Ecosystem**: Crate maintenance, breaking changes, security vulnerabilities
+- **Migration**: Data format changes, schema evolution, backward compatibility
+
+**Mitigation Strategies**:
+- Comprehensive benchmarking suite with regression detection
+- Fallback mechanisms for parsing failures
+- Version pinning for critical dependencies
+- Incremental migration paths between storage backends
+
+This comprehensive analysis provides detailed technical validation for our MVP architecture decisions and clear evolution paths for future versions.
+
+## MVP-Relevant Concepts from zz03MoreArchitectureIdeas (Lines 9001-12000)
+
+### Code Property Graph (CPG) Integration
+**Source**: zz03MoreArchitectureIdeas20250920v1.md (lines 9001-12000)
+**Key Finding**: Detailed analysis of CPG patterns applicable to ISG architecture
+
+**CPG Building Blocks**:
+- **Nodes with Types**: Program constructs (METHOD, LOCAL, TRAIT, STRUCT) with explicit type classification
+- **Labeled Directed Edges**: Relationships between constructs (CONTAINS, CALLS, ACCEPTS, BOUND_BY)
+- **Property Graphs**: Extensible representation supporting multiple relationship types
+
+**ISG Ontology Components Validated**:
+```rust
+pub enum NodeType {
+    File,           // Source file metadata
+    Module,         // Logical namespace  
+    Struct,         // Data structures and state machines
+    Trait,          // Contract definitions (interfaces)
+    Function,       // Behavioral units (methods)
+    Impl,           // Implementation blocks
+    Type,           // Generic/alias types
+}
+
+pub enum EdgeType {
+    IMPL,           // Type implements trait
+    CALLS,          // Function invokes function
+    ACCEPTS,        // Function parameter type (data flow)
+    RETURNS,        // Function return type
+    CONTAINS,       // Module/file contains item
+    BOUND_BY,       // Generic constrained by trait
+    DEFINES,        // Trait defines method
+    EXTENDS,        // Inheritance relationship
+    USES,           // Dependency relationship
+}
+```
+
+### Tree-sitter Integration Strategy
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Key Concept**: Fast, robust parsing for real-time architectural updates
+
+**Tree-sitter Advantages for MVP**:
+- **General**: Parse any programming language (Rust focus for MVP)
+- **Fast**: Parse on every keystroke (<10ms target)
+- **Robust**: Useful results even with syntax errors
+- **Dependency-free**: Pure C11 runtime, embeddable
+
+**Parsing Fidelity Tradeoff**:
+- **Syntactic/AST Focus**: Robust structural awareness, deterministic navigation
+- **Sub-10ms Responsiveness**: Real-time updates without semantic analysis latency
+- **80/20 Coverage**: Handle common patterns with syn, edge cases with compiler assistance
+
+### Graph Schema Validation
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Concept**: Formal schema definition for architectural relationships
+
+**Schema Components**:
+- **7 Node Types**: Complete coverage of Rust architectural constructs
+- **9 Relationship Types**: Comprehensive relationship modeling
+- **Directed Edges**: Express containment, dependency, and constraint relationships
+- **Multiple Edges**: Support complex relationships between same nodes
+
+**Query Language Integration**:
+- Seamless transition between code representations
+- Cross-language querying capabilities (future multi-language support)
+- Overlay support for different abstraction levels
+
+### Performance-Critical Design Patterns
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Key Patterns**:
+
+**Incremental Parsing**:
+- Build and efficiently update syntax trees as source files change
+- Maintain structural consistency during partial updates
+- Support real-time development workflow
+
+**Memory-Efficient Graph Processing**:
+- Low memory footprint for parallel graph processing
+- Efficient node and edge storage patterns
+- Optimized traversal algorithms for architectural queries
+
+**Deterministic Navigation**:
+- Avoid "stochastic fog" of probabilistic methods
+- Provide exact architectural relationships
+- Enable reliable refactoring and impact analysis
+
+### Integration with Existing Standards
+**Source**: zz03MoreArchitectureIdeas20250920v1.md
+**Standards Alignment**:
+
+**CPG Specification Compatibility**:
+- Language-agnostic representation (Rust-focused for MVP)
+- Incremental and distributed analysis support
+- Open standard for code intermediate representations
+
+**PostgreSQL Storage Pattern**:
+- CPG schema stored in relational database
+- Proven scalability for large codebases
+- SQL-based querying for complex architectural analysis
+
+This analysis validates our ISG ontology design and provides concrete implementation patterns from established code analysis frameworks.
+### 20. 
+Storage Architecture Analysis (zz01.md - 523 lines)
+**Source**: zz01.md - Comprehensive storage architecture evaluation
+**MVP-Relevant Concepts**:
+
+#### SQLite Performance Optimization (MVP Phase 1)
+- **WAL Mode Configuration**: `PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;`
+- **Performance Targets**: <12ms updates, <500μs queries for small-medium projects
+- **Index Strategy**: Composite B-tree indexes on `edges(from_sig, kind)` and `edges(to_sig, kind)`
+- **Concurrency Model**: Single-writer, multiple-reader with WAL mode
+- **Memory Mapping**: `PRAGMA mmap_size` for OS-level page caching
+- **Maintenance**: Periodic `PRAGMA wal_checkpoint(TRUNCATE)` and `PRAGMA optimize`
+
+#### Performance Projections by Scale
+```
+Small Project (10K LOC):
+- who-implements: <200μs (SQLite), <10μs (In-Memory)
+- blast-radius (d=3): <500μs (SQLite), <50μs (In-Memory)
+- Update Pipeline: <5ms (SQLite), <3ms (In-Memory)
+- Memory Usage: <25MB (SQLite), <40MB (In-Memory)
+
+Medium Project (100K LOC):
+- who-implements: <300μs (SQLite), <10μs (In-Memory)
+- blast-radius (d=3): 1-3ms (SQLite), <100μs (In-Memory)
+- Update Pipeline: <8ms (SQLite), <5ms (In-Memory)
+- Memory Usage: <100MB (SQLite), <150MB (In-Memory)
+
+Large Project (500K LOC):
+- who-implements: <500μs (SQLite), <15μs (In-Memory)
+- blast-radius (d=3): 5-15ms (SQLite), <200μs (In-Memory)
+- Update Pipeline: <12ms (SQLite), <8ms (In-Memory)
+- Memory Usage: <500MB (SQLite), <700MB (In-Memory)
+```
+
+#### Three-Phase Evolution Strategy
+**Phase 1 (MVP 0-6 months)**: SQLite with WAL
+- Rationale: Development velocity, battle-tested, zero administration
+- Migration Triggers: p99 blast-radius >2ms, write queue >5ms backlog
+- Implementation: rusqlite + r2d2 connection pool + recursive CTEs
+
+**Phase 2 (v2.0 6-18 months)**: Custom In-Memory + WAL
+- Rationale: Maximum performance, full control over memory layout
+- Technology: FxHashMap + okaywal crate + bincode serialization
+- Migration: Parallel development, shadow mode validation, clean cut-over
+
+**Phase 3 (v3.0 18+ months)**: Distributed Hybrid
+- Rationale: Enterprise scale beyond single-machine memory
+- Architecture: Hot/cold tiering with SurrealDB backend
+- Components: SyncManager, federated query engine, sharded hot cache
+
+#### Risk Mitigation Strategies
+- **Performance Monitoring**: Automated alerts on latency/throughput triggers
+- **WAL Implementation**: Use okaywal crate, extensive failure-mode testing
+- **Memory Profiling**: CI/CD integration with jemallocator statistics
+- **Evolutionary Development**: Incremental capability introduction
+
+#### Technology Evaluation Results
+**SQLite**: Excellent for MVP, fails at enterprise scale (blast-radius >15ms)
+**In-Memory**: Optimal performance until RAM exhaustion, requires custom WAL
+**MemGraph**: High performance but FFI impedance mismatch (violates Rust-only)
+**SurrealDB**: Native Rust, good performance, ideal for Phase 3 cold storage
+**TigerGraph**: Enterprise scale but REST-only (violates <500μs requirement)
+
+**MVP Decision**: SQLite with WAL for Phase 1, validated migration path to custom solution
+
+#### Advanced Concepts (Moved to Backlog)
+- **v2.0+**: Arena allocators for cache-friendly memory layout
+- **v2.0+**: Integer interning for repeated strings (function names, types)
+- **v3.0+**: Distributed sharding with consensus protocols
+- **v3.0+**: Hot/cold graph tiering with automatic eviction policies
+- **v3.0+**: Federated query engine with parallel execution
+
+**Implementation Priority**: HIGH - Validates core storage architecture decisions for MVP#
+## 21. Comprehensive AIM Daemon Architecture (z02.html - 6,060 lines)
+**Source**: z02.html - Complete technical specification and implementation guide
+**MVP-Relevant Concepts**:
+
+#### System Architecture (4 Core Components)
+**File System Watcher**: 
+- OS-native monitoring with `notify-rs` crate (inotify/FSEvents/ReadDirectoryChangesW)
+- Microsecond precision change detection (50-200μs)
+- Event filtering and queue processing (10-50μs, max 1000 entries)
+- Ignore patterns for build artifacts and non-relevant files
+
+**In-Memory Graph**:
+- `InterfaceGraph` with two primary hashmaps: `nodes` (SigHash-keyed) and `edges` (EdgeId-keyed)
+- Content-based hashing for actual change detection vs timestamp updates
+- Sub-millisecond traversals across millions of nodes
+- Memory-resident for maximum performance
+
+**Embedded SQLite Database**:
+- WAL mode for consistency without blocking reads
+- Optimized indexes and bloom filters for rapid existence checks
+- Materialized views for common query patterns
+- Mirrors in-memory graph for persistence and complex queries
+
+**Query Server**:
+- Lightweight HTTP/gRPC server with RESTful API
+- Connection pooling and LRU query result caching
+- JSON for tooling integration, compressed binary for LLM consumption
+
+#### Performance Pipeline (3-12ms Total)
+```
+1. File Change Detection (50-200μs): OS-level inotify events
+2. Event Filtering (10-50μs): Extension and path validation
+3. Queue Processing (100-500μs): Batching and deduplication
+4. AST Parsing (1-3ms): Language-specific parsers
+5. Graph Update (2-5ms): Atomic in-memory updates
+6. Database Sync (3-8ms): SQLite batched updates with prepared statements
+7. Query Ready (Total: 3-12ms): System immediately available
+```
+
+#### Graph Schema (7 Node Types, 9 Relationship Types)
+**Node Types**:
+- `Module`: Namespaces, packages, compilation units
+- `Trait`: Interfaces, abstract classes, behavioral contracts  
+- `Struct`: Data structures, classes, value objects
+- `Function`: Methods, functions, callable entities
+- `Field`: Properties, attributes, data members
+- `Constant`: Static values, enums, configuration
+- `Import`: Dependencies and external references
+
+**Relationship Types**:
+- `IMPL`: Implementation relationships (trait to struct)
+- `CALLS`: Function invocation dependencies
+- `EXTENDS`: Inheritance and composition chains
+- `USES`: Variable and type references
+- `CONTAINS`: Structural ownership (module contains struct)
+- `IMPORTS`: External dependency relationships
+- `OVERRIDES`: Method overriding in inheritance
+- `ACCESSES`: Field and property access patterns
+- `CONSTRAINS`: Generic bounds and type constraints
+
+**Node Data**: SigHash, kind, full_signature, file_path, line_range
+**Edge Data**: source_hash, target_hash, relationship_type, context_info
+
+#### Core Query Types (MVP Implementation)
+**blast-radius**: Multi-hop dependency traversal with depth limits
+- Purpose: Impact analysis for changes, refactoring safety
+- Implementation: BFS/DFS with visited set, configurable depth
+- Performance: <500μs for simple, <1ms for complex
+
+**find-cycles**: Cycle detection in dependency graphs
+- Purpose: Identify and break architectural antipatterns
+- Implementation: DFS with path tracking, strongly connected components
+- Use case: Circular module dependencies, inheritance cycles
+
+**what-implements**: Find all implementors of a trait/interface
+- Purpose: Polymorphism understanding, implementation discovery
+- Implementation: Query edges with `kind == IMPL`, filter by target trait
+- Performance: <200μs with proper indexing
+
+#### CLI Interface Design
+**Core Commands**:
+```bash
+aim extract [path]           # Generate initial ISG
+aim query [type] [target]    # Execute graph queries
+aim generate-context [opts]  # Create LLM-optimized context
+aim daemon start/stop        # Daemon lifecycle management
+```
+
+**Query Examples**:
+```bash
+aim query blast-radius AuthService::login --depth 3
+aim query what-implements Authenticator
+aim query find-cycles --module-level
+aim generate-context --focus auth::AuthService::login --depth 2
+```
+
+#### LLM Integration Patterns
+**Context Generation**:
+- Compressed ISG representation (95%+ token reduction)
+- Deterministic architectural constraints (zero hallucination)
+- Structured prompt generation with relevant subgraph
+- Focus entity + traversal depth specification
+
+**Example Generated Context**:
+```
+NODE:67890|Function|login|auth::AuthService::login|src/auth.rs
+NODE:12345|Struct|AuthService|auth::AuthService|src/auth.rs
+NODE:11111|Function|validate_credentials|auth::validate_credentials|src/auth.rs
+EDGE:67890->12345|Contains
+EDGE:67890->11111|Calls
+```
+
+#### Data Structures (Rust Implementation)
+**Core Types**:
+```rust
+pub struct InterfaceGraph {
+    nodes: DashMap<SigHash, Node>,
+    edges: DashMap<EdgeId, Edge>,
+}
+
+pub struct Node {
+    sig_hash: SigHash,
+    kind: NodeKind,
+    full_signature: String,
+    file_path: PathBuf,
+    line_range: (u32, u32),
+}
+
+pub struct Edge {
+    source_hash: SigHash,
+    target_hash: SigHash,
+    relationship_type: RelationshipType,
+    context_info: String,
+}
+```
+
+#### Multi-Source Architecture (Advanced)
+**InputSource Support**:
+- Local filesystem monitoring
+- Git repository cloning and analysis
+- Code archive extraction (.zip, .tar.gz)
+- Multi-source merging with conflict resolution
+
+**GraphMerger**:
+- Priority-based source resolution (local overrides dependencies)
+- Timestamp-based conflict resolution
+- Ambiguity flagging for manual resolution
+
+#### User Journey Patterns
+**Developer Workflow**:
+1. Install daemon: `cargo install parseltongue-aim`
+2. Initialize project: `aim extract` (generates initial ISG)
+3. Real-time development: File watcher maintains ISG automatically
+4. Query architecture: `aim query` for impact analysis
+5. LLM assistance: `aim generate-context` for AI-powered development
+
+**LLM Integration Workflow**:
+1. Receive AIM-generated context with architectural constraints
+2. Generate code adhering to provided context and constraints
+3. Query AIM Daemon for validation: "Does this comply with architecture?"
+4. Receive deterministic feedback on architectural compliance
+
+#### Value Proposition Summary
+**For LLMs**:
+- Deterministic architectural context (eliminates hallucinations)
+- Precise navigation through codebase relationships
+- Constraint-aware code generation within system boundaries
+- Factual dependency graphs for confident suggestions
+
+**For Developers**:
+- Sub-millisecond architectural queries for IDE integration
+- Real-time impact analysis for changes (blast-radius)
+- Architectural constraint enforcement and validation
+- Superior accuracy vs traditional search-based methods
+
+#### Advanced Concepts (Moved to Backlog)
+- **v2.0+**: Multi-language parser plugins (JavaScript, Python, Java)
+- **v2.0+**: Advanced graph algorithms (community detection, centrality analysis)
+- **v2.0+**: Distributed graph processing for enterprise scale
+- **v3.0+**: Machine learning integration for pattern recognition
+- **v3.0+**: Advanced visualization and interactive graph exploration
+- **v3.0+**: Integration with CI/CD pipelines for architectural governance
+
+**Implementation Priority**: CRITICAL - This is the complete technical specification for MVP implementation
+
+**Key Validation**: All concepts align perfectly with core constraints (Rust-only, <12ms updates, LLM-terminal integration)### 22.
+ OptimizedISG Implementation & Storage Analysis (zz04MoreNotes.md - 1,188 lines)
+**Source**: zz04MoreNotes.md - TDD implementation and comprehensive storage architecture analysis
+**MVP-Relevant Concepts**:
+
+#### Storage Architecture Decision Matrix
+**Weighted Scoring Analysis** (Performance 40%, Simplicity 25%, Rust Integration 20%, Scalability 15%):
+1. **OptimizedISG (Custom)**: 8.53 total score - WINNER
+2. **In-Memory (Generic)**: 8.18 total score
+3. **SurrealDB**: 7.78 total score  
+4. **SQLite**: 6.98 total score
+
+**Conclusion**: Custom OptimizedISG provides optimal balance of performance and Rust integration
+
+#### Three-Phase Evolution Strategy (Validated)
+**Phase 1 (MVP)**: SQLite with WAL mode
+- Target: Small/Medium projects (10K-100K LOC)
+- Performance: Adequate for initial validation
+- Migration triggers: p99 blast-radius >2ms, write queue >5ms backlog
+
+**Phase 2 (v2.0)**: Custom OptimizedISG with AOL/WAL
+- Target: Large projects (500K LOC)
+- Architecture: In-memory graph + Append-Only Log for durability
+- Technology: `petgraph` + `parking_lot::RwLock` + `okaywal` crate
+
+**Phase 3 (v3.0)**: Distributed Hybrid with On-Demand Hydration
+- Target: Enterprise scale (10M+ LOC)
+- Strategy: Local daemon + centralized service with working set management
+- Technology: Federated queries + Merkle trees for synchronization
+
+#### TDD Implementation of OptimizedISG (Complete Code)
+**Core Data Structures**:
+```rust
+pub struct OptimizedISG {
+    state: Arc<RwLock<ISGState>>,
+}
+
+struct ISGState {
+    graph: StableDiGraph<NodeData, EdgeKind>,
+    id_map: FxHashMap<SigHash, NodeIndex>,
+}
+
+pub struct NodeData {
+    pub hash: SigHash,
+    pub kind: NodeKind,
+    pub name: Arc<str>,
+    pub signature: Arc<str>,
+}
+```
+
+**Key Implementation Patterns**:
+- Single `parking_lot::RwLock` protecting entire state (avoids deadlocks)
+- `StableDiGraph` from `petgraph` for algorithm support (Tarjan's SCC, BFS)
+- `FxHashMap` for fast SigHash → NodeIndex lookups
+- String interning with `Arc<str>` for memory efficiency
+- Atomic synchronization between graph and index map
+
+**Core Operations**:
+- `upsert_node()`: O(1) node insertion/update
+- `upsert_edge()`: O(1) edge insertion with `update_edge()`
+- `find_implementors()`: Reverse traversal for trait implementations
+- `calculate_blast_radius()`: BFS traversal with visited set
+
+#### Performance Simulation Results
+**Memory Projections**:
+```
+Small (10K LOC):    667 nodes,   2.7K edges,   233 KB RAM
+Medium (100K LOC):  6.7K nodes,  27K edges,    2.3 MB RAM  
+Large (1M LOC):     67K nodes,   267K edges,   23 MB RAM
+Enterprise (10M):   667K nodes,  2.7M edges,   233 MB RAM
+Massive (50M):      3.3M nodes,  13M edges,    1.17 GB RAM
+```
+
+**Query Latency Analysis**:
+- **L3 Cache Resident (<50MB)**: 100M elements/sec traversal
+- **RAM Resident (>50MB)**: 30M elements/sec traversal
+- **Performance Cliff**: 3x slowdown when exceeding L3 cache
+
+**Critical Findings**:
+- MVP meets all constraints up to 1M LOC (L3 resident)
+- Enterprise scale (10M+ LOC) requires CSR optimization for <1ms queries
+- CSR optimization provides 2.5x improvement (30M → 75M elements/sec)
+- Massive scale (50M+ LOC) requires v3.0 federation architecture
+
+#### Optimization Strategies (Phase 2)
+**Memory Layout Optimizations**:
+- **Arena Allocation**: Use `generational-arena` for cache locality
+- **Compressed Sparse Row (CSR)**: Contiguous arrays for spatial locality
+- **String Interning**: Reduce memory footprint for repeated strings
+- **Custom Adjacency Lists**: Specialized structures per edge type
+
+**Persistence Strategies**:
+- **Simple Serialization**: `rkyv` for zero-copy deserialization
+- **Write-Ahead Log**: `okaywal` crate for production durability
+- **Log Compaction**: Background checkpointing to manage AOL size
+- **Fast Startup**: Load checkpoint + replay recent log entries
+
+#### Risk Mitigation Framework
+**Memory Bloat Risk**:
+- Mitigation: String interning, arena allocation, memory profiling with `dhat`
+- Tools: `mimalloc`/`jemalloc` optimized allocators
+
+**Persistence Latency Risk**:
+- Mitigation: Fast serialization (`rkyv`), efficient AOL batching, NVMe storage
+- Advanced: `io_uring` for optimized async I/O
+
+**Data Corruption Risk**:
+- Mitigation: Extensive testing, fault injection, checksums (CRC32)
+- Recovery: Correct `fsync` usage, WAL replay validation
+
+**Startup Latency Risk**:
+- Mitigation: Zero-copy deserialization, regular log compaction
+- Target: Bound replay time to maintain developer workflow
+
+#### Concurrency Model (Validated)
+**Single RwLock Strategy**:
+- Avoids coordination complexity between separate locks
+- Prevents deadlocks from lock ordering issues
+- Atomic synchronization between graph and index map
+- Excellent multi-reader performance with `parking_lot`
+
+**Thread Safety Testing**:
+- Concurrent writer + continuous reader validation
+- 100 nodes + 99 edges insertion with parallel traversal
+- No data races or deadlocks observed
+
+#### Technology Stack (Confirmed)
+**Core Dependencies**:
+```toml
+petgraph = "0.6"        # Graph algorithms and data structures
+parking_lot = "0.12"    # High-performance RwLock
+fxhash = "0.2"         # Fast non-cryptographic hashing
+okaywal = "latest"     # Write-ahead logging (Phase 2)
+rkyv = "latest"        # Zero-copy serialization
+```
+
+#### Advanced Concepts (Moved to Backlog)
+- **v2.0+**: CSR format migration for cache optimization
+- **v2.0+**: Advanced memory profiling and optimization
+- **v3.0+**: Distributed graph federation with working sets
+- **v3.0+**: Merkle tree synchronization for enterprise scale
+- **v3.0+**: Query federation across distributed nodes
+
+**Implementation Priority**: CRITICAL - This provides the complete technical implementation roadmap and validated TDD code for MVP development
+
+**Key Validation**: Performance simulations confirm architecture viability across all target scales with clear optimization paths
