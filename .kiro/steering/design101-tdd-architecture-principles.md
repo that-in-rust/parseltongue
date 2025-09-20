@@ -36,6 +36,9 @@ These principles are derived from the Parseltongue AIM Daemon design process and
 ### 8. Concurrency Model Validation
 **Thread safety validated with stress tests**
 
+### 9. MVP-First Rigor (New Pattern)
+**Proven architectures over theoretical abstractions**
+
 ## Layer 1: The Foundation - Executable Specifications
 
 ### The Problem with Traditional User Stories
@@ -514,6 +517,64 @@ pub struct CoreProcessor {
 - Make invalid states unrepresentable
 - Let the compiler catch errors before runtime
 - **Result**: Average 1.6 compile attempts vs 4.9 without patterns (67% faster development)
+
+## Layer 9: MVP-First Rigor Pattern (New)
+
+**Core Truth**: Proven architectures beat theoretical abstractions for MVP delivery.
+
+### The Principle: Validation Over Speculation
+
+Traditional MVP approaches often create "simple" solutions that fail under real constraints. The MVP-First Rigor pattern demands:
+
+1. **Performance Simulation First**: Model the architecture against real constraints before implementation
+2. **Proven Component Selection**: Use battle-tested libraries with known performance characteristics  
+3. **Measurable Contracts**: Every performance claim backed by automated tests
+4. **Single-Responsibility Locking**: Avoid complex coordination between multiple locks
+5. **Concrete Over Abstract**: Direct implementation for MVP, abstractions for v2.0+
+
+### When to Apply This Pattern
+
+**✅ Apply MVP-First Rigor When**:
+- Performance constraints are non-negotiable (<1ms, <12ms, etc.)
+- System must handle real-world complexity from day one
+- Concurrent access patterns are well-defined
+- Memory/CPU resources are constrained
+- Need predictable, measurable behavior
+
+**❌ Don't Apply When**:
+- Prototyping or proof-of-concept work
+- Performance requirements are flexible
+- System complexity is genuinely simple
+- Team learning/exploration is the primary goal
+
+### Implementation Discipline
+
+1. **Simulation-Driven Design**: Model performance before coding
+2. **Test-First Validation**: Write performance tests before implementation
+3. **Component Benchmarking**: Validate library choices with micro-benchmarks
+4. **Constraint Verification**: Automated tests for every timing/memory constraint
+5. **Incremental Complexity**: Start with proven patterns, optimize later
+
+### Performance Contract Pattern
+
+Every performance-critical operation needs a contract test:
+
+```rust
+#[test]
+fn test_operation_performance_contract() {
+    // Setup: Create realistic test conditions
+    // Action: Execute the operation under test
+    // Assert: Verify timing constraint + correctness
+    // Document: Why this constraint matters
+}
+```
+
+### The Anti-Pattern: Premature Abstraction
+
+**❌ Wrong**: "Let's make it generic so we can swap implementations later"
+**✅ Right**: "Let's make it work correctly and fast first, then abstract if needed"
+
+This pattern prioritizes **delivery of working software** over architectural purity, while maintaining rigorous engineering standards through measurement and validation.
 
 ---
 
