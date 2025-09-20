@@ -27,6 +27,9 @@ ELSE IF (user story, workflow, CLI commands, terminal usage, developer experienc
 ELSE IF (code samples, implementation examples, Rust snippets, function signatures, struct definitions, trait impls)
    → ref-code-snippets.md
 
+ELSE IF (Rust idioms, ownership patterns, borrowing, lifetimes, Arc/Rc, async/await, error handling, Result<T,E>, Option<T>, trait objects, generics, macros)
+   → rust-patterns-analysis.md
+
 ELSE IF (v2.0, v3.0, enterprise, distributed, multi-language, complex features, nice-to-have, post-MVP)
    → backlog.md
 
