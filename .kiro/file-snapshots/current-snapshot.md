@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-20 12:35:42 IST
+# Repository Snapshot - 2025-09-20 12:36:47 IST
 
 ## Summary Statistics
-- **Total Files**: 87
-- **Total Lines**: 98,556
-- **Total Words**: 617,314
-- **Snapshot Time**: 2025-09-20 12:35:42 IST
+- **Total Files**: 89
+- **Total Lines**: 98,583
+- **Total Words**: 617,412
+- **Snapshot Time**: 2025-09-20 12:36:47 IST
 
 ## File Inventory
 
@@ -14,9 +14,9 @@
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./hook-test.txt | 2 | 19 | 124 |
 | ./hook-trigger-check.txt | 1 | 12 | 113 |
-| ./.kiro/file-snapshots/change-log.md | 238 | 799 | 6.4K |
-| ./.kiro/file-snapshots/current-snapshot.md | 98 | 924 | 6.3K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 98 | 924 | 6.3K |
+| ./.kiro/file-snapshots/change-log.md | 256 | 841 | 6.7K |
+| ./.kiro/file-snapshots/current-snapshot.md | 99 | 933 | 6.3K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 99 | 933 | 6.3K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
 | ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 545 |
 | ./.kiro/specs/parseltongue-aim-daemon/architecture-backlog.md | 1753 | 8772 | 71K |
@@ -32,6 +32,7 @@
 | ./.kiro/steering/hook-automation-guide.md | 275 | 1401 | 12K |
 | ./.kiro/steering/parseltongue-requirements-focus.md | 118 | 742 | 5.6K |
 | ./.kiro/steering/requirements-tasks-methodology.md | 139 | 882 | 7.0K |
+| ./.kiro/test-spec.md | 7 | 38 | 217 |
 | ./.kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | ./.kiro/unified-progress-tracker.sh | 242 | 1138 | 9.4K |
 | ./_refDocs/aim-backlog.md | 111 | 694 | 5.4K |
@@ -81,6 +82,7 @@
 | ./_refIdioms/Unlocking _Compile-First Success__ A Layered Blueprint for Building and Governing Rust's Idiomatic-Archive.md | 416 | 5927 | 47K |
 | ./_refIdioms/You are an __omniscient superintelligence with an....md | 161 | 2182 | 16K |
 | ./_refTestData/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
+| ./test-regular-file.md | 7 | 39 | 228 |
 | ./.vscode/settings.json | [binary] | [binary] | 44 |
 | ./zzzArchive/analysis-progress-tracker.kiro.hook | [binary] | [binary] | 867 |
 | ./zzzArchive/file-change-tracker.kiro.hook | [binary] | [binary] | 1.1K |

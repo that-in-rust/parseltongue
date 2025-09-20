@@ -254,3 +254,18 @@
 
 ---
 
+
+## Delta Report - 2025-09-20 12:36:47 IST
+
+### Summary Changes
+- **File Count**: 2 (89 total)
+- **Line Count**: 27 (98,583 total)
+- **Word Count**: 98 (617,412 total)
+
+### File-Level Changes
+**Added Files:**
+- ./.kiro/test-spec.md
+- ./test-regular-file.md
+
+---
+
