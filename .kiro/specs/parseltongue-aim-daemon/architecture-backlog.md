@@ -16,7 +16,7 @@
 
 ### 🟡 In Progress (_refDocs)
 - **z02.html**: Lines 4001-5000 analyzed - User journey patterns and LLM integration workflows extracted
-- **zz03MoreArchitectureIdeas**: Lines 1001-2000 analyzed - SQLite WAL performance and concurrency patterns extracted
+- **zz03MoreArchitectureIdeas**: Lines 1001-3000 analyzed - SQLite WAL performance, memory management, and benchmarking patterns extracted
 
 ---
 
@@ -40,12 +40,24 @@ pub struct HybridStorage {
 - Atomic synchronization between layers
 
 ### 2. Performance Pipeline (3-12ms Total)
-**Source**: rust-parsing-complexity-analysis.md, Notes06.md, ideation20250918.md
+**Source**: rust-parsing-complexity-analysis.md, Notes06.md, ideation20250918.md, zz03MoreArchitectureIdeas
 **Breakdown**:
 - File System Watcher: <1ms (OS-native inotify/kqueue)
 - AST Parsing: 2-8ms (syn crate, incremental parsing)
 - Graph Update: 1-3ms (atomic in-memory operations)
 - SQLite Sync: 1-2ms (WAL mode, prepared statements)
+
+**SQLite WAL Performance** (from zz03):
+- WAL mode: 70,000 reads/s, 3,600 writes/s (vs rollback: 5,600 reads/s, 291 writes/s)
+- Multi-reader, single-writer concurrency
+- PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL for MVP
+- Durability trade-off: NORMAL = faster but may lose recent transactions on power loss
+
+**Memory Management & Concurrency** (from zz03 lines 2001-3000):
+- DashMap: Arc-shareable concurrent HashMap with shard-based locking
+- Deadlock risk: avoid holding references across calls
+- Memory footprint analysis: HashMap overhead ~73%, CSR more efficient for sparse graphs
+- Benchmarking: Criterion.rs as standard, deterministic seeds for reproducibility
 
 **Implementation Strategy**:
 ```rust
