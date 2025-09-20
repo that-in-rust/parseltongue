@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-20 23:34:50 IST
+# Repository Snapshot - 2025-09-21 00:03:13 IST
 
 ## Summary Statistics
-- **Total Files**: 119
-- **Total Lines**: 65,876
-- **Total Words**: 196,774
-- **Snapshot Time**: 2025-09-20 23:34:50 IST
+- **Total Files**: 123
+- **Total Lines**: 66,579
+- **Total Words**: 199,556
+- **Snapshot Time**: 2025-09-21 00:03:13 IST
 
 ## File Inventory
 
@@ -12,10 +12,12 @@
 |-----------|-------|-------|------|
 | ./Cargo.lock | 1054 | 2108 | 28K |
 | ./Cargo.toml | 24 | 85 | 521 |
+| ./CLI_IMPLEMENTATION_SUMMARY.md | 135 | 667 | 5.0K |
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
 | ./.gitignore | 222 | 383 | 2.9K |
-| ./.kiro/file-snapshots/change-log.md | 1176 | 3472 | 26K |
+| ./IMPLEMENTATION_NOTES.md | 210 | 1016 | 7.9K |
+| ./.kiro/file-snapshots/change-log.md | 1187 | 3504 | 26K |
 | ./.kiro/file-snapshots/current-snapshot.md | 131 | 1276 | 9.2K |
 | ./.kiro/file-snapshots/previous-snapshot.md | 131 | 1276 | 9.2K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
@@ -37,15 +39,16 @@
 | ./.kiro/rust-idioms/Rust Idiomatic Patterns Deep Dive_.md | 878 | 12280 | 95K |
 | ./.kiro/rust-idioms/UBI Comprehensive Rust Idiomatic Patterns Guide.txt | 769 | 12536 | 90K |
 | ./.kiro/rust-idioms/Unlocking _Compile-First Success__ A Layered Blueprint for Building and Governing Rust's Idiomatic-Archive.md | 416 | 5927 | 47K |
+| ./.kiro/specs/parseltongue-aim-daemon/COMPLETION_SUMMARY.md | 163 | 761 | 5.7K |
 | ./.kiro/specs/parseltongue-aim-daemon/design.md | 2677 | 7914 | 87K |
 | ./.kiro/specs/parseltongue-aim-daemon/prompts/storage-architecture-analysis.md | 204 | 881 | 7.2K |
-| ./.kiro/specs/parseltongue-aim-daemon/README.md | 125 | 566 | 5.3K |
+| ./.kiro/specs/parseltongue-aim-daemon/README.md | 259 | 1172 | 11K |
 | ./.kiro/specs/parseltongue-aim-daemon/ref-code-snippets.md | 335 | 950 | 9.7K |
 | ./.kiro/specs/parseltongue-aim-daemon/requirements.md | 152 | 1464 | 9.8K |
 | ./.kiro/specs/parseltongue-aim-daemon/requirements-tasks.md | 107 | 1220 | 9.6K |
 | ./.kiro/specs/parseltongue-aim-daemon/rust-patterns-analysis.md | 483 | 1480 | 14K |
-| ./.kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 215 | 1059 | 8.4K |
-| ./.kiro/specs/parseltongue-aim-daemon/tasks.md | 300 | 2188 | 18K |
+| ./.kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 220 | 1096 | 8.7K |
+| ./.kiro/specs/parseltongue-aim-daemon/tasks.md | 300 | 2195 | 18K |
 | ./.kiro/steering/code-conventions.md | 1997 | 6142 | 53K |
 | ./.kiro/steering/design101-tdd-architecture-principles.md | 943 | 3431 | 29K |
 | ./.kiro/steering/hook-automation-guide.md | 256 | 1274 | 11K |
@@ -54,7 +57,7 @@
 | ./.kiro/steering/requirements-tasks-methodology.md | 79 | 429 | 3.5K |
 | ./.kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | ./.kiro/unified-progress-tracker.sh | 242 | 1138 | 9.4K |
-| ./README.md | 31 | 115 | 973 |
+| ./README.md | 191 | 727 | 5.5K |
 | ./_refDocs/_refIdioms/Comprehensive Rust Idiomatic Patterns Guide_.txt | 769 | 12536 | 90K |
 | ./_refDocs/_refIdioms/comprehensive-rust-patterns-guidance.md | 1846 | 5140 | 51K |
 | ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis (1).pdf | [binary] | [binary] | 81K |
@@ -123,9 +126,10 @@
 | ./_refDocs/zzzArchive/test-regular-file.md | 7 | 39 | 228 |
 | ./_refDocs/zzzArchive/test-spec.md | 7 | 38 | 217 |
 | ./_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
-| ./src/cli.rs | 381 | 1025 | 12K |
-| ./src/daemon.rs | 649 | 1960 | 23K |
-| ./src/isg.rs | 598 | 1809 | 21K |
-| ./src/lib.rs | 33 | 101 | 875 |
+| ./SPEC_UPDATE_SUMMARY.md | 110 | 601 | 4.6K |
+| ./src/cli.rs | 511 | 1393 | 17K |
+| ./src/daemon.rs | 780 | 2274 | 28K |
+| ./src/isg.rs | 602 | 1821 | 21K |
+| ./src/lib.rs | 23 | 79 | 591 |
 | ./src/main.rs | 13 | 34 | 280 |
 | ./.vscode/settings.json | [binary] | [binary] | 44 |
