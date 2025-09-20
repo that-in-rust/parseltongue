@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-20 22:10:31 IST
+# Repository Snapshot - 2025-09-20 22:12:15 IST
 
 ## Summary Statistics
-- **Total Files**: 120
-- **Total Lines**: 63,368
-- **Total Words**: 189,129
-- **Snapshot Time**: 2025-09-20 22:10:31 IST
+- **Total Files**: 121
+- **Total Lines**: 63,415
+- **Total Words**: 189,406
+- **Snapshot Time**: 2025-09-20 22:12:15 IST
 
 ## File Inventory
 
@@ -15,9 +15,10 @@
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./DeepThink20250920v1.md | 558 | 3139 | 25K |
 | ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
-| ./.kiro/file-snapshots/change-log.md | 1034 | 3031 | 22K |
-| ./.kiro/file-snapshots/current-snapshot.md | 126 | 1245 | 8.4K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 126 | 1245 | 8.4K |
+| ./.gitignore | 222 | 383 | 2.9K |
+| ./.kiro/file-snapshots/change-log.md | 1069 | 3208 | 23K |
+| ./.kiro/file-snapshots/current-snapshot.md | 132 | 1295 | 8.8K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 132 | 1295 | 8.8K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
 | ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 545 |
 | ./.kiro/options/architecture-backlog.md | 2638 | 12791 | 104K |
@@ -56,22 +57,6 @@
 | ./.kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | ./.kiro/unified-progress-tracker.sh | 242 | 1138 | 9.4K |
 | ./README.md | 31 | 115 | 973 |
-| ./_refDocs/aim-backlog.md | 111 | 694 | 5.4K |
-| ./_refDocs/aim-daemon-analysis.md | 74 | 566 | 4.2K |
-| ./_refDocs/aim-daemon-code-dump-parser.md | 527 | 1565 | 17K |
-| ./_refDocs/aim-daemon-file-discovery.md | 583 | 1545 | 16K |
-| ./_refDocs/backlog20250918.md | 190 | 773 | 5.9K |
-| ./_refDocs/CLAUDE.md | 722 | 4120 | 32K |
-| ./_refDocs/code-conventions.md | 365 | 1125 | 9.2K |
-| ./_refDocs/docs-sync-checker.kiro.hook | [binary] | [binary] | 1.5K |
-| ./_refDocs/ideation20250918.md | 2339 | 8402 | 76K |
-| ./_refDocs/interface-stub-analysis-summary.md | 176 | 1398 | 11K |
-| ./_refDocs/Notes04.md | 5498 | 22845 | 201K |
-| ./_refDocs/Notes05.md | 152 | 1560 | 11K |
-| ./_refDocs/Notes06.md | 1736 | 33368 | 270K |
-| ./_refDocs/parseltongue-brand-identity.md | 295 | 1296 | 9.8K |
-| ./_refDocs/parseltongue-user-journeys.md | 640 | 2766 | 22K |
-| ./_refDocs/Parseltonguev01.md | [binary] | [binary] | 0 |
 | ./_refDocs/_refIdioms/Comprehensive Rust Idiomatic Patterns Guide_.txt | 769 | 12536 | 90K |
 | ./_refDocs/_refIdioms/comprehensive-rust-patterns-guidance.md | 1846 | 5140 | 51K |
 | ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis (1).pdf | [binary] | [binary] | 81K |
@@ -96,12 +81,28 @@
 | ./_refDocs/_refIdioms/UBI Comprehensive Rust Idiomatic Patterns Guide.txt | 769 | 12536 | 90K |
 | ./_refDocs/_refIdioms/Unlocking _Compile-First Success__ A Layered Blueprint for Building and Governing Rust's Idiomatic-Archive.md | 416 | 5927 | 47K |
 | ./_refDocs/_refIdioms/You are an __omniscient superintelligence with an....md | 161 | 2182 | 16K |
-| ./_refDocs/rust-parsing-complexity-analysis.md | 241 | 1172 | 8.4K |
-| ./_refDocs/SESSION_CONTEXT.md | 26 | 120 | 830 |
-| ./_refDocs/z02.html | 6060 | 295759 | 5.2M |
-| ./_refDocs/zz01.md | 523 | 9178 | 66K |
-| ./_refDocs/zz03MoreArchitectureIdeas20250920v1.md | [binary] | [binary] | 2.5M |
-| ./_refDocs/zz04MoreNotes.md | 1188 | 14961 | 112K |
+| ./_refDocs/_refPrevResearch/aim-backlog.md | 111 | 694 | 5.4K |
+| ./_refDocs/_refPrevResearch/aim-daemon-analysis.md | 74 | 566 | 4.2K |
+| ./_refDocs/_refPrevResearch/aim-daemon-code-dump-parser.md | 527 | 1565 | 17K |
+| ./_refDocs/_refPrevResearch/aim-daemon-file-discovery.md | 583 | 1545 | 16K |
+| ./_refDocs/_refPrevResearch/backlog20250918.md | 190 | 773 | 5.9K |
+| ./_refDocs/_refPrevResearch/CLAUDE.md | 722 | 4120 | 32K |
+| ./_refDocs/_refPrevResearch/code-conventions.md | 365 | 1125 | 9.2K |
+| ./_refDocs/_refPrevResearch/docs-sync-checker.kiro.hook | [binary] | [binary] | 1.5K |
+| ./_refDocs/_refPrevResearch/ideation20250918.md | 2339 | 8402 | 76K |
+| ./_refDocs/_refPrevResearch/interface-stub-analysis-summary.md | 176 | 1398 | 11K |
+| ./_refDocs/_refPrevResearch/Notes04.md | 5498 | 22845 | 201K |
+| ./_refDocs/_refPrevResearch/Notes05.md | 152 | 1560 | 11K |
+| ./_refDocs/_refPrevResearch/Notes06.md | 1736 | 33368 | 270K |
+| ./_refDocs/_refPrevResearch/parseltongue-brand-identity.md | 295 | 1296 | 9.8K |
+| ./_refDocs/_refPrevResearch/parseltongue-user-journeys.md | 640 | 2766 | 22K |
+| ./_refDocs/_refPrevResearch/Parseltonguev01.md | [binary] | [binary] | 0 |
+| ./_refDocs/_refPrevResearch/rust-parsing-complexity-analysis.md | 241 | 1172 | 8.4K |
+| ./_refDocs/_refPrevResearch/SESSION_CONTEXT.md | 26 | 120 | 830 |
+| ./_refDocs/_refPrevResearch/z02.html | 6060 | 295759 | 5.2M |
+| ./_refDocs/_refPrevResearch/zz01.md | 523 | 9178 | 66K |
+| ./_refDocs/_refPrevResearch/zz03MoreArchitectureIdeas20250920v1.md | [binary] | [binary] | 2.5M |
+| ./_refDocs/_refPrevResearch/zz04MoreNotes.md | 1188 | 14961 | 112K |
 | ./_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
 | ./src/cli.rs | 381 | 1024 | 12K |
 | ./src/daemon.rs | 370 | 1175 | 12K |

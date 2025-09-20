@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-20 22:12:15 IST
+# Repository Snapshot - 2025-09-20 22:16:10 IST
 
 ## Summary Statistics
 - **Total Files**: 121
-- **Total Lines**: 63,415
-- **Total Words**: 189,406
-- **Snapshot Time**: 2025-09-20 22:12:15 IST
+- **Total Lines**: 63,782
+- **Total Words**: 190,483
+- **Snapshot Time**: 2025-09-20 22:16:10 IST
 
 ## File Inventory
 
@@ -13,12 +13,11 @@
 | ./Cargo.lock | 1053 | 2107 | 28K |
 | ./Cargo.toml | 23 | 82 | 507 |
 | ./.cursorignore | 135 | 202 | 1.7K |
-| ./DeepThink20250920v1.md | 558 | 3139 | 25K |
 | ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
 | ./.gitignore | 222 | 383 | 2.9K |
-| ./.kiro/file-snapshots/change-log.md | 1069 | 3208 | 23K |
-| ./.kiro/file-snapshots/current-snapshot.md | 132 | 1295 | 8.8K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 132 | 1295 | 8.8K |
+| ./.kiro/file-snapshots/change-log.md | 1104 | 3284 | 24K |
+| ./.kiro/file-snapshots/current-snapshot.md | 133 | 1304 | 9.2K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 133 | 1304 | 9.2K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
 | ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 545 |
 | ./.kiro/options/architecture-backlog.md | 2638 | 12791 | 104K |
@@ -28,6 +27,7 @@
 | ./.kiro/options/user-journey-options.md | 85 | 346 | 2.9K |
 | ./.kiro/rust-idioms/Comprehensive Rust Idiomatic Patterns Guide_.txt | 769 | 12536 | 90K |
 | ./.kiro/rust-idioms/comprehensive-rust-patterns-guidance.md | 1846 | 5140 | 51K |
+| ./.kiro/rust-idioms/DeepThink20250920v1.md | 558 | 3139 | 25K |
 | ./.kiro/rust-idioms/Executable Specifications_ Flawless One-Shot Code Generation (1).pdf | [binary] | [binary] | 83K |
 | ./.kiro/rust-idioms/Executable Specifications for LLM Code Generation.md | 214 | 4231 | 33K |
 | ./.kiro/rust-idioms/Exploring Rust Idiomatic Patterns in Layers.pdf | [binary] | [binary] | 613K |
@@ -48,7 +48,7 @@
 | ./.kiro/specs/parseltongue-aim-daemon/rust-patterns-analysis.md | 483 | 1480 | 14K |
 | ./.kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 215 | 1059 | 8.4K |
 | ./.kiro/specs/parseltongue-aim-daemon/tasks.md | 300 | 2188 | 18K |
-| ./.kiro/steering/code-conventions.md | [binary] | [binary] | 0 |
+| ./.kiro/steering/code-conventions.md | 330 | 983 | 7.9K |
 | ./.kiro/steering/design101-tdd-architecture-principles.md | 943 | 3431 | 29K |
 | ./.kiro/steering/hook-automation-guide.md | 256 | 1274 | 11K |
 | ./.kiro/steering/hook-system-status.md | 27 | 115 | 912 |
@@ -103,6 +103,27 @@
 | ./_refDocs/_refPrevResearch/zz01.md | 523 | 9178 | 66K |
 | ./_refDocs/_refPrevResearch/zz03MoreArchitectureIdeas20250920v1.md | [binary] | [binary] | 2.5M |
 | ./_refDocs/_refPrevResearch/zz04MoreNotes.md | 1188 | 14961 | 112K |
+| ./_refDocs/zzzArchive/analysis-progress-tracker.kiro.hook | [binary] | [binary] | 867 |
+| ./_refDocs/zzzArchive/auto-trigger-test.md | 6 | 37 | 226 |
+| ./_refDocs/zzzArchive/file-change-tracker.kiro.hook | [binary] | [binary] | 1.1K |
+| ./_refDocs/zzzArchive/file-change-tracker.md | 279 | 1182 | 9.2K |
+| ./_refDocs/zzzArchive/generate-repository-snapshot.sh | 108 | 537 | 4.1K |
+| ./_refDocs/zzzArchive/hook-test.txt | 2 | 19 | 124 |
+| ./_refDocs/zzzArchive/hook-trigger-check.txt | 1 | 12 | 113 |
+| ./_refDocs/zzzArchive/install01.sh | 501 | 1386 | 13K |
+| ./_refDocs/zzzArchive/randomNotes202509.md | 155 | 966 | 6.5K |
+| ./_refDocs/zzzArchive/repository-snapshot.kiro.hook | [binary] | [binary] | 1.4K |
+| ./_refDocs/zzzArchive/session-context-updater.kiro.hook | 18 | 123 | 1.3K |
+| ./_refDocs/zzzArchive/session-context-updater.md | 240 | 1048 | 8.1K |
+| ./_refDocs/zzzArchive/step01_scope.txt | 152 | 480 | 3.3K |
+| ./_refDocs/zzzArchive/step02_module.txt | 281 | 861 | 8.3K |
+| ./_refDocs/zzzArchive/step95_fav.txt | 28 | 29 | 242 |
+| ./_refDocs/zzzArchive/step96_promptsv1.txt | 312 | 1445 | 9.9K |
+| ./_refDocs/zzzArchive/step97_terminal.txt | 168 | 626 | 4.5K |
+| ./_refDocs/zzzArchive/step98_current_files.txt | 10 | 10 | 218 |
+| ./_refDocs/zzzArchive/step99_assignment_prompt01.txt | 396 | 1674 | 13K |
+| ./_refDocs/zzzArchive/test-regular-file.md | 7 | 39 | 228 |
+| ./_refDocs/zzzArchive/test-spec.md | 7 | 38 | 217 |
 | ./_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
 | ./src/cli.rs | 381 | 1024 | 12K |
 | ./src/daemon.rs | 370 | 1175 | 12K |
@@ -110,24 +131,3 @@
 | ./src/lib.rs | 33 | 101 | 875 |
 | ./src/main.rs | 13 | 34 | 280 |
 | ./.vscode/settings.json | [binary] | [binary] | 44 |
-| ./zzzArchive/analysis-progress-tracker.kiro.hook | [binary] | [binary] | 867 |
-| ./zzzArchive/auto-trigger-test.md | 6 | 37 | 226 |
-| ./zzzArchive/file-change-tracker.kiro.hook | [binary] | [binary] | 1.1K |
-| ./zzzArchive/file-change-tracker.md | 279 | 1182 | 9.2K |
-| ./zzzArchive/generate-repository-snapshot.sh | 108 | 537 | 4.1K |
-| ./zzzArchive/hook-test.txt | 2 | 19 | 124 |
-| ./zzzArchive/hook-trigger-check.txt | 1 | 12 | 113 |
-| ./zzzArchive/install01.sh | 501 | 1386 | 13K |
-| ./zzzArchive/randomNotes202509.md | 155 | 966 | 6.5K |
-| ./zzzArchive/repository-snapshot.kiro.hook | [binary] | [binary] | 1.4K |
-| ./zzzArchive/session-context-updater.kiro.hook | 18 | 123 | 1.3K |
-| ./zzzArchive/session-context-updater.md | 240 | 1048 | 8.1K |
-| ./zzzArchive/step01_scope.txt | 152 | 480 | 3.3K |
-| ./zzzArchive/step02_module.txt | 281 | 861 | 8.3K |
-| ./zzzArchive/step95_fav.txt | 28 | 29 | 242 |
-| ./zzzArchive/step96_promptsv1.txt | 312 | 1445 | 9.9K |
-| ./zzzArchive/step97_terminal.txt | 168 | 626 | 4.5K |
-| ./zzzArchive/step98_current_files.txt | 10 | 10 | 218 |
-| ./zzzArchive/step99_assignment_prompt01.txt | 396 | 1674 | 13K |
-| ./zzzArchive/test-regular-file.md | 7 | 39 | 228 |
-| ./zzzArchive/test-spec.md | 7 | 38 | 217 |
