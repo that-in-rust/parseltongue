@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-20 22:27:42 IST
+# Repository Snapshot - 2025-09-20 22:38:46 IST
 
 ## Summary Statistics
-- **Total Files**: 121
-- **Total Lines**: 65,085
-- **Total Words**: 194,255
-- **Snapshot Time**: 2025-09-20 22:27:42 IST
+- **Total Files**: 119
+- **Total Lines**: 65,506
+- **Total Words**: 195,782
+- **Snapshot Time**: 2025-09-20 22:38:46 IST
 
 ## File Inventory
 
@@ -15,7 +15,7 @@
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
 | ./.gitignore | 222 | 383 | 2.9K |
-| ./.kiro/file-snapshots/change-log.md | 1150 | 3392 | 26K |
+| ./.kiro/file-snapshots/change-log.md | 1161 | 3424 | 26K |
 | ./.kiro/file-snapshots/current-snapshot.md | 133 | 1304 | 9.4K |
 | ./.kiro/file-snapshots/previous-snapshot.md | 133 | 1304 | 9.4K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
@@ -35,10 +35,8 @@
 | ./.kiro/rust-idioms/i00-pattern-list.txt | 607 | 2069 | 18K |
 | ./.kiro/rust-idioms/Proposal_ Enhancing Documentation for TDD and Feature Specifications.docx.md | 203 | 3756 | 28K |
 | ./.kiro/rust-idioms/Rust Idiomatic Patterns Deep Dive_.md | 878 | 12280 | 95K |
-| ./.kiro/rust-idioms/Rust Idiomatic Patterns Deep Dive_.rtf | [binary] | [binary] | 5.9M |
 | ./.kiro/rust-idioms/UBI Comprehensive Rust Idiomatic Patterns Guide.txt | 769 | 12536 | 90K |
 | ./.kiro/rust-idioms/Unlocking _Compile-First Success__ A Layered Blueprint for Building and Governing Rust's Idiomatic-Archive.md | 416 | 5927 | 47K |
-| ./.kiro/rust-idioms/You are an __omniscient superintelligence with an....md | 161 | 2182 | 16K |
 | ./.kiro/specs/parseltongue-aim-daemon/design.md | 2677 | 7914 | 87K |
 | ./.kiro/specs/parseltongue-aim-daemon/prompts/storage-architecture-analysis.md | 204 | 881 | 7.2K |
 | ./.kiro/specs/parseltongue-aim-daemon/README.md | 125 | 566 | 5.3K |
@@ -48,7 +46,7 @@
 | ./.kiro/specs/parseltongue-aim-daemon/rust-patterns-analysis.md | 483 | 1480 | 14K |
 | ./.kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 215 | 1059 | 8.4K |
 | ./.kiro/specs/parseltongue-aim-daemon/tasks.md | 300 | 2188 | 18K |
-| ./.kiro/steering/code-conventions.md | 1587 | 4647 | 40K |
+| ./.kiro/steering/code-conventions.md | 1997 | 6142 | 53K |
 | ./.kiro/steering/design101-tdd-architecture-principles.md | 943 | 3431 | 29K |
 | ./.kiro/steering/hook-automation-guide.md | 256 | 1274 | 11K |
 | ./.kiro/steering/hook-system-status.md | 27 | 115 | 912 |

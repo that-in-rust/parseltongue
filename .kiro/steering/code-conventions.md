@@ -10,6 +10,12 @@ inclusion: always
 
 *"Idiomatic Rust is the practice of leveraging the language's unique features—particularly its powerful type system and the revolutionary ownership model—to work with the compiler, not against it. This approach transforms the compiler from a simple translation tool into a partner that statically guarantees the absence of entire classes of bugs."*
 
+### The Executable Specification Philosophy
+- **Correct-by-Construction**: Code that is provably correct with respect to its specification
+- **Parse, Don't Validate**: Move validation from runtime to compile-time through types
+- **Contracts Over Comments**: Use executable tests and types to document behavior
+- **Fail-Fast Design**: Make errors impossible rather than handling them at runtime
+
 ### The Core Philosophy
 - **Safety, Performance, and Concurrency** are deeply intertwined and mutually reinforcing
 - **Zero-Cost Abstractions** provide high-level features that compile to efficient machine code
@@ -54,6 +60,8 @@ Extend ownership and borrowing rules to multi-threaded contexts
 - **Make Invalid States Unrepresentable**: Enums to model only valid states
 - **Compile-Time Guarantees**: Move validation from runtime to type system
 - **Encode Business Logic in Types**: Use the type system to document and enforce domain rules
+- **Exhaustive Error Hierarchies**: Pre-define complete enums of all possible errors
+- **Design by Contract**: Preconditions, postconditions, and invariants in function signatures
 
 ### The Copy vs Move Distinction
 - **Copy Types**: Stack-only data (integers, booleans) - bit-for-bit copying is safe
@@ -1084,7 +1092,171 @@ impl<const N: usize> FixedBuffer<N> {
 
 ---
 
-## LAYER 8: MACRO AND METAPROGRAMMING PATTERNS
+## LAYER 8: EXECUTABLE SPECIFICATION PATTERNS
+
+### Design by Contract Implementation
+```rust
+// ✅ Explicit preconditions, postconditions, and invariants
+/// Creates a message with deduplication contract
+/// 
+/// # Preconditions
+/// - User authenticated with room access
+/// - Content: 1-10000 chars, sanitized HTML
+/// - client_message_id: valid UUID
+/// 
+/// # Postconditions  
+/// - Returns Ok(Message<Persisted>) on success
+/// - Inserts row into 'messages' table
+/// - Updates room.last_message_at timestamp
+/// - Broadcasts to room subscribers via WebSocket
+/// - Deduplication: returns existing if client_message_id exists
+/// 
+/// # Error Conditions
+/// - MessageError::Authorization if user lacks room access
+/// - MessageError::InvalidContent if content violates constraints
+/// - MessageError::Database on persistence failure
+pub async fn create_message_with_deduplication(
+    content: String,
+    room_id: RoomId,
+    user_id: UserId,
+    client_message_id: Uuid,
+) -> Result<Message<Persisted>, MessageError> {
+    // Implementation follows contract exactly
+    todo!()
+}
+```
+
+### Exhaustive Error Hierarchies
+```rust
+// ✅ Complete enumeration of all possible failures
+#[derive(Error, Debug)]
+pub enum MessageError {
+    #[error("User {user_id} not authorized for room {room_id}")]
+    Authorization { user_id: UserId, room_id: RoomId },
+    
+    #[error("Invalid content: {reason}")]
+    InvalidContent { reason: String },
+    
+    #[error("Content too long: {length} chars (max: {max})")]
+    ContentTooLong { length: usize, max: usize },
+    
+    #[error("Content too short: {length} chars (min: {min})")]
+    ContentTooShort { length: usize, min: usize },
+    
+    #[error("Database operation failed: {0}")]
+    Database(#[from] sqlx::Error),
+    
+    #[error("WebSocket broadcast failed: {0}")]
+    Broadcast(#[from] BroadcastError),
+    
+    #[error("Rate limit exceeded: {limit} per {window}")]
+    RateLimit { limit: u32, window: String },
+}
+```
+
+### Property-Based Contract Testing
+```rust
+// ✅ Test invariants across the entire input space
+use proptest::prelude::*;
+
+proptest! {
+    #[test]
+    fn message_creation_idempotency(
+        content in "[a-zA-Z0-9 ]{1,1000}",
+        room_id in any::<u64>().prop_map(|n| RoomId(Uuid::from_u128(n as u128))),
+        user_id in any::<u64>().prop_map(|n| UserId(Uuid::from_u128(n as u128))),
+        client_id in any::<u128>().prop_map(Uuid::from_u128),
+    ) {
+        // Property: Creating the same message twice should return the same result
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            let db = create_test_db().await;
+            
+            let result1 = create_message_with_deduplication(
+                content.clone(), room_id, user_id, client_id
+            ).await;
+            
+            let result2 = create_message_with_deduplication(
+                content, room_id, user_id, client_id
+            ).await;
+            
+            // Both should succeed and return the same message ID
+            prop_assert!(result1.is_ok());
+            prop_assert!(result2.is_ok());
+            prop_assert_eq!(result1.unwrap().id, result2.unwrap().id);
+        });
+    }
+}
+```
+
+### Decision Tables for Complex Logic
+```rust
+// ✅ Exhaustive mapping of conditions to actions
+pub fn calculate_message_visibility(
+    user_role: UserRole,
+    room_type: RoomType,
+    message_type: MessageType,
+    user_in_room: bool,
+) -> MessageVisibility {
+    use UserRole::*;
+    use RoomType::*;
+    use MessageType::*;
+    use MessageVisibility::*;
+    
+    match (user_role, room_type, message_type, user_in_room) {
+        // Admin can see everything
+        (Admin, _, _, _) => Visible,
+        
+        // Public rooms
+        (_, Public, Text, _) => Visible,
+        (_, Public, System, _) => Visible,
+        (_, Public, Deleted, false) => Hidden,
+        (_, Public, Deleted, true) => ShowDeleted,
+        
+        // Private rooms - must be member
+        (Member, Private, Text, true) => Visible,
+        (Member, Private, System, true) => Visible,
+        (Member, Private, Deleted, true) => ShowDeleted,
+        (_, Private, _, false) => Hidden,
+        
+        // Direct messages - only participants
+        (_, Direct, _, true) => Visible,
+        (_, Direct, _, false) => Hidden,
+        
+        // Default: hidden
+        _ => Hidden,
+    }
+}
+
+#[cfg(test)]
+mod decision_table_tests {
+    use super::*;
+    
+    #[test]
+    fn test_all_decision_combinations() {
+        // Test every combination in the decision table
+        let test_cases = vec![
+            // (role, room_type, msg_type, in_room, expected)
+            (UserRole::Admin, RoomType::Public, MessageType::Text, false, MessageVisibility::Visible),
+            (UserRole::Admin, RoomType::Private, MessageType::Deleted, false, MessageVisibility::Visible),
+            (UserRole::Member, RoomType::Public, MessageType::Text, false, MessageVisibility::Visible),
+            (UserRole::Member, RoomType::Private, MessageType::Text, false, MessageVisibility::Hidden),
+            (UserRole::Member, RoomType::Private, MessageType::Text, true, MessageVisibility::Visible),
+            // ... exhaustive test cases for all combinations
+        ];
+        
+        for (role, room_type, msg_type, in_room, expected) in test_cases {
+            let result = calculate_message_visibility(role, room_type, msg_type, in_room);
+            assert_eq!(result, expected, 
+                "Failed for {:?}, {:?}, {:?}, {}", role, room_type, msg_type, in_room);
+        }
+    }
+}
+```
+
+---
+
+## LAYER 9: MACRO AND METAPROGRAMMING PATTERNS
 
 ### Declarative Macros for Code Generation
 ```rust
@@ -1196,7 +1368,7 @@ pub fn derive_builder(input: TokenStream) -> TokenStream {
 
 ---
 
-## LAYER 9: SERIALIZATION AND API PATTERNS
+## LAYER 10: SERIALIZATION AND API PATTERNS
 
 ### Serde Best Practices
 ```rust
@@ -1291,7 +1463,165 @@ pub fn create_user(id: impl Into<UserId>, name: impl Into<String>) -> User {
 
 ---
 
-## LAYER 10: UNSAFE CODE AND FFI PATTERNS
+## LAYER 11: ADVANCED COLLECTIONS AND ALGORITHMS
+
+### Custom Iterator Implementations
+```rust
+// ✅ Domain-specific iteration patterns
+pub struct MessageChain<'a> {
+    messages: &'a [Message],
+    current: usize,
+    filter_fn: Box<dyn Fn(&Message) -> bool + 'a>,
+}
+
+impl<'a> MessageChain<'a> {
+    pub fn new(messages: &'a [Message]) -> Self {
+        Self {
+            messages,
+            current: 0,
+            filter_fn: Box::new(|_| true),
+        }
+    }
+    
+    pub fn filter<F>(mut self, f: F) -> Self 
+    where 
+        F: Fn(&Message) -> bool + 'a,
+    {
+        self.filter_fn = Box::new(f);
+        self
+    }
+    
+    pub fn by_user(self, user_id: UserId) -> Self {
+        self.filter(move |msg| msg.creator_id == user_id)
+    }
+    
+    pub fn in_timeframe(self, start: DateTime<Utc>, end: DateTime<Utc>) -> Self {
+        self.filter(move |msg| msg.created_at >= start && msg.created_at <= end)
+    }
+}
+
+impl<'a> Iterator for MessageChain<'a> {
+    type Item = &'a Message;
+    
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.current < self.messages.len() {
+            let msg = &self.messages[self.current];
+            self.current += 1;
+            
+            if (self.filter_fn)(msg) {
+                return Some(msg);
+            }
+        }
+        None
+    }
+}
+
+// Usage: Fluent, composable iteration
+let recent_user_messages: Vec<&Message> = MessageChain::new(&all_messages)
+    .by_user(user_id)
+    .in_timeframe(yesterday, now)
+    .take(50)
+    .collect();
+```
+
+### Zero-Copy String Processing
+```rust
+// ✅ Efficient string operations without allocation
+pub struct StringProcessor<'a> {
+    input: &'a str,
+}
+
+impl<'a> StringProcessor<'a> {
+    pub fn new(input: &'a str) -> Self {
+        Self { input }
+    }
+    
+    pub fn extract_mentions(&self) -> impl Iterator<Item = &'a str> {
+        self.input
+            .split_whitespace()
+            .filter_map(|word| word.strip_prefix('@'))
+            .filter(|mention| !mention.is_empty())
+    }
+    
+    pub fn extract_hashtags(&self) -> impl Iterator<Item = &'a str> {
+        self.input
+            .split_whitespace()
+            .filter_map(|word| word.strip_prefix('#'))
+            .filter(|tag| !tag.is_empty())
+    }
+    
+    pub fn extract_urls(&self) -> impl Iterator<Item = &'a str> {
+        self.input
+            .split_whitespace()
+            .filter(|word| word.starts_with("http://") || word.starts_with("https://"))
+    }
+    
+    pub fn word_count(&self) -> usize {
+        self.input.split_whitespace().count()
+    }
+    
+    pub fn char_count_excluding_whitespace(&self) -> usize {
+        self.input.chars().filter(|c| !c.is_whitespace()).count()
+    }
+}
+```
+
+### Specialized Container Types
+```rust
+// ✅ Domain-optimized data structures
+use std::collections::VecDeque;
+
+pub struct MessageBuffer {
+    messages: VecDeque<Message>,
+    max_size: usize,
+    total_bytes: usize,
+    max_bytes: usize,
+}
+
+impl MessageBuffer {
+    pub fn new(max_size: usize, max_bytes: usize) -> Self {
+        Self {
+            messages: VecDeque::with_capacity(max_size),
+            max_size,
+            total_bytes: 0,
+            max_bytes,
+        }
+    }
+    
+    pub fn push(&mut self, message: Message) -> Option<Message> {
+        let message_size = message.content.len();
+        
+        // Evict old messages if necessary
+        while (self.messages.len() >= self.max_size) || 
+              (self.total_bytes + message_size > self.max_bytes) {
+            if let Some(evicted) = self.messages.pop_front() {
+                self.total_bytes -= evicted.content.len();
+            } else {
+                break;
+            }
+        }
+        
+        self.total_bytes += message_size;
+        self.messages.push_back(message);
+        None
+    }
+    
+    pub fn get_recent(&self, count: usize) -> impl Iterator<Item = &Message> {
+        self.messages.iter().rev().take(count)
+    }
+    
+    pub fn search<F>(&self, predicate: F) -> impl Iterator<Item = &Message>
+    where
+        F: Fn(&Message) -> bool,
+    {
+        self.messages.iter().filter(move |msg| predicate(msg))
+    }
+}
+```
+
+---
+
+## LAYER 12: UNSAFE CODE AND FFI PATTERNS
 
 ### Safe Abstractions Over Unsafe Code
 ```rust
@@ -1492,7 +1822,7 @@ fn process_items(items: &[String]) -> Vec<String> {
 
 ---
 
-## LAYER 11: WORKSPACE AND PROJECT ORGANIZATION
+## LAYER 13: WORKSPACE AND PROJECT ORGANIZATION
 
 ### Module Organization
 ```rust
@@ -1554,35 +1884,115 @@ pub mod metrics {
 }
 ```
 
+### Clean Build Patterns
+```rust
+// ✅ Workspace-level dependency management
+// Cargo.toml (workspace root)
+[workspace]
+members = ["core", "api", "cli"]
+
+[workspace.dependencies]
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+// Individual crate Cargo.toml
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+uuid = { workspace = true }
+
+// ✅ Clean build verification script
+// scripts/verify-clean-build.sh
+#!/bin/bash
+set -e
+
+echo "Cleaning build artifacts..."
+cargo clean
+rm -rf target/
+
+echo "Building from clean state..."
+cargo build --all-features
+cargo test --all-features
+cargo clippy --all-features -- -D warnings
+
+echo "Clean build verification passed!"
+```
+
 ---
 
 ## DECISION FRAMEWORK
 
 When writing Rust code, ask these questions in order:
 
-### 1. **SAFETY FIRST**
+### 1. **EXECUTABLE SPECIFICATION FIRST**
+- Can I write the test before the implementation? → Use TDD/contract-driven development
+- Are all error conditions enumerated? → Create exhaustive error hierarchies
+- Are preconditions and postconditions explicit? → Document contracts in function signatures
+- Can invalid states be represented? → Use type-state programming to prevent them
+
+### 2. **SAFETY THROUGH TYPES**
 - Can the type system prevent this bug? → Use newtypes, enums, const generics
 - Can this fail? → Return `Result<T, E>`, use `?` operator
 - Is this thread-safe? → Check Send/Sync bounds, use Arc/Mutex appropriately
+- Are business rules encoded in types? → Use phantom types, sealed traits
 
-### 2. **OWNERSHIP CLARITY**
+### 3. **OWNERSHIP AND LIFETIME CLARITY**
 - Who owns this data? → Accept `&T`, store owned types, return owned types
 - Do I need shared ownership? → Use `Rc<T>` (single-thread) or `Arc<T>` (multi-thread)
 - Do I need interior mutability? → Use `RefCell<T>` (single-thread) or `Mutex<T>` (multi-thread)
+- Can I avoid lifetimes? → Prefer owned types in structs, use slices in function parameters
 
-### 3. **PERFORMANCE CONSIDERATIONS**
+### 4. **ZERO-COST PERFORMANCE**
 - Is this zero-cost? → Prefer iterators, avoid unnecessary allocations
 - Can this be computed at compile-time? → Use const generics, const functions
 - Is memory layout optimal? → Consider `#[repr(packed)]` or `#[repr(align)]`
+- Are allocations minimized? → Use `Cow<T>`, arena allocation, string interning
 
-### 4. **API DESIGN**
+### 5. **API ERGONOMICS AND EXTENSIBILITY**
 - Is this ergonomic? → Use builder patterns, Into/From conversions
 - Is this extensible? → Use traits, extension traits, sealed traits
 - Is this testable? → Use dependency injection, trait abstractions
+- Does it follow conventions? → Accept slices, return owned types, use standard traits
 
-### 5. **MAINTAINABILITY**
+### 6. **COMPREHENSIVE TESTING**
+- Are all paths tested? → Unit tests, integration tests, property-based tests
+- Are invariants verified? → Property tests for abstract properties
+- Are contracts validated? → Test preconditions, postconditions, error conditions
+- Is performance validated? → Benchmark tests for critical paths
+
+### 7. **MAINTAINABILITY AND EVOLUTION**
 - Are invariants encoded in types? → Use phantom types, type-state programming
 - Is error handling comprehensive? → Use thiserror for libraries, anyhow for applications
-- Are tests comprehensive? → Unit tests, integration tests, property-based tests
+- Is the code self-documenting? → Use descriptive types, clear function signatures
+- Can it evolve safely? → Use sealed traits, exhaustive enums, versioned APIs
 
-**Remember**: If it compiles and follows these patterns, it's likely correct, performant, and maintainable.
+## THE VERIFICATION CHECKLIST
+
+Before considering any code complete, verify:
+
+### ✅ **Compile-Time Correctness**
+- [ ] Code compiles without warnings
+- [ ] All clippy lints pass
+- [ ] Type system prevents invalid states
+- [ ] Contracts are explicit in signatures
+
+### ✅ **Runtime Correctness**
+- [ ] All tests pass (unit, integration, property)
+- [ ] Error conditions are handled
+- [ ] Performance contracts are met
+- [ ] Memory safety is guaranteed
+
+### ✅ **Specification Compliance**
+- [ ] Implementation matches documented contracts
+- [ ] All error conditions are enumerated
+- [ ] Invariants are maintained
+- [ ] Side effects are documented
+
+### ✅ **Production Readiness**
+- [ ] Error messages are actionable
+- [ ] Logging is appropriate
+- [ ] Resource cleanup is automatic
+- [ ] Concurrency is safe
+
+**Remember**: Code that passes this checklist is not just correct—it's provably correct with respect to its specification. This is the essence of correct-by-construction software development.

@@ -1159,3 +1159,18 @@
 ### File-Level Changes
 ---
 
+
+## Delta Report - 2025-09-20 22:38:46 IST
+
+### Summary Changes
+- **File Count**: -2 (119 total)
+- **Line Count**: 421 (65,506 total)
+- **Word Count**: 1,527 (195,782 total)
+
+### File-Level Changes
+**Removed Files:**
+- ./.kiro/rust-idioms/Rust Idiomatic Patterns Deep Dive_.rtf
+- ./.kiro/rust-idioms/You are an __omniscient superintelligence with an....md
+
+---
+
