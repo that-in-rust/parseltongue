@@ -197,3 +197,71 @@ This document contains advanced features and requirements that are valuable but 
 - **Research**: Evaluate custom Rust graph storage optimized for ISG patterns
 
 This backlog ensures we stay focused on delivering a working MVP while capturing valuable ideas for future development.
+##
+ Additional Requirements Moved from MVP v1.0
+
+The following requirements were moved from MVP to ensure focused delivery of essential functionality:
+
+### REQ-API-001.0: Structured Data Output and API Interfaces (v2.0)
+**Moved Reason**: HTTP/gRPC APIs, language server protocol, and IDE integration are advanced features that can be added after core CLI functionality works.
+
+### REQ-FUNC-003.0: Specialized Query Types for LLM Integration (v1.5)
+**Moved Reason**: Advanced query types like `generate-prompt` with task-specific context can be added after basic queries work reliably.
+
+### REQ-QUAL-001.0: Architectural Validation and Debt Detection (v2.0)
+**Moved Reason**: Architectural health metrics, constraint validation, and debt detection are valuable but not essential for basic architectural intelligence.
+
+### REQ-RUST-001.0: Idiomatic Rust Pattern Recognition (v2.0)
+**Moved Reason**: Pattern validation (newtype, error handling, async patterns) is advanced analysis that can be added after core parsing works.
+
+### REQ-TDD-001.0: Compile-Time Validation and Testing Patterns (v2.0)
+**Moved Reason**: TDD pattern recognition and property-based test detection are sophisticated features for future releases.
+
+### REQ-ARCH-001.0: Comprehensive Graph Schema for Rust Semantics (v2.0)
+**Moved Reason**: 7 node types and 9 edge types is complex schema that can start simpler (3 node types, 3 edge types) and evolve.
+
+### REQ-ARCH-002.0: Multi-Source Graph Merging (v3.0)
+**Moved Reason**: Merging multiple code sources (git repos, live filesystem, dumps) is complex and not needed for MVP usage.
+
+### REQ-PERF-003.0: Enterprise-Grade Performance Targets (v2.0)
+**Moved Reason**: Microsecond-level performance targets and lock-free data structures are optimizations for after MVP proves the concept.
+
+### REQ-RESIL-001.0: Advanced Error Handling and System Recovery (v1.5)
+**Moved Reason**: Sophisticated recovery mechanisms can be simplified for MVP - basic error handling is sufficient initially.
+
+### REQ-ARCH-003.0: Advanced Constraint Validation (v2.0)
+**Moved Reason**: Tarjan's algorithm, architectural rule enforcement, and constraint violation detection are advanced features.
+
+### REQ-FUNC-004.0: Code Dump Processing with Virtual File System (v1.5)
+**Moved Reason**: Virtual file system, streaming mode, and multiple dump formats can start simpler with just separated format support.
+
+### REQ-RUST-002.0: Complex Rust Pattern Parsing (v2.0)
+**Moved Reason**: Complex generics, trait objects, and enterprise-scale parsing (500K LOC) can be added after basic parsing works for typical projects.
+
+## MVP v1.0 vs Future Versions
+
+### MVP v1.0 (Start Tomorrow)
+- **Focus**: Essential functionality for immediate use
+- **Scope**: 7 core requirements covering basic ingestion, monitoring, queries, context generation, CLI, storage, and error handling
+- **Target**: Handle typical Rust projects (10-50K LOC) with basic architectural intelligence
+- **Timeline**: 3 weeks to working prototype
+
+### Version 1.5 (Enhanced Usability)
+- Better error handling and recovery
+- More dump format support
+- Additional query types
+- Improved CLI experience
+
+### Version 2.0 (Advanced Features)
+- Pattern recognition and validation
+- Comprehensive graph schema
+- Performance optimizations
+- API interfaces
+
+### Version 3.0 (Enterprise Scale)
+- Multi-source merging
+- Distributed capabilities
+- Advanced constraint validation
+- Enterprise integration
+
+This backlog ensures MVP stays focused while capturing valuable ideas for systematic future development.
