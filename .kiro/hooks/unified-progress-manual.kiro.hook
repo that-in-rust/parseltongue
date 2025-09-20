@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Unified Progress Tracker (Manual)",
+  "description": "Manually trigger repository snapshots, file change tracking, session context updates, and git operations.",
+  "version": "1",
+  "when": {
+    "type": "manual"
+  },
+  "then": {
+    "type": "shell",
+    "command": ".kiro/unified-progress-tracker.sh"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "Repository Snapshot Generator",
+  "description": "Generate comprehensive repository snapshots with delta tracking and automatic git commits. Supports both manual execution and automatic triggering on significant file changes.",
+  "version": "2.0",
+  "enabled": false,
+  "triggers": [
+    {
+      "type": "manual",
+      "icon": "📊",
+      "category": "Analysis"
+    },
+    {
+      "type": "fileChange",
+      "filePattern": "**/*.{md,txt,sh,hook,rs,toml,json,yaml,yml}",
+      "debounceMs": 5000,
+      "enabled": false
+    }
+  ],
+  "tags": ["tracking", "analysis", "git", "documentation", "progress", "session-continuity"],
+  "command": {
+    "type": "shell",
+    "script": ".kiro/generate-repository-snapshot.sh",
+    "workingDirectory": ".",
+    "timeout": 30000
+  },
+  "conditions": {
+    "fileExists": [".kiro/generate-repository-snapshot.sh"]
+  },
+  "outputs": {
+    "files": [
+      ".kiro/file-snapshots/current-snapshot.md",
+      ".kiro/file-snapshots/previous-snapshot.md", 
+      ".kiro/file-snapshots/change-log.md"
+    ],
+    "gitCommit": true
+  },
+  "settings": {
+    "autoCommit": true,
+    "pushToBranch": "v01",
+    "commitMessageFormat": "automated-snapshot repository-tracking {timestamp}",
+    "excludePatterns": [".git/**", "node_modules/**", "target/**"],
+    "progressTracking": true,
+    "sessionContinuity": true
+  }
+}
