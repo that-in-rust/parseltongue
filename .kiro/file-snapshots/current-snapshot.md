@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-20 19:40:04 IST
+# Repository Snapshot - 2025-09-20 20:05:16 IST
 
 ## Summary Statistics
 - **Total Files**: 114
-- **Total Lines**: 60,712
-- **Total Words**: 180,833
-- **Snapshot Time**: 2025-09-20 19:40:04 IST
+- **Total Lines**: 60,515
+- **Total Words**: 180,212
+- **Snapshot Time**: 2025-09-20 20:05:16 IST
 
 ## File Inventory
 
@@ -13,7 +13,7 @@
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./DeepThink20250920v1.md | 558 | 3139 | 25K |
 | ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
-| ./.kiro/file-snapshots/change-log.md | 946 | 2775 | 20K |
+| ./.kiro/file-snapshots/change-log.md | 957 | 2807 | 20K |
 | ./.kiro/file-snapshots/current-snapshot.md | 126 | 1245 | 8.4K |
 | ./.kiro/file-snapshots/previous-snapshot.md | 126 | 1245 | 8.4K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
@@ -47,7 +47,7 @@
 | ./.kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 215 | 1059 | 8.4K |
 | ./.kiro/specs/parseltongue-aim-daemon/tasks.md | 166 | 1246 | 9.9K |
 | ./.kiro/steering/code-conventions.md | [binary] | [binary] | 0 |
-| ./.kiro/steering/design101-tdd-architecture-principles.md | 1090 | 3771 | 32K |
+| ./.kiro/steering/design101-tdd-architecture-principles.md | 882 | 3118 | 26K |
 | ./.kiro/steering/hook-automation-guide.md | 256 | 1274 | 11K |
 | ./.kiro/steering/hook-system-status.md | 27 | 115 | 912 |
 | ./.kiro/steering/parseltongue-requirements-focus.md | 34 | 130 | 954 |
