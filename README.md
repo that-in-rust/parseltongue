@@ -37,6 +37,13 @@ impl Greeter for Person {
     fn greet(&self) -> String {
         format!("Hello, {}", self.name)
     }
+}
+
+================================================
+FILE: src/main.rs
+fn main() {
+    let person = Person { name: "World".to_string() };
+    println!("{}", person.greet());
 }' > code_dump.txt
 
 # Ingest and analyze
@@ -135,7 +142,7 @@ Persistence: <500ms ✅
 - `PARSELTONGUE_SNAPSHOT_PATH`: Custom snapshot file location
 
 ### File Formats
-- **Input**: Code dumps with `FILE: <path>` markers
+- **Input**: Code dumps with `FILE: <path>` markers (separator lines like `====` are automatically ignored)
 - **Output**: JSON or human-readable formats
 - **Persistence**: JSON snapshots for crash recovery
 

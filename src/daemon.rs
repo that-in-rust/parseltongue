@@ -59,6 +59,9 @@ impl ParseltongueAIM {
                 // Start new file
                 current_file = line[6..].trim().to_string();
                 current_content.clear();
+            } else if line.starts_with("=") && line.chars().all(|c| c == '=') {
+                // Skip separator lines (e.g., "================================================")
+                continue;
             } else {
                 current_content.push_str(line);
                 current_content.push('\n');

@@ -1,0 +1,16 @@
+FILE: axum/src/boxed.rs
+================================================
+use std::{convert::Infallible, fmt};
+
+use crate::extract::Request;
+use tower::Service;
+
+pub struct TestStruct {
+    field: String,
+}
+
+impl TestStruct {
+    pub fn new() -> Self {
+        Self { field: String::new() }
+    }
+}

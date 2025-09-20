@@ -18,6 +18,7 @@ The complete CLI interface has been implemented in `src/cli.rs` with full comman
 parseltongue ingest <file>
 ```
 - **Functionality**: Processes code dumps with FILE: markers
+- **Robustness**: Automatically ignores separator lines (e.g., `====`) for cleaner parsing
 - **Performance**: <5s target for 2.1MB dumps (monitored and reported)
 - **Output**: Files processed, nodes created, execution time
 - **Error Handling**: Comprehensive error reporting with context
