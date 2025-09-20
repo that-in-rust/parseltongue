@@ -144,4 +144,154 @@ This document should be updated as new development patterns and methodologies ar
 - **Requirements**: Links to specific requirements that drive methodology choices
 - **Architecture**: References to architectural decisions that influence development approach
 - **Performance**: Connections to performance targets and optimization strategies
-- **Testing**: Integration with overall testing and quality assurance strategy
+- **Testing**: Integration with overall testing and quality assurance strategy## TDD I
+mplementation Patterns (zz04MoreNotes.md)
+
+### OptimizedISG Test-Driven Development
+
+#### Core TDD Cycle Implementation
+```rust
+// Red -> Green -> Refactor cycle for OptimizedISG
+pub struct OptimizedISG {
+    state: Arc<RwLock<ISGState>>,
+}
+
+struct ISGState {
+    graph: StableDiGraph<NodeData, EdgeKind>,
+    id_map: FxHashMap<SigHash, NodeIndex>,
+}
+```
+
+#### TDD Testing Strategy
+- **Unit Tests**: Individual functions and methods with mock data
+- **Integration Tests**: Component interactions with real graph structures  
+- **Property Tests**: Use proptest for edge case discovery
+- **Performance Tests**: Benchmark critical operations against <500μs targets
+- **Fault Injection**: Crash testing for WAL recovery validation
+
+#### Test Structure Patterns
+```rust
+#[cfg(test)]
+mod tests {
+    // Helper for creating consistent test nodes
+    fn mock_node(id: u64, kind: NodeKind, name: &str) -> NodeData {
+        NodeData {
+            hash: SigHash(id),
+            kind,
+            name: Arc::from(name),
+            signature: Arc::from(format!("sig_{}", name)),
+        }
+    }
+
+    // Test initialization (Red -> Green)
+    #[test]
+    fn test_isg_initialization() {
+        let isg = OptimizedISG::new();
+        assert_eq!(isg.node_count(), 0);
+        assert_eq!(isg.edge_count(), 0);
+    }
+}
+```
+
+### Performance-Driven Development Methodology
+
+#### Decision Matrix Approach
+- **Performance (40%)**: Query speed, update latency, memory efficiency
+- **Simplicity (25%)**: Development effort, operational overhead  
+- **Rust Integration (20%)**: Ecosystem fit, ergonomics
+- **Scalability (15%)**: Growth path, distribution capability
+
+#### Performance Projections by Scale
+| Scale | Query Latency | Update Latency | Memory Usage |
+|-------|---------------|----------------|--------------|
+| Small (10K LOC) | <10μs | <3ms | <40MB |
+| Medium (100K LOC) | <10μs | <5ms | <150MB |
+| Large (500K LOC) | <15μs | <8ms | <700MB |
+| Enterprise (10M+ LOC) | <20μs | <10ms | Distributed |
+
+### Phased Implementation Strategy
+
+#### Phase 1: MVP Foundation (0-6 months)
+- **Architecture**: SQLite with WAL mode
+- **Focus**: Development velocity and stability
+- **Migration Triggers**: 
+  - p99 latency >2ms for depth-3 blast-radius
+  - Write queue backlog >5ms
+  - Complex graph algorithms needed
+
+#### Phase 2: Performance Scaling (6-18 months)  
+- **Architecture**: Custom In-Memory Graph with WAL
+- **Implementation**: 
+  - Parallel development alongside v1.0
+  - okaywal crate for WAL implementation
+  - bincode for high-performance serialization
+  - Shadow mode deployment for validation
+
+#### Phase 3: Enterprise Distribution (18+ months)
+- **Architecture**: Distributed Hybrid with tiered storage
+- **Components**:
+  - Hot/cold data separation
+  - SurrealDB for cold storage backend
+  - Federated query engine
+  - Distributed hot cache with sharding
+
+### Risk Mitigation Patterns
+
+#### Performance Monitoring
+- **Automated Alerts**: Latency and throughput triggers
+- **Memory Profiling**: CI/CD integration with mem_dbg
+- **Benchmarking**: Continuous performance regression testing
+
+#### Data Integrity Assurance
+- **WAL Testing**: Fault injection for crash recovery
+- **Checksums**: CRC32 in log entries and snapshots
+- **Fsync Correctness**: Proper durability guarantees
+
+#### Memory Optimization Techniques
+- **String Interning**: Arc<str> for repeated values
+- **Arena Allocation**: Contiguous memory for cache locality
+- **Custom Collections**: Replace Vec<Edge> with optimized structures
+- **Profiling Tools**: jemallocator statistics, mem_dbg integration
+
+### Rust-Specific Development Patterns
+
+#### Concurrency Design
+- **Single RwLock**: Atomic synchronization between graph and index
+- **Inner Mutability**: RwLock within stored values for concurrent access
+- **DashMap Alternative**: Avoid coordination complexity of separate locks
+
+#### Error Handling Strategy
+```rust
+#[derive(Error, Debug, PartialEq, Eq)]
+pub enum ISGError {
+    #[error("Node with SigHash {0:?} not found")]
+    NodeNotFound(SigHash),
+}
+```
+
+#### Memory-Efficient Data Structures
+- **StableDiGraph**: Indices remain valid upon deletion
+- **FxHashMap**: Fast lookups for integer-like keys
+- **Arc<str>**: String interning for memory efficiency
+
+### Implementation Quality Gates
+
+#### Before Implementation
+- [ ] Performance targets established (<500μs queries, <12ms updates)
+- [ ] Test cases written for all core functionality
+- [ ] Memory usage benchmarks defined
+- [ ] Error scenarios identified and tested
+
+#### During Implementation  
+- [ ] TDD cycle maintained (Red -> Green -> Refactor)
+- [ ] Performance benchmarks passing
+- [ ] Memory usage within targets
+- [ ] Concurrent access patterns validated
+
+#### Before Deployment
+- [ ] Fault injection testing completed
+- [ ] Performance regression tests passing
+- [ ] Memory profiling shows no leaks
+- [ ] Recovery procedures validated
+
+This methodology ensures that performance requirements drive architectural decisions while maintaining code quality through rigorous testing and measurement.

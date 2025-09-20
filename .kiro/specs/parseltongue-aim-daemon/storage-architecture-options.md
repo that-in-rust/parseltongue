@@ -657,4 +657,109 @@ PRAGMA synchronous = NORMAL;  -- Faster, acceptable durability loss risk
 
 **Last Updated**: 2025-01-20  
 **Status**: Research Complete, Decision Deferred  
-**Next Review**: After MVP requirements finalization
+**Next Review**: After MVP requirements finalization##
+ Comprehensive Storage Architecture Analysis (zz01.md)
+
+### Executive Summary & Phased Approach
+**Recommended Evolution Path**:
+- **MVP (v1.0)**: SQLite with WAL mode - fastest path to functional product
+- **Growth (v2.0)**: Custom In-Memory Graph with WAL - purpose-built performance
+- **Enterprise (v3.0)**: Distributed Hybrid Architecture - horizontal scalability
+
+### SQLite-Based Solutions (MVP Recommendation)
+
+#### Performance Optimizations
+- **WAL Mode**: `PRAGMA journal_mode = WAL` - eliminates fsync() waits, reduces transaction overhead to <1ms
+- **Relaxed Sync**: `PRAGMA synchronous = NORMAL` - safe against corruption, faster writes
+- **Memory Mapping**: `PRAGMA mmap_size` - reduces syscalls, leverages OS page caching
+- **Indexing Strategy**: Composite indexes on `(from_sig, kind)` and `(to_sig, kind)` for edge traversals
+
+#### Performance Targets Achievable
+- **Update Latency**: <12ms total pipeline with WAL configuration
+- **Simple Queries**: <500μs with proper B-tree indexing
+- **Complex Traversals**: Recursive CTEs for multi-hop queries (performance concern at scale)
+- **Concurrency**: Single-writer, multiple-reader model fits daemon workload
+
+#### Limitations & Migration Triggers
+- **Vertical Scaling Only**: No horizontal scaling capability
+- **Graph Traversal Performance**: Recursive CTEs become bottleneck at enterprise scale
+- **Migration Trigger**: p99 query latency exceeding targets
+
+### In-Memory Graph Structures (v2.0 Path)
+
+#### Performance Characteristics
+- **Query Latency**: Sub-microsecond for simple lookups, direct memory access
+- **Update Latency**: Bottleneck shifts to persistence strategy (WAL required)
+- **Concurrent Access**: DashMap with inner mutability pattern for optimal concurrency
+- **Memory Efficiency**: 100%+ overhead concern, requires custom data structures
+
+#### Implementation Strategies
+- **Persistence Option 1**: Simple serialization (data loss risk, stop-the-world pauses)
+- **Persistence Option 2**: Write-Ahead Logging (production-grade, complex implementation)
+- **Recommended Crates**: `okaywal`, `wral` for WAL implementation
+- **Memory Optimization**: Arena allocators, integer interning, compact representations
+
+#### Scalability Constraints
+- **Hard RAM Limit**: Enterprise codebases (10M+ LOC) exceed single-machine memory
+- **No Horizontal Scaling**: Would require building distributed database from scratch
+
+### Specialized Graph Databases Evaluation
+
+#### MemGraph Analysis
+- **Performance**: Excellent (C++ in-memory engine)
+- **Integration Risk**: FFI wrapper violates Rust-only constraint, unsafe code boundary
+- **Operational Overhead**: Separate server process required
+- **Verdict**: Ecosystem impedance mismatch, contradicts "performance through ownership"
+
+#### SurrealDB Analysis  
+- **Performance**: Promising but immature, graph traversal performance varies
+- **Integration**: Excellent native Rust SDK, embedded mode available
+- **Scalability**: Designed for embedded → distributed evolution
+- **Risk**: Performance maturity concerns, query planner optimization gaps
+
+#### TigerGraph Analysis
+- **Performance**: Petabyte-scale analytics, not real-time transactional
+- **Integration**: REST API only, HTTP overhead prevents sub-ms latency
+- **Operational**: Extremely high complexity, distributed cluster required
+- **Verdict**: Unsuitable for real-time core, possible v3.0+ analytics backend
+
+### Hybrid Architecture Considerations
+
+#### Hot/Cold Data Tiering
+- **Hot Cache**: In-memory for actively developed code
+- **Cold Storage**: Persistent backend for library dependencies
+- **Cache Miss Penalty**: Significant latency impact for cold data queries
+- **Complexity**: Cache coherence, eviction policies, data synchronization
+
+### Key Technical Insights
+
+#### WAL Implementation Critical Success Factors
+- **Durability Guarantee**: Operation logged before in-memory application
+- **Recovery Protocol**: Replay operations from log on startup
+- **Checkpoint Management**: Periodic log truncation to prevent unbounded growth
+- **Fault Injection Testing**: Crash at every critical stage to verify recovery
+
+#### Memory Layout Optimization
+- **Cache Performance**: Co-locate nodes and edges in contiguous memory
+- **Arena Allocation**: Reduce pointer indirection and heap fragmentation  
+- **Custom Collections**: Replace Vec<Edge> with more efficient representations
+- **Measurement Tools**: `mem_dbg`, global allocator instrumentation
+
+#### Ecosystem Integration Principles
+- **Native Rust Clients**: Participate fully in async/await, type safety, zero-cost abstractions
+- **FFI Boundary Risks**: Break compile-time guarantees, complicate builds, introduce unsafe code
+- **Performance Through Ownership**: Leverage Rust's ownership model for optimization
+
+### Migration Strategy & Risk Management
+
+#### Performance Monitoring
+- **Quantitative Triggers**: p99 latency thresholds for architecture transitions
+- **Scaling Metrics**: Memory usage, query complexity, concurrent load
+- **Early Warning System**: Prevent "boiling frog" performance degradation
+
+#### Data Migration Considerations
+- **Schema Transformation**: Relational → graph-native representation changes
+- **Data Access Layer Rewrite**: Complete interface changes between versions
+- **Operational Procedures**: Backup, recovery, rollback strategies for each architecture
+
+This analysis provides a clear, evidence-based roadmap for storage architecture evolution while maintaining focus on the Rust-only, <12ms performance constraints of the MVP.

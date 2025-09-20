@@ -1845,3 +1845,91 @@ impl ContextGenerator {
 - ✅ **Developer Workflow**: Complete user journey validated
 
 **Conclusion**: This section provides the complete query engine specification and LLM integration patterns. The structured context format and user journey validation confirm our MVP approach will deliver the promised value proposition.
+## AIM Daem
+on Architecture Specification (z02.html lines 1001-2000)
+
+### Core System Components
+- **File System Watcher**: notify-rs based, microsecond precision, 1000 entry queue limit
+- **In-Memory Graph**: InterfaceGraph with nodes (SigHash keyed) and edges (EdgeId keyed)
+- **SQLite Database**: WAL mode, bloom filters, materialized views for common queries
+- **Query Server**: HTTP/gRPC with connection pooling, LRU caching
+
+### Performance Pipeline (3-12ms total)
+1. File Change Detection (50-200μs): OS-level inotify events
+2. Event Filtering (10-50μs): Extension and path validation
+3. Queue Processing (100-500μs): Batching and deduplication
+4. AST Parsing (1-3ms): Language-specific node/relationship extraction
+5. Graph Update (2-5ms): Atomic in-memory updates
+6. Database Sync (3-8ms): SQLite batched updates with prepared statements
+7. Query Ready: Sub-millisecond response times maintained
+
+### Graph Schema Implementation
+**7 Node Types**: Module, Trait, Struct, Function, Field, Constant, Import
+**9 Relationship Types**: IMPL, CALLS, EXTENDS, USES, CONTAINS, IMPORTS, OVERRIDES, ACCESSES, CONSTRAINS
+
+**Node Storage**: SigHash, kind, full_signature, file_path, line_range
+**Edge Storage**: source_hash, target_hash, relationship_type, context_info
+
+### Value Proposition Validation
+- **Deterministic architectural navigation** vs probabilistic matching
+- **Sub-millisecond queries** for real-time exploration
+- **LLM integration** with factual architectural constraints
+- **Developer workflow** without cognitive load or documentation diving
+
+### Implementation Notes
+- Content-based hashing for change detection vs timestamp updates
+- Lock-free queue processing for high throughput
+- Atomic graph updates to maintain consistency
+- Compressed binary formats for LLM consumption## Det
+ailed Performance Pipeline (z02.html lines 2001-3000)
+
+### Refined Performance Targets
+1. **File Save Event** (0.1-1ms): File system watcher detection and queue addition
+2. **AST Parsing** (1-5ms): Language-specific parser extracts nodes/relationships  
+3. **Graph Update** (0.5-2ms): Atomic in-memory graph updates
+4. **Database Sync** (1-4ms): SQLite persistence with transaction batching
+5. **Query Ready** (Total: 3-12ms): System immediately available for queries
+
+### Compression Strategy Details
+- **Eliminates redundant syntactic details**: Focus on semantic meaning only
+- **Preserves semantically meaningful relationships**: Keep architectural essence
+- **Deterministic hashing for node identification**: Content-based SigHash approach
+- **Bidirectional navigation capabilities**: Efficient graph traversal in both directions
+
+### CLI Output Design
+```
+# AIM Graph Extraction Complete
+Nodes: 1,243 | Edges: 4,567 | Duration: 2.1s
+
+Top Modules:
+- src/api/ (43 nodes, 127 edges)
+- src/core/ (87 nodes, 254 edges)
+- src/utils/ (56 nodes, 89 edges)
+
+Key Architectural Patterns:
+- Layered architecture with clear API → Core → Data separation
+- 3 trait implementations with 12 total implementors
+- 5 circular dependencies detected (see: aim query find-cycles)
+
+Critical Paths:
+- Authentication flow: 8 nodes, max depth 4
+- Data processing pipeline: 14 nodes, max depth 6
+```
+
+### Multi-Language Strategy (Post-MVP)
+- **Phase 3**: CLI Tool Design and Multi-Language Support
+- **Rust Implementation**: Core data structures, incremental updates, SQLite integration
+- **Language-specific parsers**: Pluggable architecture for different languages
+
+### Value Proposition Validation
+**For LLMs**:
+- Deterministic architectural context vs probabilistic file content
+- Precise navigation through codebase relationships
+- Reduced hallucination via factual code structure grounding
+- Constraint-aware code generation respecting existing architecture
+
+**For Developers**:
+- Sub-millisecond architectural queries for IDE integration
+- Real-time impact analysis for changes
+- Architectural constraint enforcement and validation
+- 100% accuracy vs traditional search-based methods
