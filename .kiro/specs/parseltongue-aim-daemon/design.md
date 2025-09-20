@@ -6,17 +6,33 @@ This document defines a **Test-Driven Development (TDD) first** architecture for
 
 ## TDD-First Architecture Principles
 
-### 1. Dependency Injection for Testability
+This design follows the 8 Non-Negotiable Principles from Design101:
+
+### 1. Executable Specifications Over Narratives
+Every interface includes preconditions, postconditions, and error conditions with corresponding test contracts.
+
+### 2. Layered Rust Architecture (L1→L2→L3)
+- **L1 Core**: SigHash, NodeKind, EdgeKind (no_std compatible)
+- **L2 Standard**: Arc, HashMap, Vec for collections and smart pointers
+- **L3 External**: Tokio for async, SQLx for persistence, Notify for file watching
+
+### 3. Dependency Injection for Testability
 Every component depends on traits, not concrete types, enabling comprehensive mocking and isolated testing.
 
-### 2. RAII Resource Management  
+### 4. RAII Resource Management  
 All resources (file watchers, database connections, threads) are properly managed with Drop implementations.
 
-### 3. Incremental Implementation
-Components can be implemented and tested independently, supporting true TDD workflow.
+### 5. Performance Claims Must Be Test-Validated
+All performance assertions (500μs query limits, 72-byte NodeData) backed by automated tests.
 
-### 4. Performance Validation
-All performance claims are backed by measurable tests and benchmarks.
+### 6. Structured Error Handling
+Uses thiserror for library errors, anyhow for application context with proper error boundaries.
+
+### 7. Complex Domain Model Support
+Handles real Rust complexity: generics, where clauses, trait bounds, visibility modifiers.
+
+### 8. Concurrency Model Validation
+Thread safety validated with stress tests for concurrent read/write scenarios.
 
 ## Core Architecture
 
@@ -1615,6 +1631,273 @@ proptest! { fn graph_invariants_hold() { /* ... */ } }
 
 // Day 5: Performance validation against requirements
 #[test] fn test_end_to_end_performance_requirements() { /* ... */ }
+```
+
+## Test Contracts and Validation
+
+### Memory Layout Validation Tests
+
+```rust
+#[cfg(test)]
+mod memory_validation_tests {
+    use super::*;
+    use std::mem;
+    
+    #[test]
+    fn validate_node_data_memory_layout() {
+        // Validate claimed 72-byte NodeData size
+        assert_eq!(mem::size_of::<NodeData>(), 72);
+        assert_eq!(mem::align_of::<NodeData>(), 8);
+        
+        // Validate enum sizes for memory efficiency
+        assert_eq!(mem::size_of::<NodeKind>(), 1);
+        assert_eq!(mem::size_of::<EdgeKind>(), 1);
+        assert_eq!(mem::size_of::<Visibility>(), 1);
+    }
+    
+    #[test]
+    fn validate_string_interning_efficiency() {
+        // Test string interning reduces memory usage
+        let name1 = InternedString::new("common_function_name");
+        let name2 = InternedString::new("common_function_name");
+        assert_eq!(name1.as_ptr(), name2.as_ptr()); // Same pointer = interned
+    }
+    
+    #[test]
+    fn validate_signature_hash_distribution() {
+        // Test hash distribution to avoid collisions
+        let signatures = vec![
+            "fn test() -> Result<(), Error>",
+            "fn test(x: i32) -> Result<(), Error>",
+            "fn test<T>() -> Result<T, Error>",
+            "fn test<T: Clone>() -> Result<T, Error>",
+        ];
+        
+        let hashes: std::collections::HashSet<_> = signatures
+            .iter()
+            .map(|sig| SigHash::from_signature(sig))
+            .collect();
+        
+        assert_eq!(hashes.len(), signatures.len()); // No collisions
+    }
+}
+```
+
+### Performance Contract Tests
+
+```rust
+#[cfg(test)]
+mod performance_contract_tests {
+    use super::*;
+    use std::time::Instant;
+    use tokio::time::Duration;
+    
+    #[tokio::test]
+    async fn test_blast_radius_performance_contract() {
+        let storage = create_test_storage_with_nodes(10_000).await;
+        let start_hash = SigHash::from_signature("test_function");
+        
+        let start_time = Instant::now();
+        let result = storage.calculate_blast_radius(start_hash, 3).await.unwrap();
+        let elapsed = start_time.elapsed();
+        
+        // Validate 500μs performance contract
+        assert!(elapsed < Duration::from_micros(500), 
+                "Blast radius query took {:?}, expected <500μs", elapsed);
+        assert!(result.len() <= 10_000); // Bounded result size
+    }
+    
+    #[tokio::test]
+    async fn test_node_lookup_performance_contract() {
+        let storage = create_test_storage_with_nodes(100_000).await;
+        let test_hash = SigHash::from_signature("lookup_target");
+        
+        let start_time = Instant::now();
+        let result = storage.get_node(test_hash).await.unwrap();
+        let elapsed = start_time.elapsed();
+        
+        // Hash-based lookup should be O(1)
+        assert!(elapsed < Duration::from_micros(10),
+                "Node lookup took {:?}, expected <10μs", elapsed);
+        assert!(result.is_some());
+    }
+    
+    #[tokio::test]
+    async fn test_batch_insert_performance_contract() {
+        let storage = create_empty_test_storage().await;
+        let nodes = create_test_nodes(10_000);
+        
+        let start_time = Instant::now();
+        let inserted_count = storage.add_nodes_batch(nodes).await.unwrap();
+        let elapsed = start_time.elapsed();
+        
+        // Batch insert should complete within 100ms for 10k nodes
+        assert!(elapsed < Duration::from_millis(100),
+                "Batch insert took {:?}, expected <100ms", elapsed);
+        assert_eq!(inserted_count, 10_000);
+    }
+}
+```
+
+### Concurrency Safety Tests
+
+```rust
+#[cfg(test)]
+mod concurrency_safety_tests {
+    use super::*;
+    use std::sync::Arc;
+    use tokio::task::JoinSet;
+    
+    #[tokio::test]
+    async fn test_concurrent_read_write_safety() {
+        let storage = Arc::new(create_test_storage().await);
+        let mut join_set = JoinSet::new();
+        
+        // Spawn multiple writers
+        for i in 0..10 {
+            let storage_clone = Arc::clone(&storage);
+            join_set.spawn(async move {
+                for j in 0..100 {
+                    let node = create_test_node(format!("writer_{}_{}", i, j));
+                    storage_clone.add_node(node).await.unwrap();
+                }
+            });
+        }
+        
+        // Spawn multiple readers
+        for _ in 0..20 {
+            let storage_clone = Arc::clone(&storage);
+            join_set.spawn(async move {
+                for _ in 0..50 {
+                    let hash = SigHash::from_signature("random_lookup");
+                    let _ = storage_clone.get_node(hash).await;
+                }
+            });
+        }
+        
+        // Wait for all tasks to complete
+        while let Some(result) = join_set.join_next().await {
+            result.unwrap(); // Panic if any task failed
+        }
+        
+        // Verify data consistency
+        let final_count = storage.node_count().await.unwrap();
+        assert_eq!(final_count, 1000); // 10 writers * 100 nodes each
+    }
+    
+    #[tokio::test]
+    async fn test_snapshot_consistency_under_load() {
+        let storage = Arc::new(create_test_storage().await);
+        let mut join_set = JoinSet::new();
+        
+        // Concurrent modifications
+        for i in 0..5 {
+            let storage_clone = Arc::clone(&storage);
+            join_set.spawn(async move {
+                for j in 0..200 {
+                    let node = create_test_node(format!("concurrent_{}_{}", i, j));
+                    storage_clone.add_node(node).await.unwrap();
+                    
+                    // Trigger snapshot every 50 operations
+                    if j % 50 == 0 {
+                        storage_clone.create_snapshot().await.unwrap();
+                    }
+                }
+            });
+        }
+        
+        // Concurrent readers during modifications
+        for _ in 0..10 {
+            let storage_clone = Arc::clone(&storage);
+            join_set.spawn(async move {
+                for _ in 0..100 {
+                    let snapshot = storage_clone.get_current_snapshot();
+                    assert!(snapshot.is_some());
+                    
+                    // Verify snapshot consistency
+                    let snapshot = snapshot.unwrap();
+                    assert!(snapshot.nodes.len() <= snapshot.metadata.node_count);
+                }
+            });
+        }
+        
+        while let Some(result) = join_set.join_next().await {
+            result.unwrap();
+        }
+    }
+}
+```
+
+### Complex Domain Model Tests
+
+```rust
+#[cfg(test)]
+mod complex_domain_tests {
+    use super::*;
+    
+    #[test]
+    fn test_complex_generic_signature_parsing() {
+        let complex_signature = r#"
+            impl<H, S> ErasedIntoRoute<S, Infallible> for MakeErasedHandler<H, S>
+            where 
+                H: Clone + Send + Sync + 'static,
+                S: 'static,
+        "#;
+        
+        let parsed = RustSignature::parse(complex_signature).unwrap();
+        
+        assert!(parsed.generics.is_some());
+        assert!(parsed.where_clause.is_some());
+        
+        let generics = parsed.generics.unwrap();
+        assert_eq!(generics.params.len(), 2); // H, S
+        
+        let where_clause = parsed.where_clause.unwrap();
+        assert_eq!(where_clause.predicates.len(), 2); // H bounds, S bounds
+    }
+    
+    #[test]
+    fn test_async_function_signature_handling() {
+        let async_signatures = vec![
+            "async fn process() -> Result<(), Error>",
+            "async fn process<T>() -> Result<T, Error>",
+            "async fn process<T: Send>() -> Result<T, Error> where T: 'static",
+        ];
+        
+        for signature in async_signatures {
+            let parsed = RustSignature::parse(signature).unwrap();
+            assert!(parsed.is_async());
+            
+            let node = NodeData::from_signature(signature).unwrap();
+            assert_eq!(node.kind, NodeKind::Function);
+        }
+    }
+    
+    #[test]
+    fn test_trait_bound_complexity() {
+        let trait_signature = r#"
+            trait ComplexTrait<T>: Clone + Send + Sync 
+            where 
+                T: Iterator<Item = String> + Send + 'static,
+                T::Item: Display + Debug,
+        "#;
+        
+        let parsed = RustSignature::parse(trait_signature).unwrap();
+        let where_clause = parsed.where_clause.unwrap();
+        
+        // Verify complex where clause parsing
+        assert!(where_clause.predicates.len() >= 2);
+        
+        // Verify trait bounds are captured
+        let type_predicate = &where_clause.predicates[0];
+        match type_predicate {
+            WherePredicate::Type { bounds, .. } => {
+                assert!(bounds.len() >= 2); // Iterator + Send + 'static
+            }
+            _ => panic!("Expected type predicate"),
+        }
+    }
+}
 ```
 
 ## Key Design Advantages
