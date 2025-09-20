@@ -211,13 +211,13 @@ This implementation plan follows the **TDD-first approach** from the rigorous Op
 
 ### TDD Cycle 9: Simple JSON Persistence
 
-- [ ] 5.1 Implement snapshot serialization
-  - **RED**: Write failing test `test_save_snapshot()` with known graph state
-  - **RED**: Write failing test `test_snapshot_performance()` asserting <500ms save/load
-  - **GREEN**: Implement ISGSnapshot struct with nodes, edges, metadata
-  - **GREEN**: Add serde serialization for NodeData and EdgeSnapshot
-  - **REFACTOR**: Optimize serialization, validate performance constraint
-  - _Requirements: REQ-MVP-006.0 (persistence, <500ms reload)_
+- [x] 5.1 Implement snapshot serialization ✅ COMPLETED
+  - **RED**: Write failing test `test_save_snapshot()` with known graph state ✅
+  - **RED**: Write failing test `test_snapshot_performance()` asserting <500ms save/load ✅
+  - **GREEN**: Implement ISGSnapshot struct with nodes, edges, metadata ✅
+  - **GREEN**: Add serde serialization for NodeData and EdgeSnapshot ✅
+  - **REFACTOR**: Optimize serialization, validate performance constraint ✅
+  - _Requirements: REQ-MVP-006.0 (persistence, <500ms reload)_ ✅
 
 - [ ] 5.2 Implement snapshot loading and recovery
   - **RED**: Write failing test `test_load_snapshot()` with roundtrip validation

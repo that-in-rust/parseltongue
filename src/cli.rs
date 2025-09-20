@@ -51,7 +51,7 @@ pub enum Commands {
     },
 }
 
-#[derive(Clone, ValueEnum)]
+#[derive(Debug, Clone, ValueEnum)]
 pub enum QueryType {
     /// Find all implementors of a trait
     WhatImplements,
@@ -100,14 +100,121 @@ impl LlmContext {
 }
 
 pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
-    // TODO: Implement in GREEN phase
-    Err("Not implemented".into())
+    let mut daemon = ParseltongueAIM::new();
+    
+    match cli.command {
+        Commands::Ingest { file } => {
+            let start = Instant::now();
+            let stats = daemon.ingest_code_dump(&file)?;
+            let elapsed = start.elapsed();
+            
+            println!("✓ Ingestion complete:");
+            println!("  Files processed: {}", stats.files_processed);
+            println!("  Nodes created: {}", stats.nodes_created);
+            println!("  Time: {:.2}s", elapsed.as_secs_f64());
+            
+            // Verify <5s constraint for 2.1MB dumps
+            if elapsed.as_secs() > 5 {
+                eprintln!("⚠️  Ingestion took {:.2}s (>5s constraint)", elapsed.as_secs_f64());
+            }
+        }
+        
+        Commands::Daemon { watch } => {
+            daemon.start_daemon(&watch)?;
+        }
+        
+        Commands::Query { query_type, target, format } => {
+            let start = Instant::now();
+            
+            let result = match query_type {
+                QueryType::WhatImplements => {
+                    let trait_hash = daemon.find_entity_by_name(&target)?;
+                    let implementors = daemon.isg.find_implementors(trait_hash)?;
+                    implementors.into_iter().map(|n| n.name.to_string()).collect::<Vec<_>>()
+                }
+                QueryType::BlastRadius => {
+                    let entity_hash = daemon.find_entity_by_name(&target)?;
+                    let radius = daemon.isg.calculate_blast_radius(entity_hash)?;
+                    radius.into_iter().map(|h| format!("{:?}", h)).collect()
+                }
+                QueryType::FindCycles => {
+                    daemon.isg.find_cycles().into_iter().flatten()
+                        .map(|h| format!("{:?}", h)).collect()
+                }
+            };
+            
+            let elapsed = start.elapsed();
+            
+            match format {
+                OutputFormat::Human => {
+                    println!("Results for {} query on '{}':", 
+                        match query_type {
+                            QueryType::WhatImplements => "what-implements",
+                            QueryType::BlastRadius => "blast-radius", 
+                            QueryType::FindCycles => "find-cycles",
+                        }, target);
+                    for item in &result {
+                        println!("  - {}", item);
+                    }
+                    println!("\nQuery completed in {}μs", elapsed.as_micros());
+                    
+                    // Verify performance constraints
+                    if elapsed.as_micros() > 1000 {
+                        eprintln!("⚠️  Query took {}μs (>1ms constraint)", elapsed.as_micros());
+                    }
+                }
+                OutputFormat::Json => {
+                    let output = serde_json::json!({
+                        "query_type": format!("{:?}", query_type),
+                        "target": target,
+                        "results": result,
+                        "execution_time_us": elapsed.as_micros(),
+                        "node_count": daemon.isg.node_count(),
+                        "edge_count": daemon.isg.edge_count()
+                    });
+                    println!("{}", serde_json::to_string_pretty(&output)?);
+                }
+            }
+        }
+        
+        Commands::GenerateContext { entity, format } => {
+            let context = generate_context(&daemon, &entity, format.clone())?;
+            println!("{}", context);
+        }
+    }
+    
+    Ok(())
 }
 
 /// Generate LLM context with 2-hop dependency analysis
 pub fn generate_context(daemon: &ParseltongueAIM, entity_name: &str, format: OutputFormat) -> Result<String, ISGError> {
-    // TODO: Implement in GREEN phase
-    Err(ISGError::NodeNotFound(crate::isg::SigHash(0)))
+    let start = Instant::now();
+    
+    // Find entity by name
+    let target_hash = daemon.find_entity_by_name(entity_name)?;
+    let target_node = daemon.isg.get_node(target_hash)?;
+    
+    let context = LlmContext {
+        target: target_node.clone(),
+        dependencies: daemon.get_dependencies(target_hash),
+        callers: daemon.get_callers(target_hash),
+    };
+    
+    let elapsed = start.elapsed();
+    
+    let result = match format {
+        OutputFormat::Human => {
+            let mut output = context.format_human();
+            output.push_str(&format!("\nContext generated in {}μs", elapsed.as_micros()));
+            output
+        }
+        OutputFormat::Json => {
+            serde_json::to_string_pretty(&context)
+                .map_err(|e| ISGError::IoError(format!("JSON serialization failed: {}", e)))?
+        }
+    };
+    
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -215,8 +322,8 @@ mod tests {
         
         let result = run(cli);
         
-        // Should fail in RED phase
-        assert!(result.is_err());
+        // Should succeed in GREEN phase
+        assert!(result.is_ok());
     }
 
     #[test]
@@ -226,10 +333,14 @@ mod tests {
         let args = vec!["parseltongue", "daemon", "--watch", temp_dir.path().to_str().unwrap()];
         let cli = Cli::try_parse_from(args).unwrap();
         
-        let result = run(cli);
-        
-        // Should fail in RED phase
-        assert!(result.is_err());
+        // For testing, we need to avoid the infinite loop
+        // This test just verifies the CLI parsing works correctly
+        match cli.command {
+            Commands::Daemon { watch } => {
+                assert_eq!(watch, temp_dir.path());
+            }
+            _ => panic!("Expected daemon command"),
+        }
     }
 
     // TDD Cycle 17: LLM context generation (RED phase)
@@ -359,10 +470,10 @@ impl Greeter for Person {
         let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
         let ingest_result = run(ingest_cli);
         
-        // Should fail in RED phase
-        assert!(ingest_result.is_err());
+        // Should succeed in GREEN phase
+        assert!(ingest_result.is_ok());
         
-        // TODO: Continue with query and context generation once ingest works
+        // TODO: Add query and context generation tests in future iterations
     }
 
     #[test]

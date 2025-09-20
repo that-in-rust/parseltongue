@@ -8,7 +8,7 @@ use parking_lot::RwLock;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableDiGraph;
 use petgraph::Direction;
-use petgraph::visit::{Bfs, Walker, EdgeRef};
+use petgraph::visit::{Bfs, EdgeRef};
 use std::collections::HashSet;
 use std::sync::Arc;
 use thiserror::Error;
@@ -70,11 +70,11 @@ impl<'de> serde::Deserialize<'de> for NodeData {
     where
         D: serde::Deserializer<'de>,
     {
-        use serde::de::{self, Deserialize, MapAccess, Visitor};
+        use serde::de::{self, MapAccess, Visitor};
         use std::fmt;
 
         #[derive(serde::Deserialize)]
-        #[serde(field_identifier, rename_all = "lowercase")]
+        #[serde(field_identifier, rename_all = "snake_case")]
         enum Field { Hash, Kind, Name, Signature, FilePath, Line }
 
         struct NodeDataVisitor;
@@ -161,7 +161,7 @@ impl<'de> serde::Deserialize<'de> for NodeData {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum EdgeKind {
     Calls,
     Implements, // Direction: Struct -> Trait

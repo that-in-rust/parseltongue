@@ -4,7 +4,7 @@
 
 use crate::isg::{OptimizedISG, NodeData, NodeKind, SigHash, ISGError};
 use notify::RecommendedWatcher;
-use petgraph::visit::EdgeRef;
+use petgraph::visit::{EdgeRef, IntoEdgeReferences};
 use std::path::Path;
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
@@ -172,7 +172,7 @@ impl ParseltongueAIM {
 
     /// Start daemon with <12ms update constraint
     pub fn start_daemon(&mut self, watch_dir: &Path) -> Result<(), ISGError> {
-        use notify::{Event, EventKind, RecursiveMode, Watcher};
+        use notify::{RecursiveMode, Watcher};
         use std::sync::mpsc;
         use std::time::Duration;
         
@@ -343,15 +343,120 @@ impl ParseltongueAIM {
 
     /// Save ISG snapshot to file (target: <500ms)
     pub fn save_snapshot(&self, path: &Path) -> Result<(), ISGError> {
-        // TODO: Implement in GREEN phase
-        Err(ISGError::IoError("Not implemented".to_string()))
+        use std::time::Instant;
+        
+        let start = Instant::now();
+        let state = self.isg.state.read();
+        
+        // Create serializable snapshot
+        let snapshot = ISGSnapshot {
+            nodes: state.graph.node_weights().cloned().collect(),
+            edges: state.graph.edge_references()
+                .map(|edge| EdgeSnapshot {
+                    from: state.graph[edge.source()].hash,
+                    to: state.graph[edge.target()].hash,
+                    kind: *edge.weight(),
+                })
+                .collect(),
+            metadata: SnapshotMetadata {
+                version: 1,
+                timestamp: std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs(),
+                node_count: state.graph.node_count(),
+                edge_count: state.graph.edge_count(),
+            },
+        };
+        
+        drop(state); // Release read lock
+        
+        let serialized = serde_json::to_string_pretty(&snapshot)
+            .map_err(|e| ISGError::IoError(format!("Serialization failed: {}", e)))?;
+        
+        std::fs::write(path, serialized)
+            .map_err(|e| ISGError::IoError(format!("Failed to write snapshot: {}", e)))?;
+        
+        let elapsed = start.elapsed();
+        println!("✓ Saved snapshot: {} nodes, {} edges ({}ms)", 
+            snapshot.metadata.node_count, 
+            snapshot.metadata.edge_count,
+            elapsed.as_millis());
+        
+        // Verify <500ms constraint
+        if elapsed.as_millis() > 500 {
+            eprintln!("⚠️  Snapshot save took {}ms (>500ms constraint)", elapsed.as_millis());
+        }
+        
+        Ok(())
     }
 
     /// Load ISG snapshot from file (target: <500ms)
     pub fn load_snapshot(&mut self, path: &Path) -> Result<(), ISGError> {
-        // TODO: Implement in GREEN phase
-        Ok(()) // No snapshot to load is OK
+        use std::time::Instant;
+        
+        if !path.exists() {
+            return Ok(()); // No snapshot to load is OK
+        }
+        
+        let start = Instant::now();
+        let content = std::fs::read_to_string(path)
+            .map_err(|e| ISGError::IoError(format!("Failed to read snapshot: {}", e)))?;
+        
+        let snapshot: ISGSnapshot = serde_json::from_str(&content)
+            .map_err(|e| ISGError::IoError(format!("Failed to deserialize snapshot: {}", e)))?;
+        
+        // Rebuild ISG from snapshot
+        let new_isg = OptimizedISG::new();
+        
+        // Add all nodes
+        for node in snapshot.nodes {
+            new_isg.upsert_node(node);
+        }
+        
+        // Add all edges
+        for edge in snapshot.edges {
+            new_isg.upsert_edge(edge.from, edge.to, edge.kind)?;
+        }
+        
+        // Replace current ISG
+        self.isg = new_isg;
+        
+        let elapsed = start.elapsed();
+        println!("✓ Loaded snapshot: {} nodes, {} edges ({}ms)", 
+            snapshot.metadata.node_count,
+            snapshot.metadata.edge_count,
+            elapsed.as_millis());
+        
+        // Verify <500ms constraint
+        if elapsed.as_millis() > 500 {
+            eprintln!("⚠️  Snapshot load took {}ms (>500ms constraint)", elapsed.as_millis());
+        }
+        
+        Ok(())
     }
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct ISGSnapshot {
+    nodes: Vec<NodeData>,
+    edges: Vec<EdgeSnapshot>,
+    metadata: SnapshotMetadata,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct EdgeSnapshot {
+    from: SigHash,
+    to: SigHash,
+    kind: crate::isg::EdgeKind,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct SnapshotMetadata {
+    version: u32,
+    timestamp: u64,
+    node_count: usize,
+    edge_count: usize,
 }
 
 #[cfg(test)]
@@ -615,7 +720,33 @@ FILE: README.md
         let result = daemon.load_snapshot(&snapshot_path);
         assert!(result.is_ok()); // Missing file is OK
         
-        // TODO: Test actual loading once save is implemented
+        // Test round-trip: save and load
+        let rust_code = r#"
+            pub fn test_function() -> i32 { 42 }
+            pub struct TestStruct { field: i32 }
+            pub trait TestTrait { fn method(&self); }
+        "#;
+        
+        daemon.parse_rust_file("test.rs", rust_code).unwrap();
+        let original_node_count = daemon.isg.node_count();
+        
+        // Save snapshot
+        daemon.save_snapshot(&snapshot_path).unwrap();
+        assert!(snapshot_path.exists());
+        
+        // Create new daemon and load snapshot
+        let mut new_daemon = ParseltongueAIM::new();
+        assert_eq!(new_daemon.isg.node_count(), 0); // Should be empty initially
+        
+        new_daemon.load_snapshot(&snapshot_path).unwrap();
+        
+        // Should have same number of nodes
+        assert_eq!(new_daemon.isg.node_count(), original_node_count);
+        
+        // Should be able to find the same entities
+        assert!(new_daemon.find_entity_by_name("test_function").is_ok());
+        assert!(new_daemon.find_entity_by_name("TestStruct").is_ok());
+        assert!(new_daemon.find_entity_by_name("TestTrait").is_ok());
     }
 
     #[test]
