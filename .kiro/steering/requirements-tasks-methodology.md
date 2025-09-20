@@ -22,8 +22,6 @@
 - **Advanced/future features** → backlog.md
 - **Progress tracking** → requirements-tasks.md
 - **Session state** → SESSION_CONTEXT.md
-- **Implementation details** → design.md (when created)
-- **Task breakdown** → tasks.md (when created)
 
 ### Task Hierarchy
 - **Phase 1**: Document Analysis (current)
