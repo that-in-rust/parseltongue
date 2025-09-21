@@ -12,11 +12,230 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 - **Deterministic Identification**: Stable hashing with Fully Qualified Names for cross-platform consistency
 - **30-Day Ship Target**: Aggressive but achievable timeline focusing on core fixes + minimal enhancements
 
+## User Journey: The Frustrated Senior Rust Developer
+
+**Persona**: Sarah, Senior Rust Engineer at a fintech startup
+**Context**: Managing a 200K LOC Rust codebase with 15 microservices, constant refactoring pressure, and tight deadlines
+**Pain Points**: Broken tooling, unreliable dependency analysis, time wasted on manual code archaeology
+
+### Journey Stage 1: The Breaking Point (Current State)
+Sarah opens her terminal at 9 AM, coffee in hand, ready to tackle a critical refactoring. The product team needs to extract payment processing into a separate service by Friday. She runs `grep -r "PaymentProcessor"` and gets 847 matches across 200 files. Her heart sinks.
+
+**Emotional State**: Frustrated, overwhelmed, already behind schedule
+**Tools Used**: grep, ripgrep, manual code reading, unreliable IDE "find references"
+**Time Wasted**: 3+ hours just understanding what calls what
+**Business Impact**: Feature delivery delayed, technical debt accumulates
+
+### Journey Stage 2: The Discovery (Parseltongue Introduction)
+A colleague mentions Parseltongue. Sarah is skeptical—she's tried every code analysis tool. But the promise of "100% relationship extraction" and "sub-millisecond queries" intrigues her. She installs it during lunch.
+
+**Emotional State**: Cautiously optimistic, but expecting disappointment
+**First Interaction**: `parseltongue daemon --watch ./src`
+**Surprise Moment**: Daemon starts in 800ms, processes entire codebase in 4.2 seconds
+**Validation**: `parseltongue query calls PaymentProcessor::process` returns complete call graph in 0.3ms
+
+### Journey Stage 3: The Transformation (Power User Emergence)
+Within a week, Sarah's workflow is completely transformed. She starts every refactoring session with architectural queries. Her confidence in code changes skyrockets because she can see the complete blast radius before making any changes.
+
+**New Morning Routine**:
+1. `parseltongue daemon --watch .` (muscle memory)
+2. `parseltongue query blast-radius PaymentProcessor` (understand impact)
+3. `parseltongue generate-context --focus PaymentProcessor --format llm-prompt` (prep for AI assistance)
+4. Refactor with confidence, knowing every dependency
+
+**Emotional State**: Empowered, confident, in control
+**Productivity Gain**: 70% reduction in code archaeology time
+**Quality Improvement**: Zero surprise breakages from missed dependencies
+
+### Journey Stage 4: The Advocate (Team Transformation)
+Sarah becomes the internal champion. She demonstrates Parseltongue in architecture reviews, uses it to onboard new team members, and integrates it into the CI/CD pipeline. The entire team adopts it within a month.
+
+**Team Impact**: 
+- Code reviews become architectural discussions, not dependency hunts
+- New developers understand the codebase in days, not weeks
+- Refactoring velocity increases 3x with confidence
+
+**Business Impact**: 
+- Feature delivery accelerates
+- Technical debt becomes manageable
+- System reliability improves
+
+## User Journey: The Overwhelmed Junior Developer
+
+**Persona**: Alex, Junior Rust Developer, 6 months experience
+**Context**: Just joined a team maintaining a complex async web framework, drowning in trait bounds and generic constraints
+**Pain Points**: Compilation errors are cryptic, codebase feels like a maze, imposter syndrome
+
+### Journey Stage 1: The Struggle (Learning Curve Hell)
+Alex stares at a compilation error: "the trait bound `T: Send + Sync` is not satisfied." The error spans 50 lines of generic constraints. They spend 2 hours reading documentation, Stack Overflow, and the Rust book, but still can't understand why their code doesn't compile.
+
+**Emotional State**: Confused, frustrated, questioning career choice
+**Current Tools**: rustc error messages, documentation, Google searches
+**Learning Blocker**: Can't connect abstract concepts to concrete codebase
+**Team Impact**: Frequent interruptions to senior developers for help
+
+### Journey Stage 2: The Breakthrough (Architectural Clarity)
+A senior developer introduces Alex to Parseltongue's debugging features. Instead of staring at cryptic error messages, Alex learns to query the architectural reality of the codebase.
+
+**First Success**: `parseltongue debug --error-context MyStruct`
+- Shows exactly which traits are implemented
+- Reveals missing bounds in clear, hierarchical format
+- Provides concrete examples from the codebase
+
+**Learning Acceleration**: 
+- `parseltongue query trait-hierarchy Send` shows the complete trait ecosystem
+- `parseltongue explore --interactive` becomes their learning playground
+- Complex generic constraints become navigable architectural maps
+
+### Journey Stage 3: The Confidence Builder (Mastery Path)
+Within 3 weeks, Alex transforms from asking "why doesn't this compile?" to "let me check the architectural constraints." They start contributing meaningful code reviews and catch subtle trait bound issues before they reach CI.
+
+**New Problem-Solving Process**:
+1. Compilation error occurs
+2. `parseltongue debug --error-context <entity>` (understand the architectural reality)
+3. `parseltongue query implementations <trait>` (see working examples)
+4. Apply fix with architectural understanding, not cargo-cult programming
+
+**Emotional State**: Confident, curious, contributing
+**Learning Velocity**: 5x faster concept-to-implementation cycle
+**Team Contribution**: From help-seeker to architectural contributor
+
+### Journey Stage 4: The Mentor (Knowledge Multiplier)
+Six months later, Alex is onboarding the next junior developer. They use Parseltongue to create architectural learning paths, turning the overwhelming codebase into a structured learning journey.
+
+**Mentoring Approach**:
+- Start with `parseltongue map --module core` to show system structure
+- Use `parseltongue context --entity <key-trait> --llm-format` to generate learning materials
+- Guide exploration with `parseltongue explore --interactive` sessions
+
+**Impact**: New developers become productive in 1 week instead of 1 month
+
+## User Journey: The Architect Under Pressure
+
+**Persona**: Marcus, Principal Engineer and System Architect
+**Context**: Leading architectural decisions for a 500K LOC distributed system, board presentation next week on technical debt
+**Pain Points**: Decisions based on incomplete information, technical debt is invisible until it's too late, stakeholder pressure for concrete metrics
+
+### Journey Stage 1: The Impossible Task (Architectural Blindness)
+The board wants a technical debt assessment and modernization roadmap. Marcus needs to answer: "Which components are most coupled?", "What's the blast radius of modernizing our auth system?", "How much unused code can we remove?" He has 5 days and no reliable tools.
+
+**Current Approach**: 
+- Manual code review (impossible at scale)
+- Static analysis tools (miss runtime relationships)
+- Developer surveys (subjective, incomplete)
+- Gut feeling (not board-presentation material)
+
+**Emotional State**: Pressured, uncertain, making decisions with incomplete data
+**Business Risk**: Wrong architectural decisions could cost millions
+
+### Journey Stage 2: The Data-Driven Revelation (Architectural X-Ray Vision)
+Marcus discovers Parseltongue's advanced analysis capabilities. For the first time, he can see the complete architectural reality of the system with mathematical precision.
+
+**Breakthrough Queries**:
+- `parseltongue query --circular-deps` reveals 23 circular dependencies (invisible before)
+- `parseltongue query --unused-functions` identifies 12,000 lines of dead code
+- `parseltongue analyze --pattern error` shows inconsistent error handling across 47 modules
+- `parseltongue query blast-radius AuthService` reveals 156 dependent components
+
+**Data Quality**: 100% accurate, deterministic, reproducible
+**Confidence Level**: From "I think" to "I know"
+
+### Journey Stage 3: The Strategic Advantage (Architectural Intelligence)
+The board presentation becomes a masterclass in data-driven architecture. Marcus presents concrete metrics, visual dependency maps, and precise refactoring cost estimates. The technical debt is no longer invisible—it's quantified and prioritized.
+
+**Board Presentation Highlights**:
+- "We have 23 circular dependencies costing us 40% deployment velocity"
+- "Removing 12K lines of dead code will reduce our attack surface by 15%"
+- "Modernizing auth will impact exactly 156 components—here's the migration plan"
+- "Our error handling inconsistency affects 47 modules—here's the standardization roadmap"
+
+**Emotional State**: Confident, authoritative, strategic
+**Business Impact**: $2M technical debt reduction budget approved
+**Career Impact**: Promoted to Distinguished Engineer
+
+### Journey Stage 4: The Continuous Intelligence (Living Architecture)
+Marcus establishes Parseltongue as the architectural intelligence backbone. Every architectural decision is now data-driven. The system's architectural health is continuously monitored and optimized.
+
+**New Architectural Process**:
+- Weekly architectural health reports generated automatically
+- All refactoring proposals include precise blast-radius analysis
+- Technical debt accumulation is tracked and prevented
+- Architectural patterns are enforced through measurable metrics
+
+**Organizational Impact**: 
+- Architecture becomes a competitive advantage
+- Technical debt is managed proactively
+- Engineering velocity increases 40%
+- System reliability improves measurably
+
+## User Journey: The AI-Assisted Developer
+
+**Persona**: Priya, Full-Stack Developer embracing AI-assisted development
+**Context**: Uses GitHub Copilot, ChatGPT, and Claude daily, but frustrated by AI hallucinations and incorrect architectural assumptions
+**Pain Points**: AI tools make confident but wrong suggestions, context windows are too small for large codebases, AI doesn't understand project-specific patterns
+
+### Journey Stage 1: The AI Frustration (Stochastic Fog)
+Priya asks ChatGPT: "How should I refactor this payment processing code?" The AI confidently suggests moving functions that don't exist and implementing traits that aren't available. She spends 30 minutes fact-checking the AI's suggestions, defeating the purpose of AI assistance.
+
+**Current AI Workflow**:
+1. Ask AI for help
+2. Manually verify every suggestion
+3. Correct AI's architectural misunderstandings
+4. Implement a fraction of the suggestions
+
+**Emotional State**: Frustrated with AI reliability, losing trust in AI tools
+**Productivity Impact**: AI assistance becomes AI overhead
+**Quality Risk**: Subtle AI errors slip through manual verification
+
+### Journey Stage 2: The Context Revolution (Deterministic AI Grounding)
+Priya discovers Parseltongue's LLM context generation. Instead of feeding raw code to AI, she provides compressed, deterministic architectural context that eliminates hallucination.
+
+**New AI Workflow**:
+1. `parseltongue generate-context --focus PaymentProcessor --format llm-prompt`
+2. Paste architectural context into AI conversation
+3. AI suggestions are now grounded in factual architectural reality
+4. Implement suggestions with confidence
+
+**Context Quality**:
+- 95% token reduction (architectural facts vs raw code)
+- 100% factual accuracy (no probabilistic language)
+- Complete relationship coverage (all CALLS, USES, IMPLEMENTS)
+
+### Journey Stage 3: The Symbiotic Development (Human-AI Architectural Intelligence)
+Priya's development velocity explodes. AI tools become architectural partners, not just code generators. Complex refactoring that used to take days now takes hours, with AI providing architecturally-aware suggestions.
+
+**Symbiotic Workflow Examples**:
+- **Refactoring**: AI suggests architecturally-sound refactoring paths based on complete dependency graphs
+- **Error Resolution**: AI provides precise fixes based on actual trait implementations, not guessed ones
+- **Pattern Implementation**: AI suggests project-specific patterns based on existing architectural context
+- **Code Review**: AI identifies architectural violations using project-specific relationship data
+
+**Emotional State**: Empowered, productive, trusting AI as architectural partner
+**Productivity Gain**: 3x faster development with higher quality
+**Learning Acceleration**: AI becomes architectural mentor, not just code assistant
+
+### Journey Stage 4: The AI Architecture Evangelist (Team Transformation)
+Priya becomes the team's AI-architecture integration expert. She establishes patterns for AI-assisted development that leverage architectural intelligence, transforming how the entire team collaborates with AI tools.
+
+**Team AI Practices**:
+- Standard architectural context templates for different AI use cases
+- AI-assisted code review workflows using architectural facts
+- Automated architectural context generation in CI/CD pipelines
+- AI-powered architectural documentation that stays current
+
+**Organizational Impact**:
+- AI tools become reliable architectural partners
+- Development velocity increases across all team members
+- Code quality improves through AI-architectural collaboration
+- Knowledge transfer accelerates through AI-assisted architectural exploration
+
 ## v2.0 Requirements
 
 ### REQ-V2-001.0: Complete Relationship Extraction
 
 **User Story:** As a Rust developer analyzing complex codebases, I want complete architectural relationship extraction so that blast-radius analysis and dependency tracking actually work correctly.
+
+**Journey Context**: Sarah's refactoring confidence depends on seeing every dependency. Alex's learning requires understanding actual trait relationships. Marcus's architectural decisions need 100% accurate data.
 
 #### Acceptance Criteria
 
@@ -31,6 +250,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 
 **User Story:** As a Rust developer working on live codebases, I want guaranteed sub-millisecond performance so that the daemon meets the <12ms update and <1ms query constraints.
 
+**Journey Context**: Sarah's morning workflow requires instant architectural queries. Alex's learning flow breaks if queries take seconds. Marcus's board presentation needs real-time architectural analysis.
+
 #### Acceptance Criteria
 
 1. WHEN updating files THEN the system SHALL use reverse file index (`FxHashMap<Arc<str>, FxHashSet<SigHash>>`) to achieve O(1) node removal
@@ -43,6 +264,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 ### REQ-V2-003.0: Deterministic Identification System
 
 **User Story:** As a developer using the daemon across different platforms, I want stable, deterministic entity identification so that architectural analysis is consistent and reliable.
+
+**Journey Context**: Marcus's architectural metrics must be reproducible across environments. Priya's AI context must be consistent across different development machines. Team collaboration requires identical architectural views.
 
 #### Acceptance Criteria
 
@@ -57,6 +280,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 
 **User Story:** As a developer processing large codebases, I want reliable relationship extraction that handles forward references and complex dependencies correctly.
 
+**Journey Context**: Sarah's 200K LOC codebase has complex forward references. Alex's learning requires understanding trait hierarchies that span multiple modules. Marcus's analysis needs complete relationship extraction across distributed systems.
+
 #### Acceptance Criteria
 
 1. WHEN ingesting code dumps THEN the system SHALL use Pass 1 to extract and insert ALL nodes from ALL files before processing relationships
@@ -69,6 +294,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 ### REQ-V2-005.0: Rust-Specific Architectural Analysis
 
 **User Story:** As a Rust developer working with complex type systems, I want architectural analysis that understands Rust-specific patterns so that I can make informed design decisions.
+
+**Journey Context**: Alex needs to understand Rust patterns to become productive. Marcus needs to identify architectural patterns for technical debt assessment. Sarah needs pattern-aware refactoring guidance.
 
 #### Acceptance Criteria
 
@@ -83,6 +310,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 
 **User Story:** As a developer maintaining large Rust codebases, I want sophisticated architectural queries that help identify technical debt and optimization opportunities.
 
+**Journey Context**: Marcus needs advanced queries for board presentations and architectural decisions. Sarah needs blast-radius analysis for confident refactoring. Alex needs trait hierarchy exploration for learning.
+
 #### Acceptance Criteria
 
 1. WHEN querying unused code THEN the system SHALL identify functions with no incoming CALLS edges via `find_unused_functions()`
@@ -95,6 +324,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 ### REQ-V2-007.0: Enhanced CLI Interface
 
 **User Story:** As a developer using the daemon daily, I want a comprehensive CLI that exposes all architectural analysis capabilities with clear, actionable output.
+
+**Journey Context**: Sarah's daily workflow depends on intuitive CLI commands. Alex's learning requires clear, educational output. Marcus's presentations need structured, professional reports.
 
 #### Acceptance Criteria
 
@@ -109,6 +340,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 
 **User Story:** As a developer deploying the daemon in production environments, I want guaranteed performance characteristics and robust error handling.
 
+**Journey Context**: Sarah's team depends on reliable daemon operation for daily workflows. Marcus's architectural monitoring requires production-grade reliability. Alex's learning can't be interrupted by tool crashes.
+
 #### Acceptance Criteria
 
 1. WHEN processing large codebases THEN the system SHALL maintain memory usage under 25MB for 100K LOC using string interning and efficient data structures
@@ -121,6 +354,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 ### REQ-V2-009.0: Terminal-Based LLM Context Generation
 
 **User Story:** As a Rust developer using LLM assistants from the terminal, I want compressed, deterministic architectural context that eliminates hallucination, so that AI tools receive factual architectural information for accurate code assistance.
+
+**Journey Context**: Priya's AI-assisted development requires factual architectural context. Her productivity depends on AI suggestions being architecturally sound. Her trust in AI tools depends on eliminating hallucinations.
 
 #### Acceptance Criteria
 
@@ -135,6 +370,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 
 **User Story:** As a Rust developer working primarily from terminal, I want seamless daemon integration that provides instant architectural intelligence during my coding sessions, so that I can query live architectural state without interrupting my workflow.
 
+**Journey Context**: Sarah's morning routine requires instant daemon startup and live architectural queries. Alex's learning flow requires real-time exploration of changing code. Marcus's analysis requires always-current architectural data.
+
 #### Acceptance Criteria
 
 1. WHEN I start `parseltongue daemon --watch <directory>` THEN the system SHALL initialize with sub-second state hydration from existing database and begin monitoring all .rs files
@@ -147,6 +384,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 ### REQ-V2-011.0: Terminal-Based Architectural Debugging
 
 **User Story:** As a Rust developer debugging complex trait bound and compilation errors from terminal, I want architectural intelligence to help me understand and resolve errors quickly using deterministic facts about my codebase.
+
+**Journey Context**: Alex's learning breakthrough comes from understanding architectural reality behind compilation errors. Sarah's debugging efficiency depends on quick error resolution. Marcus's team productivity requires effective error analysis tools.
 
 #### Acceptance Criteria
 
@@ -161,6 +400,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 
 **User Story:** As a Rust developer exploring unfamiliar codebases from terminal, I want interactive architectural navigation tools that leverage the live daemon state, so that I can quickly understand complex systems and their relationships.
 
+**Journey Context**: Alex's learning acceleration comes from interactive architectural exploration. Sarah's codebase understanding requires navigable architectural maps. Marcus's system analysis needs interactive investigation capabilities.
+
 #### Acceptance Criteria
 
 1. WHEN I run `parseltongue explore --interactive` THEN the system SHALL start an interactive terminal session with live architectural queries
@@ -173,6 +414,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 ### REQ-V2-013.0: Deterministic Context for Terminal LLM Workflows
 
 **User Story:** As a developer collaborating with LLM assistants from terminal, I want to provide deterministic architectural context that grounds AI responses in factual information, eliminating the "Stochastic Fog" of probabilistic code analysis.
+
+**Journey Context**: Priya's symbiotic development workflow requires AI tools grounded in architectural reality. Her productivity depends on AI suggestions being factually correct. Her team's AI adoption requires reliable AI-architectural integration patterns.
 
 #### Acceptance Criteria
 
@@ -213,6 +456,12 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 6. **Cross-Platform Consistency**: Identical results on Linux, macOS, Windows
 7. **Context Compression**: 95%+ token reduction for LLM context (architectural facts vs raw code)
 8. **Real-Time Responsiveness**: <100ms for interactive terminal commands during live development
+
+### User Journey Success Metrics
+1. **Sarah's Refactoring Confidence**: 70% reduction in code archaeology time, zero surprise breakages
+2. **Alex's Learning Acceleration**: 5x faster concept-to-implementation cycle, productive in 1 week vs 1 month
+3. **Marcus's Architectural Authority**: Data-driven decisions, $2M technical debt budget approval
+4. **Priya's AI Symbiosis**: 3x development velocity with AI-architectural collaboration
 
 ## v2.0 Scope Control
 
