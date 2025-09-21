@@ -1421,3 +1421,38 @@
 
 ---
 
+
+## Delta Report - 2025-09-21 16:46:02 IST
+
+### Summary Changes
+- **File Count**: 0 (76 total)
+- **Line Count**: 5,075 (79,400 total)
+- **Word Count**: 24,504 (248,575 total)
+
+### File-Level Changes
+**Added Files:**
+- ./docs/examples/example_code.rs
+- ./docs/examples/visualize_isg.rs
+- ./docs/output/graph.dot
+- ./docs/output/parseltongue_snapshot.json
+- ./docs/output/visualize_isg
+- ./.kiro/backlog-options/architecture-backlog.md
+- ./.kiro/backlog-options/backlog.md
+- ./.kiro/backlog-options/dev-steering-options.md
+- ./.kiro/backlog-options/requirements-tasks-methodology.md
+- ./.kiro/backlog-options/storage-architecture-options.md
+
+**Removed Files:**
+- ./examples/example_code.rs
+- ./examples/visualize_isg.rs
+- ./.kiro/options/architecture-backlog.md
+- ./.kiro/options/backlog.md
+- ./.kiro/options/dev-steering-options.md
+- ./.kiro/options/storage-architecture-options.md
+- ./.kiro/options/user-journey-options.md
+- ./.kiro/steering/requirements-tasks-methodology.md
+- ./output/graph.dot
+- ./output/parseltongue_snapshot.json
+
+---
+
