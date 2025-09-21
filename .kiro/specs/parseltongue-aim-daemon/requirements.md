@@ -121,5 +121,6 @@ The above 7 requirements represent the **complete MVP v1.0 scope** for Parselton
 
 **Core Validation**: Proves deterministic, sub-millisecond architectural intelligence on live Rust codebases using structural ISG analysis.
 
-# Marketing due diligence
+# Marketing due-diligence
 
+The README.md should be 
