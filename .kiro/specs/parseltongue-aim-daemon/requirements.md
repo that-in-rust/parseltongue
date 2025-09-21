@@ -121,33 +121,5 @@ The above 7 requirements represent the **complete MVP v1.0 scope** for Parselton
 
 **Core Validation**: Proves deterministic, sub-millisecond architectural intelligence on live Rust codebases using structural ISG analysis.
 
-### Implementation Priority
+# Marketing due diligence
 
-**Week 1 (Start Tomorrow)**:
-1. ✅ OptimizedISG core architecture (already designed in design.md)
-2. 🔄 Basic CLI parser using clap crate
-3. 🔄 Code dump ingestion with separated format parsing
-4. 🔄 syn crate integration for Rust AST parsing
-
-**Week 2**:
-1. 🔄 Live file monitoring using notify crate
-2. 🔄 Essential queries (what-implements, blast-radius, find-cycles)
-3. 🔄 LLM context generation with bounded ISG slices
-
-**Week 3**:
-1. 🔄 SQLite storage with crash recovery
-2. 🔄 Error handling and graceful failures
-3. 🔄 Performance validation against <12ms constraint
-
-### Post-MVP Features
-
-All advanced features have been moved to [backlog.md](./backlog.md) including:
-- Advanced performance optimizations (lock-free data structures, SIMD)
-- Plugin architecture and extensibility
-- Multi-source merging (git repos, remote APIs)
-- Enterprise-scale features (500K+ LOC)
-- Advanced pattern recognition and validation
-- Comprehensive graph schema (7 node types, 9 edge types)
-- IDE integration and language server protocol
-
-The MVP focuses on **immediate usability** - you can start using it tomorrow for both code dumps and live codebases with the essential functionality needed for daily development.

@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-21 11:33:23 IST
+# Repository Snapshot - 2025-09-21 16:46:02 IST
 
 ## Summary Statistics
 - **Total Files**: 76
-- **Total Lines**: 74,325
-- **Total Words**: 224,071
-- **Snapshot Time**: 2025-09-21 11:33:23 IST
+- **Total Lines**: 79,400
+- **Total Words**: 248,575
+- **Snapshot Time**: 2025-09-21 16:46:02 IST
 
 ## File Inventory
 
@@ -17,26 +17,30 @@
 | ./docs/COMMIT_SUMMARY.md | 137 | 771 | 6.1K |
 | ./docs/DeepThink20250920v2.md | [binary] | [binary] | 0 |
 | ./docs/DEMONSTRATION_RESULTS.md | 172 | 866 | 6.5K |
+| ./docs/examples/example_code.rs | 24 | 72 | 460 |
+| ./docs/examples/visualize_isg.rs | 62 | 236 | 2.4K |
 | ./docs/IMPLEMENTATION_NOTES.md | 212 | 1042 | 8.1K |
 | ./docs/ISG_EXPLAINED.md | 139 | 496 | 3.4K |
 | ./docs/ONBOARDING_GUIDE.md | 347 | 1253 | 9.3K |
+| ./docs/output/graph.dot | 10 | 29 | 421 |
+| ./docs/output/parseltongue_snapshot.json | [binary] | [binary] | 188K |
+| ./docs/output/visualize_isg | [binary] | [binary] | 28M |
 | ./docs/PERFORMANCE_RANGES_UPDATE.md | 86 | 509 | 3.7K |
 | ./docs/RESILIENT_PARSING_UPDATE.md | 101 | 557 | 4.2K |
 | ./docs/SPEC_UPDATE_SUMMARY.md | 118 | 658 | 5.0K |
 | ./docs/STEERING_COMPLIANCE_ANALYSIS.md | 54 | 345 | 2.5K |
-| ./examples/example_code.rs | 24 | 72 | 460 |
-| ./examples/visualize_isg.rs | 62 | 236 | 2.4K |
 | ./.gitignore | 222 | 383 | 2.9K |
-| ./.kiro/file-snapshots/change-log.md | 1388 | 4072 | 31K |
-| ./.kiro/file-snapshots/current-snapshot.md | 88 | 782 | 5.1K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 88 | 782 | 5.1K |
+| ./.kiro/backlog-options/architecture-backlog.md | 2638 | 12791 | 104K |
+| ./.kiro/backlog-options/backlog.md | 339 | 2385 | 19K |
+| ./.kiro/backlog-options/dev-steering-options.md | 1214 | 5310 | 44K |
+| ./.kiro/backlog-options/requirements-tasks-methodology.md | 79 | 429 | 3.5K |
+| ./.kiro/backlog-options/storage-architecture-options.md | 764 | 3596 | 29K |
+| ./.kiro/backlog-options/user-journey-options.md | 85 | 346 | 2.9K |
+| ./.kiro/file-snapshots/change-log.md | 1423 | 4148 | 31K |
+| ./.kiro/file-snapshots/current-snapshot.md | 88 | 782 | 5.2K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 88 | 782 | 5.2K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
 | ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 545 |
-| ./.kiro/options/architecture-backlog.md | 2638 | 12791 | 104K |
-| ./.kiro/options/backlog.md | 339 | 2385 | 19K |
-| ./.kiro/options/dev-steering-options.md | 1214 | 5310 | 44K |
-| ./.kiro/options/storage-architecture-options.md | 764 | 3596 | 29K |
-| ./.kiro/options/user-journey-options.md | 85 | 346 | 2.9K |
 | ./.kiro/rust-idioms/Comprehensive Rust Idiomatic Patterns Guide_.txt | 769 | 12536 | 90K |
 | ./.kiro/rust-idioms/comprehensive-rust-patterns-guidance.md | 1846 | 5140 | 51K |
 | ./.kiro/rust-idioms/DeepThink20250920v1.md | 558 | 3139 | 25K |
@@ -64,12 +68,8 @@
 | ./.kiro/steering/hook-automation-guide.md | 256 | 1274 | 11K |
 | ./.kiro/steering/hook-system-status.md | 27 | 115 | 912 |
 | ./.kiro/steering/parseltongue-requirements-focus.md | 35 | 166 | 1.3K |
-| ./.kiro/steering/requirements-tasks-methodology.md | 79 | 429 | 3.5K |
 | ./.kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | ./.kiro/unified-progress-tracker.sh | 242 | 1138 | 9.4K |
-| ./output/graph.dot | 10 | 29 | 421 |
-| ./output/parseltongue_snapshot.json | [binary] | [binary] | 188K |
-| ./output/visualize_isg | [binary] | [binary] | 28M |
 | ./README.md | 201 | 782 | 6.0K |
 | ./_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443 TRUNC.txt | 3908 | 14879 | 136K |
 | ./_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
