@@ -125,4 +125,4 @@ The above 7 requirements represent the **complete MVP v1.0 scope** for Parselton
 
 1. The README.md should be written using the minto pyramid principle, this means that essence is at the top, and details are revealed layer by layer, the most essential and non-negotiable things at the top which can pique the interest of the reader
 2. The README.md should be created keeping in mind the latest tree command results, this means that the README.md should be updated every time the tree command is run
-3. The README.md should have maximum concepts as mermaid diagrams apart from text so that it is intuitive for the reader to understand 
+3. The README.md should have maximum concepts as mermaid diagrams apart from text so that it is intuitive for the reader to understand user journey, the flow,the architecture and similar concepts including the outputs
