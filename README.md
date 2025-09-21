@@ -19,7 +19,7 @@ graph TB
     D --> I[find-cycles]
     
     E --> J[Zero Hallucination]
-    F --> K[<12ms File Updates]
+    F --> K[12ms File Updates]
     
     style B fill:#ff6b6b
     style C fill:#4ecdc4
@@ -40,31 +40,31 @@ graph TB
 
 ```mermaid
 flowchart TD
-    subgraph "Input Layer"
+    subgraph Input ["Input Layer"]
         A[Code Dumps] 
         B[Live .rs Files]
     end
     
-    subgraph "Processing Layer"
+    subgraph Processing ["Processing Layer"]
         C[syn Parser]
         D[OptimizedISG]
         E[File Monitor]
     end
     
-    subgraph "Storage Layer"
-        F[Arc&lt;RwLock&lt;ISGState&gt;&gt;]
+    subgraph Storage ["Storage Layer"]
+        F[Arc RwLock ISGState]
         G[FxHashMap Index]
-        H[petgraph::StableDiGraph]
+        H[petgraph StableDiGraph]
     end
     
-    subgraph "Query Layer"
+    subgraph Query ["Query Layer"]
         I[what-implements]
         J[blast-radius]
         K[find-cycles]
         L[generate-context]
     end
     
-    subgraph "Output Layer"
+    subgraph Output ["Output Layer"]
         M[Human Readable]
         N[JSON for LLMs]
         O[Real-time Updates]
@@ -95,7 +95,7 @@ flowchart TD
     style L fill:#45b7d1
 ```
 
-## Performance Guarantees
+## Performance Targets
 
 ```mermaid
 gantt
@@ -104,24 +104,25 @@ gantt
     axisFormat %s
     
     section File Operations
-    Code Dump Ingestion (2.1MB)    :done, dump, 0, 5000
-    File Update Detection          :done, update, 0, 12
+    Code Dump Ingestion 2.1MB    :done, dump, 0, 5000
+    File Update Detection         :done, update, 0, 12
     
     section Query Operations  
-    Simple Queries                 :done, simple, 0, 1
-    Complex Queries (blast-radius) :done, complex, 0, 1
+    Simple Queries               :done, simple, 0, 1
+    Complex Queries blast-radius :done, complex, 0, 1
     
     section Memory Operations
-    Node Operations                :done, node, 0, 0.006
-    Snapshot Save/Load             :done, snapshot, 0, 500
+    Node Operations              :done, node, 0, 0.05
+    Snapshot Save Load           :done, snapshot, 0, 500
 ```
 
-**Validated Performance Metrics:**
+**Performance Targets (Test-Validated):**
 - 🚀 **File Updates**: <12ms (critical for real-time workflow)
-- ⚡ **Queries**: <1ms (sub-millisecond graph traversals)  
+- ⚡ **Node Operations**: <50μs (measured in automated tests)
+- ⚡ **Queries**: <1ms target (graph traversal operations)  
 - 📦 **Code Ingestion**: <5s for 2.1MB dumps
-- 💾 **Memory**: <25MB for 100K LOC
-- 🔄 **Snapshots**: <500ms save/load
+- 💾 **Memory**: <25MB for 100K LOC target
+- 🔄 **Snapshots**: <500ms save/load target
 
 ## User Journey
 
@@ -184,19 +185,19 @@ mindmap
   root((parseltongue))
     ingest
       code_dump.txt
-      FILE: markers
-      <5s processing
+      FILE markers
+      5s processing
     daemon
-      --watch directory
-      <12ms updates
-      Ctrl+C shutdown
+      watch directory
+      12ms updates
+      Ctrl-C shutdown
     query
       what-implements
       blast-radius  
       find-cycles
-      <1ms response
+      1ms response
     generate-context
-      --format json
+      format json
       LLM ready
       Zero hallucination
 ```
@@ -208,24 +209,24 @@ mindmap
 ```mermaid
 classDiagram
     class OptimizedISG {
-        +Arc~RwLock~ISGState~~
+        +Arc RwLock ISGState
         +upsert_node(NodeData)
         +get_node(SigHash) NodeData
-        +find_implementors(SigHash) Vec~NodeData~
-        +calculate_blast_radius(SigHash) HashSet~SigHash~
+        +find_implementors(SigHash) Vec NodeData
+        +calculate_blast_radius(SigHash) HashSet SigHash
     }
     
     class ISGState {
-        +StableDiGraph~NodeData, EdgeKind~
-        +FxHashMap~SigHash, NodeIndex~
+        +StableDiGraph NodeData EdgeKind
+        +FxHashMap SigHash NodeIndex
     }
     
     class NodeData {
         +SigHash hash
         +NodeKind kind
-        +Arc~str~ name
-        +Arc~str~ signature
-        +Arc~str~ file_path
+        +Arc str name
+        +Arc str signature
+        +Arc str file_path
         +u32 line
     }
     
@@ -233,7 +234,7 @@ classDiagram
         +OptimizedISG isg
         +start_daemon(Path)
         +ingest_code_dump(Path)
-        +execute_query(QueryType, String)
+        +execute_query(QueryType String)
     }
     
     OptimizedISG --> ISGState
@@ -254,9 +255,9 @@ sequenceDiagram
     
     F->>D: File Change Event
     D->>P: Parse .rs file
-    P->>I: Update Graph (<12ms)
+    P->>I: Update Graph (12ms)
     U->>Q: Execute Query
-    Q->>I: Graph Traversal (<1ms)
+    Q->>I: Graph Traversal (1ms)
     I->>Q: Results
     Q->>U: Response
     
@@ -286,52 +287,50 @@ parseltongue/
 ## Testing Strategy
 
 ```mermaid
-graph TD
-    subgraph "Performance Tests (3)"
-        PT1[Timing Contracts: 2]
-        PT2[Memory Validation: 1]
-    end
+flowchart TD
+    A[40 Total Tests] --> B[Performance Tests]
+    A --> C[Integration Tests]
+    A --> D[Unit Tests]
     
-    subgraph "Integration Tests (13)"
-        IT1[End-to-End Workflows: 6]
-        IT2[CLI Interface: 4] 
-        IT3[File Monitoring: 3]
-    end
+    B --> B1[Node Operations < 50μs]
+    B --> B2[Query Performance]
+    B --> B3[File Update Timing]
     
-    subgraph "Unit Tests (35)"
-        UT1[Core ISG Operations: 15]
-        UT2[Node/Edge Management: 12]
-        UT3[Query Algorithms: 8]
-    end
+    C --> C1[End-to-End Workflows]
+    C --> C2[CLI Interface]
+    C --> C3[File Monitoring]
     
-    PT1 --> IT1
-    PT2 --> IT2
-    IT1 --> UT1
-    IT2 --> UT2
-    IT3 --> UT3
+    D --> D1[Core ISG Operations]
+    D --> D2[Node/Edge Management]
+    D --> D3[Query Algorithms]
     
-    style "Performance Tests (3)" fill:#ff6b6b
-    style "Integration Tests (13)" fill:#4ecdc4
-    style "Unit Tests (35)" fill:#45b7d1
+    style A fill:#45b7d1
+    style B fill:#ff6b6b
+    style C fill:#4ecdc4
+    style D fill:#96ceb4
 ```
 
-**Test Coverage: 97.5%** (40/40 tests passing)
+**Test Results:** All 40 tests pass (100% success rate)
 
 ## Performance Validation
 
-All performance claims are backed by automated tests:
+Core performance constraints are validated by automated tests:
 
 ```rust
 #[test]
-fn test_query_performance_contract() {
-    let start = Instant::now();
-    let result = isg.find_implementors(trait_hash).unwrap();
-    let elapsed = start.elapsed();
+fn test_node_operation_performance() {
+    let isg = OptimizedISG::new();
+    let node = mock_node(1, NodeKind::Function, "test_func");
     
-    assert!(elapsed < Duration::from_millis(1), 
-            "Query took {:?}, expected <1ms", elapsed);
+    // Test node upsert is <50μs (realistic range based on actual performance)
+    let start = Instant::now();
+    isg.upsert_node(node.clone());
+    let elapsed = start.elapsed();
+    assert!(elapsed.as_micros() < 50, "Node upsert took {}μs (>50μs)", elapsed.as_micros());
 }
 ```
+
+**Test Results:** All 40 tests pass, including performance constraint validation.
 
 ## Use Cases
 
@@ -356,12 +355,14 @@ fn test_query_performance_contract() {
 ## Production Readiness
 
 ```mermaid
-pie title Production Readiness Checklist
-    "MVP Requirements" : 7
-    "Performance Tests" : 6
-    "Error Handling" : 5
-    "Documentation" : 4
-    "Test Coverage" : 3
+pie title MVP Requirements Status
+    "Code Dump Ingestion" : 1
+    "Live File Monitoring" : 1
+    "Essential Queries" : 1
+    "LLM Context Generation" : 1
+    "CLI Interface" : 1
+    "In-Memory Performance" : 1
+    "Error Handling" : 1
 ```
 
 ✅ **All MVP Requirements Completed**
@@ -379,9 +380,9 @@ This project follows **Test-Driven Development (TDD)**:
 
 ```mermaid
 flowchart LR
-    A[Write Test] --> B[Run Test - FAIL]
+    A[Write Test] --> B[Run Test FAIL]
     B --> C[Write Code]
-    C --> D[Run Test - PASS]
+    C --> D[Run Test PASS]
     D --> E[Refactor]
     E --> A
     

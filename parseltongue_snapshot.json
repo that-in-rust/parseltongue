@@ -1,0 +1,41 @@
+{
+  "nodes": [
+    {
+      "hash": 16353081982130523382,
+      "kind": "Function",
+      "name": "hello",
+      "signature": "fn fn hello () -> String",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 9485481811301415811,
+      "kind": "Trait",
+      "name": "Greeter",
+      "signature": "trait Greeter",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 10979561714841261846,
+      "kind": "Struct",
+      "name": "Person",
+      "signature": "struct Person",
+      "file_path": "src/lib.rs",
+      "line": 0
+    }
+  ],
+  "edges": [
+    {
+      "from": 10979561714841261846,
+      "to": 9485481811301415811,
+      "kind": "Implements"
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "timestamp": 1758457913,
+    "node_count": 3,
+    "edge_count": 1
+  }
+}
