@@ -145,6 +145,7 @@ Persistence: <500ms ✅
 - **Input**: Code dumps with `FILE: <path>` markers (separator lines like `====` are automatically ignored)
 - **Output**: JSON or human-readable formats
 - **Persistence**: JSON snapshots for crash recovery
+- **Error Handling**: Malformed Rust files are logged and skipped, allowing processing to continue
 
 ## 🎯 Use Cases
 
@@ -153,6 +154,7 @@ Persistence: <500ms ✅
 - **Impact Analysis**: Assess blast radius of proposed changes
 - **Architecture Review**: Validate trait implementations and dependencies
 - **Refactoring**: Safe code restructuring with dependency analysis
+- **Robust Processing**: Handles malformed files gracefully without stopping analysis
 
 ### For AI/LLM Integration
 - **Context Generation**: Provide accurate architectural context to AI tools
@@ -172,6 +174,7 @@ Persistence: <500ms ✅
 - Performance validated against all constraints
 - Error handling and edge cases covered
 - Real-world usage tested
+- Resilient parsing with graceful error recovery
 
 ## 🤝 Contributing
 

@@ -73,6 +73,7 @@ All commands include automatic performance validation:
 - **Context**: Rich error messages with operation context
 - **Recovery**: Graceful handling of missing entities
 - **Reporting**: Clear error messages for debugging
+- **Resilient Parsing**: Malformed Rust files are logged and skipped, allowing batch processing to continue
 
 ### Integration Points
 - **Daemon Integration**: Direct use of ParseltongueAIM struct

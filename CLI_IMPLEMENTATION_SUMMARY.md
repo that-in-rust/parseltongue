@@ -15,6 +15,7 @@ parseltongue ingest <file>
 - **Performance**: <5s target for 2.1MB dumps (monitored and reported)
 - **Output**: Files processed count, nodes created count, execution time
 - **Error Handling**: File I/O errors, parsing errors with context
+- **Resilient Processing**: Malformed Rust files logged and skipped to continue processing
 
 #### 2. Daemon Command
 ```bash
