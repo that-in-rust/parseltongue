@@ -123,4 +123,4 @@ The above 7 requirements represent the **complete MVP v1.0 scope** for Parselton
 
 # Marketing due-diligence
 
-The README.md should be 
+The README.md should be written using the minto pyramid principle, this means that essence is at the top, and details are revealed layer by layer
