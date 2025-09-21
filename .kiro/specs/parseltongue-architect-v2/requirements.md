@@ -118,6 +118,71 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 5. WHEN persisting state THEN the system SHALL use incremental snapshots to minimize I/O overhead during daemon operation
 6. WHEN validating performance THEN the system SHALL include built-in benchmarking and profiling capabilities for performance verification
 
+### REQ-V2-009.0: Terminal-Based LLM Context Generation
+
+**User Story:** As a Rust developer using LLM assistants from the terminal, I want compressed, deterministic architectural context that eliminates hallucination, so that AI tools receive factual architectural information for accurate code assistance.
+
+#### Acceptance Criteria
+
+1. WHEN I run `parseltongue generate-context --focus <entity>` THEN the system SHALL perform targeted, high-speed queries against the ISG to assemble a perfectly tailored architectural slice
+2. WHEN generating context THEN the system SHALL include canonical definitions, complete implementation lists, and public signatures of all key entities within 2 hops
+3. WHEN outputting context THEN the system SHALL produce highly compressed, minimal text blocks representing global architectural context using only 1% of typical LLM context windows
+4. WHEN I add `--format llm-prompt` THEN the system SHALL structure output with clear sections optimized for LLM consumption with deterministic facts
+5. WHEN context includes trait relationships THEN the system SHALL show all IMPL relationships, generic bounds, and associated types for complete architectural picture
+6. WHEN generating context for functions THEN the system SHALL include all CALLS relationships, parameter types, and return types with full qualification
+
+### REQ-V2-010.0: Real-Time Daemon Integration for Terminal Workflows
+
+**User Story:** As a Rust developer working primarily from terminal, I want seamless daemon integration that provides instant architectural intelligence during my coding sessions, so that I can query live architectural state without interrupting my workflow.
+
+#### Acceptance Criteria
+
+1. WHEN I start `parseltongue daemon --watch <directory>` THEN the system SHALL initialize with sub-second state hydration from existing database and begin monitoring all .rs files
+2. WHEN I save any .rs file THEN the daemon SHALL complete the 3-12ms update pipeline (debounce → parse → diff → apply → persist) within the performance target
+3. WHEN I run `parseltongue query <type> <target>` while daemon is running THEN the system SHALL query the live in-memory graph and respond in <1ms
+4. WHEN the daemon detects file changes THEN it SHALL use Tree-sitter incremental parsing to reuse unchanged portions of syntax trees for maximum performance
+5. WHEN I query architectural state THEN the system SHALL always reflect the current state of my code, never stale or cached data
+6. WHEN daemon is running THEN all queries SHALL use the hybrid storage model (in-memory DashMap for writes, SQLite for complex analytical queries)
+
+### REQ-V2-011.0: Terminal-Based Architectural Debugging
+
+**User Story:** As a Rust developer debugging complex trait bound and compilation errors from terminal, I want architectural intelligence to help me understand and resolve errors quickly using deterministic facts about my codebase.
+
+#### Acceptance Criteria
+
+1. WHEN I encounter trait bound errors THEN I can run `parseltongue debug --error-context <entity>` to get architectural analysis of the error using live ISG data
+2. WHEN analyzing "trait bound not satisfied" errors THEN the system SHALL show which traits are actually implemented and what's missing using IMPL relationship traversal
+3. WHEN debugging complex generic constraints THEN the system SHALL display the full trait hierarchy and bounds in readable format with `parseltongue query trait-hierarchy <trait>`
+4. WHEN I have orphan rule violations THEN the system SHALL identify conflicting implementations using `parseltongue query conflicts <trait>` and suggest resolution strategies
+5. WHEN compilation fails due to missing dependencies THEN the system SHALL show dependency chains with `parseltongue query dependency-chain <entity>` 
+6. WHEN error analysis completes THEN the system SHALL provide actionable suggestions with specific function signatures and trait bounds needed
+
+### REQ-V2-012.0: Live Architectural Exploration and Navigation
+
+**User Story:** As a Rust developer exploring unfamiliar codebases from terminal, I want interactive architectural navigation tools that leverage the live daemon state, so that I can quickly understand complex systems and their relationships.
+
+#### Acceptance Criteria
+
+1. WHEN I run `parseltongue explore --interactive` THEN the system SHALL start an interactive terminal session with live architectural queries
+2. WHEN in interactive mode THEN I can use commands like `find <pattern>`, `show <entity>`, `blast-radius <entity>`, and `implementations <trait>` with tab completion
+3. WHEN I execute `blast-radius <entity>` THEN the system SHALL show real-time impact analysis using bounded BFS traversal of the live graph
+4. WHEN I run `parseltongue map --module <module>` THEN the system SHALL generate ASCII art or structured text representation of module relationships
+5. WHEN exploring trait hierarchies THEN I can use `trace-implementations <trait>` to see multi-hop implementation chains with full qualification
+6. WHEN navigating results THEN the system SHALL provide file paths and line numbers for quick navigation with editor integration
+
+### REQ-V2-013.0: Deterministic Context for Terminal LLM Workflows
+
+**User Story:** As a developer collaborating with LLM assistants from terminal, I want to provide deterministic architectural context that grounds AI responses in factual information, eliminating the "Stochastic Fog" of probabilistic code analysis.
+
+#### Acceptance Criteria
+
+1. WHEN I run `parseltongue context --entity <entity> --llm-format` THEN the system SHALL generate context blocks with preconditions, postconditions, and architectural relationships
+2. WHEN providing context to LLMs THEN the system SHALL include deterministic facts like "Entity X IMPL Trait Y", "Function A CALLS Function B", with no probabilistic language
+3. WHEN generating context for refactoring THEN the system SHALL provide complete architectural slices showing all affected entities and their relationships
+4. WHEN I add `--include-patterns` THEN the system SHALL analyze and include relevant Rust patterns (Builder, State Machine, RAII) detected in the architectural context
+5. WHEN context includes error handling THEN the system SHALL show `Result<T, E>` usage patterns and error propagation chains with full type information
+6. WHEN outputting for LLM consumption THEN the system SHALL structure context with clear sections: Signatures, Dependencies, Relationships, Patterns, and Constraints
+
 ## v2.0 Success Criteria
 
 ### Core Fixes (Foundation Repair)
@@ -132,6 +197,13 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 3. **Enhanced CLI**: Comprehensive analysis commands with structured output
 4. **Production Reliability**: Robust error handling, automatic recovery, performance monitoring
 
+### Terminal-Based Symbiotic Development (New)
+1. **LLM Context Generation**: Compressed, deterministic architectural context using <1% of LLM context windows
+2. **Real-Time Daemon Integration**: Live architectural state with 3-12ms update pipeline for terminal workflows
+3. **Architectural Debugging**: Terminal-based error analysis with deterministic trait bound and dependency resolution
+4. **Interactive Exploration**: Live architectural navigation with tab completion and real-time graph traversal
+5. **Deterministic LLM Workflows**: Zero-hallucination context generation with factual architectural relationships
+
 ### Performance Validation (Measurable)
 1. **Ingestion Speed**: <5s for 2.1MB dumps (measured with real Axum codebase)
 2. **Update Latency**: <12ms for file changes (measured with instrumentation)
@@ -139,6 +211,8 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 4. **Memory Efficiency**: <25MB for 100K LOC (measured with profiling tools)
 5. **Relationship Completeness**: 100% extraction verified with manual code review
 6. **Cross-Platform Consistency**: Identical results on Linux, macOS, Windows
+7. **Context Compression**: 95%+ token reduction for LLM context (architectural facts vs raw code)
+8. **Real-Time Responsiveness**: <100ms for interactive terminal commands during live development
 
 ## v2.0 Scope Control
 
@@ -148,6 +222,11 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 - ✅ Advanced query engine
 - ✅ Enhanced CLI interface
 - ✅ Production reliability features
+- ✅ Terminal-based LLM context generation with deterministic facts
+- ✅ Real-time daemon integration for live terminal workflows
+- ✅ Architectural debugging and error analysis from terminal
+- ✅ Interactive exploration with live graph navigation
+- ✅ Zero-hallucination LLM workflows with compressed context
 
 ### Out of Scope (Deferred to v3.0)
 - ❌ Macro expansion and procedural macro analysis
@@ -155,5 +234,7 @@ Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system
 - ❌ Web interface and visualization tools
 - ❌ Distributed analysis and horizontal scaling
 - ❌ Multi-language support (staying Rust-focused)
+- ❌ Advanced team collaboration features
+- ❌ Custom architectural rule engines
 
-**Core Validation**: Proves that deterministic, sub-millisecond architectural intelligence on live Rust codebases is achievable with complete relationship extraction and O(1) performance guarantees.
+**Core Validation**: Proves that deterministic, sub-millisecond architectural intelligence on live Rust codebases is achievable with complete relationship extraction and O(1) performance guarantees, enabling "Symbiotic Developer" workflows where LLM assistants receive live, factual architectural context from terminal-based development sessions.

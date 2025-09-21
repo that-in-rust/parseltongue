@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-21 22:39:32
+# Repository Snapshot - 2025-09-21 22:57:51
 
 ## Summary Statistics
-- **Total Files**: 81
-- **Total Lines**: 80,411
-- **Total Words**: 258,534
-- **Snapshot Time**: 2025-09-21 22:39:32
+- **Total Files**: 82
+- **Total Lines**: 80,677
+- **Total Words**: 261,381
+- **Snapshot Time**: 2025-09-21 22:57:51
 
 ## Spec Progress Summary
 
@@ -12,6 +12,7 @@
 |-----------|-------|----------|-------|
 | parseltongue-aim-daemon | Implementation (5%) | - | 3/3 |
 | parseltongue-architect-v2 | Design | - | 2/3 |
+| parseltongue-ide-copilot | Requirements | - | 1/3 |
 
 ## File Inventory
 
@@ -46,9 +47,9 @@
 | .kiro/backlog-options/v2RequirementOptions.md | 291 | 2717 | 21K |
 | .kiro/backlog-options/v2RequirementOptionsP2.md | 117 | 833 | 6.2K |
 | .kiro/backlog-options/v2RequirementOptionsP3.md | 113 | 3799 | 26K |
-| .kiro/file-snapshots/change-log.md | 1756 | 5033 | 38K |
-| .kiro/file-snapshots/current-snapshot.md | 99 | 850 | 5.6K |
-| .kiro/file-snapshots/previous-snapshot.md | 99 | 850 | 5.6K |
+| .kiro/file-snapshots/change-log.md | 1776 | 5078 | 38K |
+| .kiro/file-snapshots/current-snapshot.md | 100 | 859 | 5.7K |
+| .kiro/file-snapshots/previous-snapshot.md | 100 | 859 | 5.7K |
 | .kiro/hooks/hook-automation-guide.md | 258 | 1362 | 11K |
 | .kiro/hooks/hook-system-status.md | 27 | 115 | 912 |
 | .kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 547 |
@@ -75,7 +76,8 @@
 | .kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 220 | 1096 | 8.7K |
 | .kiro/specs/parseltongue-aim-daemon/tasks.md | 318 | 2358 | 19K |
 | .kiro/specs/parseltongue-architect-v2/design.md | [binary] | [binary] | 0 |
-| .kiro/specs/parseltongue-architect-v2/requirements.md | 158 | 1571 | 12K |
+| .kiro/specs/parseltongue-architect-v2/requirements.md | 239 | 2652 | 19K |
+| .kiro/specs/parseltongue-ide-copilot/requirements.md | 163 | 1703 | 12K |
 | .kiro/steering/code-conventions.md | 1997 | 6142 | 53K |
 | .kiro/steering/design101-tdd-architecture-principles.md | 943 | 3431 | 29K |
 | .kiro/steering/parseltongue-requirements-focus.md | 35 | 166 | 1.3K |

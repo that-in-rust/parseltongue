@@ -1774,3 +1774,17 @@
 
 ---
 
+
+## Delta Report - 2025-09-21 22:57:51
+
+### Summary Changes
+- **File Count**: 1 (82 total)
+- **Line Count**: 266 (80,677 total)
+- **Word Count**: 2,847 (261,381 total)
+
+### File-Level Changes
+**Added Files:**
+- .kiro/specs/parseltongue-ide-copilot/requirements.md
+
+---
+
