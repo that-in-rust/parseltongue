@@ -1,0 +1,14 @@
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/target/debug/deps/libserde-65319648f7225963.rmeta: /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/lib.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/integer128.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/mod.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/de.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/ser.rs /home/amuldotexe/Desktop/GitHub202410/parseltongue/target/debug/build/serde-faea03bebfe211e5/out/private.rs
+
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/target/debug/deps/libserde-65319648f7225963.rlib: /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/lib.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/integer128.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/mod.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/de.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/ser.rs /home/amuldotexe/Desktop/GitHub202410/parseltongue/target/debug/build/serde-faea03bebfe211e5/out/private.rs
+
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/target/debug/deps/serde-65319648f7225963.d: /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/lib.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/integer128.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/mod.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/de.rs /home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/ser.rs /home/amuldotexe/Desktop/GitHub202410/parseltongue/target/debug/build/serde-faea03bebfe211e5/out/private.rs
+
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/lib.rs:
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/integer128.rs:
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/mod.rs:
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/de.rs:
+/home/amuldotexe/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde-1.0.225/src/private/ser.rs:
+/home/amuldotexe/Desktop/GitHub202410/parseltongue/target/debug/build/serde-faea03bebfe211e5/out/private.rs:
+
+# env-dep:OUT_DIR=/home/amuldotexe/Desktop/GitHub202410/parseltongue/target/debug/build/serde-faea03bebfe211e5/out
