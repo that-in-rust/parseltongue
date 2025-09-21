@@ -1,32 +1,35 @@
-# Repository Snapshot - 2025-09-21 11:31:31 IST
+# Repository Snapshot - 2025-09-21 11:33:23 IST
 
 ## Summary Statistics
 - **Total Files**: 76
-- **Total Lines**: 67,208
-- **Total Words**: 201,505
-- **Snapshot Time**: 2025-09-21 11:31:31 IST
+- **Total Lines**: 74,325
+- **Total Words**: 224,071
+- **Snapshot Time**: 2025-09-21 11:33:23 IST
 
 ## File Inventory
 
 | File Path | Lines | Words | Size |
 |-----------|-------|-------|------|
-| ./axum_truncated_test.txt | [binary] | [binary] | 0 |
 | ./Cargo.lock | 1054 | 2108 | 28K |
 | ./Cargo.toml | 24 | 85 | 521 |
-| ./CLI_IMPLEMENTATION_SUMMARY.md | 136 | 679 | 5.1K |
-| ./COMMIT_SUMMARY.md | 137 | 771 | 6.1K |
 | ./.cursorignore | 135 | 202 | 1.7K |
-| ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
-| ./DEMONSTRATION_RESULTS.md | 172 | 866 | 6.5K |
-| ./example_code.rs | 24 | 72 | 460 |
-| ./example_dump.txt | 26 | 69 | 455 |
+| ./docs/CLI_IMPLEMENTATION_SUMMARY.md | 136 | 679 | 5.1K |
+| ./docs/COMMIT_SUMMARY.md | 137 | 771 | 6.1K |
+| ./docs/DeepThink20250920v2.md | [binary] | [binary] | 0 |
+| ./docs/DEMONSTRATION_RESULTS.md | 172 | 866 | 6.5K |
+| ./docs/IMPLEMENTATION_NOTES.md | 212 | 1042 | 8.1K |
+| ./docs/ISG_EXPLAINED.md | 139 | 496 | 3.4K |
+| ./docs/ONBOARDING_GUIDE.md | 347 | 1253 | 9.3K |
+| ./docs/PERFORMANCE_RANGES_UPDATE.md | 86 | 509 | 3.7K |
+| ./docs/RESILIENT_PARSING_UPDATE.md | 101 | 557 | 4.2K |
+| ./docs/SPEC_UPDATE_SUMMARY.md | 118 | 658 | 5.0K |
+| ./docs/STEERING_COMPLIANCE_ANALYSIS.md | 54 | 345 | 2.5K |
+| ./examples/example_code.rs | 24 | 72 | 460 |
+| ./examples/visualize_isg.rs | 62 | 236 | 2.4K |
 | ./.gitignore | 222 | 383 | 2.9K |
-| ./graph.dot | 10 | 29 | 421 |
-| ./IMPLEMENTATION_NOTES.md | 212 | 1042 | 8.1K |
-| ./ISG_EXPLAINED.md | 139 | 496 | 3.4K |
-| ./.kiro/file-snapshots/change-log.md | 1374 | 4036 | 30K |
-| ./.kiro/file-snapshots/current-snapshot.md | 87 | 773 | 5.0K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 87 | 773 | 5.0K |
+| ./.kiro/file-snapshots/change-log.md | 1388 | 4072 | 31K |
+| ./.kiro/file-snapshots/current-snapshot.md | 88 | 782 | 5.1K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 88 | 782 | 5.1K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
 | ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 545 |
 | ./.kiro/options/architecture-backlog.md | 2638 | 12791 | 104K |
@@ -64,25 +67,22 @@
 | ./.kiro/steering/requirements-tasks-methodology.md | 79 | 429 | 3.5K |
 | ./.kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | ./.kiro/unified-progress-tracker.sh | 242 | 1138 | 9.4K |
-| ./ONBOARDING_GUIDE.md | 347 | 1253 | 9.3K |
-| ./parseltongue_dump.txt | 24 | 64 | 514 |
-| ./parseltongue_snapshot.json | [binary] | [binary] | 188K |
-| ./PERFORMANCE_RANGES_UPDATE.md | 86 | 509 | 3.7K |
+| ./output/graph.dot | 10 | 29 | 421 |
+| ./output/parseltongue_snapshot.json | [binary] | [binary] | 188K |
+| ./output/visualize_isg | [binary] | [binary] | 28M |
 | ./README.md | 201 | 782 | 6.0K |
 | ./_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443 TRUNC.txt | 3908 | 14879 | 136K |
 | ./_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
-| ./RESILIENT_PARSING_UPDATE.md | 101 | 557 | 4.2K |
-| ./simple_test.dump | 17 | 39 | 248 |
-| ./SPEC_UPDATE_SUMMARY.md | 118 | 658 | 5.0K |
 | ./src/cli.rs | 563 | 1617 | 19K |
 | ./src/daemon.rs | 788 | 2322 | 28K |
 | ./src/isg.rs | 737 | 2232 | 27K |
 | ./src/lib.rs | 23 | 79 | 591 |
 | ./src/main.rs | 13 | 34 | 280 |
-| ./STEERING_COMPLIANCE_ANALYSIS.md | 54 | 345 | 2.5K |
-| ./test_axum_analysis.rs | [binary] | [binary] | 0 |
-| ./test_axum_format.txt | 15 | 33 | 297 |
-| ./test_small.txt | 22 | 51 | 401 |
-| ./visualize_isg | [binary] | [binary] | 28M |
-| ./visualize_isg.rs | 62 | 236 | 2.4K |
+| ./test_data/axum_truncated_test.txt | [binary] | [binary] | 0 |
+| ./test_data/example_dump.txt | 26 | 69 | 455 |
+| ./test_data/parseltongue_dump.txt | 24 | 64 | 514 |
+| ./test_data/simple_test.dump | 17 | 39 | 248 |
+| ./test_data/test_axum_analysis.rs | [binary] | [binary] | 0 |
+| ./test_data/test_axum_format.txt | 15 | 33 | 297 |
+| ./test_data/test_small.txt | 22 | 51 | 401 |
 | ./.vscode/settings.json | [binary] | [binary] | 44 |
