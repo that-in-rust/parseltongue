@@ -107,13 +107,14 @@ This implementation plan follows the **TDD-first approach** from the rigorous Op
 
 ### TDD Cycle 5: Rust Code Parsing with syn
 
-- [ ] 3.1 Implement basic syn integration for Rust parsing
-  - **RED**: Write failing test `test_parse_rust_file_basic()` with simple function/struct/trait
-  - **RED**: Write failing test `test_syn_error_handling()` for malformed Rust code
-  - **GREEN**: Implement parse_rust_file() using syn::parse_file()
-  - **GREEN**: Extract Function, Struct, Trait items into NodeData with proper signatures
-  - **REFACTOR**: Handle syn errors gracefully, validate node creation accuracy
-  - _Requirements: REQ-MVP-001.0 (syn crate parsing), REQ-MVP-007.0 (error handling)_
+- [x] 3.1 Implement basic syn integration for Rust parsing ✅ COMPLETED
+  - **RED**: Write failing test `test_parse_rust_file_basic()` with simple function/struct/trait ✅
+  - **RED**: Write failing test `test_syn_error_handling()` for malformed Rust code ✅
+  - **GREEN**: Implement parse_rust_file() using syn::parse_file() ✅
+  - **GREEN**: Extract Function, Struct, Trait items into NodeData with proper signatures ✅
+  - **REFACTOR**: Handle syn errors gracefully, validate node creation accuracy ✅
+  - **ENHANCED**: Improved error handling to log parse errors and continue processing other files ✅
+  - _Requirements: REQ-MVP-001.0 (syn crate parsing), REQ-MVP-007.0 (error handling)_ ✅
 
 - [ ] 3.2 Implement code dump ingestion with FILE: markers
   - **RED**: Write failing test `test_ingest_code_dump()` with separated dump format

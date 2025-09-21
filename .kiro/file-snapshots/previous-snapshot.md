@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-21 08:37:17 IST
+# Repository Snapshot - 2025-09-21 08:53:40 IST
 
 ## Summary Statistics
-- **Total Files**: 68
-- **Total Lines**: 67,161
-- **Total Words**: 201,884
-- **Snapshot Time**: 2025-09-21 08:37:17 IST
+- **Total Files**: 69
+- **Total Lines**: 67,070
+- **Total Words**: 200,697
+- **Snapshot Time**: 2025-09-21 08:53:40 IST
 
 ## File Inventory
 
@@ -23,9 +23,9 @@
 | ./graph.dot | 10 | 29 | 421 |
 | ./IMPLEMENTATION_NOTES.md | 211 | 1027 | 8.0K |
 | ./ISG_EXPLAINED.md | 139 | 496 | 3.4K |
-| ./.kiro/file-snapshots/change-log.md | 1297 | 3792 | 28K |
-| ./.kiro/file-snapshots/current-snapshot.md | 141 | 1366 | 9.7K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 141 | 1366 | 9.7K |
+| ./.kiro/file-snapshots/change-log.md | 1328 | 3919 | 30K |
+| ./.kiro/file-snapshots/current-snapshot.md | 80 | 709 | 4.6K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 80 | 709 | 4.6K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
 | ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 545 |
 | ./.kiro/options/architecture-backlog.md | 2638 | 12791 | 104K |
@@ -67,6 +67,7 @@
 | ./parseltongue_dump.txt | 24 | 64 | 514 |
 | ./README.md | 198 | 751 | 5.8K |
 | ./_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
+| ./simple_test.dump | 17 | 39 | 248 |
 | ./SPEC_UPDATE_SUMMARY.md | 118 | 658 | 5.0K |
 | ./src/cli.rs | 547 | 1536 | 18K |
 | ./src/daemon.rs | 783 | 2291 | 28K |
