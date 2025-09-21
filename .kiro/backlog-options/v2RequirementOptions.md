@@ -287,3 +287,5 @@ This research is motivated by architectural patterns like the ACB (an "Adaptive 
 ### Your Directive
 
 Utilize the AIM/ISG framework as the foundation for architectural reasoning. Prioritize deterministic navigation of the ISG over probabilistic interpretation of raw source code. Understand the implications of the parsing fidelity trade-offs on the determinism of the resulting graph.
+
+
