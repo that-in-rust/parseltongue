@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-21 17:58:27
+# Repository Snapshot - 2025-09-21 18:10:50
 
 ## Summary Statistics
-- **Total Files**: 75
-- **Total Lines**: 79,589
-- **Total Words**: 249,151
-- **Snapshot Time**: 2025-09-21 17:58:27
+- **Total Files**: 76
+- **Total Lines**: 79,600
+- **Total Words**: 249,182
+- **Snapshot Time**: 2025-09-21 18:10:50
 
 ## Spec Progress Summary
 
@@ -42,7 +42,7 @@
 | .kiro/backlog-options/requirements-tasks-methodology.md | 79 | 429 | 3.5K |
 | .kiro/backlog-options/storage-architecture-options.md | 764 | 3596 | 29K |
 | .kiro/backlog-options/user-journey-options.md | 85 | 346 | 2.9K |
-| .kiro/file-snapshots/change-log.md | 1625 | 4678 | 36K |
+| .kiro/file-snapshots/change-log.md | 1636 | 4709 | 36K |
 | .kiro/file-snapshots/current-snapshot.md | 93 | 796 | 5.2K |
 | .kiro/file-snapshots/previous-snapshot.md | 93 | 796 | 5.2K |
 | .kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 547 |
@@ -75,7 +75,8 @@
 | .kiro/steering/parseltongue-requirements-focus.md | 35 | 166 | 1.3K |
 | .kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | .kiro/unified-progress-tracker.sh | 296 | 1402 | 12K |
-| README.md | 411 | 1200 | 10K |
+| parseltongue_snapshot.json | [binary] | [binary] | 811 |
+| README.md | 416 | 1243 | 11K |
 | _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443 TRUNC.txt | 3908 | 14879 | 136K |
 | _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
 | src/cli.rs | 563 | 1617 | 19K |
