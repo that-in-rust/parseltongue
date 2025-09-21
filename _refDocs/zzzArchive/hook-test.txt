@@ -1,3 +1,0 @@
-Testing the Unified Progress Tracker hook
-This file is created to test if the hook triggers correctly.
-Timestamp: 2025-01-20
