@@ -286,22 +286,33 @@ parseltongue/
 ## Testing Strategy
 
 ```mermaid
-pyramid
-    title Testing Pyramid
+graph TD
+    subgraph "Performance Tests (3)"
+        PT1[Timing Contracts: 2]
+        PT2[Memory Validation: 1]
+    end
     
-    section Unit Tests
-        Core ISG Operations: 15
-        Node/Edge Management: 12
-        Query Algorithms: 8
-        
-    section Integration Tests
-        End-to-End Workflows: 6
-        CLI Interface: 4
-        File Monitoring: 3
-        
-    section Performance Tests
-        Timing Contracts: 2
-        Memory Validation: 1
+    subgraph "Integration Tests (13)"
+        IT1[End-to-End Workflows: 6]
+        IT2[CLI Interface: 4] 
+        IT3[File Monitoring: 3]
+    end
+    
+    subgraph "Unit Tests (35)"
+        UT1[Core ISG Operations: 15]
+        UT2[Node/Edge Management: 12]
+        UT3[Query Algorithms: 8]
+    end
+    
+    PT1 --> IT1
+    PT2 --> IT2
+    IT1 --> UT1
+    IT2 --> UT2
+    IT3 --> UT3
+    
+    style "Performance Tests (3)" fill:#ff6b6b
+    style "Integration Tests (13)" fill:#4ecdc4
+    style "Unit Tests (35)" fill:#45b7d1
 ```
 
 **Test Coverage: 97.5%** (40/40 tests passing)
