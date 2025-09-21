@@ -1295,3 +1295,34 @@
 
 ---
 
+
+## Delta Report - 2025-09-21 08:37:17 IST
+
+### Summary Changes
+- **File Count**: -61 (68 total)
+- **Line Count**: 266 (67,161 total)
+- **Word Count**: 965 (201,884 total)
+
+### File-Level Changes
+**Added Files:**
+- ./example_code.rs
+- ./example_dump.txt
+- ./graph.dot
+- ./ISG_EXPLAINED.md
+- ./visualize_isg
+- ./visualize_isg.rs
+
+**Removed Files:**
+- ./_refDocs/_refIdioms/Comprehensive Rust Idiomatic Patterns Guide_.txt
+- ./_refDocs/_refIdioms/comprehensive-rust-patterns-guidance.md
+- ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis (1).pdf
+- ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.docx
+- ./_refDocs/_refIdioms/Designing a Greenfield LLM Project with Interface Stubs and Graph Analysis.pdf
+- ./_refDocs/_refIdioms/documentation-hierarchy-analysis.md
+- ./_refDocs/_refIdioms/Executable Specifications_ Flawless One-Shot Code Generation (1).pdf
+- ./_refDocs/_refIdioms/Executable Specifications for LLM Code Generation.md
+- ./_refDocs/_refIdioms/Exploring Rust Idiomatic Patterns in Layers.pdf
+- ./_refDocs/_refIdioms/Exploring Rust in Layers_ Language Core to Idiomatic Patterns.docx.md
+
+---
+

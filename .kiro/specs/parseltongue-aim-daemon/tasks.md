@@ -260,6 +260,23 @@ This implementation plan follows the **TDD-first approach** from the rigorous Op
   - **REFACTOR**: Optimize any bottlenecks found, document final performance
   - _Requirements: REQ-MVP-006.0 (all performance constraints)_
 
+### TDD Cycle 12: ISG Visualization and Debugging Tools
+
+- [ ] 5.7 Create ISG visualization and debugging tools
+  - **RED**: Write failing test `test_isg_debug_output()` expecting human-readable graph representation
+  - **RED**: Write failing test `test_isg_export_dot_format()` for Graphviz visualization
+  - **GREEN**: Implement debug_print() method showing nodes and edges in readable format
+  - **GREEN**: Implement export_dot() method for Graphviz visualization
+  - **REFACTOR**: Add CLI command `parseltongue debug --graph` for visualization
+  - _Requirements: REQ-MVP-005.0 (CLI debugging), User Experience (visualization)_
+
+- [ ] 5.8 Create sample data generator for learning
+  - **RED**: Write failing test `test_generate_sample_graph()` creating example ISG
+  - **GREEN**: Implement sample data generator with realistic Rust code patterns
+  - **GREEN**: Add CLI command `parseltongue sample --generate` for learning
+  - **REFACTOR**: Include documentation explaining each node and edge type
+  - _Requirements: User Experience (learning and understanding)_
+
 ## Success Criteria and Validation
 
 ### Per-Phase Success Criteria
