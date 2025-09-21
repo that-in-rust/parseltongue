@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-21 08:53:40 IST
+# Repository Snapshot - 2025-09-21 10:36:47 IST
 
 ## Summary Statistics
-- **Total Files**: 69
-- **Total Lines**: 67,070
-- **Total Words**: 200,697
-- **Snapshot Time**: 2025-09-21 08:53:40 IST
+- **Total Files**: 73
+- **Total Lines**: 67,164
+- **Total Words**: 201,234
+- **Snapshot Time**: 2025-09-21 10:36:47 IST
 
 ## File Inventory
 
@@ -12,7 +12,7 @@
 |-----------|-------|-------|------|
 | ./Cargo.lock | 1054 | 2108 | 28K |
 | ./Cargo.toml | 24 | 85 | 521 |
-| ./CLI_IMPLEMENTATION_SUMMARY.md | 135 | 667 | 5.0K |
+| ./CLI_IMPLEMENTATION_SUMMARY.md | 136 | 679 | 5.1K |
 | ./COMMIT_SUMMARY.md | 137 | 771 | 6.1K |
 | ./.cursorignore | 135 | 202 | 1.7K |
 | ./DeepThink20250920v2.md | [binary] | [binary] | 0 |
@@ -21,11 +21,11 @@
 | ./example_dump.txt | 26 | 69 | 455 |
 | ./.gitignore | 222 | 383 | 2.9K |
 | ./graph.dot | 10 | 29 | 421 |
-| ./IMPLEMENTATION_NOTES.md | 211 | 1027 | 8.0K |
+| ./IMPLEMENTATION_NOTES.md | 212 | 1042 | 8.1K |
 | ./ISG_EXPLAINED.md | 139 | 496 | 3.4K |
-| ./.kiro/file-snapshots/change-log.md | 1328 | 3919 | 30K |
-| ./.kiro/file-snapshots/current-snapshot.md | 80 | 709 | 4.6K |
-| ./.kiro/file-snapshots/previous-snapshot.md | 80 | 709 | 4.6K |
+| ./.kiro/file-snapshots/change-log.md | 1342 | 3955 | 30K |
+| ./.kiro/file-snapshots/current-snapshot.md | 81 | 718 | 4.7K |
+| ./.kiro/file-snapshots/previous-snapshot.md | 81 | 718 | 4.7K |
 | ./.kiro/hooks/source-docs-sync.kiro.hook | [binary] | [binary] | 1.8K |
 | ./.kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 545 |
 | ./.kiro/options/architecture-backlog.md | 2638 | 12791 | 104K |
@@ -54,7 +54,7 @@
 | ./.kiro/specs/parseltongue-aim-daemon/requirements-tasks.md | 107 | 1220 | 9.6K |
 | ./.kiro/specs/parseltongue-aim-daemon/rust-patterns-analysis.md | 483 | 1480 | 14K |
 | ./.kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 220 | 1096 | 8.7K |
-| ./.kiro/specs/parseltongue-aim-daemon/tasks.md | 317 | 2328 | 19K |
+| ./.kiro/specs/parseltongue-aim-daemon/tasks.md | 318 | 2350 | 19K |
 | ./.kiro/steering/code-conventions.md | 1997 | 6142 | 53K |
 | ./.kiro/steering/design101-tdd-architecture-principles.md | 943 | 3431 | 29K |
 | ./.kiro/steering/hook-automation-guide.md | 256 | 1274 | 11K |
@@ -65,15 +65,19 @@
 | ./.kiro/unified-progress-tracker.sh | 242 | 1138 | 9.4K |
 | ./ONBOARDING_GUIDE.md | 347 | 1253 | 9.3K |
 | ./parseltongue_dump.txt | 24 | 64 | 514 |
-| ./README.md | 198 | 751 | 5.8K |
+| ./parseltongue_snapshot.json | [binary] | [binary] | 188K |
+| ./README.md | 201 | 782 | 6.0K |
 | ./_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
+| ./RESILIENT_PARSING_UPDATE.md | 101 | 557 | 4.2K |
 | ./simple_test.dump | 17 | 39 | 248 |
 | ./SPEC_UPDATE_SUMMARY.md | 118 | 658 | 5.0K |
-| ./src/cli.rs | 547 | 1536 | 18K |
-| ./src/daemon.rs | 783 | 2291 | 28K |
+| ./src/cli.rs | 563 | 1615 | 19K |
+| ./src/daemon.rs | 789 | 2316 | 28K |
 | ./src/isg.rs | 737 | 2220 | 27K |
 | ./src/lib.rs | 23 | 79 | 591 |
 | ./src/main.rs | 13 | 34 | 280 |
+| ./STEERING_COMPLIANCE_ANALYSIS.md | 54 | 345 | 2.5K |
+| ./test_axum_analysis.rs | [binary] | [binary] | 0 |
 | ./test_axum_format.txt | 15 | 33 | 297 |
 | ./test_small.txt | 22 | 51 | 401 |
 | ./visualize_isg | [binary] | [binary] | 28M |

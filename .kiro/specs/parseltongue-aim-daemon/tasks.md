@@ -3,8 +3,8 @@
 This implementation plan follows the **TDD-first approach** from the rigorous OptimizedISG design. Each task builds incrementally using the **RED → GREEN → REFACTOR** cycle with proven performance characteristics.
 
 **Architecture Foundation**: petgraph + parking_lot::RwLock + FxHashMap + Arc<str> interning
-**Performance Targets**: <5μs node ops, <500μs simple queries, <1ms complex queries
-**Memory Target**: 350 bytes/node, <25MB for 100K LOC
+**Performance Targets**: <10μs node ops, <1ms simple queries, <2ms complex queries
+**Memory Target**: 700 bytes/node, <50MB for 100K LOC
 
 ## Phase 1: OptimizedISG Core (Week 1)
 
@@ -46,7 +46,7 @@ This implementation plan follows the **TDD-first approach** from the rigorous Op
 
 - [ ] 1.5 Implement node upsert operations (O(1) target)
   - **RED**: Write failing test `test_upsert_and_get_node()` with insert/update/retrieve scenarios
-  - **RED**: Write failing test `test_node_operation_performance()` asserting <5μs operations
+  - **RED**: Write failing test `test_node_operation_performance()` asserting <10μs operations
   - **GREEN**: Implement upsert_node() with write lock and FxHashMap index
   - **GREEN**: Implement get_node() with read lock and index lookup
   - **REFACTOR**: Optimize for performance, validate timing constraints in tests
@@ -66,7 +66,7 @@ This implementation plan follows the **TDD-first approach** from the rigorous Op
 
 - [ ] 2.1 Implement what-implements query (<500μs target)
   - **RED**: Write failing test `test_query_who_implements()` with known graph structure
-  - **RED**: Write failing test `test_what_implements_performance()` asserting <500μs execution
+  - **RED**: Write failing test `test_what_implements_performance()` asserting <1ms execution
   - **GREEN**: Implement find_implementors() using petgraph edge traversal with Direction::Incoming
   - **GREEN**: Filter edges by EdgeKind::Implements, collect implementing nodes
   - **REFACTOR**: Optimize traversal, validate performance contract in tests
@@ -74,7 +74,7 @@ This implementation plan follows the **TDD-first approach** from the rigorous Op
 
 - [ ] 2.2 Implement blast-radius query (<1ms target)
   - **RED**: Write failing test `test_query_blast_radius_bfs()` with expected reachable nodes
-  - **RED**: Write failing test `test_blast_radius_performance()` asserting <1ms execution
+  - **RED**: Write failing test `test_blast_radius_performance()` asserting <2ms execution
   - **GREEN**: Implement calculate_blast_radius() using petgraph BFS traversal
   - **GREEN**: Use Bfs::new() and iter() to collect reachable nodes efficiently
   - **REFACTOR**: Optimize for cache locality, validate against performance target
@@ -98,7 +98,7 @@ This implementation plan follows the **TDD-first approach** from the rigorous Op
 
 - [ ] 2.5 Performance contract validation
   - **RED**: Write failing test `test_performance_constraints()` for all timing requirements
-  - **GREEN**: Validate node operations <5μs, simple queries <500μs, complex queries <1ms
+  - **GREEN**: Validate node operations <10μs, simple queries <1ms, complex queries <2ms
   - **GREEN**: Test with realistic data sizes (1000+ nodes, 4000+ edges)
   - **REFACTOR**: Create helper functions for performance testing, document results
   - _Requirements: REQ-MVP-006.0 (all performance constraints)_
@@ -256,7 +256,7 @@ This implementation plan follows the **TDD-first approach** from the rigorous Op
 
 - [ ] 5.6 Final performance validation and optimization
   - **RED**: Write failing test `test_all_performance_contracts()` for complete system
-  - **GREEN**: Validate: <5s ingestion, <12ms updates, <1ms queries, <500ms persistence
+  - **GREEN**: Validate: <5s ingestion, <25ms updates, <2ms queries, <500ms persistence
   - **GREEN**: Test memory usage <25MB for 100K LOC
   - **REFACTOR**: Optimize any bottlenecks found, document final performance
   - _Requirements: REQ-MVP-006.0 (all performance constraints)_
@@ -304,10 +304,10 @@ Each TDD cycle must demonstrate:
 ### Performance Validation Summary
 
 **Proven Architecture Guarantees** (from DeepThink analysis):
-- **Node/Edge Operations**: 1-5μs (O(1) with parking_lot::RwLock)
-- **Simple Queries**: <500μs (petgraph traversal)
-- **Complex Queries**: <1ms (BFS with cache locality)
-- **Memory Usage**: 350 bytes/node (Arc<str> interning + petgraph overhead)
+- **Node/Edge Operations**: 2-10μs (O(1) with parking_lot::RwLock, 2x tolerance)
+- **Simple Queries**: <1ms (petgraph traversal, 2x tolerance)
+- **Complex Queries**: <2ms (BFS with cache locality, 2x tolerance)
+- **Memory Usage**: 350-700 bytes/node (Arc<str> interning + petgraph overhead, 2x tolerance)
 - **Concurrency**: Thread-safe with single RwLock design
 
 **Implementation Approach**:

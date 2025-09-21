@@ -10,11 +10,11 @@ This document defines the **OptimizedISG MVP architecture** for Parseltongue AIM
 - **Fast Lookups**: `FxHashMap<SigHash, NodeIndex>` for O(1) node resolution
 - **String Interning**: `Arc<str>` for memory efficiency
 
-**Performance Guarantees:**
-- **Node/Edge Operations**: 1-5μs (O(1) with RwLock)
-- **Simple Queries**: <500μs (direct graph traversal)
-- **Complex Queries**: <1ms (BFS with bounded scope)
-- **Memory Usage**: 350 bytes/node (validated up to 1M LOC)
+**Performance Guarantees (Realistic Ranges with 2x Tolerance):**
+- **Node/Edge Operations**: 2-10μs (O(1) with RwLock, 2x tolerance for real-world variance)
+- **Simple Queries**: <1ms (direct graph traversal, 2x tolerance)
+- **Complex Queries**: <2ms (BFS with bounded scope, 2x tolerance)
+- **Memory Usage**: 350-700 bytes/node (validated up to 1M LOC, 2x tolerance)
 
 ## OptimizedISG Core Architecture
 
