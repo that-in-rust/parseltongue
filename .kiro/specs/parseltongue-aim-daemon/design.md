@@ -2,19 +2,21 @@
 
 ## Introduction
 
-This document defines the **OptimizedISG MVP architecture** for Parseltongue AIM Daemon, implementing the proven pattern from DeepThink analysis. This architecture uses `petgraph` + `parking_lot::RwLock` + `FxHashMap` for optimal performance within the <500μs query constraint.
+This document defines the **OptimizedISG MVP architecture** for Parseltongue AIM Daemon, implementing the proven pattern from DeepThink analysis. This architecture uses `petgraph` + `parking_lot::RwLock` + `FxHashMap` for optimal performance within the <12ms update and <1ms query constraints.
 
 **Core Architecture Decision:**
 - **OptimizedISG**: Custom in-memory graph using `petgraph::StableDiGraph`
 - **Single RwLock**: `parking_lot::RwLock` protecting entire state (graph + index)
 - **Fast Lookups**: `FxHashMap<SigHash, NodeIndex>` for O(1) node resolution
 - **String Interning**: `Arc<str>` for memory efficiency
+- **High-Performance Persistence**: `rkyv` serialization for <500ms snapshot operations
 
-**Performance Guarantees (Realistic Ranges with 2x Tolerance):**
-- **Node/Edge Operations**: 2-10μs (O(1) with RwLock, 2x tolerance for real-world variance)
-- **Simple Queries**: <1ms (direct graph traversal, 2x tolerance)
-- **Complex Queries**: <2ms (BFS with bounded scope, 2x tolerance)
-- **Memory Usage**: 350-700 bytes/node (validated up to 1M LOC, 2x tolerance)
+**Performance Guarantees (MVP Requirements Aligned):**
+- **File Update Latency**: <12ms (REQ-MVP-002.0 - critical constraint for real-time workflow)
+- **Query Response Time**: <1ms (REQ-MVP-003.0 - sub-millisecond graph traversals)
+- **Code Dump Ingestion**: <5s for 2.1MB (REQ-MVP-001.0 - immediate usability)
+- **Memory Usage**: <25MB for 100K LOC (REQ-MVP-006.0 - efficient in-memory architecture)
+- **Snapshot Operations**: <500ms save/load (REQ-MVP-006.0 - fast restart capability)
 
 ## OptimizedISG Core Architecture
 
@@ -31,6 +33,8 @@ notify = "6.0"
 clap = { version = "4.0", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+rkyv = { version = "0.7", features = ["validation"] }
+anyhow = "1.0"
 ```
 
 ### Core Data Structures
@@ -47,6 +51,8 @@ use thiserror::Error;
 
 // Strong typing for unique identifier (collision-free)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
+#[archive(check_bytes)]
 pub struct SigHash(pub u64);
 
 impl SigHash {
@@ -61,6 +67,8 @@ impl SigHash {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
+#[archive(check_bytes)]
 pub enum NodeKind {
     Function,
     Struct,
@@ -181,7 +189,7 @@ impl OptimizedISG {
 ```rust
 impl OptimizedISG {
     /// Query: what-implements (REQ-MVP-003.0)
-    /// Target: <500μs for typical queries
+    /// Target: <1ms for sub-millisecond response (requirement compliance)
     pub fn find_implementors(&self, trait_hash: SigHash) -> Result<Vec<NodeData>, ISGError> {
         let state = self.state.read();
         let trait_idx = *state.id_map.get(&trait_hash).ok_or(ISGError::NodeNotFound(trait_hash))?;
@@ -200,7 +208,7 @@ impl OptimizedISG {
     }
 
     /// Query: blast-radius (REQ-MVP-003.0)
-    /// Target: <1ms for complex traversals
+    /// Target: <1ms for complex traversals (requirement compliance)
     pub fn calculate_blast_radius(&self, start_hash: SigHash) -> Result<HashSet<SigHash>, ISGError> {
         let state = self.state.read();
         let start_idx = *state.id_map.get(&start_hash).ok_or(ISGError::NodeNotFound(start_hash))?;
@@ -700,10 +708,11 @@ impl ParseltongueAIM {
         
         drop(state); // Release read lock
         
-        let serialized = serde_json::to_string_pretty(&snapshot)
-            .map_err(|e| ISGError::IoError(e.to_string()))?;
+        // Use rkyv for high-performance serialization (REQ-MVP-006.0)
+        let serialized = rkyv::to_bytes::<_, 256>(&snapshot)
+            .map_err(|e| ISGError::IoError(format!("rkyv serialization failed: {}", e)))?;
         
-        std::fs::write(path, serialized)
+        std::fs::write(path, &serialized)
             .map_err(|e| ISGError::IoError(e.to_string()))?;
         
         let elapsed = start.elapsed();
@@ -729,11 +738,14 @@ impl ParseltongueAIM {
         }
         
         let start = Instant::now();
-        let content = std::fs::read_to_string(path)
+        let content = std::fs::read(path)
             .map_err(|e| ISGError::IoError(e.to_string()))?;
         
-        let snapshot: ISGSnapshot = serde_json::from_str(&content)
-            .map_err(|e| ISGError::IoError(e.to_string()))?;
+        // Use rkyv for high-performance deserialization (REQ-MVP-006.0)
+        let snapshot = rkyv::check_archived_root::<ISGSnapshot>(&content)
+            .map_err(|e| ISGError::IoError(format!("rkyv validation failed: {}", e)))?
+            .deserialize(&mut rkyv::Infallible)
+            .map_err(|e| ISGError::IoError(format!("rkyv deserialization failed: {}", e)))?;
         
         // Rebuild ISG from snapshot
         let mut new_isg = OptimizedISG::new();
@@ -766,21 +778,24 @@ impl ParseltongueAIM {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
+#[archive(check_bytes)]
 struct ISGSnapshot {
     nodes: Vec<NodeData>,
     edges: Vec<EdgeSnapshot>,
     metadata: SnapshotMetadata,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
+#[archive(check_bytes)]
 struct EdgeSnapshot {
     from: SigHash,
     to: SigHash,
     kind: EdgeKind,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize)]
+#[archive(check_bytes)]
 struct SnapshotMetadata {
     version: u32,
     timestamp: u64,

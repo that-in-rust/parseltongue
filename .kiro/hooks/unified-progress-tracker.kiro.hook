@@ -12,6 +12,6 @@
   },
   "then": {
     "type": "askAgent",
-    "prompt": "Run the unified progress tracker script: ./.kiro/unified-progress-tracker.sh"
+    "prompt": "Run the unified progress tracker script:   ./.kiro/unified-progress-tracker.sh"
   }
 }

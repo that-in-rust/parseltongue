@@ -27,13 +27,13 @@ The hook system implements the session continuity requirements from the requirem
 **Trigger**: `fileSaved` on `**/*` excluding `.git/**/*` (any file save in repository except git folder)
 
 **Actions**:
-- Generates comprehensive repository snapshots with complete file inventory
-- Tracks ALL files (including .git) for accurate repository state
+- Generates comprehensive repository snapshots with complete file inventory and spec progress summary
+- Tracks ALL files with absolute path resolution from git repository root
 - Counts lines/words across expanded file types (.md, .rs, .toml, .json, .txt, .yml, .yaml)
-- Updates SESSION_CONTEXT.md with current progress percentages
-- Calculates task completion from requirements-tasks.md
-- Creates intelligent git commit messages based on change types
-- Commits only `.kiro/` directory changes to v01 branch
+- Updates all SESSION_CONTEXT.md files across multiple specs with phase detection
+- Calculates task completion from tasks.md files in each spec directory
+- Creates structured git commit messages with categorized change types
+- Commits only `.kiro/` directory changes to current branch with untracked file detection
 
 **Script**: `.kiro/unified-progress-tracker.sh`
 
@@ -153,16 +153,17 @@ The hooks enforce MVP constraints through intelligent filtering:
 **Location**: `.kiro/unified-progress-tracker.sh`
 
 **Core Functions**:
-1. `generate_repository_snapshot()` - Creates comprehensive file inventory
-2. `update_session_context()` - Updates SESSION_CONTEXT.md with progress
-3. `generate_delta_report()` - Tracks changes between snapshots
-4. `detect_change_type()` - Categorizes changes for commit messages
+1. `generate_repository_snapshot()` - Creates comprehensive file inventory with spec progress tracking
+2. `update_session_context()` - Updates all SESSION_CONTEXT.md files across multiple specs
+3. `generate_delta_report()` - Tracks changes between snapshots with file-level analysis
+4. `detect_change_type()` - Categorizes changes for structured commit messages
 
 **Git Integration**:
 - **Scope**: Only commits `.kiro/` directory changes
-- **Branch**: Pushes to `v01` branch specifically
-- **Messages**: Intelligent categorization (requirements, tasks, architecture, etc.)
-- **Safety**: Verifies changes exist before committing
+- **Branch**: Pushes to current branch (auto-detected with `git branch --show-current`)
+- **Messages**: Intelligent categorization with structured format `unified-progress [category] timestamp`
+- **Safety**: Verifies changes exist (staged, unstaged, and untracked) before committing
+- **Repository Root**: Uses `git rev-parse --show-toplevel` for absolute path resolution
 
 **Performance Characteristics**:
 - **Execution Time**: ~2-5 seconds for typical repositories
@@ -196,10 +197,11 @@ The hooks enforce MVP constraints through intelligent filtering:
 
 ### Git Operations Failing
 
-1. **Branch Existence**: Ensure `v01` branch exists
-2. **Remote Access**: Verify git push permissions
-3. **Uncommitted Changes**: Check for conflicts in working directory
-4. **Network Issues**: Test git connectivity manually
+1. **Branch Detection**: Script auto-detects current branch with `git branch --show-current`
+2. **Remote Access**: Verify git push permissions for current branch
+3. **Repository Root**: Ensure script runs from git repository root (auto-detected)
+4. **Untracked Files**: Script now detects and includes untracked files in `.kiro/`
+5. **Network Issues**: Test git connectivity manually
 
 ## Best Practices
 
@@ -224,10 +226,10 @@ The hooks enforce MVP constraints through intelligent filtering:
 ## Integration with Development Workflow
 
 ### Daily Development Cycle
-1. **File Save** → Unified Progress Tracker runs automatically
-2. **Progress Updated** → SESSION_CONTEXT.md reflects current state
-3. **Changes Committed** → Only `.kiro/` changes pushed to v01
-4. **Context Preserved** → Complete session state maintained
+1. **File Save** → Unified Progress Tracker runs automatically from git repository root
+2. **Progress Updated** → All SESSION_CONTEXT.md files across specs reflect current state
+3. **Changes Committed** → Only `.kiro/` changes pushed to current branch with structured messages
+4. **Context Preserved** → Complete session state maintained with spec progress tracking
 
 ### Session Recovery
 1. **Open Project** → Read SESSION_CONTEXT.md for current state
