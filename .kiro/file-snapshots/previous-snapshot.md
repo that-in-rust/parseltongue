@@ -1,16 +1,17 @@
-# Repository Snapshot - 2025-09-21 22:09:27
+# Repository Snapshot - 2025-09-21 22:14:37
 
 ## Summary Statistics
-- **Total Files**: 78
-- **Total Lines**: 80,108
-- **Total Words**: 253,042
-- **Snapshot Time**: 2025-09-21 22:09:27
+- **Total Files**: 80
+- **Total Lines**: 80,277
+- **Total Words**: 254,644
+- **Snapshot Time**: 2025-09-21 22:14:37
 
 ## Spec Progress Summary
 
 | Spec Name | Phase | Progress | Files |
 |-----------|-------|----------|-------|
 | parseltongue-aim-daemon | Implementation (5%) | - | 3/3 |
+| parseltongue-architect-v2 | Design | - | 2/3 |
 
 ## File Inventory
 
@@ -44,7 +45,7 @@
 | .kiro/backlog-options/user-journey-options.md | 85 | 346 | 2.9K |
 | .kiro/backlog-options/v2RequirementOptions.md | 291 | 2717 | 21K |
 | .kiro/backlog-options/v2RequirementOptionsP2.md | 117 | 833 | 6.2K |
-| .kiro/file-snapshots/change-log.md | 1730 | 4965 | 37K |
+| .kiro/file-snapshots/change-log.md | 1741 | 4996 | 38K |
 | .kiro/file-snapshots/current-snapshot.md | 96 | 823 | 5.4K |
 | .kiro/file-snapshots/previous-snapshot.md | 96 | 823 | 5.4K |
 | .kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 547 |
@@ -70,6 +71,8 @@
 | .kiro/specs/parseltongue-aim-daemon/rust-patterns-analysis.md | 483 | 1480 | 14K |
 | .kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 220 | 1096 | 8.7K |
 | .kiro/specs/parseltongue-aim-daemon/tasks.md | 318 | 2358 | 19K |
+| .kiro/specs/parseltongue-architect-v2/design.md | [binary] | [binary] | 0 |
+| .kiro/specs/parseltongue-architect-v2/requirements.md | 158 | 1571 | 12K |
 | .kiro/steering/code-conventions.md | 1997 | 6142 | 53K |
 | .kiro/steering/design101-tdd-architecture-principles.md | 943 | 3431 | 29K |
 | .kiro/steering/hook-automation-guide.md | 258 | 1362 | 11K |
