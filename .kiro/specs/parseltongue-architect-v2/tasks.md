@@ -93,4 +93,4 @@ The system is production-ready and can handle Sarah's core architectural intelli
 - [x] Make sure README doc has the HTML visualization of this codebase working in the browser
 
 
-- [-] Run .kiro/tree-with-wc.sh - and use mv commands to clean up the repo, it should look elegant for someone reading it on github, if in dout move it to zzzzArchive folder instead of deleting
+- [x] Run .kiro/tree-with-wc.sh - and use mv commands to clean up the repo, it should look elegant for someone reading it on github, if in dout move it to zzzzArchive folder instead of deleting
