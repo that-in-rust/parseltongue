@@ -88,6 +88,9 @@ The system is production-ready and can handle Sarah's core architectural intelli
 
 # README UPDATE
 
-- [-] Update All README and docs with Mermaid diagrams referencing the steering docs
+- [x] Update All README and docs with Mermaid diagrams referencing the steering docs
 
-- [ ] Run .kiro/tree-with-wc.sh - and use mv commands to clean up the repo, it should look elegant for someone reading it on github
+- [x] Make sure README doc has the HTML visualization of this codebase working in the browser
+
+
+- [-] Run .kiro/tree-with-wc.sh - and use mv commands to clean up the repo, it should look elegant for someone reading it on github, if in dout move it to zzzzArchive folder instead of deleting

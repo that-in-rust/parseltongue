@@ -143,6 +143,30 @@
       "signature": "fn test",
       "file_path": "test.rs",
       "line": 0
+    },
+    {
+      "hash": 6063756356869752710,
+      "kind": "Struct",
+      "name": "TestStruct",
+      "signature": "struct TestStruct",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 9724985693704408819,
+      "kind": "Trait",
+      "name": "TestTrait",
+      "signature": "trait TestTrait",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 6115722153671726781,
+      "kind": "Function",
+      "name": "main",
+      "signature": "fn main",
+      "file_path": "src/main.rs",
+      "line": 0
     }
   ],
   "edges": [
@@ -169,8 +193,8 @@
   ],
   "metadata": {
     "version": 1,
-    "timestamp": 1758561727,
-    "node_count": 18,
+    "timestamp": 1758573846,
+    "node_count": 21,
     "edge_count": 4
   }
 }

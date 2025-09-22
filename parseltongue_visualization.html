@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parseltongue Architecture Visualization</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #4CAF50;
+            margin: 0;
+        }
+        
+        .header p {
+            color: #888;
+            margin: 5px 0;
+        }
+        
+        .controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .controls button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .controls button:hover {
+            background: #45a049;
+        }
+        
+        .controls button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        #visualization {
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #2a2a2a;
+        }
+        
+        .info-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: #333;
+            border-radius: 8px;
+            padding: 15px;
+            display: none;
+        }
+        
+        .info-panel h3 {
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+        }
+        
+        .info-panel .close {
+            float: right;
+            cursor: pointer;
+            color: #888;
+            font-size: 18px;
+        }
+        
+        .info-panel .close:hover {
+            color: #fff;
+        }
+        
+        .legend {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #333;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .legend h4 {
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .function { background: #4CAF50; }
+        .struct { background: #2196F3; }
+        .trait { background: #FF9800; }
+        
+        .edge-calls { stroke: #4CAF50; }
+        .edge-uses { stroke: #2196F3; }
+        .edge-implements { stroke: #FF9800; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐍 Parseltongue Architecture Visualization</h1>
+        <p>Interactive Interface Signature Graph</p>
+        <p id="stats"></p>
+    </div>
+    
+    <div class="controls">
+        <button onclick="resetZoom()">Reset View</button>
+        <button onclick="togglePhysics()">Toggle Physics</button>
+        <button onclick="fitToScreen()">Fit to Screen</button>
+        <button onclick="exportSVG()" disabled>Export SVG</button>
+    </div>
+    
+    <div id="visualization"></div>
+    
+    <div id="info-panel" class="info-panel">
+        <span class="close" onclick="hideInfo()">&times;</span>
+        <h3 id="info-title">Node Information</h3>
+        <div id="info-content"></div>
+    </div>
+    
+    <div class="legend">
+        <h4>Legend</h4>
+        <div class="legend-item">
+            <div class="legend-color function"></div>
+            <span>Function</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color struct"></div>
+            <span>Struct</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color trait"></div>
+            <span>Trait</span>
+        </div>
+        <div style="margin-top: 10px; font-size: 12px; color: #888;">
+            <div>Green edges: Calls</div>
+            <div>Blue edges: Uses</div>
+            <div>Orange edges: Implements</div>
+        </div>
+    </div>
+
+    <script>
+        // Embedded graph data
+        const graphData = {"nodes":[{"id":"SigHash(16353081982130523382)","name":"hello","kind":"Function","signature":"fn fn hello () -> String","file_path":"src/lib.rs","line":0},{"id":"SigHash(9485481811301415811)","name":"Greeter","kind":"Trait","signature":"trait Greeter","file_path":"src/lib.rs","line":0},{"id":"SigHash(10979561714841261846)","name":"Person","kind":"Struct","signature":"struct Person","file_path":"src/lib.rs","line":0},{"id":"SigHash(8175709772413839693)","name":"hello","kind":"Function","signature":"fn fn hello () -> String","file_path":"test.rs","line":0},{"id":"SigHash(560971122830544133)","name":"Greeter","kind":"Trait","signature":"trait Greeter","file_path":"src/lib.rs","line":0},{"id":"SigHash(9553998966964721589)","name":"Person","kind":"Struct","signature":"struct Person","file_path":"src/lib.rs","line":0},{"id":"SigHash(13571457348359601696)","name":"hello_world","kind":"Function","signature":"fn fn hello_world () -> String","file_path":"src/lib.rs","line":0},{"id":"SigHash(10740570816758024744)","name":"User","kind":"Struct","signature":"struct User","file_path":"test.rs","line":0},{"id":"SigHash(2506728363491080123)","name":"main","kind":"Function","signature":"fn fn main ()","file_path":"src/main.rs","line":0},{"id":"SigHash(11105260519883774129)","name":"caller_function","kind":"Function","signature":"fn fn caller_function () -> i32","file_path":"src/lib.rs","line":0},{"id":"SigHash(10368001772047314979)","name":"called_function","kind":"Function","signature":"fn fn called_function () -> i32","file_path":"src/lib.rs","line":0},{"id":"SigHash(16686136457347706942)","name":"another_function","kind":"Function","signature":"fn fn another_function (x : i32) -> i32","file_path":"src/lib.rs","line":0},{"id":"SigHash(6332203483002590318)","name":"MyStruct","kind":"Struct","signature":"struct MyStruct","file_path":"src/lib.rs","line":0},{"id":"SigHash(9396342818812731859)","name":"uses_struct","kind":"Function","signature":"fn fn uses_struct (s : MyStruct) -> String","file_path":"src/lib.rs","line":0},{"id":"SigHash(12451646121676216808)","name":"Display","kind":"Trait","signature":"trait Display","file_path":"test.rs","line":0},{"id":"SigHash(13303972686857265969)","name":"hello","kind":"Function","signature":"fn hello","file_path":"src/lib.rs","line":0},{"id":"SigHash(2166166974846236763)","name":"greet","kind":"Function","signature":"fn greet","file_path":"src/lib.rs","line":0},{"id":"SigHash(15388673063887045451)","name":"test","kind":"Function","signature":"fn test","file_path":"test.rs","line":0},{"id":"SigHash(6063756356869752710)","name":"TestStruct","kind":"Struct","signature":"struct TestStruct","file_path":"src/lib.rs","line":0},{"id":"SigHash(9724985693704408819)","name":"TestTrait","kind":"Trait","signature":"trait TestTrait","file_path":"src/lib.rs","line":0},{"id":"SigHash(6115722153671726781)","name":"main","kind":"Function","signature":"fn main","file_path":"src/main.rs","line":0}],"edges":[{"source":"SigHash(10979561714841261846)","target":"SigHash(9485481811301415811)","kind":"Implements"},{"source":"SigHash(9553998966964721589)","target":"SigHash(560971122830544133)","kind":"Implements"},{"source":"SigHash(10740570816758024744)","target":"SigHash(560971122830544133)","kind":"Implements"},{"source":"SigHash(10740570816758024744)","target":"SigHash(12451646121676216808)","kind":"Implements"}],"metadata":{"node_count":21,"edge_count":4,"generated_at":1758573856}};
+        
+        // Focus entity (if specified)
+        const focusEntity = null;
+        
+        // Update stats
+        document.getElementById('stats').textContent = 
+            `${graphData.metadata.node_count} nodes, ${graphData.metadata.edge_count} edges`;
+        
+        // Simple force-directed graph implementation using Canvas
+        class GraphVisualization {
+            constructor(containerId, data) {
+                this.container = document.getElementById(containerId);
+                this.canvas = document.createElement('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.container.appendChild(this.canvas);
+                
+                this.data = data;
+                this.nodes = [];
+                this.edges = [];
+                this.physicsEnabled = true;
+                this.selectedNode = null;
+                
+                this.setupCanvas();
+                this.processData();
+                this.setupEventListeners();
+                this.animate();
+            }
+            
+            setupCanvas() {
+                this.canvas.width = this.container.clientWidth;
+                this.canvas.height = this.container.clientHeight;
+                this.canvas.style.display = 'block';
+                
+                // Handle resize
+                window.addEventListener('resize', () => {
+                    this.canvas.width = this.container.clientWidth;
+                    this.canvas.height = this.container.clientHeight;
+                });
+            }
+            
+            processData() {
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                
+                // Create nodes with random positions
+                this.nodes = this.data.nodes.map(node => ({
+                    ...node,
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: 0,
+                    vy: 0,
+                    radius: this.getNodeRadius(node.kind),
+                    color: this.getNodeColor(node.kind)
+                }));
+                
+                // Create edges
+                this.edges = this.data.edges.map(edge => ({
+                    ...edge,
+                    sourceNode: this.nodes.find(n => n.id === edge.source),
+                    targetNode: this.nodes.find(n => n.id === edge.target),
+                    color: this.getEdgeColor(edge.kind)
+                }));
+                
+                // Focus on specific entity if requested
+                if (focusEntity) {
+                    const focusNode = this.nodes.find(n => n.name === focusEntity);
+                    if (focusNode) {
+                        this.centerOnNode(focusNode);
+                    }
+                }
+            }
+            
+            getNodeRadius(kind) {
+                switch(kind) {
+                    case 'Function': return 8;
+                    case 'Struct': return 10;
+                    case 'Trait': return 12;
+                    default: return 8;
+                }
+            }
+            
+            getNodeColor(kind) {
+                switch(kind) {
+                    case 'Function': return '#4CAF50';
+                    case 'Struct': return '#2196F3';
+                    case 'Trait': return '#FF9800';
+                    default: return '#888';
+                }
+            }
+            
+            getEdgeColor(kind) {
+                switch(kind) {
+                    case 'Calls': return '#4CAF50';
+                    case 'Uses': return '#2196F3';
+                    case 'Implements': return '#FF9800';
+                    default: return '#666';
+                }
+            }
+            
+            centerOnNode(node) {
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                node.x = width / 2;
+                node.y = height / 2;
+            }
+            
+            setupEventListeners() {
+                let isDragging = false;
+                let dragNode = null;
+                let lastMouseX = 0;
+                let lastMouseY = 0;
+                
+                this.canvas.addEventListener('mousedown', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    // Find clicked node
+                    const clickedNode = this.nodes.find(node => {
+                        const dx = mouseX - node.x;
+                        const dy = mouseY - node.y;
+                        return Math.sqrt(dx * dx + dy * dy) < node.radius + 5;
+                    });
+                    
+                    if (clickedNode) {
+                        isDragging = true;
+                        dragNode = clickedNode;
+                        this.selectedNode = clickedNode;
+                        this.showNodeInfo(clickedNode);
+                        lastMouseX = mouseX;
+                        lastMouseY = mouseY;
+                    }
+                });
+                
+                this.canvas.addEventListener('mousemove', (e) => {
+                    if (isDragging && dragNode) {
+                        const rect = this.canvas.getBoundingClientRect();
+                        const mouseX = e.clientX - rect.left;
+                        const mouseY = e.clientY - rect.top;
+                        
+                        dragNode.x = mouseX;
+                        dragNode.y = mouseY;
+                        dragNode.vx = 0;
+                        dragNode.vy = 0;
+                    }
+                });
+                
+                this.canvas.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    dragNode = null;
+                });
+                
+                // Double-click to center on node
+                this.canvas.addEventListener('dblclick', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    const clickedNode = this.nodes.find(node => {
+                        const dx = mouseX - node.x;
+                        const dy = mouseY - node.y;
+                        return Math.sqrt(dx * dx + dy * dy) < node.radius + 5;
+                    });
+                    
+                    if (clickedNode) {
+                        this.centerOnNode(clickedNode);
+                    }
+                });
+            }
+            
+            showNodeInfo(node) {
+                const panel = document.getElementById('info-panel');
+                const title = document.getElementById('info-title');
+                const content = document.getElementById('info-content');
+                
+                title.textContent = node.name;
+                content.innerHTML = `
+                    <p><strong>Type:</strong> ${node.kind}</p>
+                    <p><strong>Signature:</strong> ${node.signature}</p>
+                    <p><strong>File:</strong> ${node.file_path}:${node.line}</p>
+                `;
+                
+                panel.style.display = 'block';
+            }
+            
+            updatePhysics() {
+                if (!this.physicsEnabled) return;
+                
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                
+                // Apply forces
+                for (let node of this.nodes) {
+                    // Repulsion between nodes
+                    for (let other of this.nodes) {
+                        if (node === other) continue;
+                        
+                        const dx = node.x - other.x;
+                        const dy = node.y - other.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance > 0 && distance < 100) {
+                            const force = 50 / (distance * distance);
+                            node.vx += (dx / distance) * force;
+                            node.vy += (dy / distance) * force;
+                        }
+                    }
+                    
+                    // Center attraction
+                    const centerX = width / 2;
+                    const centerY = height / 2;
+                    const toCenterX = centerX - node.x;
+                    const toCenterY = centerY - node.y;
+                    node.vx += toCenterX * 0.0001;
+                    node.vy += toCenterY * 0.0001;
+                    
+                    // Damping
+                    node.vx *= 0.9;
+                    node.vy *= 0.9;
+                    
+                    // Update position
+                    node.x += node.vx;
+                    node.y += node.vy;
+                    
+                    // Boundary constraints
+                    if (node.x < node.radius) { node.x = node.radius; node.vx = 0; }
+                    if (node.x > width - node.radius) { node.x = width - node.radius; node.vx = 0; }
+                    if (node.y < node.radius) { node.y = node.radius; node.vy = 0; }
+                    if (node.y > height - node.radius) { node.y = height - node.radius; node.vy = 0; }
+                }
+                
+                // Spring forces for edges
+                for (let edge of this.edges) {
+                    if (!edge.sourceNode || !edge.targetNode) continue;
+                    
+                    const dx = edge.targetNode.x - edge.sourceNode.x;
+                    const dy = edge.targetNode.y - edge.sourceNode.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const targetDistance = 80;
+                    
+                    if (distance > 0) {
+                        const force = (distance - targetDistance) * 0.01;
+                        const fx = (dx / distance) * force;
+                        const fy = (dy / distance) * force;
+                        
+                        edge.sourceNode.vx += fx;
+                        edge.sourceNode.vy += fy;
+                        edge.targetNode.vx -= fx;
+                        edge.targetNode.vy -= fy;
+                    }
+                }
+            }
+            
+            render() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw edges
+                for (let edge of this.edges) {
+                    if (!edge.sourceNode || !edge.targetNode) continue;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(edge.sourceNode.x, edge.sourceNode.y);
+                    this.ctx.lineTo(edge.targetNode.x, edge.targetNode.y);
+                    this.ctx.strokeStyle = edge.color;
+                    this.ctx.lineWidth = 1;
+                    this.ctx.stroke();
+                    
+                    // Draw arrow
+                    const dx = edge.targetNode.x - edge.sourceNode.x;
+                    const dy = edge.targetNode.y - edge.sourceNode.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance > 0) {
+                        const arrowX = edge.targetNode.x - (dx / distance) * (edge.targetNode.radius + 5);
+                        const arrowY = edge.targetNode.y - (dy / distance) * (edge.targetNode.radius + 5);
+                        
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(arrowX, arrowY);
+                        this.ctx.lineTo(arrowX - (dx / distance) * 8 + (dy / distance) * 4, 
+                                       arrowY - (dy / distance) * 8 - (dx / distance) * 4);
+                        this.ctx.lineTo(arrowX - (dx / distance) * 8 - (dy / distance) * 4, 
+                                       arrowY - (dy / distance) * 8 + (dx / distance) * 4);
+                        this.ctx.closePath();
+                        this.ctx.fillStyle = edge.color;
+                        this.ctx.fill();
+                    }
+                }
+                
+                // Draw nodes
+                for (let node of this.nodes) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(node.x, node.y, node.radius, 0, 2 * Math.PI);
+                    this.ctx.fillStyle = node.color;
+                    this.ctx.fill();
+                    
+                    if (node === this.selectedNode) {
+                        this.ctx.strokeStyle = '#fff';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.stroke();
+                    }
+                    
+                    // Draw label
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(node.name, node.x, node.y + node.radius + 15);
+                }
+            }
+            
+            animate() {
+                this.updatePhysics();
+                this.render();
+                requestAnimationFrame(() => this.animate());
+            }
+            
+            resetZoom() {
+                // Reset all nodes to random positions
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                
+                for (let node of this.nodes) {
+                    node.x = Math.random() * width;
+                    node.y = Math.random() * height;
+                    node.vx = 0;
+                    node.vy = 0;
+                }
+            }
+            
+            togglePhysics() {
+                this.physicsEnabled = !this.physicsEnabled;
+            }
+            
+            fitToScreen() {
+                // Center all nodes
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                
+                for (let node of this.nodes) {
+                    node.x = width / 2 + (Math.random() - 0.5) * 200;
+                    node.y = height / 2 + (Math.random() - 0.5) * 200;
+                    node.vx = 0;
+                    node.vy = 0;
+                }
+            }
+        }
+        
+        // Initialize visualization
+        const viz = new GraphVisualization('visualization', graphData);
+        
+        // Global functions for controls
+        function resetZoom() {
+            viz.resetZoom();
+        }
+        
+        function togglePhysics() {
+            viz.togglePhysics();
+        }
+        
+        function fitToScreen() {
+            viz.fitToScreen();
+        }
+        
+        function exportSVG() {
+            alert('SVG export not implemented in this version');
+        }
+        
+        function hideInfo() {
+            document.getElementById('info-panel').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
