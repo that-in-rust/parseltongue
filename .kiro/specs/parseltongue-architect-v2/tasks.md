@@ -82,7 +82,7 @@ The system currently only extracts IMPLEMENTS relationships from impl blocks. Th
 
 ## Phase 2: Query Engine Enhancement
 
-- [ ] 2. Implement missing query types (calls, uses)
+- [-] 2. Implement missing query types (calls, uses)
   - **STUB**: Write failing tests for finding callers and type users
   - **RED**: Tests fail because calls/uses queries don't exist
   - **GREEN**: Implement edge filtering by EdgeKind (CALLS, USES) in ISG
@@ -91,7 +91,7 @@ The system currently only extracts IMPLEMENTS relationships from impl blocks. Th
   - Validate accuracy against manual code analysis
   - _Requirements: REQ-V2-005.0 (Core Query Engine - calls, uses)_
 
-- [ ] 2.1 Add calls and uses query types to CLI
+- [-] 2.1 Add calls and uses query types to CLI
   - **STUB**: Write failing test for CLI query type parsing
   - **RED**: Test fails because QueryType enum doesn't include Calls/Uses
   - **GREEN**: Add Calls and Uses variants to QueryType enum in cli.rs

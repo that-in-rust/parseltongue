@@ -1,0 +1,21 @@
+FILE: src/lib.rs
+pub fn caller_function() -> i32 {
+    let result = called_function();
+    another_function(result)
+}
+
+pub fn called_function() -> i32 {
+    42
+}
+
+pub fn another_function(x: i32) -> i32 {
+    x * 2
+}
+
+pub struct MyStruct {
+    field: String,
+}
+
+pub fn uses_struct(s: MyStruct) -> String {
+    s.field
+}

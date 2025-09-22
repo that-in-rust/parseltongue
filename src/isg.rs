@@ -3,7 +3,7 @@
 //! Core architecture: petgraph::StableDiGraph + parking_lot::RwLock + FxHashMap
 //! Performance targets: 1-5μs node ops, <500μs simple queries, <1ms complex queries
 
-use fxhash::FxHashMap;
+use fxhash::{FxHashMap, FxHashSet};
 use parking_lot::RwLock;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableDiGraph;
@@ -19,10 +19,10 @@ pub struct SigHash(pub u64);
 
 impl SigHash {
     pub fn from_signature(signature: &str) -> Self {
-        use std::collections::hash_map::DefaultHasher;
+        use fxhash::FxHasher;
         use std::hash::{Hash, Hasher};
         
-        let mut hasher = DefaultHasher::new();
+        let mut hasher = FxHasher::default();
         signature.hash(&mut hasher);
         Self(hasher.finish())
     }
@@ -188,6 +188,8 @@ pub(crate) struct ISGState {
     pub(crate) graph: StableDiGraph<NodeData, EdgeKind>,
     // FxHashMap provides fast O(1) lookups
     pub(crate) id_map: FxHashMap<SigHash, NodeIndex>,
+    // Name index for O(1) entity lookup by name
+    pub(crate) name_map: FxHashMap<Arc<str>, FxHashSet<SigHash>>,
 }
 
 /// OptimizedISG - High-performance in-memory Interface Signature Graph
@@ -208,6 +210,7 @@ impl OptimizedISG {
             state: Arc::new(RwLock::new(ISGState {
                 graph: StableDiGraph::new(),
                 id_map: FxHashMap::default(),
+                name_map: FxHashMap::default(),
             })),
         }
     }
@@ -223,10 +226,10 @@ impl OptimizedISG {
         
         // Print all nodes
         output.push_str("NODES:\n");
-        for (hash, &node_idx) in &state.id_map {
+        for (_hash, &node_idx) in &state.id_map {
             if let Some(node) = state.graph.node_weight(node_idx) {
                 output.push_str(&format!("  {:?} -> {} ({:?})\n", 
-                    hash, node.name, node.kind));
+                    node.hash, node.name, node.kind));
                 output.push_str(&format!("    Signature: {}\n", node.signature));
                 output.push_str(&format!("    File: {}:{}\n", node.file_path, node.line));
             }
@@ -253,7 +256,7 @@ impl OptimizedISG {
         output.push_str("  node [shape=box, style=rounded];\n\n");
         
         // Add nodes with different colors for different types
-        for (hash, &node_idx) in &state.id_map {
+        for (_hash, &node_idx) in &state.id_map {
             if let Some(node) = state.graph.node_weight(node_idx) {
                 let color = match node.kind {
                     NodeKind::Function => "lightblue",
@@ -363,13 +366,37 @@ impl OptimizedISG {
         
         if let Some(&node_idx) = state.id_map.get(&node.hash) {
             // Update existing node
-            if let Some(node_weight) = state.graph.node_weight_mut(node_idx) {
-                *node_weight = node;
+            if let Some(node_weight) = state.graph.node_weight(node_idx) {
+                let old_name = node_weight.name.clone();
+                let old_hash = node_weight.hash;
+                
+                // Remove old name mapping
+                if let Some(name_set) = state.name_map.get_mut(&old_name) {
+                    name_set.remove(&old_hash);
+                    if name_set.is_empty() {
+                        state.name_map.remove(&old_name);
+                    }
+                }
+                
+                // Update node (now we can get mutable reference)
+                if let Some(node_weight_mut) = state.graph.node_weight_mut(node_idx) {
+                    *node_weight_mut = node.clone();
+                }
+                
+                // Add new name mapping
+                state.name_map.entry(node.name.clone())
+                    .or_insert_with(FxHashSet::default)
+                    .insert(node.hash);
             }
         } else {
             // Insert new node
             let node_idx = state.graph.add_node(node.clone());
             state.id_map.insert(node.hash, node_idx);
+            
+            // Add name mapping
+            state.name_map.entry(node.name.clone())
+                .or_insert_with(FxHashSet::default)
+                .insert(node.hash);
         }
     }
 
@@ -459,10 +486,65 @@ impl OptimizedISG {
         Ok(visited)
     }
 
+    /// Find entities by name - O(1) operation with name index
+    pub fn find_by_name(&self, name: &str) -> Vec<SigHash> {
+        let state = self.state.read();
+        
+        if let Some(hash_set) = state.name_map.get(name) {
+            hash_set.iter().copied().collect()
+        } else {
+            Vec::new()
+        }
+    }
+
     /// Query: find-cycles - MVP stub
     pub fn find_cycles(&self) -> Vec<Vec<SigHash>> {
         // MVP: Return empty - satisfies requirement
         Vec::new()
+    }
+
+    /// Query: calls - Find all callers of an entity - Target: <1ms
+    pub fn find_callers(&self, target_hash: SigHash) -> Result<Vec<NodeData>, ISGError> {
+        let state = self.state.read();
+        
+        // Get target node index
+        let target_idx = state.id_map.get(&target_hash).copied().ok_or(ISGError::NodeNotFound(target_hash))?;
+        
+        let mut callers = Vec::new();
+        
+        // Find all nodes that have "Calls" edges pointing to this target
+        for edge_ref in state.graph.edges_directed(target_idx, Direction::Incoming) {
+            if *edge_ref.weight() == EdgeKind::Calls {
+                let caller_idx = edge_ref.source();
+                if let Some(node_data) = state.graph.node_weight(caller_idx) {
+                    callers.push(node_data.clone());
+                }
+            }
+        }
+        
+        Ok(callers)
+    }
+
+    /// Query: uses - Find all users of a type - Target: <1ms
+    pub fn find_users(&self, target_hash: SigHash) -> Result<Vec<NodeData>, ISGError> {
+        let state = self.state.read();
+        
+        // Get target node index
+        let target_idx = state.id_map.get(&target_hash).copied().ok_or(ISGError::NodeNotFound(target_hash))?;
+        
+        let mut users = Vec::new();
+        
+        // Find all nodes that have "Uses" edges pointing to this target
+        for edge_ref in state.graph.edges_directed(target_idx, Direction::Incoming) {
+            if *edge_ref.weight() == EdgeKind::Uses {
+                let user_idx = edge_ref.source();
+                if let Some(node_data) = state.graph.node_weight(user_idx) {
+                    users.push(node_data.clone());
+                }
+            }
+        }
+        
+        Ok(users)
     }
 }
 
@@ -524,6 +606,25 @@ mod tests {
         
         // Same input should produce same hash
         assert_eq!(hash1, hash2);
+    }
+
+    #[test]
+    fn test_sighash_uses_fxhasher() {
+        // Verify we're using FxHasher for deterministic cross-platform hashing
+        let signature = "fn test_function() -> i32";
+        let hash = SigHash::from_signature(signature);
+        
+        // FxHasher should produce consistent results
+        // This specific hash value validates we're using FxHasher, not DefaultHasher
+        let expected_hash = {
+            use fxhash::FxHasher;
+            use std::hash::{Hash, Hasher};
+            let mut hasher = FxHasher::default();
+            signature.hash(&mut hasher);
+            SigHash(hasher.finish())
+        };
+        
+        assert_eq!(hash, expected_hash, "SigHash should use FxHasher for deterministic results");
     }
 
     // TDD Cycle 3: Node operations (RED phase)
@@ -727,6 +828,42 @@ mod tests {
         assert_eq!(isg.node_count(), 100);
         assert_eq!(isg.edge_count(), 99);
         assert_eq!(isg.calculate_blast_radius(SigHash(1)).unwrap().len(), 99);
+    }
+
+    #[test]
+    fn test_find_by_name_o1_lookup() {
+        let isg = OptimizedISG::new();
+        
+        // Add nodes with same and different names
+        let node1 = mock_node(1, NodeKind::Function, "test_function");
+        let node2 = mock_node(2, NodeKind::Struct, "TestStruct");
+        let node3 = mock_node(3, NodeKind::Function, "test_function"); // Same name, different hash
+        
+        isg.upsert_node(node1.clone());
+        isg.upsert_node(node2.clone());
+        isg.upsert_node(node3.clone());
+        
+        // Test O(1) name lookup
+        let start = Instant::now();
+        let function_hashes = isg.find_by_name("test_function");
+        let elapsed = start.elapsed();
+        
+        // Should find both functions with same name
+        assert_eq!(function_hashes.len(), 2);
+        assert!(function_hashes.contains(&SigHash(1)));
+        assert!(function_hashes.contains(&SigHash(3)));
+        
+        // Should be O(1) - very fast lookup
+        assert!(elapsed.as_micros() < 10, "Name lookup took {}μs (should be <10μs)", elapsed.as_micros());
+        
+        // Test single result
+        let struct_hashes = isg.find_by_name("TestStruct");
+        assert_eq!(struct_hashes.len(), 1);
+        assert_eq!(struct_hashes[0], SigHash(2));
+        
+        // Test non-existent name
+        let missing = isg.find_by_name("NonExistent");
+        assert!(missing.is_empty());
     }
 
     #[test]

@@ -23,6 +23,118 @@
       "signature": "struct Person",
       "file_path": "src/lib.rs",
       "line": 0
+    },
+    {
+      "hash": 8175709772413839693,
+      "kind": "Function",
+      "name": "hello",
+      "signature": "fn fn hello () -> String",
+      "file_path": "test.rs",
+      "line": 0
+    },
+    {
+      "hash": 560971122830544133,
+      "kind": "Trait",
+      "name": "Greeter",
+      "signature": "trait Greeter",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 9553998966964721589,
+      "kind": "Struct",
+      "name": "Person",
+      "signature": "struct Person",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 13571457348359601696,
+      "kind": "Function",
+      "name": "hello_world",
+      "signature": "fn fn hello_world () -> String",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 10740570816758024744,
+      "kind": "Struct",
+      "name": "User",
+      "signature": "struct User",
+      "file_path": "test.rs",
+      "line": 0
+    },
+    {
+      "hash": 2506728363491080123,
+      "kind": "Function",
+      "name": "main",
+      "signature": "fn fn main ()",
+      "file_path": "src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 11105260519883774129,
+      "kind": "Function",
+      "name": "caller_function",
+      "signature": "fn fn caller_function () -> i32",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 10368001772047314979,
+      "kind": "Function",
+      "name": "called_function",
+      "signature": "fn fn called_function () -> i32",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 16686136457347706942,
+      "kind": "Function",
+      "name": "another_function",
+      "signature": "fn fn another_function (x : i32) -> i32",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 6332203483002590318,
+      "kind": "Struct",
+      "name": "MyStruct",
+      "signature": "struct MyStruct",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 9396342818812731859,
+      "kind": "Function",
+      "name": "uses_struct",
+      "signature": "fn fn uses_struct (s : MyStruct) -> String",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 12451646121676216808,
+      "kind": "Trait",
+      "name": "Display",
+      "signature": "trait Display",
+      "file_path": "test.rs",
+      "line": 0
+    },
+    {
+      "hash": 13303972686857265969,
+      "kind": "Function",
+      "name": "hello",
+      "signature": "fn hello",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 2166166974846236763,
+      "kind": "Function",
+      "name": "greet",
+      "signature": "fn greet",
+      "file_path": "src/lib.rs",
+      "line": 0
     }
   ],
   "edges": [
@@ -30,12 +142,27 @@
       "from": 10979561714841261846,
       "to": 9485481811301415811,
       "kind": "Implements"
+    },
+    {
+      "from": 9553998966964721589,
+      "to": 560971122830544133,
+      "kind": "Implements"
+    },
+    {
+      "from": 10740570816758024744,
+      "to": 560971122830544133,
+      "kind": "Implements"
+    },
+    {
+      "from": 10740570816758024744,
+      "to": 12451646121676216808,
+      "kind": "Implements"
     }
   ],
   "metadata": {
     "version": 1,
-    "timestamp": 1758457913,
-    "node_count": 3,
-    "edge_count": 1
+    "timestamp": 1758532830,
+    "node_count": 17,
+    "edge_count": 4
   }
 }

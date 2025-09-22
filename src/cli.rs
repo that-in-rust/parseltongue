@@ -71,6 +71,10 @@ pub enum QueryType {
     BlastRadius,
     /// Find circular dependencies
     FindCycles,
+    /// Find all callers of an entity
+    Calls,
+    /// Find all users of a type
+    Uses,
 }
 
 #[derive(Clone, ValueEnum)]
@@ -184,6 +188,16 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                     daemon.isg.find_cycles().into_iter().flatten()
                         .map(|h| format!("{:?}", h)).collect()
                 }
+                QueryType::Calls => {
+                    let entity_hash = daemon.find_entity_by_name(&target)?;
+                    let callers = daemon.isg.find_callers(entity_hash)?;
+                    callers.into_iter().map(|n| n.name.to_string()).collect::<Vec<_>>()
+                }
+                QueryType::Uses => {
+                    let entity_hash = daemon.find_entity_by_name(&target)?;
+                    let users = daemon.isg.find_users(entity_hash)?;
+                    users.into_iter().map(|n| n.name.to_string()).collect::<Vec<_>>()
+                }
             };
             
             let elapsed = start.elapsed();
@@ -195,6 +209,8 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                             QueryType::WhatImplements => "what-implements",
                             QueryType::BlastRadius => "blast-radius", 
                             QueryType::FindCycles => "find-cycles",
+                            QueryType::Calls => "calls",
+                            QueryType::Uses => "uses",
                         }, target);
                     for item in &result {
                         println!("  - {}", item);
@@ -368,6 +384,60 @@ mod tests {
         let result = run(cli);
         
         // Should fail in RED phase
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_calls_query_parsing() {
+        let args = vec!["parseltongue", "query", "calls", "test_function", "--format", "json"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        match cli.command {
+            Commands::Query { query_type, target, format } => {
+                assert!(matches!(query_type, QueryType::Calls));
+                assert_eq!(target, "test_function");
+                assert!(matches!(format, OutputFormat::Json));
+            }
+            _ => panic!("Expected Query command"),
+        }
+    }
+
+    #[test]
+    fn test_uses_query_parsing() {
+        let args = vec!["parseltongue", "query", "uses", "TestStruct"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        match cli.command {
+            Commands::Query { query_type, target, format } => {
+                assert!(matches!(query_type, QueryType::Uses));
+                assert_eq!(target, "TestStruct");
+                assert!(matches!(format, OutputFormat::Human));
+            }
+            _ => panic!("Expected Query command"),
+        }
+    }
+
+    #[test]
+    fn test_calls_query_execution() {
+        // This test will fail until we implement calls query execution
+        let args = vec!["parseltongue", "query", "calls", "test_function"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        let result = run(cli);
+        
+        // Should fail in RED phase because find_callers doesn't exist yet
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_uses_query_execution() {
+        // This test will fail until we implement uses query execution
+        let args = vec!["parseltongue", "query", "uses", "TestStruct"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        let result = run(cli);
+        
+        // Should fail in RED phase because find_users doesn't exist yet
         assert!(result.is_err());
     }
 
