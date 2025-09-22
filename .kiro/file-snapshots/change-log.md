@@ -1857,3 +1857,17 @@
 ### File-Level Changes
 ---
 
+
+## Delta Report - 2025-09-22 12:37:17
+
+### Summary Changes
+- **File Count**: 1 (82 total)
+- **Line Count**: 78 (81,306 total)
+- **Word Count**: 744 (262,936 total)
+
+### File-Level Changes
+**Added Files:**
+- .kiro/backlog-options/parseltonguev2deepthinkadvicev1.md
+
+---
+
