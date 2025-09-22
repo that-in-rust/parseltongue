@@ -61,6 +61,14 @@ pub enum Commands {
         #[arg(long)]
         sample: bool,
     },
+    /// Generate interactive HTML visualization
+    Visualize {
+        /// Target entity to focus visualization on (optional)
+        entity: Option<String>,
+        /// Output HTML file path
+        #[arg(long, default_value = "parseltongue_visualization.html")]
+        output: PathBuf,
+    },
 }
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -266,6 +274,33 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 println!("{}", daemon.isg.export_dot());
             } else {
                 println!("Use --graph to see ISG structure, --dot for Graphviz export, or --sample for learning example");
+            }
+        }
+        
+        Commands::Visualize { entity, output } => {
+            let start = Instant::now();
+            
+            let html = daemon.isg.generate_html_visualization(entity.as_deref())?;
+            
+            // Write HTML to file
+            std::fs::write(&output, html)
+                .map_err(|e| format!("Failed to write HTML file: {}", e))?;
+            
+            let elapsed = start.elapsed();
+            
+            println!("✓ Interactive HTML visualization generated:");
+            println!("  Output file: {}", output.display());
+            println!("  Nodes: {}", daemon.isg.node_count());
+            println!("  Edges: {}", daemon.isg.edge_count());
+            if let Some(entity) = entity {
+                println!("  Focused on: {}", entity);
+            }
+            println!("  Generation time: {}ms", elapsed.as_millis());
+            println!("  Open {} in your browser to view the visualization", output.display());
+            
+            // Verify <500ms constraint
+            if elapsed.as_millis() > 500 {
+                eprintln!("⚠️  HTML generation took {}ms (>500ms constraint violated)", elapsed.as_millis());
             }
         }
     }
@@ -630,5 +665,71 @@ impl Greeter for Person {
         // - Persistence: <500ms
         
         assert!(true, "Performance requirements test structure ready");
+    }
+
+    // TDD Cycle 22: Visualize command (RED phase)
+    #[test]
+    fn test_visualize_command_parsing() {
+        // Test visualize command without entity
+        let args = vec!["parseltongue", "visualize"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        match cli.command {
+            Commands::Visualize { entity, output } => {
+                assert!(entity.is_none());
+                assert_eq!(output, PathBuf::from("parseltongue_visualization.html"));
+            }
+            _ => panic!("Expected Visualize command"),
+        }
+        
+        // Test visualize command with entity and custom output
+        let args = vec!["parseltongue", "visualize", "MyFunction", "--output", "custom.html"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        match cli.command {
+            Commands::Visualize { entity, output } => {
+                assert_eq!(entity, Some("MyFunction".to_string()));
+                assert_eq!(output, PathBuf::from("custom.html"));
+            }
+            _ => panic!("Expected Visualize command"),
+        }
+    }
+
+    #[test]
+    fn test_visualize_command_execution() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_path = temp_dir.path().join("test_visualization.html");
+        
+        let args = vec!["parseltongue", "visualize", "--output", output_path.to_str().unwrap()];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        let result = run(cli);
+        
+        // Should succeed and create HTML file
+        assert!(result.is_ok());
+        assert!(output_path.exists());
+        
+        // Verify HTML content
+        let html_content = fs::read_to_string(&output_path).unwrap();
+        assert!(html_content.contains("<!DOCTYPE html>"));
+        assert!(html_content.contains("Parseltongue Architecture Visualization"));
+    }
+
+    #[test]
+    fn test_visualize_command_with_focus() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_path = temp_dir.path().join("focused_visualization.html");
+        
+        let args = vec!["parseltongue", "visualize", "TestFunction", "--output", output_path.to_str().unwrap()];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        let result = run(cli);
+        
+        // Should succeed even if entity doesn't exist (graceful handling)
+        assert!(result.is_ok());
+        assert!(output_path.exists());
+        
+        let html_content = fs::read_to_string(&output_path).unwrap();
+        assert!(html_content.contains("TestFunction"));
     }
 }

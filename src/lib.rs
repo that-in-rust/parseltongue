@@ -12,6 +12,7 @@ pub use crate::cli::*;
 pub mod isg;
 pub mod daemon;
 pub mod cli;
+pub mod performance_validation;
 
 #[cfg(test)]
 mod tests {

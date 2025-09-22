@@ -182,6 +182,38 @@ pub enum ISGError {
     InvalidInput(String),
 }
 
+/// Web visualization data structures
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct WebGraphData {
+    pub nodes: Vec<WebNode>,
+    pub edges: Vec<WebEdge>,
+    pub metadata: WebMetadata,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct WebNode {
+    pub id: String,
+    pub name: String,
+    pub kind: String,
+    pub signature: String,
+    pub file_path: String,
+    pub line: u32,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct WebEdge {
+    pub source: String,
+    pub target: String,
+    pub kind: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct WebMetadata {
+    pub node_count: usize,
+    pub edge_count: usize,
+    pub generated_at: u64,
+}
+
 // Internal mutable state protected by single RwLock
 pub(crate) struct ISGState {
     // StableDiGraph ensures indices remain valid upon deletion
@@ -551,6 +583,615 @@ impl OptimizedISG {
         users.sort_by(|a, b| a.name.cmp(&b.name));
         
         Ok(users)
+    }
+
+    /// Export graph data as JSON for web visualization
+    /// Target: <500ms generation time, optimized for browser performance
+    pub fn export_web_data(&self) -> Result<String, ISGError> {
+        let start = std::time::Instant::now();
+        let state = self.state.read();
+        
+        let web_data = WebGraphData {
+            nodes: state.graph.node_weights()
+                .map(|node| WebNode {
+                    id: format!("{:?}", node.hash),
+                    name: node.name.to_string(),
+                    kind: format!("{:?}", node.kind),
+                    signature: node.signature.to_string(),
+                    file_path: node.file_path.to_string(),
+                    line: node.line,
+                })
+                .collect(),
+            edges: state.graph.edge_references()
+                .map(|edge| WebEdge {
+                    source: format!("{:?}", state.graph[edge.source()].hash),
+                    target: format!("{:?}", state.graph[edge.target()].hash),
+                    kind: format!("{:?}", edge.weight()),
+                })
+                .collect(),
+            metadata: WebMetadata {
+                node_count: state.graph.node_count(),
+                edge_count: state.graph.edge_count(),
+                generated_at: std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs(),
+            },
+        };
+        
+        let json = serde_json::to_string(&web_data)
+            .map_err(|e| ISGError::IoError(format!("JSON serialization failed: {}", e)))?;
+        
+        let elapsed = start.elapsed();
+        if elapsed.as_millis() > 500 {
+            eprintln!("⚠️  Web data export took {}ms (>500ms constraint)", elapsed.as_millis());
+        }
+        
+        Ok(json)
+    }
+
+    /// Generate interactive HTML visualization with embedded JavaScript
+    /// Target: <500ms generation time, self-contained HTML file
+    pub fn generate_html_visualization(&self, focus_entity: Option<&str>) -> Result<String, ISGError> {
+        let start = std::time::Instant::now();
+        
+        // Get graph data as JSON
+        let graph_json = self.export_web_data()?;
+        
+        // Generate HTML with embedded visualization
+        let html = format!(r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parseltongue Architecture Visualization</title>
+    <style>
+        body {{
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+        }}
+        
+        .header {{
+            text-align: center;
+            margin-bottom: 20px;
+        }}
+        
+        .header h1 {{
+            color: #4CAF50;
+            margin: 0;
+        }}
+        
+        .header p {{
+            color: #888;
+            margin: 5px 0;
+        }}
+        
+        .controls {{
+            text-align: center;
+            margin-bottom: 20px;
+        }}
+        
+        .controls button {{
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }}
+        
+        .controls button:hover {{
+            background: #45a049;
+        }}
+        
+        .controls button:disabled {{
+            background: #666;
+            cursor: not-allowed;
+        }}
+        
+        #visualization {{
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #2a2a2a;
+        }}
+        
+        .info-panel {{
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: #333;
+            border-radius: 8px;
+            padding: 15px;
+            display: none;
+        }}
+        
+        .info-panel h3 {{
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+        }}
+        
+        .info-panel .close {{
+            float: right;
+            cursor: pointer;
+            color: #888;
+            font-size: 18px;
+        }}
+        
+        .info-panel .close:hover {{
+            color: #fff;
+        }}
+        
+        .legend {{
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #333;
+            border-radius: 8px;
+            padding: 15px;
+        }}
+        
+        .legend h4 {{
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+        }}
+        
+        .legend-item {{
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }}
+        
+        .legend-color {{
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }}
+        
+        .function {{ background: #4CAF50; }}
+        .struct {{ background: #2196F3; }}
+        .trait {{ background: #FF9800; }}
+        
+        .edge-calls {{ stroke: #4CAF50; }}
+        .edge-uses {{ stroke: #2196F3; }}
+        .edge-implements {{ stroke: #FF9800; }}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐍 Parseltongue Architecture Visualization</h1>
+        <p>Interactive Interface Signature Graph</p>
+        <p id="stats"></p>
+    </div>
+    
+    <div class="controls">
+        <button onclick="resetZoom()">Reset View</button>
+        <button onclick="togglePhysics()">Toggle Physics</button>
+        <button onclick="fitToScreen()">Fit to Screen</button>
+        <button onclick="exportSVG()" disabled>Export SVG</button>
+    </div>
+    
+    <div id="visualization"></div>
+    
+    <div id="info-panel" class="info-panel">
+        <span class="close" onclick="hideInfo()">&times;</span>
+        <h3 id="info-title">Node Information</h3>
+        <div id="info-content"></div>
+    </div>
+    
+    <div class="legend">
+        <h4>Legend</h4>
+        <div class="legend-item">
+            <div class="legend-color function"></div>
+            <span>Function</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color struct"></div>
+            <span>Struct</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color trait"></div>
+            <span>Trait</span>
+        </div>
+        <div style="margin-top: 10px; font-size: 12px; color: #888;">
+            <div>Green edges: Calls</div>
+            <div>Blue edges: Uses</div>
+            <div>Orange edges: Implements</div>
+        </div>
+    </div>
+
+    <script>
+        // Embedded graph data
+        const graphData = {graph_json};
+        
+        // Focus entity (if specified)
+        const focusEntity = {focus_entity_json};
+        
+        // Update stats
+        document.getElementById('stats').textContent = 
+            `${{graphData.metadata.node_count}} nodes, ${{graphData.metadata.edge_count}} edges`;
+        
+        // Simple force-directed graph implementation using Canvas
+        class GraphVisualization {{
+            constructor(containerId, data) {{
+                this.container = document.getElementById(containerId);
+                this.canvas = document.createElement('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.container.appendChild(this.canvas);
+                
+                this.data = data;
+                this.nodes = [];
+                this.edges = [];
+                this.physicsEnabled = true;
+                this.selectedNode = null;
+                
+                this.setupCanvas();
+                this.processData();
+                this.setupEventListeners();
+                this.animate();
+            }}
+            
+            setupCanvas() {{
+                this.canvas.width = this.container.clientWidth;
+                this.canvas.height = this.container.clientHeight;
+                this.canvas.style.display = 'block';
+                
+                // Handle resize
+                window.addEventListener('resize', () => {{
+                    this.canvas.width = this.container.clientWidth;
+                    this.canvas.height = this.container.clientHeight;
+                }});
+            }}
+            
+            processData() {{
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                
+                // Create nodes with random positions
+                this.nodes = this.data.nodes.map(node => ({{
+                    ...node,
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: 0,
+                    vy: 0,
+                    radius: this.getNodeRadius(node.kind),
+                    color: this.getNodeColor(node.kind)
+                }}));
+                
+                // Create edges
+                this.edges = this.data.edges.map(edge => ({{
+                    ...edge,
+                    sourceNode: this.nodes.find(n => n.id === edge.source),
+                    targetNode: this.nodes.find(n => n.id === edge.target),
+                    color: this.getEdgeColor(edge.kind)
+                }}));
+                
+                // Focus on specific entity if requested
+                if (focusEntity) {{
+                    const focusNode = this.nodes.find(n => n.name === focusEntity);
+                    if (focusNode) {{
+                        this.centerOnNode(focusNode);
+                    }}
+                }}
+            }}
+            
+            getNodeRadius(kind) {{
+                switch(kind) {{
+                    case 'Function': return 8;
+                    case 'Struct': return 10;
+                    case 'Trait': return 12;
+                    default: return 8;
+                }}
+            }}
+            
+            getNodeColor(kind) {{
+                switch(kind) {{
+                    case 'Function': return '#4CAF50';
+                    case 'Struct': return '#2196F3';
+                    case 'Trait': return '#FF9800';
+                    default: return '#888';
+                }}
+            }}
+            
+            getEdgeColor(kind) {{
+                switch(kind) {{
+                    case 'Calls': return '#4CAF50';
+                    case 'Uses': return '#2196F3';
+                    case 'Implements': return '#FF9800';
+                    default: return '#666';
+                }}
+            }}
+            
+            centerOnNode(node) {{
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                node.x = width / 2;
+                node.y = height / 2;
+            }}
+            
+            setupEventListeners() {{
+                let isDragging = false;
+                let dragNode = null;
+                let lastMouseX = 0;
+                let lastMouseY = 0;
+                
+                this.canvas.addEventListener('mousedown', (e) => {{
+                    const rect = this.canvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    // Find clicked node
+                    const clickedNode = this.nodes.find(node => {{
+                        const dx = mouseX - node.x;
+                        const dy = mouseY - node.y;
+                        return Math.sqrt(dx * dx + dy * dy) < node.radius + 5;
+                    }});
+                    
+                    if (clickedNode) {{
+                        isDragging = true;
+                        dragNode = clickedNode;
+                        this.selectedNode = clickedNode;
+                        this.showNodeInfo(clickedNode);
+                        lastMouseX = mouseX;
+                        lastMouseY = mouseY;
+                    }}
+                }});
+                
+                this.canvas.addEventListener('mousemove', (e) => {{
+                    if (isDragging && dragNode) {{
+                        const rect = this.canvas.getBoundingClientRect();
+                        const mouseX = e.clientX - rect.left;
+                        const mouseY = e.clientY - rect.top;
+                        
+                        dragNode.x = mouseX;
+                        dragNode.y = mouseY;
+                        dragNode.vx = 0;
+                        dragNode.vy = 0;
+                    }}
+                }});
+                
+                this.canvas.addEventListener('mouseup', () => {{
+                    isDragging = false;
+                    dragNode = null;
+                }});
+                
+                // Double-click to center on node
+                this.canvas.addEventListener('dblclick', (e) => {{
+                    const rect = this.canvas.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    const clickedNode = this.nodes.find(node => {{
+                        const dx = mouseX - node.x;
+                        const dy = mouseY - node.y;
+                        return Math.sqrt(dx * dx + dy * dy) < node.radius + 5;
+                    }});
+                    
+                    if (clickedNode) {{
+                        this.centerOnNode(clickedNode);
+                    }}
+                }});
+            }}
+            
+            showNodeInfo(node) {{
+                const panel = document.getElementById('info-panel');
+                const title = document.getElementById('info-title');
+                const content = document.getElementById('info-content');
+                
+                title.textContent = node.name;
+                content.innerHTML = `
+                    <p><strong>Type:</strong> ${{node.kind}}</p>
+                    <p><strong>Signature:</strong> ${{node.signature}}</p>
+                    <p><strong>File:</strong> ${{node.file_path}}:${{node.line}}</p>
+                `;
+                
+                panel.style.display = 'block';
+            }}
+            
+            updatePhysics() {{
+                if (!this.physicsEnabled) return;
+                
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                
+                // Apply forces
+                for (let node of this.nodes) {{
+                    // Repulsion between nodes
+                    for (let other of this.nodes) {{
+                        if (node === other) continue;
+                        
+                        const dx = node.x - other.x;
+                        const dy = node.y - other.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance > 0 && distance < 100) {{
+                            const force = 50 / (distance * distance);
+                            node.vx += (dx / distance) * force;
+                            node.vy += (dy / distance) * force;
+                        }}
+                    }}
+                    
+                    // Center attraction
+                    const centerX = width / 2;
+                    const centerY = height / 2;
+                    const toCenterX = centerX - node.x;
+                    const toCenterY = centerY - node.y;
+                    node.vx += toCenterX * 0.0001;
+                    node.vy += toCenterY * 0.0001;
+                    
+                    // Damping
+                    node.vx *= 0.9;
+                    node.vy *= 0.9;
+                    
+                    // Update position
+                    node.x += node.vx;
+                    node.y += node.vy;
+                    
+                    // Boundary constraints
+                    if (node.x < node.radius) {{ node.x = node.radius; node.vx = 0; }}
+                    if (node.x > width - node.radius) {{ node.x = width - node.radius; node.vx = 0; }}
+                    if (node.y < node.radius) {{ node.y = node.radius; node.vy = 0; }}
+                    if (node.y > height - node.radius) {{ node.y = height - node.radius; node.vy = 0; }}
+                }}
+                
+                // Spring forces for edges
+                for (let edge of this.edges) {{
+                    if (!edge.sourceNode || !edge.targetNode) continue;
+                    
+                    const dx = edge.targetNode.x - edge.sourceNode.x;
+                    const dy = edge.targetNode.y - edge.sourceNode.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const targetDistance = 80;
+                    
+                    if (distance > 0) {{
+                        const force = (distance - targetDistance) * 0.01;
+                        const fx = (dx / distance) * force;
+                        const fy = (dy / distance) * force;
+                        
+                        edge.sourceNode.vx += fx;
+                        edge.sourceNode.vy += fy;
+                        edge.targetNode.vx -= fx;
+                        edge.targetNode.vy -= fy;
+                    }}
+                }}
+            }}
+            
+            render() {{
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw edges
+                for (let edge of this.edges) {{
+                    if (!edge.sourceNode || !edge.targetNode) continue;
+                    
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(edge.sourceNode.x, edge.sourceNode.y);
+                    this.ctx.lineTo(edge.targetNode.x, edge.targetNode.y);
+                    this.ctx.strokeStyle = edge.color;
+                    this.ctx.lineWidth = 1;
+                    this.ctx.stroke();
+                    
+                    // Draw arrow
+                    const dx = edge.targetNode.x - edge.sourceNode.x;
+                    const dy = edge.targetNode.y - edge.sourceNode.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance > 0) {{
+                        const arrowX = edge.targetNode.x - (dx / distance) * (edge.targetNode.radius + 5);
+                        const arrowY = edge.targetNode.y - (dy / distance) * (edge.targetNode.radius + 5);
+                        
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(arrowX, arrowY);
+                        this.ctx.lineTo(arrowX - (dx / distance) * 8 + (dy / distance) * 4, 
+                                       arrowY - (dy / distance) * 8 - (dx / distance) * 4);
+                        this.ctx.lineTo(arrowX - (dx / distance) * 8 - (dy / distance) * 4, 
+                                       arrowY - (dy / distance) * 8 + (dx / distance) * 4);
+                        this.ctx.closePath();
+                        this.ctx.fillStyle = edge.color;
+                        this.ctx.fill();
+                    }}
+                }}
+                
+                // Draw nodes
+                for (let node of this.nodes) {{
+                    this.ctx.beginPath();
+                    this.ctx.arc(node.x, node.y, node.radius, 0, 2 * Math.PI);
+                    this.ctx.fillStyle = node.color;
+                    this.ctx.fill();
+                    
+                    if (node === this.selectedNode) {{
+                        this.ctx.strokeStyle = '#fff';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.stroke();
+                    }}
+                    
+                    // Draw label
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(node.name, node.x, node.y + node.radius + 15);
+                }}
+            }}
+            
+            animate() {{
+                this.updatePhysics();
+                this.render();
+                requestAnimationFrame(() => this.animate());
+            }}
+            
+            resetZoom() {{
+                // Reset all nodes to random positions
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                
+                for (let node of this.nodes) {{
+                    node.x = Math.random() * width;
+                    node.y = Math.random() * height;
+                    node.vx = 0;
+                    node.vy = 0;
+                }}
+            }}
+            
+            togglePhysics() {{
+                this.physicsEnabled = !this.physicsEnabled;
+            }}
+            
+            fitToScreen() {{
+                // Center all nodes
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                
+                for (let node of this.nodes) {{
+                    node.x = width / 2 + (Math.random() - 0.5) * 200;
+                    node.y = height / 2 + (Math.random() - 0.5) * 200;
+                    node.vx = 0;
+                    node.vy = 0;
+                }}
+            }}
+        }}
+        
+        // Initialize visualization
+        const viz = new GraphVisualization('visualization', graphData);
+        
+        // Global functions for controls
+        function resetZoom() {{
+            viz.resetZoom();
+        }}
+        
+        function togglePhysics() {{
+            viz.togglePhysics();
+        }}
+        
+        function fitToScreen() {{
+            viz.fitToScreen();
+        }}
+        
+        function exportSVG() {{
+            alert('SVG export not implemented in this version');
+        }}
+        
+        function hideInfo() {{
+            document.getElementById('info-panel').style.display = 'none';
+        }}
+    </script>
+</body>
+</html>"#, 
+            graph_json = graph_json,
+            focus_entity_json = focus_entity.map(|s| format!("\"{}\"", s)).unwrap_or_else(|| "null".to_string())
+        );
+        
+        let elapsed = start.elapsed();
+        if elapsed.as_millis() > 500 {
+            eprintln!("⚠️  HTML generation took {}ms (>500ms constraint)", elapsed.as_millis());
+        }
+        
+        Ok(html)
     }
 }
 
@@ -1037,5 +1678,214 @@ mod tests {
         let isg = OptimizedISG::new();
         let cycles = isg.find_cycles();
         assert!(cycles.is_empty(), "MVP implementation should return empty cycles");
+    }
+
+    // TDD Cycle 20: Web data serialization (RED phase)
+    #[test]
+    fn test_export_web_data_json_structure() {
+        let isg = setup_query_graph();
+        
+        let json_result = isg.export_web_data();
+        assert!(json_result.is_ok(), "Web data export should succeed");
+        
+        let json_str = json_result.unwrap();
+        let web_data: WebGraphData = serde_json::from_str(&json_str)
+            .expect("JSON should be valid WebGraphData");
+        
+        // Validate structure
+        assert_eq!(web_data.nodes.len(), 6); // FuncA, FuncB, StructC, StructD, StructE, TraitT
+        assert!(web_data.edges.len() > 0); // Should have relationships
+        assert_eq!(web_data.metadata.node_count, 6);
+        assert!(web_data.metadata.edge_count > 0);
+        
+        // Validate node structure
+        let func_a = web_data.nodes.iter().find(|n| n.name == "FuncA").unwrap();
+        assert_eq!(func_a.kind, "Function");
+        assert!(func_a.signature.contains("sig_"));
+        assert_eq!(func_a.file_path, "test.rs");
+        
+        // Validate edge structure
+        let implements_edge = web_data.edges.iter().find(|e| e.kind == "Implements").unwrap();
+        assert!(!implements_edge.source.is_empty());
+        assert!(!implements_edge.target.is_empty());
+    }
+
+    #[test]
+    fn test_export_web_data_performance() {
+        let isg = setup_query_graph();
+        
+        let start = std::time::Instant::now();
+        let result = isg.export_web_data();
+        let elapsed = start.elapsed();
+        
+        assert!(result.is_ok());
+        assert!(elapsed.as_millis() < 500, "Web data export took {}ms (>500ms)", elapsed.as_millis());
+    }
+
+    #[test]
+    fn test_export_web_data_large_graph() {
+        let isg = OptimizedISG::new();
+        
+        // Create a larger graph (1000+ nodes)
+        for i in 0..1000 {
+            let node = mock_node(i, NodeKind::Function, &format!("func_{}", i));
+            isg.upsert_node(node);
+        }
+        
+        // Add some edges
+        for i in 0..500 {
+            let _ = isg.upsert_edge(SigHash(i), SigHash(i + 1), EdgeKind::Calls);
+        }
+        
+        let start = std::time::Instant::now();
+        let result = isg.export_web_data();
+        let elapsed = start.elapsed();
+        
+        assert!(result.is_ok());
+        assert!(elapsed.as_millis() < 500, "Large graph export took {}ms (>500ms)", elapsed.as_millis());
+        
+        let json_str = result.unwrap();
+        let web_data: WebGraphData = serde_json::from_str(&json_str).unwrap();
+        assert_eq!(web_data.nodes.len(), 1000);
+        assert_eq!(web_data.metadata.node_count, 1000);
+    }
+
+    #[test]
+    fn test_web_data_json_compatibility() {
+        let isg = setup_query_graph();
+        let json_str = isg.export_web_data().unwrap();
+        
+        // Test that JSON is compatible with common visualization libraries
+        let parsed: serde_json::Value = serde_json::from_str(&json_str).unwrap();
+        
+        // Should have nodes array
+        assert!(parsed["nodes"].is_array());
+        let nodes = parsed["nodes"].as_array().unwrap();
+        assert!(!nodes.is_empty());
+        
+        // Each node should have required fields for D3.js/vis.js
+        let first_node = &nodes[0];
+        assert!(first_node["id"].is_string());
+        assert!(first_node["name"].is_string());
+        assert!(first_node["kind"].is_string());
+        
+        // Should have edges array
+        assert!(parsed["edges"].is_array());
+        let edges = parsed["edges"].as_array().unwrap();
+        
+        // Each edge should have source/target for visualization libraries
+        if !edges.is_empty() {
+            let first_edge = &edges[0];
+            assert!(first_edge["source"].is_string());
+            assert!(first_edge["target"].is_string());
+            assert!(first_edge["kind"].is_string());
+        }
+        
+        // Should have metadata
+        assert!(parsed["metadata"].is_object());
+        assert!(parsed["metadata"]["node_count"].is_number());
+        assert!(parsed["metadata"]["edge_count"].is_number());
+    }
+
+    // TDD Cycle 21: HTML visualization generation (RED phase)
+    #[test]
+    fn test_generate_html_visualization() {
+        let isg = setup_query_graph();
+        
+        let html_result = isg.generate_html_visualization(None);
+        assert!(html_result.is_ok(), "HTML generation should succeed");
+        
+        let html = html_result.unwrap();
+        
+        // Validate HTML structure
+        assert!(html.contains("<!DOCTYPE html>"));
+        assert!(html.contains("<title>Parseltongue Architecture Visualization</title>"));
+        assert!(html.contains("const graphData = "));
+        assert!(html.contains("class GraphVisualization"));
+        
+        // Should contain embedded graph data
+        assert!(html.contains("FuncA"));
+        assert!(html.contains("StructC"));
+        assert!(html.contains("TraitT"));
+        
+        // Should be self-contained (no external dependencies)
+        assert!(!html.contains("src=\"http"));
+        assert!(!html.contains("href=\"http"));
+        assert!(!html.contains("@import"));
+    }
+
+    #[test]
+    fn test_generate_html_visualization_with_focus() {
+        let isg = setup_query_graph();
+        
+        let html_result = isg.generate_html_visualization(Some("FuncA"));
+        assert!(html_result.is_ok());
+        
+        let html = html_result.unwrap();
+        
+        // Should contain focus entity
+        assert!(html.contains("const focusEntity = \"FuncA\""));
+        assert!(html.contains("FuncA"));
+    }
+
+    #[test]
+    fn test_html_visualization_performance() {
+        let isg = setup_query_graph();
+        
+        let start = std::time::Instant::now();
+        let result = isg.generate_html_visualization(None);
+        let elapsed = start.elapsed();
+        
+        assert!(result.is_ok());
+        assert!(elapsed.as_millis() < 500, "HTML generation took {}ms (>500ms)", elapsed.as_millis());
+    }
+
+    #[test]
+    fn test_html_visualization_large_graph() {
+        let isg = OptimizedISG::new();
+        
+        // Create a larger graph
+        for i in 0..100 {
+            let node = mock_node(i, NodeKind::Function, &format!("func_{}", i));
+            isg.upsert_node(node);
+        }
+        
+        for i in 0..50 {
+            let _ = isg.upsert_edge(SigHash(i), SigHash(i + 1), EdgeKind::Calls);
+        }
+        
+        let start = std::time::Instant::now();
+        let result = isg.generate_html_visualization(None);
+        let elapsed = start.elapsed();
+        
+        assert!(result.is_ok());
+        assert!(elapsed.as_millis() < 500, "Large graph HTML generation took {}ms (>500ms)", elapsed.as_millis());
+        
+        let html = result.unwrap();
+        assert!(html.contains("func_0"));
+        assert!(html.contains("func_99"));
+    }
+
+    #[test]
+    fn test_html_self_contained() {
+        let isg = setup_query_graph();
+        let html = isg.generate_html_visualization(None).unwrap();
+        
+        // Verify no external dependencies
+        assert!(!html.contains("cdn."));
+        assert!(!html.contains("googleapis.com"));
+        assert!(!html.contains("unpkg.com"));
+        assert!(!html.contains("jsdelivr.net"));
+        
+        // Should have embedded CSS and JavaScript
+        assert!(html.contains("<style>"));
+        assert!(html.contains("</style>"));
+        assert!(html.contains("<script>"));
+        assert!(html.contains("</script>"));
+        
+        // Should have interactive features
+        assert!(html.contains("onclick="));
+        assert!(html.contains("addEventListener"));
+        assert!(html.contains("GraphVisualization"));
     }
 }
