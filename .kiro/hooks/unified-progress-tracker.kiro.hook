@@ -4,7 +4,7 @@
   "description": "Single comprehensive hook that handles repository snapshots, file change tracking, session context updates, and git operations. Replaces repository-snapshot, file-change-tracker, and session-context-updater hooks.",
   "version": "1",
   "when": {
-    "type": "fileEdited",
+    "type": "userTriggered",
     "patterns": [
       "**/*",
       "!.git/**/*"
