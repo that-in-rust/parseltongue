@@ -522,6 +522,9 @@ impl OptimizedISG {
             }
         }
         
+        // REFACTOR: Sort results by name for consistent ordering
+        callers.sort_by(|a, b| a.name.cmp(&b.name));
+        
         Ok(callers)
     }
 
@@ -543,6 +546,9 @@ impl OptimizedISG {
                 }
             }
         }
+        
+        // REFACTOR: Sort results by name for consistent ordering
+        users.sort_by(|a, b| a.name.cmp(&b.name));
         
         Ok(users)
     }
@@ -859,11 +865,171 @@ mod tests {
         // Test single result
         let struct_hashes = isg.find_by_name("TestStruct");
         assert_eq!(struct_hashes.len(), 1);
-        assert_eq!(struct_hashes[0], SigHash(2));
+        assert!(struct_hashes.contains(&SigHash(2)));
         
-        // Test non-existent name
-        let missing = isg.find_by_name("NonExistent");
-        assert!(missing.is_empty());
+        // Test non-existent
+        let empty_hashes = isg.find_by_name("NonExistent");
+        assert!(empty_hashes.is_empty());
+    }
+
+    // TDD Cycle: Test calls query (GREEN phase)
+    #[test]
+    fn test_query_calls() {
+        let isg = setup_query_graph();
+        
+        // Test finding callers of FuncB (2) - should be FuncA (1)
+        let callers = isg.find_callers(SigHash(2)).unwrap();
+        assert_eq!(callers.len(), 1);
+        assert_eq!(callers[0].hash, SigHash(1));
+        assert_eq!(callers[0].name.as_ref(), "FuncA");
+        
+        // Test finding callers of TraitT (6) - should be FuncA (1)
+        let trait_callers = isg.find_callers(SigHash(6)).unwrap();
+        assert_eq!(trait_callers.len(), 1);
+        assert_eq!(trait_callers[0].hash, SigHash(1));
+        
+        // Test finding callers of StructC (3) - should be FuncB (2)
+        let struct_callers = isg.find_callers(SigHash(3)).unwrap();
+        assert_eq!(struct_callers.len(), 1);
+        assert_eq!(struct_callers[0].hash, SigHash(2));
+        
+        // Test finding callers of FuncA (1) - should be empty (no one calls FuncA)
+        let no_callers = isg.find_callers(SigHash(1)).unwrap();
+        assert!(no_callers.is_empty());
+        
+        // Test non-existent entity
+        assert_eq!(isg.find_callers(SigHash(99)), Err(ISGError::NodeNotFound(SigHash(99))));
+    }
+
+    #[test]
+    fn test_calls_query_performance() {
+        let isg = setup_query_graph();
+        
+        let start = Instant::now();
+        let _callers = isg.find_callers(SigHash(2)).unwrap();
+        let elapsed = start.elapsed();
+        
+        assert!(elapsed.as_micros() < 1000, "calls query took {}μs (>1ms)", elapsed.as_micros());
+    }
+
+    // TDD Cycle: Test uses query (GREEN phase)
+    #[test]
+    fn test_query_uses() {
+        let isg = setup_query_graph();
+        
+        // Test finding users of StructC (3) - should be StructD (4) via Uses edge
+        let users = isg.find_users(SigHash(3)).unwrap();
+        assert_eq!(users.len(), 1);
+        assert_eq!(users[0].hash, SigHash(4));
+        assert_eq!(users[0].name.as_ref(), "StructD");
+        
+        // Test finding users of TraitT (6) - should be empty (no Uses edges to traits in our test graph)
+        let trait_users = isg.find_users(SigHash(6)).unwrap();
+        assert!(trait_users.is_empty());
+        
+        // Test non-existent entity
+        assert_eq!(isg.find_users(SigHash(99)), Err(ISGError::NodeNotFound(SigHash(99))));
+    }
+
+    #[test]
+    fn test_uses_query_performance() {
+        let isg = setup_query_graph();
+        
+        let start = Instant::now();
+        let _users = isg.find_users(SigHash(3)).unwrap();
+        let elapsed = start.elapsed();
+        
+        assert!(elapsed.as_micros() < 1000, "uses query took {}μs (>1ms)", elapsed.as_micros());
+    }
+
+    // TDD Cycle: Test edge filtering by EdgeKind
+    #[test]
+    fn test_edge_filtering_by_kind() {
+        let isg = OptimizedISG::new();
+        
+        // Create test nodes
+        let func_a = mock_node(1, NodeKind::Function, "FuncA");
+        let func_b = mock_node(2, NodeKind::Function, "FuncB");
+        let struct_c = mock_node(3, NodeKind::Struct, "StructC");
+        let trait_t = mock_node(4, NodeKind::Trait, "TraitT");
+        
+        isg.upsert_node(func_a.clone());
+        isg.upsert_node(func_b.clone());
+        isg.upsert_node(struct_c.clone());
+        isg.upsert_node(trait_t.clone());
+        
+        // Create different types of edges
+        isg.upsert_edge(SigHash(1), SigHash(2), EdgeKind::Calls).unwrap(); // FuncA calls FuncB
+        isg.upsert_edge(SigHash(1), SigHash(3), EdgeKind::Uses).unwrap();  // FuncA uses StructC
+        isg.upsert_edge(SigHash(3), SigHash(4), EdgeKind::Implements).unwrap(); // StructC implements TraitT
+        
+        // Test calls query - should only find Calls edges
+        let callers_of_func_b = isg.find_callers(SigHash(2)).unwrap();
+        assert_eq!(callers_of_func_b.len(), 1);
+        assert_eq!(callers_of_func_b[0].hash, SigHash(1));
+        
+        // Test uses query - should only find Uses edges
+        let users_of_struct_c = isg.find_users(SigHash(3)).unwrap();
+        assert_eq!(users_of_struct_c.len(), 1);
+        assert_eq!(users_of_struct_c[0].hash, SigHash(1));
+        
+        // Test what-implements query - should only find Implements edges
+        let implementors_of_trait_t = isg.find_implementors(SigHash(4)).unwrap();
+        assert_eq!(implementors_of_trait_t.len(), 1);
+        assert_eq!(implementors_of_trait_t[0].hash, SigHash(3));
+        
+        // Verify edge filtering: FuncB should have no callers via Uses or Implements
+        let no_users_of_func_b = isg.find_users(SigHash(2)).unwrap();
+        assert!(no_users_of_func_b.is_empty());
+        
+        let no_implementors_of_func_b = isg.find_implementors(SigHash(2)).unwrap();
+        assert!(no_implementors_of_func_b.is_empty());
+    }
+
+    // TDD Cycle: Test result ranking and sorting
+    #[test]
+    fn test_result_ranking_and_sorting() {
+        let isg = OptimizedISG::new();
+        
+        // Create test nodes with names that will test alphabetical sorting
+        let target = mock_node(1, NodeKind::Function, "target_function");
+        let caller_z = mock_node(2, NodeKind::Function, "z_caller");
+        let caller_a = mock_node(3, NodeKind::Function, "a_caller");
+        let caller_m = mock_node(4, NodeKind::Function, "m_caller");
+        
+        isg.upsert_node(target.clone());
+        isg.upsert_node(caller_z.clone());
+        isg.upsert_node(caller_a.clone());
+        isg.upsert_node(caller_m.clone());
+        
+        // Create calls edges in random order
+        isg.upsert_edge(SigHash(2), SigHash(1), EdgeKind::Calls).unwrap(); // z_caller calls target
+        isg.upsert_edge(SigHash(4), SigHash(1), EdgeKind::Calls).unwrap(); // m_caller calls target
+        isg.upsert_edge(SigHash(3), SigHash(1), EdgeKind::Calls).unwrap(); // a_caller calls target
+        
+        // Test that results are sorted alphabetically by name
+        let callers = isg.find_callers(SigHash(1)).unwrap();
+        assert_eq!(callers.len(), 3);
+        assert_eq!(callers[0].name.as_ref(), "a_caller");
+        assert_eq!(callers[1].name.as_ref(), "m_caller");
+        assert_eq!(callers[2].name.as_ref(), "z_caller");
+        
+        // Test the same for uses query
+        let user_z = mock_node(5, NodeKind::Function, "z_user");
+        let user_a = mock_node(6, NodeKind::Function, "a_user");
+        let type_target = mock_node(7, NodeKind::Struct, "TargetType");
+        
+        isg.upsert_node(user_z.clone());
+        isg.upsert_node(user_a.clone());
+        isg.upsert_node(type_target.clone());
+        
+        isg.upsert_edge(SigHash(5), SigHash(7), EdgeKind::Uses).unwrap(); // z_user uses TargetType
+        isg.upsert_edge(SigHash(6), SigHash(7), EdgeKind::Uses).unwrap(); // a_user uses TargetType
+        
+        let users = isg.find_users(SigHash(7)).unwrap();
+        assert_eq!(users.len(), 2);
+        assert_eq!(users[0].name.as_ref(), "a_user");
+        assert_eq!(users[1].name.as_ref(), "z_user");
     }
 
     #[test]

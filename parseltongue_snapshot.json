@@ -135,6 +135,14 @@
       "signature": "fn greet",
       "file_path": "src/lib.rs",
       "line": 0
+    },
+    {
+      "hash": 15388673063887045451,
+      "kind": "Function",
+      "name": "test",
+      "signature": "fn test",
+      "file_path": "test.rs",
+      "line": 0
     }
   ],
   "edges": [
@@ -161,8 +169,8 @@
   ],
   "metadata": {
     "version": 1,
-    "timestamp": 1758532830,
-    "node_count": 17,
+    "timestamp": 1758535068,
+    "node_count": 18,
     "edge_count": 4
   }
 }
