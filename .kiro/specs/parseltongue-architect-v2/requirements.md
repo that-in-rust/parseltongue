@@ -1,5 +1,34 @@
 # Requirements Document
 
+## Acronyms and Terminology
+
+### Core System Acronyms
+- **ISG**: Interface Signature Graph - The complete architectural graph representation of a Rust codebase
+- **FQN**: Fully Qualified Name - Complete module path for entities (e.g., `my_crate::utils::Config`)
+- **AST**: Abstract Syntax Tree - Rust's parsed code representation used for analysis
+- **CLI**: Command Line Interface - Terminal-based user interaction system
+- **LLM**: Large Language Model - AI systems that benefit from architectural context
+- **DOT**: Graphviz DOT format - Standard graph visualization format
+- **BFS**: Breadth-First Search - Graph traversal algorithm used for relationship queries
+
+### Technical Terms
+- **SigHash**: Signature Hash - Deterministic identifier for code entities using FxHasher
+- **Blast Radius**: Complete set of code that could be affected by changes to a target entity
+- **Two-Pass Ingestion**: Architecture where nodes are created first, then relationships are established
+- **O(1) Performance**: Constant-time operations that don't scale with codebase size
+- **Daemon**: Background service that monitors files and maintains live architectural state
+
+### Relationship Types
+- **CALLS**: Function A invokes Function B
+- **USES**: Function A references Type B (parameters, variables, return types)
+- **IMPLEMENTS**: Type A implements Trait B
+
+### Performance Metrics
+- **95%+ Relationship Extraction**: Target accuracy for capturing architectural relationships
+- **<12ms Update Latency**: Maximum time for processing file changes
+- **<1ms Query Response**: Maximum time for simple architectural queries
+- **<25MB Memory Usage**: Target memory footprint for 100K lines of code
+
 ## Introduction
 
 Parseltongue Architect v2.0 is a **Rust-only** architectural intelligence system that transforms code analysis from broken text parsing to deterministic, high-performance graph-based navigation. The system creates complete Interface Signature Graphs (ISG) from Rust codebases with **95%+ relationship extraction**, enabling sub-millisecond queries, real-time architectural awareness, and zero-hallucination LLM context generation.
