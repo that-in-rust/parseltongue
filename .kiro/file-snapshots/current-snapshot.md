@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-22 01:20:29
+# Repository Snapshot - 2025-09-22 09:21:33
 
 ## Summary Statistics
 - **Total Files**: 81
-- **Total Lines**: 80,781
-- **Total Words**: 261,834
-- **Snapshot Time**: 2025-09-22 01:20:29
+- **Total Lines**: 80,539
+- **Total Words**: 259,500
+- **Snapshot Time**: 2025-09-22 09:21:33
 
 ## Spec Progress Summary
 
@@ -46,9 +46,9 @@
 | .kiro/backlog-options/v2RequirementOptions.md | 291 | 2717 | 21K |
 | .kiro/backlog-options/v2RequirementOptionsP2.md | 117 | 833 | 6.2K |
 | .kiro/backlog-options/v2RequirementOptionsP3.md | 113 | 3799 | 26K |
-| .kiro/file-snapshots/change-log.md | 1790 | 5113 | 39K |
-| .kiro/file-snapshots/current-snapshot.md | 102 | 877 | 5.8K |
-| .kiro/file-snapshots/previous-snapshot.md | 102 | 877 | 5.8K |
+| .kiro/file-snapshots/change-log.md | 1804 | 5148 | 39K |
+| .kiro/file-snapshots/current-snapshot.md | 100 | 859 | 5.7K |
+| .kiro/file-snapshots/previous-snapshot.md | 100 | 859 | 5.7K |
 | .kiro/hooks/hook-automation-guide.md | 258 | 1362 | 11K |
 | .kiro/hooks/hook-system-status.md | 27 | 115 | 912 |
 | .kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 547 |
@@ -75,7 +75,7 @@
 | .kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 220 | 1096 | 8.7K |
 | .kiro/specs/parseltongue-aim-daemon/tasks.md | 318 | 2358 | 19K |
 | .kiro/specs/parseltongue-architect-v2/design.md | [binary] | [binary] | 0 |
-| .kiro/specs/parseltongue-architect-v2/requirements.md | 488 | 4737 | 36K |
+| .kiro/specs/parseltongue-architect-v2/requirements.md | 236 | 2404 | 18K |
 | .kiro/steering/code-conventions.md | 1997 | 6142 | 53K |
 | .kiro/steering/design101-tdd-architecture-principles.md | 943 | 3431 | 29K |
 | .kiro/steering/parseltongue-requirements-focus.md | 35 | 166 | 1.3K |
