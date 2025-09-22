@@ -35,7 +35,7 @@ The system currently only extracts IMPLEMENTS relationships from impl blocks. Th
 
 ## Phase 1: Critical Missing Functionality
 
-- [ ] 1. Implement comprehensive relationship extraction with syn::visit::Visit
+- [x] 1. Implement comprehensive relationship extraction with syn::visit::Visit
   - **STUB**: Write failing tests for CALLS, USES relationship detection in function bodies
   - **RED**: Tests fail because RelationshipExtractor doesn't exist
   - **GREEN**: Implement syn::visit::Visit with visit_expr_call, visit_type_path traversal
@@ -44,7 +44,7 @@ The system currently only extracts IMPLEMENTS relationships from impl blocks. Th
   - Use DOT export to validate extracted relationships visually
   - _Requirements: REQ-V2-001.0 (High-Accuracy Relationship Extraction)_
 
-- [ ] 1.1 Implement function call detection (CALLS relationships)
+- [x] 1.1 Implement function call detection (CALLS relationships)
   - **STUB**: Write failing test for detecting function calls in function bodies
   - **RED**: Test fails because visit_expr_call is not implemented
   - **GREEN**: Implement RelationshipExtractor with visit_expr_call and visit_expr_method_call
@@ -53,7 +53,7 @@ The system currently only extracts IMPLEMENTS relationships from impl blocks. Th
   - Validate CALLS edges are created correctly between functions
   - _Requirements: REQ-V2-001.0 (High-Accuracy Relationship Extraction - CALLS)_
 
-- [ ] 1.2 Implement type usage detection (USES relationships)
+- [x] 1.2 Implement type usage detection (USES relationships)
   - **STUB**: Write failing test for detecting type usage in function signatures and bodies
   - **RED**: Test fails because visit_type_path is not implemented
   - **GREEN**: Implement type path traversal to detect parameter and return types
@@ -62,7 +62,7 @@ The system currently only extracts IMPLEMENTS relationships from impl blocks. Th
   - Validate USES edges are created correctly between functions and types
   - _Requirements: REQ-V2-001.0 (High-Accuracy Relationship Extraction - USES)_
 
-- [ ] 1.3 Enhance module-aware FQN generation
+- [x] 1.3 Enhance module-aware FQN generation
   - **STUB**: Write failing test for generating fully qualified names with module paths
   - **RED**: Test fails because ModuleContext doesn't track nested modules correctly
   - **GREEN**: Implement proper module path tracking during AST traversal
@@ -71,7 +71,7 @@ The system currently only extracts IMPLEMENTS relationships from impl blocks. Th
   - Validate FQN uniqueness and consistency across different parsing contexts
   - _Requirements: REQ-V2-003.0 (Deterministic Identification System)_
 
-- [ ] 1.4 Validate relationship extraction accuracy with comprehensive tests
+- [x] 1.4 Validate relationship extraction accuracy with comprehensive tests
   - **STUB**: Write failing tests for complex relationship patterns
   - **RED**: Tests fail because accuracy is below 95%
   - **GREEN**: Improve relationship resolution to achieve 95%+ accuracy
