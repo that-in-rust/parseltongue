@@ -188,6 +188,21 @@ Sarah becomes the internal champion. She demonstrates Parseltongue in architectu
 5. WHEN I query architectural state THEN the system SHALL always reflect the current state of my code, never stale data
 6. WHEN daemon is running THEN all queries SHALL use the in-memory graph for consistent sub-millisecond performance
 
+### REQ-V2-010.0: Debug Visualization Export
+
+**User Story:** As a developer debugging relationship extraction logic, I want to export the ISG structure for visual analysis so that I can validate parsing accuracy and accelerate development iteration.
+
+**Journey Context**: The development team needs to validate that 95%+ relationship extraction is working correctly. Debugging complex graph structures through logs is inefficient and slows down the critical path to shipping v2.0.
+
+#### Acceptance Criteria
+
+1. WHEN I run `parseltongue debug --export-dot` THEN the system SHALL export the complete ISG as Graphviz DOT format
+2. WHEN generating DOT output THEN the system SHALL include meaningful node labels showing FQN and entity kind (e.g., "my_crate::utils::Config (Struct)")
+3. WHEN generating DOT output THEN the system SHALL include edge labels showing relationship types (CALLS, USES, IMPLEMENTS)
+4. WHEN exporting the graph THEN the system SHALL use `petgraph::dot::Dot` with custom attribute getters for readable visualization
+5. WHEN processing the DOT file THEN standard tools (Graphviz, online viewers) SHALL render the architectural structure clearly
+6. WHEN debugging relationship extraction THEN the visual output SHALL enable rapid validation of parsing logic and FQN resolution
+
 ## v2.0 Success Criteria
 
 ### Core Foundation (30-Day Deliverables)
@@ -201,13 +216,14 @@ Sarah becomes the internal champion. She demonstrates Parseltongue in architectu
 2. **Basic CLI**: Clean interface exposing core architectural queries
 3. **Production Daemon**: Robust error handling, automatic recovery, performance monitoring
 4. **Basic LLM Context**: Compressed, factual architectural context generation
+5. **Debug Visualization**: DOT export for development team validation and debugging
 
 ### Performance Validation (Measurable)
 1. **Ingestion Speed**: <5s for 2.1MB dumps (measured with real Axum codebase)
 2. **Update Latency**: <12ms for file changes (measured with instrumentation)
 3. **Query Performance**: <1ms simple queries, <2ms complex analysis (measured with benchmarks)
 4. **Memory Efficiency**: <25MB for 100K LOC (measured with profiling tools)
-5. **Relationship Accuracy**: 95%+ extraction verified with manual spot-checking
+5. **Relationship Accuracy**: 95%+ extraction verified with manual spot-checking and visual validation
 6. **Cross-Platform Consistency**: Identical results on Linux, macOS, Windows
 ### User Journey Success Metrics
 1. **Sarah's Core Workflow**: Reliable blast-radius analysis enables confident refactoring
@@ -222,6 +238,7 @@ Sarah becomes the internal champion. She demonstrates Parseltongue in architectu
 - ✅ Production-ready daemon with robust error handling
 - ✅ Basic LLM context generation with factual architectural data
 - ✅ Real-time daemon integration for live terminal workflows
+- ✅ Debug visualization export (DOT format) for development validation
 
 ### Deliberately Cut (Deferred to v3.0)
 - ❌ Advanced pattern detection (Builder, State Machine, RAII)
@@ -232,5 +249,7 @@ Sarah becomes the internal champion. She demonstrates Parseltongue in architectu
 - ❌ Complex LLM workflow features
 - ❌ IDE integration and language server protocol
 - ❌ Web interface and visualization tools
+- ❌ User-facing scoped visualization (Mermaid, interactive graphs)
+- ❌ Obsidian integration and Markdown vault generation
 
 **Core Validation**: Proves that deterministic, sub-millisecond architectural intelligence on live Rust codebases is achievable with high-accuracy relationship extraction and O(1) performance guarantees, enabling Sarah's core workflow of confident refactoring through reliable dependency analysis.
