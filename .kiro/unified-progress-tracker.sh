@@ -69,7 +69,11 @@ generate_repository_snapshot() {
                     total_tasks=$(grep -c "^- \[" "$spec_dir/tasks.md" 2>/dev/null || echo "0")
                     completed_tasks=$(grep -c "^- \[x\]" "$spec_dir/tasks.md" 2>/dev/null || echo "0")
                     
-                    if [ "$total_tasks" -gt 0 ]; then
+                    # Ensure variables are numeric
+                    total_tasks=${total_tasks:-0}
+                    completed_tasks=${completed_tasks:-0}
+                    
+                    if [ "$total_tasks" -gt 0 ] && [ "$completed_tasks" -ge 0 ]; then
                         progress=$((completed_tasks * 100 / total_tasks))
                         phase="Implementation (${progress}%)"
                     fi
@@ -122,7 +126,11 @@ update_session_context() {
                 TOTAL_TASKS=$(grep -c "^- \[" "$spec_dir/tasks.md" 2>/dev/null || echo "0")
                 COMPLETED_TASKS=$(grep -c "^- \[x\]" "$spec_dir/tasks.md" 2>/dev/null || echo "0")
                 
-                if [ "$TOTAL_TASKS" -gt 0 ]; then
+                # Ensure variables are numeric
+                TOTAL_TASKS=${TOTAL_TASKS:-0}
+                COMPLETED_TASKS=${COMPLETED_TASKS:-0}
+                
+                if [ "$TOTAL_TASKS" -gt 0 ] && [ "$COMPLETED_TASKS" -ge 0 ]; then
                     PROGRESS=$((COMPLETED_TASKS * 100 / TOTAL_TASKS))
                     sed -i "s/Progress: [0-9]*%/Progress: ${PROGRESS}%/" "$context_file"
                 fi
@@ -194,7 +202,14 @@ generate_delta_report() {
     PREV_LINES=$(grep "Total Lines" "$PREVIOUS_SNAPSHOT" | sed 's/.*: //' | tr -d ',' | tr -d '*' || echo "0")
     PREV_WORDS=$(grep "Total Words" "$PREVIOUS_SNAPSHOT" | sed 's/.*: //' | tr -d ',' | tr -d '*' || echo "0")
 
-    # Calculate changes
+    # Calculate changes (ensure variables are numeric)
+    PREV_FILES=${PREV_FILES:-0}
+    PREV_LINES=${PREV_LINES:-0}
+    PREV_WORDS=${PREV_WORDS:-0}
+    TOTAL_FILES=${TOTAL_FILES:-0}
+    TOTAL_LINES=${TOTAL_LINES:-0}
+    TOTAL_WORDS=${TOTAL_WORDS:-0}
+    
     FILE_DIFF=$((TOTAL_FILES - PREV_FILES))
     LINE_DIFF=$((TOTAL_LINES - PREV_LINES))
     WORD_DIFF=$((TOTAL_WORDS - PREV_WORDS))
