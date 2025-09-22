@@ -14,6 +14,8 @@ pub mod daemon;
 pub mod cli;
 pub mod performance_validation;
 pub mod performance_monitoring;
+pub mod relationship_accuracy_tests;
+pub mod accuracy_validation_report;
 
 #[cfg(test)]
 mod tests {
