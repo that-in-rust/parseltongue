@@ -13,6 +13,7 @@ pub mod isg;
 pub mod daemon;
 pub mod cli;
 pub mod performance_validation;
+pub mod performance_monitoring;
 
 #[cfg(test)]
 mod tests {
