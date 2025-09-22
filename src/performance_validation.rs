@@ -253,6 +253,8 @@ impl RealisticDataGenerator {
     /// Generate realistic edges between nodes
     fn generate_realistic_edges(&self, isg: &OptimizedISG, nodes: &[NodeData], edge_count: usize) {
         use rand::prelude::*;
+        use rand::rngs::StdRng;
+        use rand::SeedableRng;
         let mut rng = StdRng::seed_from_u64(42); // Deterministic for testing
         
         let functions: Vec<_> = nodes.iter().filter(|n| n.kind == NodeKind::Function).collect();

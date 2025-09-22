@@ -601,7 +601,7 @@ impl ParseltongueAIM {
     }
 
     /// Fast file update using OptimizedISG
-    fn update_file(&mut self, path: &Path) -> Result<(), ISGError> {
+    pub fn update_file(&mut self, path: &Path) -> Result<(), ISGError> {
         let code = std::fs::read_to_string(path)
             .map_err(|e| ISGError::IoError(format!("Failed to read file {}: {}", path.display(), e)))?;
         
