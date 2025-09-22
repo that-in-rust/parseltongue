@@ -203,6 +203,21 @@ Sarah becomes the internal champion. She demonstrates Parseltongue in architectu
 5. WHEN processing the DOT file THEN standard tools (Graphviz, online viewers) SHALL render the architectural structure clearly
 6. WHEN debugging relationship extraction THEN the visual output SHALL enable rapid validation of parsing logic and FQN resolution
 
+### REQ-V2-011.0: Interactive HTML Visualization
+
+**User Story:** As a developer showcasing Parseltongue's architectural intelligence capabilities, I want elegant HTML visualization of Interface Signature Graphs so that I can demonstrate the system's core value proposition to stakeholders and potential users.
+
+**Journey Context**: Marketing and demonstration scenarios require compelling visual proof that Parseltongue accurately captures architectural relationships. Static DOT exports are insufficient for interactive exploration and professional presentation.
+
+#### Acceptance Criteria
+
+1. WHEN I run `parseltongue visualize --html <entity>` THEN the system SHALL generate an interactive HTML page showing the ISG structure around the target entity
+2. WHEN generating HTML output THEN the system SHALL use modern web technologies (D3.js, vis.js, or similar) to create interactive node-link diagrams
+3. WHEN displaying nodes THEN the system SHALL show entity types with distinct visual styling (functions, structs, traits, enums) and meaningful labels
+4. WHEN displaying edges THEN the system SHALL use different colors and styles for CALLS, USES, and IMPLEMENTS relationships with clear legends
+5. WHEN interacting with the visualization THEN users SHALL be able to zoom, pan, and click nodes to explore architectural relationships
+6. WHEN generating visualizations THEN the system SHALL complete in <500ms and produce self-contained HTML files suitable for sharing and presentation
+
 ## v2.0 Success Criteria
 
 ### Core Foundation (30-Day Deliverables)
@@ -217,6 +232,7 @@ Sarah becomes the internal champion. She demonstrates Parseltongue in architectu
 3. **Production Daemon**: Robust error handling, automatic recovery, performance monitoring
 4. **Basic LLM Context**: Compressed, factual architectural context generation
 5. **Debug Visualization**: DOT export for development team validation and debugging
+6. **Interactive HTML Visualization**: Elegant web-based ISG visualization for marketing and demonstration
 
 ### Performance Validation (Measurable)
 1. **Ingestion Speed**: <5s for 2.1MB dumps (measured with real Axum codebase)
@@ -239,6 +255,7 @@ Sarah becomes the internal champion. She demonstrates Parseltongue in architectu
 - ✅ Basic LLM context generation with factual architectural data
 - ✅ Real-time daemon integration for live terminal workflows
 - ✅ Debug visualization export (DOT format) for development validation
+- ✅ Interactive HTML visualization of the whole codebase SIPG data structure
 
 ### Deliberately Cut (Deferred to v3.0)
 - ❌ Advanced pattern detection (Builder, State Machine, RAII)

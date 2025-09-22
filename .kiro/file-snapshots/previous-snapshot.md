@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-22 09:51:57
+# Repository Snapshot - 2025-09-22 11:21:19
 
 ## Summary Statistics
 - **Total Files**: 81
-- **Total Lines**: 80,550
-- **Total Words**: 259,531
-- **Snapshot Time**: 2025-09-22 09:51:57
+- **Total Lines**: 81,160
+- **Total Words**: 261,669
+- **Snapshot Time**: 2025-09-22 11:21:19
 
 ## Spec Progress Summary
 
@@ -46,7 +46,7 @@
 | .kiro/backlog-options/v2RequirementOptions.md | 291 | 2717 | 21K |
 | .kiro/backlog-options/v2RequirementOptionsP2.md | 117 | 833 | 6.2K |
 | .kiro/backlog-options/v2RequirementOptionsP3.md | 113 | 3799 | 26K |
-| .kiro/file-snapshots/change-log.md | 1815 | 5179 | 39K |
+| .kiro/file-snapshots/change-log.md | 1826 | 5210 | 39K |
 | .kiro/file-snapshots/current-snapshot.md | 100 | 859 | 5.7K |
 | .kiro/file-snapshots/previous-snapshot.md | 100 | 859 | 5.7K |
 | .kiro/hooks/hook-automation-guide.md | 258 | 1362 | 11K |
@@ -74,20 +74,20 @@
 | .kiro/specs/parseltongue-aim-daemon/rust-patterns-analysis.md | 483 | 1480 | 14K |
 | .kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 220 | 1096 | 8.7K |
 | .kiro/specs/parseltongue-aim-daemon/tasks.md | 318 | 2358 | 19K |
-| .kiro/specs/parseltongue-architect-v2/design.md | [binary] | [binary] | 0 |
-| .kiro/specs/parseltongue-architect-v2/requirements.md | 236 | 2404 | 18K |
+| .kiro/specs/parseltongue-architect-v2/design.md | 479 | 1570 | 17K |
+| .kiro/specs/parseltongue-architect-v2/requirements.md | 255 | 2627 | 19K |
 | .kiro/steering/code-conventions.md | 1997 | 6142 | 53K |
 | .kiro/steering/design101-tdd-architecture-principles.md | 943 | 3431 | 29K |
 | .kiro/steering/parseltongue-requirements-focus.md | 35 | 166 | 1.3K |
 | .kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | .kiro/unified-progress-tracker.sh | 296 | 1402 | 12K |
-| parseltongue_snapshot.json | [binary] | [binary] | 811 |
+| parseltongue_snapshot.json | [binary] | [binary] | 1.5K |
 | README.md | 412 | 1268 | 11K |
 | _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443 TRUNC.txt | 3908 | 14879 | 136K |
 | _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
 | src/cli.rs | 563 | 1617 | 19K |
-| src/daemon.rs | 788 | 2322 | 28K |
-| src/isg.rs | 737 | 2232 | 27K |
+| src/daemon.rs | 796 | 2346 | 28K |
+| src/isg.rs | 830 | 2522 | 30K |
 | src/lib.rs | 23 | 79 | 591 |
 | src/main.rs | 13 | 34 | 280 |
 | test_data/axum_truncated_test.txt | [binary] | [binary] | 0 |
