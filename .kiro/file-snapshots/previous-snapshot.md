@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-22 13:28:19
+# Repository Snapshot - 2025-09-22 13:48:10
 
 ## Summary Statistics
-- **Total Files**: 85
-- **Total Lines**: 82,816
-- **Total Words**: 270,794
-- **Snapshot Time**: 2025-09-22 13:28:19
+- **Total Files**: 86
+- **Total Lines**: 82,740
+- **Total Words**: 269,948
+- **Snapshot Time**: 2025-09-22 13:48:10
 
 ## Spec Progress Summary
 
@@ -49,9 +49,9 @@
 | .kiro/backlog-options/v2RequirementOptions.md | 291 | 2717 | 21K |
 | .kiro/backlog-options/v2RequirementOptionsP2.md | 117 | 833 | 6.2K |
 | .kiro/backlog-options/v2RequirementOptionsP3.md | 113 | 3799 | 26K |
-| .kiro/file-snapshots/change-log.md | 1902 | 5410 | 41K |
-| .kiro/file-snapshots/current-snapshot.md | 103 | 886 | 5.9K |
-| .kiro/file-snapshots/previous-snapshot.md | 103 | 886 | 5.9K |
+| .kiro/file-snapshots/change-log.md | 1916 | 5445 | 41K |
+| .kiro/file-snapshots/current-snapshot.md | 104 | 895 | 6.0K |
+| .kiro/file-snapshots/previous-snapshot.md | 104 | 895 | 6.0K |
 | .kiro/hooks/hook-automation-guide.md | 258 | 1362 | 11K |
 | .kiro/hooks/hook-system-status.md | 27 | 115 | 912 |
 | .kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 575 |
@@ -79,12 +79,12 @@
 | .kiro/specs/parseltongue-aim-daemon/tasks.md | 318 | 2358 | 19K |
 | .kiro/specs/parseltongue-architect-v2/design.md | 1484 | 4959 | 55K |
 | .kiro/specs/parseltongue-architect-v2/requirements.md | 301 | 3088 | 23K |
-| .kiro/specs/parseltongue-architect-v2/tasks.md | 331 | 2506 | 19K |
+| .kiro/specs/parseltongue-architect-v2/tasks.md | 214 | 1535 | 11K |
 | .kiro/steering/code-conventions.md | 1997 | 6142 | 53K |
-| .kiro/steering/design101-tdd-architecture-principles.md | 943 | 3431 | 29K |
+| .kiro/steering/design101-tdd-architecture-principles.md | 948 | 3454 | 29K |
 | .kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | .kiro/unified-progress-tracker.sh | 311 | 1438 | 13K |
-| parseltongue_snapshot.json | [binary] | [binary] | 1.5K |
+| parseltongue_snapshot.json | [binary] | [binary] | 3.2K |
 | README.md | 412 | 1268 | 11K |
 | _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443 TRUNC.txt | 3908 | 14879 | 136K |
 | _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
@@ -94,6 +94,7 @@
 | src/isg.rs | 830 | 2522 | 30K |
 | src/lib.rs | 23 | 79 | 591 |
 | src/main.rs | 13 | 34 | 280 |
+| test_calls.txt | 20 | 49 | 318 |
 | test_data/axum_truncated_test.txt | [binary] | [binary] | 0 |
 | test_data/example_dump.txt | 26 | 69 | 455 |
 | test_data/parseltongue_dump.txt | 24 | 64 | 514 |
