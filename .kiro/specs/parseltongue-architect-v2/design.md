@@ -12,6 +12,96 @@ Parseltongue Architect v2.0 implements a **deterministic, high-performance Inter
 4. **Production-Ready Reliability**: Robust error handling, automatic recovery, performance monitoring
 5. **Real-Time Architectural Intelligence**: <12ms file update latency, <1ms query response times
 
+## v2.0 Scope Definition: What We WILL and WILL NOT Do
+
+### ✅ **FOUNDATION-FIRST: What v2.0 WILL Deliver (30-Day Timeline)**
+
+#### **Core Architecture (Proven Patterns)**
+- ✅ **Single RwLock Design**: `Arc<RwLock<ISGState>>` for atomic consistency without complex coordination
+- ✅ **petgraph::StableDiGraph**: Battle-tested graph library with stable node indices
+- ✅ **FxHasher Deterministic Hashing**: Cross-platform consistent identification using FQNs
+- ✅ **Three O(1) Indices**: `id_map`, `name_map`, `file_index` for guaranteed performance
+- ✅ **syn-based AST Parsing**: Mature, reliable Rust parser with `syn::visit::Visit` pattern
+
+#### **Performance Contracts (Non-Negotiable)**
+- ✅ **<1ms Query Response**: blast-radius, what-implements, calls, uses queries
+- ✅ **<12ms File Updates**: Incremental parsing and graph updates
+- ✅ **<50μs Node Operations**: Get, insert, lookup operations
+- ✅ **<25MB Memory Usage**: At 100K LOC with string interning and efficient storage
+
+#### **Core Functionality (Sarah's Workflow)**
+- ✅ **95%+ Relationship Accuracy**: CALLS, USES, IMPLEMENTS extraction via AST traversal
+- ✅ **Two-Pass Ingestion**: Forward reference resolution for accurate dependency graphs
+- ✅ **Real-Time File Monitoring**: `notify` crate integration with incremental updates
+- ✅ **CLI Interface**: Clean commands with performance metrics and error handling
+- ✅ **Basic LLM Context**: 1-hop architectural context generation for AI assistance
+
+#### **Debug and Validation Tools**
+- ✅ **DOT Export**: Graphviz visualization for development validation
+- ✅ **Interactive HTML Visualization**: Self-contained, <500ms generation time
+- ✅ **Performance Instrumentation**: Built-in timing and constraint validation
+- ✅ **Comprehensive Test Coverage**: Contract-driven testing with requirement traceability
+
+### ❌ **ADVANCED OPTIMIZATIONS: What v2.0 WILL NOT Do (Deferred to v3.0+)**
+
+#### **Lock-Free Concurrency (Too Complex for 30 Days)**
+- ❌ **Read-Copy-Update (RCU)**: Complex memory management, debugging challenges
+- ❌ **Epoch-Based Reclamation**: Advanced concurrent data structures
+- ❌ **MVCC (Multi-Version Concurrency Control)**: Adds significant complexity
+- **Rationale**: Single RwLock is proven, debuggable, and sufficient for v2.0 performance targets
+
+#### **Advanced Parsing Technologies (Major Architecture Change)**
+- ❌ **tree-sitter Integration**: Incremental parsing requires complete rewrite
+- ❌ **rust-analyzer LSP Integration**: Complex semantic resolution, unstable APIs
+- ❌ **Macro Expansion Support**: Beyond syn's capabilities, diminishing returns
+- **Rationale**: syn provides 95% accuracy target; perfect accuracy not required for v2.0
+
+#### **Extreme Performance Optimizations (Premature for Current Scale)**
+- ❌ **Cache-Oblivious Graph Layouts**: CSR format with Morton Z-order curves
+- ❌ **Custom Memory Allocators**: Arena allocation, memory pools
+- ❌ **SIMD-Optimized Operations**: Vectorized graph traversal
+- **Rationale**: Current performance targets achievable with standard approaches
+
+#### **Advanced Intelligence Features (Beyond Core Requirements)**
+- ❌ **Graph Embeddings**: Node2Vec, semantic similarity search
+- ❌ **Dynamic Analysis Integration**: eBPF tracing, runtime behavior capture
+- ❌ **Machine Learning Models**: Architectural pattern recognition
+- **Rationale**: Static analysis sufficient for core refactoring workflow
+
+#### **Scalability Beyond Current Needs (Future Requirements)**
+- ❌ **Federated Graph Architecture**: Distributed ISG with Merkle synchronization
+- ❌ **Zero-Copy Persistence**: `rkyv` + `mmap` for instant startup
+- ❌ **Horizontal Scaling**: Multi-node graph processing
+- **Rationale**: 100K-1M LOC target well within single-machine capabilities
+
+### 🎯 **The v2.0 Success Criteria**
+
+**Primary Goal**: Enable Sarah (Senior Engineer) to perform confident refactoring with reliable dependency analysis
+
+**Success Metrics**:
+1. **Functional**: 95%+ relationship extraction accuracy on real Rust codebases
+2. **Performance**: <1ms queries, <12ms updates, <25MB memory at 100K LOC
+3. **Reliability**: Graceful error handling, automatic recovery, cross-platform consistency
+4. **Usability**: Clean CLI interface, actionable error messages, debug visualization
+
+**Anti-Goals for v2.0**:
+- Perfect accuracy (95% is sufficient)
+- Sub-microsecond performance (millisecond targets are adequate)
+- Advanced ML/AI features (basic context generation sufficient)
+- Massive scale support (focus on typical team codebases)
+
+### 📋 **Decision Framework for Feature Requests**
+
+When evaluating new features or optimizations during v2.0 development:
+
+1. **Does it directly enable Sarah's refactoring workflow?** → Consider
+2. **Does it risk the 30-day delivery timeline?** → Defer to v3.0
+3. **Does it require >1 week of implementation?** → Defer to v3.0
+4. **Is it an optimization without proven bottleneck?** → Defer to v3.0
+5. **Does it add significant complexity to debugging?** → Defer to v3.0
+
+**The Rule**: When in doubt, choose the simpler, proven approach that delivers working software in 30 days.
+
 ## System Architecture
 
 ```

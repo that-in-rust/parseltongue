@@ -1,10 +1,10 @@
-# Repository Snapshot - 2025-09-22 12:37:17
+# Repository Snapshot - 2025-09-22 13:13:35
 
 ## Summary Statistics
-- **Total Files**: 82
-- **Total Lines**: 81,306
-- **Total Words**: 262,936
-- **Snapshot Time**: 2025-09-22 12:37:17
+- **Total Files**: 84
+- **Total Lines**: 82,362
+- **Total Words**: 267,525
+- **Snapshot Time**: 2025-09-22 13:13:35
 
 ## Spec Progress Summary
 
@@ -40,16 +40,18 @@
 | .kiro/backlog-options/architecture-backlog.md | 2638 | 12791 | 104K |
 | .kiro/backlog-options/backlog.md | 339 | 2385 | 19K |
 | .kiro/backlog-options/dev-steering-options.md | 1214 | 5310 | 44K |
-| .kiro/backlog-options/parseltonguev2deepthinkadvicev1.md | 67 | 713 | 5.3K |
+| .kiro/backlog-options/parseltongue-requirements-focus.md | 35 | 166 | 1.3K |
+| .kiro/backlog-options/parseltonguev2deepthinkadvicev1.md | 131 | 1614 | 12K |
+| .kiro/backlog-options/parseltonguev2deepthinkadvicev2.md | 61 | 901 | 6.3K |
 | .kiro/backlog-options/requirements-tasks-methodology.md | 79 | 429 | 3.5K |
 | .kiro/backlog-options/storage-architecture-options.md | 764 | 3596 | 29K |
 | .kiro/backlog-options/user-journey-options.md | 85 | 346 | 2.9K |
 | .kiro/backlog-options/v2RequirementOptions.md | 291 | 2717 | 21K |
 | .kiro/backlog-options/v2RequirementOptionsP2.md | 117 | 833 | 6.2K |
 | .kiro/backlog-options/v2RequirementOptionsP3.md | 113 | 3799 | 26K |
-| .kiro/file-snapshots/change-log.md | 1859 | 5303 | 40K |
-| .kiro/file-snapshots/current-snapshot.md | 100 | 859 | 5.7K |
-| .kiro/file-snapshots/previous-snapshot.md | 100 | 859 | 5.7K |
+| .kiro/file-snapshots/change-log.md | 1873 | 5338 | 40K |
+| .kiro/file-snapshots/current-snapshot.md | 101 | 868 | 5.8K |
+| .kiro/file-snapshots/previous-snapshot.md | 101 | 868 | 5.8K |
 | .kiro/hooks/hook-automation-guide.md | 258 | 1362 | 11K |
 | .kiro/hooks/hook-system-status.md | 27 | 115 | 912 |
 | .kiro/hooks/unified-progress-tracker.kiro.hook | [binary] | [binary] | 547 |
@@ -75,17 +77,17 @@
 | .kiro/specs/parseltongue-aim-daemon/rust-patterns-analysis.md | 483 | 1480 | 14K |
 | .kiro/specs/parseltongue-aim-daemon/SESSION_CONTEXT.md | 220 | 1096 | 8.7K |
 | .kiro/specs/parseltongue-aim-daemon/tasks.md | 318 | 2358 | 19K |
-| .kiro/specs/parseltongue-architect-v2/design.md | 479 | 1570 | 17K |
+| .kiro/specs/parseltongue-architect-v2/design.md | 1394 | 4304 | 50K |
 | .kiro/specs/parseltongue-architect-v2/requirements.md | 301 | 3088 | 23K |
 | .kiro/steering/code-conventions.md | 1997 | 6142 | 53K |
 | .kiro/steering/design101-tdd-architecture-principles.md | 943 | 3431 | 29K |
-| .kiro/steering/parseltongue-requirements-focus.md | 35 | 166 | 1.3K |
 | .kiro/tree-with-wc.sh | 60 | 411 | 2.7K |
 | .kiro/unified-progress-tracker.sh | 296 | 1402 | 12K |
 | parseltongue_snapshot.json | [binary] | [binary] | 1.5K |
 | README.md | 412 | 1268 | 11K |
 | _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443 TRUNC.txt | 3908 | 14879 | 136K |
 | _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt | 54830 | 156578 | 1.6M |
+| simple_test.dump | [binary] | [binary] | 0 |
 | src/cli.rs | 563 | 1617 | 19K |
 | src/daemon.rs | 796 | 2346 | 28K |
 | src/isg.rs | 830 | 2522 | 30K |
