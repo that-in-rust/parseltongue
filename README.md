@@ -42,42 +42,37 @@ Following the **Layered Rust Architecture (L1→L2→L3)** principle from our [d
 
 ```mermaid
 graph TD
-    %% L3 External Dependencies Layer
     subgraph "L3: External Dependencies"
         direction TB
-        A[Code Dumps<br/>FILE: markers]
-        B[Live .rs Files<br/>notify crate]
-        C[syn Parser<br/>AST traversal]
-        D[clap CLI<br/>Command interface]
+        A[Code Dumps FILE markers]
+        B[Live rs Files notify crate]
+        C[syn Parser AST traversal]
+        D[clap CLI Command interface]
     end
     
-    %% L2 Standard Library Layer  
     subgraph "L2: Standard Library"
         direction TB
-        E[Arc&lt;RwLock&gt;<br/>Thread safety]
-        F[FxHashMap<br/>O(1) lookups]
-        G[petgraph<br/>StableDiGraph]
-        H[String interning<br/>Arc&lt;str&gt;]
+        E[Arc RwLock Thread safety]
+        F[FxHashMap O1 lookups]
+        G[petgraph StableDiGraph]
+        H[String interning Arc str]
     end
     
-    %% L1 Core Language Layer
     subgraph "L1: Core Rust"
         direction TB
-        I[OptimizedISG<br/>RAII patterns]
-        J[SigHash<br/>Newtype safety]
-        K[NodeData<br/>Memory layout]
-        L[EdgeKind<br/>Type safety]
+        I[OptimizedISG RAII patterns]
+        J[SigHash Newtype safety]
+        K[NodeData Memory layout]
+        L[EdgeKind Type safety]
     end
     
-    %% Performance Contracts (Test-Validated)
     subgraph "Performance Contracts"
         direction LR
-        M[&lt;1ms Queries] --> N[&lt;12ms Updates]
-        N --> O[&lt;50μs Nodes]
-        O --> P[&lt;25MB Memory]
+        M[1ms Queries] --> N[12ms Updates]
+        N --> O[50us Nodes]
+        O --> P[25MB Memory]
     end
     
-    %% Data Flow
     A --> C
     B --> C
     C --> I
@@ -87,20 +82,17 @@ graph TD
     F --> J
     G --> K
     
-    %% Query Engine
     I --> Q[Query Engine]
     Q --> R[what-implements]
     Q --> S[blast-radius]
     Q --> T[find-cycles]
     Q --> U[generate-context]
     
-    %% Output Layer
     R --> V[Human Readable]
     S --> V
     T --> V
     U --> W[JSON for LLMs]
     
-    %% Styling following mobile-friendly patterns
     classDef l1Core fill:#e1f5fe,stroke:#01579b,stroke-width:3px
     classDef l2Std fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
     classDef l3External fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
@@ -244,7 +236,6 @@ Following **Contract-Driven Development** patterns from our [design principles](
 
 ```mermaid
 classDiagram
-    %% Core ISG with RAII patterns
     class OptimizedISG {
         -Arc~RwLock~ISGState~~ state
         +upsert_node(NodeData) Result~(), ISGError~
@@ -254,7 +245,6 @@ classDiagram
         +validate_performance_contract() Result~(), PerformanceError~
     }
     
-    %% Thread-safe state with O(1) indices
     class ISGState {
         +graph: StableDiGraph~NodeData, EdgeKind~
         +id_map: FxHashMap~SigHash, NodeIndex~
@@ -262,7 +252,6 @@ classDiagram
         +file_index: FxHashMap~Arc~str~, FxHashSet~SigHash~~
     }
     
-    %% Memory-optimized node storage
     class NodeData {
         +hash: SigHash
         +kind: NodeKind
@@ -273,7 +262,6 @@ classDiagram
         +validate() Result~(), ValidationError~
     }
     
-    %% Deterministic identification
     class SigHash {
         -u64 hash
         +from_fqn(str) SigHash
@@ -281,7 +269,6 @@ classDiagram
         +is_deterministic() bool
     }
     
-    %% Type-safe edge relationships
     class EdgeKind {
         <<enumeration>>
         Calls
@@ -289,7 +276,6 @@ classDiagram
         Implements
     }
     
-    %% Main daemon with dependency injection
     class ParseltongueAIM {
         -OptimizedISG isg
         -FileWatcher watcher
@@ -299,7 +285,6 @@ classDiagram
         +generate_context(String) Result~LlmContext, ContextError~
     }
     
-    %% Structured error hierarchy
     class ISGError {
         <<enumeration>>
         NodeNotFound(SigHash)
@@ -308,7 +293,6 @@ classDiagram
         PerformanceViolation{operation: String, actual: u64, limit: u64}
     }
     
-    %% Relationships following dependency injection
     OptimizedISG --> ISGState : "owns"
     ISGState --> NodeData : "contains"
     ISGState --> EdgeKind : "uses"
@@ -316,7 +300,6 @@ classDiagram
     ParseltongueAIM --> OptimizedISG : "depends on trait"
     OptimizedISG --> ISGError : "returns"
     
-    %% Styling for clarity
     classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:3px
     classDef data fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
     classDef error fill:#fce4ec,stroke:#c2185b,stroke-width:2px
@@ -335,29 +318,25 @@ Following **Two-Pass Ingestion Architecture** and **Concurrency Model Validation
 ```mermaid
 sequenceDiagram
     participant F as File System
-    participant D as Daemon<br/>(notify crate)
-    participant P as Parser<br/>(syn AST)
-    participant I as ISG Core<br/>(Arc&lt;RwLock&gt;)
+    participant D as Daemon (notify crate)
+    participant P as Parser (syn AST)
+    participant I as ISG Core (Arc RwLock)
     participant Q as Query Engine
     participant U as User
     participant T as Test Suite
     
-    %% Real-time file monitoring
     F->>D: File Change Event
     D->>D: Debounce (avoid spam)
     
-    %% Two-pass ingestion
     D->>P: Parse .rs file
     Note over P: Pass 1: Extract all nodes
     P->>I: Create nodes with FQNs
     Note over P: Pass 2: Build relationships
     P->>I: Add CALLS/USES/IMPLEMENTS edges
     
-    %% Performance contract validation
     I->>T: Validate <12ms update constraint
     T-->>I: ✅ Contract satisfied
     
-    %% Query execution
     U->>Q: Execute Query (what-implements, blast-radius)
     Q->>I: Graph Traversal (O(1) lookup)
     I->>T: Validate <1ms query constraint
@@ -365,7 +344,6 @@ sequenceDiagram
     I->>Q: Results with metadata
     Q->>U: Response (human/JSON)
     
-    %% Error handling
     alt Parse Error
         P->>D: ParseError with context
         D->>U: Graceful degradation
@@ -376,17 +354,16 @@ sequenceDiagram
         T->>U: Warning with metrics
     end
     
-    %% Styling
     Note over D,I: <12ms Real-time Updates
     Note over Q,U: <1ms Sub-millisecond Queries
     Note over T: Automated Contract Validation
     
     rect rgb(225, 245, 254)
-        Note over P,I: Two-Pass Ingestion<br/>Forward reference resolution
+        Note over P,I: Two-Pass Ingestion Forward reference resolution
     end
     
     rect rgb(252, 228, 236)
-        Note over T: Performance Contracts<br/>Test-validated constraints
+        Note over T: Performance Contracts Test-validated constraints
     end
 ```
 
@@ -401,42 +378,34 @@ Following **Clean Architecture** patterns with comprehensive documentation:
 
 ```mermaid
 graph TD
-    %% Source code organization
+
     subgraph "Source Code (src/)"
         direction TB
-        A[main.rs<br/>CLI entry point]
-        B[lib.rs<br/>Library interface]
-        C[isg.rs<br/>OptimizedISG core]
-        D[daemon.rs<br/>File monitoring]
-        E[cli.rs<br/>Command interface]
+        A[main.rs CLI entry point]
+        B[lib.rs Library interface]
+        C[isg.rs OptimizedISG core]
+        D[daemon.rs File monitoring]
+        E[cli.rs Command interface]
     end
-    
-    %% Documentation structure
     subgraph "Documentation (docs/)"
         direction TB
-        F[ARCHITECTURE_OVERVIEW.md<br/>Complete system design]
-        G[ISG_EXPLAINED.md<br/>Core concepts with diagrams]
-        H[ONBOARDING_GUIDE.md<br/>Getting started workflow]
-        I[IMPLEMENTATION_NOTES.md<br/>Technical details]
+        F[ARCHITECTURE_OVERVIEW.md Complete system design]
+        G[ISG_EXPLAINED.md Core concepts with diagrams]
+        H[ONBOARDING_GUIDE.md Getting started workflow]
+        I[IMPLEMENTATION_NOTES.md Technical details]
     end
-    
-    %% Development guidelines
     subgraph "Development Guidelines (.kiro/)"
         direction TB
-        J[specs/<br/>Feature specifications]
-        K[steering/<br/>Architecture principles]
-        L[hooks/<br/>Automation workflows]
+        J[specs/ Feature specifications]
+        K[steering/ Architecture principles]
+        L[hooks/ Automation workflows]
     end
-    
-    %% Test and validation
     subgraph "Testing & Validation"
         direction TB
-        M[tests/<br/>40 automated tests]
-        N[test_data/<br/>Real codebase samples]
-        O[Performance validation<br/>Contract compliance]
+        M[tests/ 40 automated tests]
+        N[test_data/ Real codebase samples]
+        O[Performance validation Contract compliance]
     end
-    
-    %% Connect relationships
     A --> F
     C --> G
     B --> H
@@ -447,8 +416,6 @@ graph TD
     
     M --> O
     N --> O
-    
-    %% Styling
     classDef source fill:#e1f5fe,stroke:#01579b,stroke-width:3px
     classDef docs fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
     classDef dev fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
@@ -474,61 +441,49 @@ Implementing **Test-Driven Development (TDD)** and **Property-Based Testing** pa
 
 ```mermaid
 graph TD
-    %% Main test categories
+
     subgraph "Contract-Driven Testing"
         direction TB
-        A[40 Total Tests<br/>100% Pass Rate]
+        A[40 Total Tests 100% Pass Rate]
         A --> B[Performance Contract Tests]
         A --> C[Integration Contract Tests]
         A --> D[Unit Contract Tests]
         A --> E[Property-Based Tests]
     end
-    
-    %% Performance contracts (test-validated)
     subgraph "Performance Contracts"
         direction TB
-        B --> B1[Node Operations &lt; 50μs<br/>✅ Automated validation]
-        B --> B2[Query Performance &lt; 1ms<br/>✅ Stress tested]
-        B --> B3[File Update &lt; 12ms<br/>✅ Real-time monitoring]
-        B --> B4[Memory Usage &lt; 25MB<br/>✅ Profiler integration]
+        B --> B1[Node Operations 50us Automated validation]
+        B --> B2[Query Performance 1ms Stress tested]
+        B --> B3[File Update 12ms Real-time monitoring]
+        B --> B4[Memory Usage 25MB Profiler integration]
     end
-    
-    %% Integration testing
     subgraph "End-to-End Validation"
         direction TB
-        C --> C1[Complete Workflows<br/>ingest → query → context]
-        C --> C2[CLI Interface<br/>All commands functional]
-        C --> C3[File Monitoring<br/>Real-time updates]
-        C --> C4[Cross-Platform<br/>Linux/macOS/Windows]
+        C --> C1[Complete Workflows ingest query context]
+        C --> C2[CLI Interface All commands functional]
+        C --> C3[File Monitoring Real-time updates]
+        C --> C4[Cross-Platform Linux macOS Windows]
     end
-    
-    %% Unit testing with contracts
     subgraph "Component Contracts"
         direction TB
-        D --> D1[ISG Operations<br/>Preconditions/Postconditions]
-        D --> D2[Node/Edge Management<br/>Invariant preservation]
-        D --> D3[Query Algorithms<br/>Correctness proofs]
-        D --> D4[Error Handling<br/>Exhaustive scenarios]
+        D --> D1[ISG Operations Preconditions Postconditions]
+        D --> D2[Node Edge Management Invariant preservation]
+        D --> D3[Query Algorithms Correctness proofs]
+        D --> D4[Error Handling Exhaustive scenarios]
     end
-    
-    %% Property-based testing
     subgraph "Invariant Validation"
         direction TB
-        E --> E1[Graph Consistency<br/>No orphaned edges]
-        E --> E2[Hash Determinism<br/>Cross-platform stable]
-        E --> E3[Serialization Roundtrip<br/>Data integrity]
-        E --> E4[Concurrent Access<br/>Race condition free]
+        E --> E1[Graph Consistency No orphaned edges]
+        E --> E2[Hash Determinism Cross-platform stable]
+        E --> E3[Serialization Roundtrip Data integrity]
+        E --> E4[Concurrent Access Race condition free]
     end
-    
-    %% TDD Cycle
     subgraph "TDD Workflow"
         direction LR
-        F[Write Test<br/>RED] --> G[Write Code<br/>GREEN]
-        G --> H[Refactor<br/>CLEAN]
+        F[Write Test RED] --> G[Write Code GREEN]
+        G --> H[Refactor CLEAN]
         H --> F
     end
-    
-    %% Styling following mobile-friendly patterns
     classDef testCore fill:#e1f5fe,stroke:#01579b,stroke-width:3px
     classDef performance fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
     classDef integration fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
@@ -725,34 +680,30 @@ This project implements all **8 Non-Negotiable Architectural Principles** from o
 
 ```mermaid
 graph TD
-    %% Compliance matrix
+
     subgraph "Architectural Principle Compliance"
         direction TB
-        A[✅ 1. Executable Specifications<br/>Contract-driven with 40 tests]
-        B[✅ 2. Layered Rust Architecture<br/>L1→L2→L3 separation]
-        C[✅ 3. Dependency Injection<br/>Trait-based testability]
-        D[✅ 4. RAII Resource Management<br/>Automatic cleanup]
-        E[✅ 5. Performance Test-Validated<br/>All claims verified]
-        F[✅ 6. Structured Error Handling<br/>thiserror + anyhow]
-        G[✅ 7. Complex Domain Support<br/>Real Rust complexity]
-        H[✅ 8. Concurrency Validation<br/>Thread-safe with tests]
+        A[✅ 1. Executable Specifications Contract-driven with 40 tests]
+        B[✅ 2. Layered Rust Architecture L1-L2-L3 separation]
+        C[✅ 3. Dependency Injection Trait-based testability]
+        D[✅ 4. RAII Resource Management Automatic cleanup]
+        E[✅ 5. Performance Test-Validated All claims verified]
+        F[✅ 6. Structured Error Handling thiserror + anyhow]
+        G[✅ 7. Complex Domain Support Real Rust complexity]
+        H[✅ 8. Concurrency Validation Thread-safe with tests]
     end
-    
-    %% Evidence
     subgraph "Implementation Evidence"
         direction LR
-        I[40 Tests Pass<br/>100% success rate]
-        J[Performance Contracts<br/>&lt;1ms queries, &lt;12ms updates]
-        K[Real Codebases<br/>Axum, Tokio tested]
-        L[Cross-Platform<br/>Linux/macOS/Windows]
+        I[40 Tests Pass 100% success rate]
+        J[Performance Contracts 1ms queries 12ms updates]
+        K[Real Codebases Axum Tokio tested]
+        L[Cross-Platform Linux macOS Windows]
     end
     
     A --> I
     E --> J
     G --> K
     H --> L
-    
-    %% Styling
     classDef compliance fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
     classDef evidence fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     
