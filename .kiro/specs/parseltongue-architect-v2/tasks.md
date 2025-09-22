@@ -33,12 +33,12 @@ The core Parseltongue Architect v2.0 system is functionally complete with all ma
   - Add integration tests with real codebase samples
   - Verify accuracy on existing test data
 
-- [ ] Add cross-platform consistency testing
+- [x] Add cross-platform consistency testing
   - Validate identical results on different platforms
   - Add cross-platform integration tests
   - Verify SigHash consistency across Linux/macOS/Windows
 
-- [ ] Complete end-to-end workflow validation
+- [x] Complete end-to-end workflow validation
   - Test complete ingest → query → visualize → context workflow
   - Enhance existing end-to-end tests with realistic scenarios
   - Verify Sarah's core workflow with real data
@@ -85,3 +85,9 @@ Each remaining task must meet these validation criteria:
 - Automatic recovery from corrupted state
 
 The system is production-ready and can handle Sarah's core architectural intelligence workflow once these final 5 tasks are completed.
+
+# README UPDATE
+
+- [-] Update All README and docs with Mermaid diagrams referencing the steering docs
+
+- [ ] Run .kiro/tree-with-wc.sh - and use mv commands to clean up the repo, it should look elegant for someone reading it on github

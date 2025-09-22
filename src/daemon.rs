@@ -702,6 +702,139 @@ impl ParseltongueAIM {
         }
     }
 
+    /// Generate LLM context for entity with 1-hop dependency analysis
+    /// Target: <100ms for typical entities
+    pub fn generate_llm_context(&self, entity_name: &str) -> Result<String, ISGError> {
+        let start = std::time::Instant::now();
+        
+        // Find entity by name
+        let target_hash = self.find_entity_by_name(entity_name)?;
+        let target_node = self.isg.get_node(target_hash)?;
+        
+        // Get 1-hop relationships
+        let dependencies = self.get_dependencies(target_hash);
+        let callers = self.get_callers(target_hash);
+        
+        // Calculate blast radius size for impact analysis
+        let blast_radius = self.isg.calculate_blast_radius(target_hash)
+            .map(|radius| radius.len())
+            .unwrap_or(0);
+        
+        let elapsed = start.elapsed();
+        
+        // Validate performance constraint (<100ms)
+        if elapsed.as_millis() > 100 {
+            eprintln!("⚠️  Context generation took {}ms (>100ms constraint)", elapsed.as_millis());
+        }
+        
+        // Format context for LLM consumption
+        let context = format!(
+            "# Architectural Context for {}\n\n\
+            ## Entity Definition\n\
+            - **Name**: {}\n\
+            - **Type**: {:?}\n\
+            - **Location**: {}:{}\n\
+            - **Signature**: {}\n\n\
+            ## Direct Dependencies ({})\n{}\n\n\
+            ## Direct Callers ({})\n{}\n\n\
+            ## Impact Analysis\n\
+            - **Blast Radius**: {} entities would be affected by changes\n\
+            - **Architectural Role**: {}\n\n\
+            ## Key Relationships\n{}\n\n\
+            Generated in {}μs",
+            target_node.name,
+            target_node.name,
+            target_node.kind,
+            target_node.file_path,
+            target_node.line,
+            target_node.signature,
+            dependencies.len(),
+            if dependencies.is_empty() {
+                "- None".to_string()
+            } else {
+                dependencies.iter()
+                    .take(10) // Limit to top 10 for readability
+                    .map(|d| format!("- {} ({}): {}", d.name, d.file_path, d.signature))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            },
+            callers.len(),
+            if callers.is_empty() {
+                "- None".to_string()
+            } else {
+                callers.iter()
+                    .take(10) // Limit to top 10 for readability
+                    .map(|c| format!("- {} ({}): {}", c.name, c.file_path, c.signature))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            },
+            blast_radius,
+            self.classify_architectural_role(&target_node, dependencies.len(), callers.len()),
+            self.format_key_relationships(&target_node, &dependencies, &callers),
+            elapsed.as_micros()
+        );
+        
+        Ok(context)
+    }
+    
+    /// Classify the architectural role of an entity based on its relationships
+    fn classify_architectural_role(&self, node: &NodeData, dep_count: usize, caller_count: usize) -> &'static str {
+        match node.kind {
+            NodeKind::Trait => {
+                if caller_count > 3 {
+                    "Core abstraction (widely implemented)"
+                } else {
+                    "Interface definition"
+                }
+            }
+            NodeKind::Struct => {
+                if dep_count > 5 && caller_count > 3 {
+                    "Central data structure"
+                } else if dep_count > 5 {
+                    "Complex entity (many dependencies)"
+                } else if caller_count > 3 {
+                    "Widely used data type"
+                } else {
+                    "Simple data structure"
+                }
+            }
+            NodeKind::Function => {
+                if dep_count > 5 && caller_count > 3 {
+                    "Central orchestrator"
+                } else if dep_count > 5 {
+                    "Complex operation (many dependencies)"
+                } else if caller_count > 3 {
+                    "Utility function (widely used)"
+                } else if dep_count == 0 && caller_count == 0 {
+                    "Isolated function (potential dead code)"
+                } else {
+                    "Standard function"
+                }
+            }
+        }
+    }
+    
+    /// Format key relationships for LLM context
+    fn format_key_relationships(&self, target: &NodeData, dependencies: &[NodeData], callers: &[NodeData]) -> String {
+        let mut relationships = Vec::new();
+        
+        // Add dependency relationships
+        for dep in dependencies.iter().take(5) {
+            relationships.push(format!("  {} USES {}", target.name, dep.name));
+        }
+        
+        // Add caller relationships
+        for caller in callers.iter().take(5) {
+            relationships.push(format!("  {} CALLS {}", caller.name, target.name));
+        }
+        
+        if relationships.is_empty() {
+            "- No direct relationships found".to_string()
+        } else {
+            relationships.join("\n")
+        }
+    }
+
     /// Save ISG snapshot to file (target: <500ms)
     pub fn save_snapshot(&self, path: &Path) -> Result<(), ISGError> {
         use std::time::Instant;

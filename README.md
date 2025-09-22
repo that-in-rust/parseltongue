@@ -38,62 +38,85 @@ graph TB
 
 ## Architecture Overview
 
+Following the **Layered Rust Architecture (L1→L2→L3)** principle from our [design guidelines](.kiro/steering/design101-tdd-architecture-principles.md), Parseltongue implements a clean separation of concerns with **Executable Specifications** driving every component.
+
 ```mermaid
-flowchart TD
-    subgraph Input ["Input Layer"]
-        A[Code Dumps] 
-        B[Live .rs Files]
+graph TD
+    %% L3 External Dependencies Layer
+    subgraph "L3: External Dependencies"
+        direction TB
+        A[Code Dumps<br/>FILE: markers]
+        B[Live .rs Files<br/>notify crate]
+        C[syn Parser<br/>AST traversal]
+        D[clap CLI<br/>Command interface]
     end
     
-    subgraph Processing ["Processing Layer"]
-        C[syn Parser]
-        D[OptimizedISG]
-        E[File Monitor]
+    %% L2 Standard Library Layer  
+    subgraph "L2: Standard Library"
+        direction TB
+        E[Arc&lt;RwLock&gt;<br/>Thread safety]
+        F[FxHashMap<br/>O(1) lookups]
+        G[petgraph<br/>StableDiGraph]
+        H[String interning<br/>Arc&lt;str&gt;]
     end
     
-    subgraph Storage ["Storage Layer"]
-        F[Arc RwLock ISGState]
-        G[FxHashMap Index]
-        H[petgraph StableDiGraph]
+    %% L1 Core Language Layer
+    subgraph "L1: Core Rust"
+        direction TB
+        I[OptimizedISG<br/>RAII patterns]
+        J[SigHash<br/>Newtype safety]
+        K[NodeData<br/>Memory layout]
+        L[EdgeKind<br/>Type safety]
     end
     
-    subgraph Query ["Query Layer"]
-        I[what-implements]
-        J[blast-radius]
-        K[find-cycles]
-        L[generate-context]
+    %% Performance Contracts (Test-Validated)
+    subgraph "Performance Contracts"
+        direction LR
+        M[&lt;1ms Queries] --> N[&lt;12ms Updates]
+        N --> O[&lt;50μs Nodes]
+        O --> P[&lt;25MB Memory]
     end
     
-    subgraph Output ["Output Layer"]
-        M[Human Readable]
-        N[JSON for LLMs]
-        O[Real-time Updates]
-    end
-    
+    %% Data Flow
     A --> C
-    B --> E
-    E --> C
-    C --> D
-    D --> F
-    F --> G
-    F --> H
-    
-    G --> I
-    G --> J
+    B --> C
+    C --> I
+    I --> E
+    E --> F
+    E --> G
+    F --> J
     G --> K
-    G --> L
     
-    I --> M
-    J --> M
-    K --> M
-    L --> N
+    %% Query Engine
+    I --> Q[Query Engine]
+    Q --> R[what-implements]
+    Q --> S[blast-radius]
+    Q --> T[find-cycles]
+    Q --> U[generate-context]
     
-    E --> O
+    %% Output Layer
+    R --> V[Human Readable]
+    S --> V
+    T --> V
+    U --> W[JSON for LLMs]
     
-    style D fill:#ff6b6b
-    style F fill:#4ecdc4
-    style L fill:#45b7d1
+    %% Styling following mobile-friendly patterns
+    classDef l1Core fill:#e1f5fe,stroke:#01579b,stroke-width:3px
+    classDef l2Std fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef l3External fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef performance fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    
+    class I,J,K,L l1Core
+    class E,F,G,H l2Std
+    class A,B,C,D l3External
+    class M,N,O,P performance
 ```
+
+**Key Architectural Decisions** (per [TDD principles](.kiro/steering/design101-tdd-architecture-principles.md)):
+- **Single RwLock Design**: Atomic consistency without complex coordination
+- **Dependency Injection**: All components depend on traits, not concrete types
+- **RAII Resource Management**: Automatic cleanup via Drop implementations
+- **Performance Claims Test-Validated**: Every timing assertion backed by automated tests
 
 ## Performance Targets
 
