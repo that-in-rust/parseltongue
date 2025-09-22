@@ -1871,3 +1871,21 @@
 
 ---
 
+
+## Delta Report - 2025-09-22 13:13:35
+
+### Summary Changes
+- **File Count**: 2 (84 total)
+- **Line Count**: 1,056 (82,362 total)
+- **Word Count**: 4,589 (267,525 total)
+
+### File-Level Changes
+**Added Files:**
+- .kiro/backlog-options/parseltongue-requirements-focus.md
+- .kiro/backlog-options/parseltonguev2deepthinkadvicev2.md
+
+**Removed Files:**
+- .kiro/steering/parseltongue-requirements-focus.md
+
+---
+
