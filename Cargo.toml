@@ -20,8 +20,10 @@ clap = { version = "4.0", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
-[dev-dependencies]
-tokio-test = "0.4"
+# Performance validation and testing dependencies
 tempfile = "3.0"
 rand = "0.8"
 chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+tokio-test = "0.4"

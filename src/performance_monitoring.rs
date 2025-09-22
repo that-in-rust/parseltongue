@@ -6,9 +6,9 @@
 use crate::performance_validation::{PerformanceValidator, WorkloadConfig, PerformanceMetrics};
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 use serde::{Serialize, Deserialize};
+use chrono::DateTime;
 
 /// Performance baseline for regression detection
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -191,12 +191,12 @@ impl PerformanceMonitor {
         let mut report = String::new();
         report.push_str("# Performance Monitoring Report\n\n");
         report.push_str(&format!("**Generated**: {}\n", 
-            chrono::DateTime::from_timestamp(regression_report.current_timestamp as i64, 0)
+            DateTime::from_timestamp(regression_report.current_timestamp as i64, 0)
                 .unwrap_or_default()
                 .format("%Y-%m-%d %H:%M:%S UTC")));
         report.push_str(&format!("**Platform**: {}\n", regression_report.platform));
         report.push_str(&format!("**Baseline**: {}\n\n", 
-            chrono::DateTime::from_timestamp(regression_report.baseline_timestamp as i64, 0)
+            DateTime::from_timestamp(regression_report.baseline_timestamp as i64, 0)
                 .unwrap_or_default()
                 .format("%Y-%m-%d %H:%M:%S UTC")));
         

@@ -71,8 +71,8 @@ impl RelationshipExtractor {
                 }
                 
                 // Try both simple name and full path
-                let simple_name = path_segments.last().unwrap();
-                let full_path = path_segments.join("::");
+                let _simple_name = path_segments.last().unwrap();
+                let _full_path = path_segments.join("::");
                 
                 // Try different resolution strategies:
                 
@@ -308,7 +308,7 @@ impl ParseltongueAIM {
 
     /// Parse Rust file using syn crate with two-pass ingestion
     fn parse_rust_file(&mut self, file_path: &str, code: &str) -> Result<(), ISGError> {
-        use syn::{Item, ItemFn, ItemStruct, ItemTrait, ItemImpl};
+
         use std::sync::Arc;
         
         let syntax_tree = match syn::parse_file(code) {
@@ -1451,7 +1451,7 @@ FILE: README.md
         
         // Should detect trait object usage and implementation relationships
         let process_hash = daemon.find_entity_by_name("process_with_handler").unwrap();
-        let logger_hash = daemon.find_entity_by_name("Logger").unwrap();
+        let _logger_hash = daemon.find_entity_by_name("Logger").unwrap();
         let handler_hash = daemon.find_entity_by_name("Handler").unwrap();
         
         // Should find Handler trait usage in function signature
