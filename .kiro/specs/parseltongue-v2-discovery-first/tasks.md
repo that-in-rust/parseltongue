@@ -107,9 +107,45 @@
   - Write micro-benchmarks for all performance-critical operations
   - _Requirements: Performance preservation constraint, memory efficiency_
 
-- [ ] 16. Integration with existing ISG engine and final wiring
+- [ ] 16. Add JSON output support for tooling integration
+  - Implement `--json` flag for all discovery commands (list-entities, entities-in-file, where-defined)
+  - Create structured JSON schemas with metadata (timestamps, file paths, confidence scores)
+  - Add JSON output for blast-radius analysis with machine-readable impact data
+  - Write unit tests validating JSON schema stability and backward compatibility
+  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+
+- [ ] 17. Build workspace state management system
+  - Implement WorkspaceManager for persistent analysis sessions in `./parseltongue_workspace/`
+  - Create AnalysisSession tracking with timestamps and automatic latest linking
+  - Add workspace cleanup commands and stale analysis detection
+  - Write integration tests for workspace isolation and state persistence
+  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
+
+- [ ] 18. Create workflow orchestration layer (shell toolkit)
+  - Build `pt` shell script with subcommand architecture (onboard, feature-start, debug, refactor-check)
+  - Implement WorkflowOrchestrator trait combining discovery commands into complete user journeys
+  - Create workflow result structures (OnboardingResult, FeaturePlanResult, DebugResult)
+  - Write workflow integration tests validating complete JTBD user journeys
+  - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
+
+- [ ] 19. Implement JTBD workflow commands
+  - Create `pt onboard` workflow: ingest → overview → routes → key contexts (complete in <15 minutes)
+  - Build `pt feature-start` workflow: impact analysis → scope guidance → test recommendations
+  - Implement `pt debug` workflow: caller traces → usage sites → minimal change scope
+  - Add `pt refactor-check` workflow: risk assessment → change checklist → reviewer guidance
+  - Write end-to-end tests for each workflow meeting success criteria timelines
+  - _Requirements: JTBD 1, 2, 3, 4 workflows_
+
+- [ ] 20. Build output integration and formatting system
+  - Implement OutputFormatter trait with human, JSON, PR summary, and CI output formats
+  - Create PR-ready markdown summaries with architectural context and impact analysis
+  - Add CI/CD integration outputs with risk levels and actionable recommendations
+  - Write formatting tests ensuring consistent, copy-pastable outputs across all formats
+  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+
+- [ ] 21. Integration with existing ISG engine and final wiring
   - Integrate discovery layer with existing InMemoryIsg without modifications
   - Wire discovery commands through existing CLI infrastructure
-  - Add discovery capabilities to existing query execution pipeline
-  - Write full system integration tests validating complete feature functionality
+  - Connect workflow orchestration layer to core discovery primitives
+  - Write full system integration tests validating complete feature functionality and workflows
   - _Requirements: All requirements integration and validation_

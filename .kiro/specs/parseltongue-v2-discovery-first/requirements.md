@@ -115,11 +115,21 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 
 ## Scope Control: The Discipline of No
 ### In Scope (P0 - Solves the Core Constraint)
+
+#### Core Discovery Primitives (Parseltongue Binary)
 - ✅ **Simple entity listing** - The primary adoption blocker solver
 - ✅ **Entity type filtering** - Essential for focused discovery
 - ✅ **File-centric navigation** - Essential for actionable results  
 - ✅ **Readable impact analysis** - High-impact, low-effort UX fix
+- ✅ **JSON output support** - Enable tooling integration
 - ✅ **Performance preservation** - Core differentiator protection
+
+#### Workflow Orchestration Layer (Shell Script Toolkit)
+- ✅ **Complete JTBD workflows** - The real user value delivery
+- ✅ **Workspace state management** - Persistent analysis sessions
+- ✅ **Repository-specific intelligence** - Route extraction, domain guidance
+- ✅ **Output integration** - PR-ready summaries, visualization generation
+- ✅ **Developer journey orchestration** - Onboard → Feature → Debug → Refactor → Review
 
 ### Deliberately Cut (Deferred to v3.0+)
 - ❌ **Fuzzy search capabilities** - Complex solution to wrong problem
@@ -147,9 +157,133 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 - Optimizing anything other than the primary constraint is waste
 - Once discovery is solved, the next constraint will reveal itself
 
-### The Jobs-to-be-Done Validation
-Every requirement must answer: "Does this help users see what entities exist?" If no, it's out of scope for v2.
+## Jobs-to-be-Done: Complete User Journey Workflows
 
-**The MVP Test**: Can a user run `parseltongue list-entities` and immediately see what's available to analyze? This single capability solves the core constraint.
+### The Shreyas Doshi JTBD Framework Applied
+
+**Core Insight**: Users don't hire Parseltongue to run individual commands. They hire it to **complete developer workflows faster**. Individual commands are just building blocks - the real value is in **workflow orchestration**.
+
+### Primary JTBD Workflows (The Real Constraints)
+
+#### JTBD 1: "Help me understand this unfamiliar codebase quickly"
+**Current Pain**: 30+ minutes jumping between files, guessing entry points, building mental model
+**Desired Outcome**: 10-15 minutes to architectural understanding + key routes + visual map
+
+**Workflow Requirements**:
+1. WHEN I run `pt onboard` THEN the system SHALL execute: ingest → overview → routes → key contexts
+2. WHEN onboarding completes THEN I SHALL have: architecture.html, route table, 3-5 key entity contexts
+3. WHEN I need orientation THEN I SHALL get repo-specific guidance (not generic entity lists)
+
+#### JTBD 2: "Help me start a feature without breaking things"
+**Current Pain**: Unknown side effects, unclear where to plug in, fear of hidden dependencies
+**Desired Outcome**: Scoped change list + impact assessment + test guidance in <5 minutes
+
+**Workflow Requirements**:
+1. WHEN I run `pt feature-start --entities "MessageService,RoomService"` THEN the system SHALL show impact scope
+2. WHEN planning changes THEN I SHALL get blast radius + caller counts + file locations
+3. WHEN impact is high THEN I SHALL get explicit test recommendations
+
+#### JTBD 3: "Help me fix this bug without creating new ones"
+**Current Pain**: "Who calls this?" and "Who depends on this?" takes 15+ minutes of grep/search
+**Desired Outcome**: Call traces + usage sites + minimal change scope in <3 minutes
+
+**Workflow Requirements**:
+1. WHEN I run `pt debug --function "create_message_with_deduplication"` THEN I SHALL get caller trace
+2. WHEN debugging THEN I SHALL get usage sites ranked by likelihood of relevance
+3. WHEN I find the issue THEN I SHALL get minimal change scope guidance
+
+#### JTBD 4: "Help me refactor safely with confidence"
+**Current Pain**: Hidden dependencies, brittle interfaces, unclear blast radius
+**Desired Outcome**: Quantified risk assessment + change checklist + reviewer guidance
+
+**Workflow Requirements**:
+1. WHEN I run `pt refactor-check --target "MessageService"` THEN I SHALL get risk categorization
+2. WHEN risk is high THEN I SHALL get specific test requirements and reviewer suggestions
+3. WHEN refactoring THEN I SHALL get before/after impact comparison
+
+#### JTBD 5: "Help me review PRs with architectural context"
+**Current Pain**: Vague PR descriptions, missing risk markers, unclear architectural impact
+**Desired Outcome**: Impact summary + architectural context + review checklist
+
+**Workflow Requirements**:
+1. WHEN I run `pt pr-review --diff HEAD~1..HEAD` THEN I SHALL get impact analysis of changes
+2. WHEN reviewing THEN I SHALL get architectural context for touched entities
+3. WHEN impact is significant THEN I SHALL get specific review focus areas
+
+### Workflow Integration Requirements
+
+#### Requirement 4: Workflow Orchestration Layer
+**The One Thing**: Provide complete user journey workflows, not just individual commands.
+
+**User Story**: As a developer completing common tasks, I want orchestrated workflows that combine discovery + analysis + guidance, so that I can complete entire jobs-to-be-done without manual command chaining.
+
+**Why This Matters**: Individual commands solve 20% of the problem. Workflow orchestration solves the remaining 80% - how commands work together to complete real developer tasks.
+
+**Success Criteria**:
+- Complete JTBD workflows: <10 minutes (from current 30+ minutes)
+- Workflow success rate: 95%+ (users complete intended task)
+- Context preservation: State maintained across workflow steps
+
+**Implementation Requirements**:
+1. WHEN I run `pt onboard` THEN the system SHALL execute discovery → overview → context generation as single workflow
+2. WHEN workflows generate outputs THEN they SHALL be stored in persistent workspace for reuse
+3. WHEN workflows complete THEN they SHALL provide next-step guidance for common follow-up tasks
+4. WHEN I run workflow commands THEN they SHALL reuse existing analysis when possible (no redundant work)
+5. WHEN workflows fail THEN they SHALL provide clear recovery steps and partial results
+
+#### Requirement 5: Machine-Readable Output Integration
+**The One Thing**: Enable downstream tooling integration and workflow automation.
+
+**User Story**: As a developer using Parseltongue in larger workflows, I want machine-readable outputs that integrate with PRs, documentation, and other tools, so that architectural insights become part of my standard development process.
+
+**Why This Matters**: Discovery is only valuable if it integrates into existing developer workflows. JSON output enables automation, PR integration, and tooling composition.
+
+**Success Criteria**:
+- All commands support `--json` output format
+- JSON schemas are stable and documented
+- Integration with common developer tools (git hooks, PR templates, CI/CD)
+
+**Implementation Requirements**:
+1. WHEN I run any discovery command with `--json` THEN the system SHALL output structured JSON
+2. WHEN generating JSON THEN the system SHALL include metadata (timestamps, confidence scores, file paths)
+3. WHEN JSON output is requested THEN the system SHALL maintain backward compatibility across versions
+4. WHEN integrating with tools THEN JSON SHALL include actionable file paths and line numbers
+5. WHEN workflows complete THEN they SHALL generate summary JSON suitable for PR descriptions
+
+#### Requirement 6: Workspace State Management
+**The One Thing**: Maintain persistent analysis state across discovery sessions.
+
+**User Story**: As a developer working on multiple tasks, I want my discovery work to persist across sessions, so that I don't repeat expensive analysis and can build on previous insights.
+
+**Why This Matters**: Discovery is iterative. Users build understanding over time, not in single commands. State persistence enables progressive discovery and workflow continuity.
+
+**Success Criteria**:
+- Analysis persists across sessions in `./parseltongue_workspace/`
+- Latest analysis automatically reused when valid
+- Clear workspace management (timestamps, cleanup, versioning)
+
+**Implementation Requirements**:
+1. WHEN I run discovery commands THEN the system SHALL store results in `./parseltongue_workspace/analysis_TIMESTAMP/`
+2. WHEN analysis exists THEN the system SHALL reuse it unless `--force-refresh` specified
+3. WHEN workspace grows large THEN the system SHALL provide cleanup commands for old analysis
+4. WHEN switching between projects THEN workspaces SHALL remain isolated and not interfere
+5. WHEN analysis is stale THEN the system SHALL detect and offer refresh options
+
+### Workflow Success Metrics
+
+#### North Star Metric (Updated)
+**Developer task completion time**: <10 minutes for common JTBD workflows (from current 30+ minutes)
+
+#### Supporting Workflow Metrics
+1. **Onboarding time**: <15 minutes from clone to architectural understanding
+2. **Feature planning time**: <5 minutes from idea to scoped change list  
+3. **Bug investigation time**: <3 minutes from symptom to root cause candidates
+4. **Refactor confidence**: 95%+ of refactors complete without introducing bugs
+5. **PR review efficiency**: <5 minutes to architectural impact assessment
+
+### The Jobs-to-be-Done Validation (Updated)
+Every requirement must answer: "Does this help users complete entire developer workflows faster?" Individual commands are building blocks - workflows are the real product.
+
+**The Workflow Test**: Can a user run `pt onboard` and complete architectural understanding in <15 minutes? Can they run `pt feature-start` and get scoped change guidance in <5 minutes? These complete workflows solve the real constraints.
 
 **Core Validation**: Proves that discovery-first architectural intelligence can transform developer productivity by eliminating the entity name discovery bottleneck while maintaining the exceptional performance and accuracy that makes Parseltongue uniquely valuable.

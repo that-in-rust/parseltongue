@@ -38,6 +38,20 @@ graph TD
         BC[Blast Radius Commands]
     end
     
+    subgraph "Workflow Orchestration Layer (Shell Toolkit)"
+        WO[Workflow Orchestrator]
+        WS[Workspace Manager]
+        OF[Output Formatters]
+        JG[Journey Guides]
+    end
+    
+    WO --> DC
+    WO --> AC
+    WO --> BC
+    WS --> WO
+    OF --> WO
+    JG --> WO
+    
     DC --> DQ
     DQ --> EI
     DQ --> FS
@@ -178,7 +192,130 @@ pub struct DiscoveryIndexes {
 // REMOVED: FuzzyAlgorithm - not solving core constraint
 ```
 
-### 4. Readable Impact Analysis
+### 4. Workflow Orchestration Interface
+
+```rust
+/// Complete user journey workflows built on discovery primitives
+pub trait WorkflowOrchestrator {
+    /// Complete onboarding workflow: ingest → overview → routes → contexts
+    async fn onboard_workflow(
+        &self,
+        workspace_path: &str,
+    ) -> Result<OnboardingResult, WorkflowError>;
+    
+    /// Feature planning workflow: impact → scope → guidance
+    async fn feature_start_workflow(
+        &self,
+        entities: &[String],
+        functions: &[String],
+    ) -> Result<FeaturePlanResult, WorkflowError>;
+    
+    /// Debug workflow: traces → usage → minimal scope
+    async fn debug_workflow(
+        &self,
+        target_function: &str,
+    ) -> Result<DebugResult, WorkflowError>;
+    
+    /// Refactor safety workflow: risk → checklist → guidance
+    async fn refactor_check_workflow(
+        &self,
+        target_entity: &str,
+    ) -> Result<RefactorResult, WorkflowError>;
+}
+
+#[derive(Debug, Clone)]
+pub struct OnboardingResult {
+    pub architecture_html_path: String,
+    pub route_table: Vec<RouteInfo>,
+    pub key_contexts: Vec<EntityContext>,
+    pub next_steps: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct FeaturePlanResult {
+    pub impact_scope: BlastRadiusResult,
+    pub change_checklist: Vec<String>,
+    pub test_recommendations: Vec<String>,
+    pub risk_level: RiskLevel,
+}
+
+#[derive(Debug, Clone)]
+pub struct DebugResult {
+    pub caller_trace: Vec<CallerInfo>,
+    pub usage_sites: Vec<UsageInfo>,
+    pub minimal_change_scope: Vec<String>,
+}
+```
+
+### 5. Workspace State Management
+
+```rust
+/// Persistent analysis workspace for iterative discovery
+pub struct WorkspaceManager {
+    workspace_root: PathBuf,
+    current_analysis: Option<AnalysisSession>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AnalysisSession {
+    pub timestamp: DateTime<Utc>,
+    pub session_id: String,
+    pub analysis_path: PathBuf,
+    pub entities_discovered: usize,
+    pub last_updated: DateTime<Utc>,
+}
+
+impl WorkspaceManager {
+    /// Create or reuse analysis session
+    pub async fn get_or_create_session(
+        &mut self,
+        force_refresh: bool,
+    ) -> Result<AnalysisSession, WorkspaceError>;
+    
+    /// Store workflow results for reuse
+    pub async fn store_workflow_result<T: Serialize>(
+        &self,
+        workflow_type: &str,
+        result: &T,
+    ) -> Result<(), WorkspaceError>;
+    
+    /// Retrieve cached workflow results
+    pub async fn get_cached_result<T: DeserializeOwned>(
+        &self,
+        workflow_type: &str,
+    ) -> Result<Option<T>, WorkspaceError>;
+}
+```
+
+### 6. Output Integration Interface
+
+```rust
+/// Machine-readable and human-readable output formatting
+pub trait OutputFormatter {
+    /// Format for human consumption (terminal, documentation)
+    fn format_human(&self, data: &WorkflowResult) -> String;
+    
+    /// Format for machine consumption (JSON, tooling integration)
+    fn format_json(&self, data: &WorkflowResult) -> serde_json::Value;
+    
+    /// Format for PR integration (markdown, summary)
+    fn format_pr_summary(&self, data: &WorkflowResult) -> String;
+    
+    /// Format for CI/CD integration (structured, actionable)
+    fn format_ci_output(&self, data: &WorkflowResult) -> CiOutput;
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct CiOutput {
+    pub risk_level: RiskLevel,
+    pub impact_count: usize,
+    pub test_recommendations: Vec<String>,
+    pub reviewer_suggestions: Vec<String>,
+    pub actionable_items: Vec<ActionItem>,
+}
+```
+
+### 7. Readable Impact Analysis
 
 ```rust
 /// Enhanced blast radius analysis with human-readable output
