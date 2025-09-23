@@ -40,24 +40,24 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 4. WHEN I run `parseltongue query where-defined EntityName` THEN the system SHALL return the exact file location for immediate navigation
 5. WHEN discovery queries return results THEN they SHALL be ranked by relevance with file context
 
-#### Requirement 2: File-Centric Navigation
-**The One Thing**: Bridge the gap between architectural insights and actionable code navigation.
+#### Requirement 2: File Location as Entity Attributes
+**The One Thing**: Embed file location directly in entity nodes as attributes, avoiding separate file nodes that would degrade performance.
 
-**User Story:** As a developer analyzing code relationships, I want every entity to include its file location, so that I can immediately navigate from architectural insights to actual code implementation.
+**User Story:** As a developer analyzing code relationships, I want every entity to include its file location as an immediate attribute, so that I can navigate from architectural insights to code without additional graph traversals.
 
-**Why This Matters**: This transforms Parseltongue from abstract analysis to actionable navigation. Essential for bridging the gap between "what" and "where".
+**Why This Matters**: Files are containers, not entities. The ISG should model semantic relationships with files as metadata. This preserves O(1) performance while enabling file-based navigation.
 
 **Success Criteria**:
-- 100% of entities include navigable file locations
-- Zero additional navigation steps required
-- Seamless integration with existing workflows
+- O(1) file location access for any entity
+- No performance degradation from file location queries
+- Simple, direct implementation without graph complexity
 
 **Implementation Requirements**:
-1. WHEN the system ingests code THEN it SHALL capture file path and line range for every entity in the ISG
-2. WHEN I query any entity THEN the system SHALL include file location in the format "EntityName at src/path/file.rs:line"
-3. WHEN I generate visualizations THEN entities SHALL be grouped by their file/module location
-4. WHEN displaying results THEN file paths SHALL be clickable for immediate navigation (where supported)
-5. WHEN storing file location data THEN the system SHALL use string interning to minimize memory overhead
+1. WHEN the system creates entity nodes THEN it SHALL embed file_path as a required attribute (not a separate node)
+2. WHEN I query `parseltongue query where-defined EntityName` THEN the system SHALL return file_path directly from the entity node in O(1) time
+3. WHEN I query `parseltongue query entities-in-file src/path/file.rs` THEN the system SHALL filter nodes by file_path attribute in O(n) time with direct access
+4. WHEN storing file paths THEN the system SHALL use FileId (string interning) to minimize memory overhead
+5. WHEN displaying entity information THEN file location SHALL be immediately available without additional graph traversal
 #### Requirement 3: Readable Impact Analysis
 **The One Thing**: Fix the hash-only output that breaks analytical flow and destroys user confidence.
 
