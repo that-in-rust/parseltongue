@@ -12,6 +12,7 @@ pub use crate::cli::*;
 pub mod isg;
 pub mod daemon;
 pub mod cli;
+pub mod discovery;
 pub mod performance_validation;
 pub mod performance_monitoring;
 pub mod relationship_accuracy_tests;
