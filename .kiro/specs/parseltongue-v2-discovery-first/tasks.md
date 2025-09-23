@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Set up discovery infrastructure and core interfaces
+- [-] 1. Set up discovery infrastructure and core interfaces
   - Create discovery module structure with trait definitions
   - Implement string interning system for file paths (FileId, FileInterner)
   - Define DiscoveryEngine trait with async methods for entity exploration
