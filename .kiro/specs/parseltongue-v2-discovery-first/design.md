@@ -1,578 +1,740 @@
-gue unique.arseltones Pe that makl performancceptiona the exrving while presery)iscovet (entity d constrainorethe cg on sis, focusinalyedback aner fedeep uson based on mplificatisial ndamentts a fuenn represdesig
+# Design Document: Parseltongue v2 Discovery-First Architecture
 
-This crementally.bilities innew capaadding I while ance and APrming perfoexists Preserve: nale**n.
-**Ratiomodificatioer than on rathompositiough c thr ISGce existingnhan**: Eoncisi
-**Denhancemente for ISG Eritancn Over Inhepositio# 4. Com
-##istics.
-characterformance  better per andtationler implemenmuch simpiently with  efficuse casess 99% of dle Han*:e*
-**Rationaldiscovery.ersal for x graph trav of compleinsteading ute filterib O(n) attr*: Usecision**Deh Queries
-*ex GrapComplver Filtering Ote ribuSimple Att
+## Overview
 
-### 3. on access.file locati) aining O(1 maintead whiley overhmemormizes nale**: Minide.
-**Rationo in every pathsle full fi storing d ofstearences inFileId refeon**: Use cisincy
-**Dey Efficieg for Memorg Internin## 2. Strinps)
+Parseltongue v2 transforms from an **analysis-first tool with discovery friction** into a **discovery-first architectural intelligence tool**. The core insight driving this redesign is that users spend 5+ minutes discovering entity names to achieve 1-microsecond queries—a 300,000:1 ratio that represents the primary constraint on adoption.
 
-#hiationsical reld physcal angi loon (mixingusinfceptual co
-- Connd edges) a2x nodes (h complexity)
-- Graprsal graph traven (extradegradatioance - Performcreate:
-des ile note f Separaes."ti not entiners,taire conat "files ak thuser feedbacBased on ale**: ondes.
-**Rati noate fileeating separher than crtributes rat at as entity locationlebed fi*: Emn**Decisiot Nodes
-*s, Noibuteles as Attr### 1. Fi
-ationales
-ons and R Decisiesign# Key D
+### Strategic Mission
+Transform the user experience from "I need to know exact entity names to get value" to "I can see what entities exist, then leverage exceptional analysis capabilities."
 
-#es.y capabilitid discoverenhancets from ate benefimmedining ile gai changes whiorkflowout wdopt v2 with a users canistingn ensures ex migratioisruption-dle**: ZeroRationan **Desigg nodes
+### Design Philosophy - Shreyas Doshi Constraint Analysis
+- **Core Constraint**: Users don't know what entities exist (not fuzzy matching)
+- **80/20 Solution**: Simple entity listing solves 80% of discovery friction
+- **Performance Preservation**: Maintain microsecond query performance as core differentiator
+- **MVP-First**: Ship entity listing first, add fuzzy search only if users ask for it
 
-tinof exisnhancement  entalncreme
-- Iunavailableta  location da when fileradationegceful draures
-- G data structing existes tog chango breakin
-- Nxt ingestionuring neributes don attati loc filewithd ancefiles enhG isting IStion
-- Ex# Data Migras
-```
+## Architecture
 
-##cation file lowithames le nturns readabredler  # Now ssageHanMeus dilast-rangue query belto)
-parsd output(improvemmands cong stiEnhanced exi# 
+### High-Level System Architecture
 
-lerHandsageesefined M-dry wherengue queltofuzzy
-parseandlr" --"hity y find-entquerrseltongue s
-pa.rlers/modrc/handn-file ses-ientitiry gue que
-parseltondler*" "*Han-filters -ist-entitiey lgue querseltonditive)
-pars (ady command discover New
-#bash
-```Integrationommand # New Cs
-
-##e to pas continuuitest s tes
-- Existingdimproveintained or s maiceristaractance ch
-- Performementsnhancditive ed with adreservePI p Core ISG Aed
--n unchangmmands remaisting CLI coxi E
--tyatibiliward Comp## Backy
-
-#Strategn Migratio
-
-## pendently.devalue inser ers uase delivch phally. Eaementy incrlexitilding compach while bupprod asimplifiethe ation of lid vaarly ees enablroachased appPhionale**: *Design Rattion
-
-*cumentating and dove tesensi Compreh
--alidationion vatory optimiz
-- Memation integrzy search
-- Fuznceormaerfdices for pdary innal seconio3)
-- Opt (Week n and Polishtimizatio Op### Phase 3:
-ling
-error handensive reh Comp
--mattingutput for- Readable oching
-rn mat pattetity name- Ening
-ibute filter using attracevery interfdisco Simple k 2)
-- (Weelementationrface Impnte Discovery Ihase 2:
-
-### Pdationvalitract formance con
-- Perriesbased quee-ilands for f comm- Basic CLI interning
-ngy with stritrileRegislement Fes
-- ImpISG nodbute to ion attricatAdd file_lo 1)
-- n (Weekiote Integratile Attribu1: Core F
-### Phase Phases
-on mentati
-## Imple.
-evelat every lcontracts performance  validating hileior wlevel behav system-ectness andorromponent c both csures en testingayere**: Multi-ltional
-**Design Ra
-```
-psed);
-}:?}", elaed: {ance degrad performing query"Exist          50), 
-  rom_micros(Duration::fpsed < lart!(e asse   ();
-    
-apsed = start.elelapsed
-    let tity");Enst_query("Tepleute_simexece_isg()..corystemt = s  let resul:now();
-   Instant:start =d
-    let hange is uncperformancery ueng qest existi // T   
-   
- );ystem(eate_test_scrt system = 
-    leation() {ce_preservry_performanisting_que_exfn testt]
-
-
-#[teselapsed);
-}0μs", <1d ecte{:?}, expok ccess totion aFile loca      "      ros(10), 
-n::from_miced < Duratio!(elaps assert
-   rsalgraph traveot e access, nribute attmediatim be    // Should;
-    
- ed()lapsed = start.eapslet el;
-    .unwrap()name)ned(entity_efi.where_dstemcation = syt file_lo
-    lent::now();nstaet start = I
-    
-    lEntity";"Testty_name =    let enti
- cess is O(1) acontifile loca that  // Test 
-      ies
- 10K entit00); //em(10_0t_systtese_argeate_l system = cr  let
-  () {ce_contractformantion_pert_file_locates[test]
-fn rust
-#
-```ract Testsnce Contformaer 3. P##
-##```
-
-}
-"hash"));ontains(y.centits.center_diust_ra(!blasert!
-    asoutput readable fyri
-    // Ve
-    ();wrap    .unait
-         .awame)
-   entity.n_radius(&ast_blteulaalc   .c     lysis()
-ana system.st_radius =let blaity
-    nt ediscoveredase using  Analysis ph 
-    //Id(0));
-   Filefile_id != on.tiocaile_lt!(entity.fasser    tities[0];
-ty = &en  let enti)
-  traversalraph (no gable availmediately on is imcati lo fileerify 
-    // V;
-   ))pty(s_ems.it!(!entitie
-    asser
-    nwrap();
-        .u  .await     s")
- ndlers/mod.rhale("src/s_in_fintitie.e       overy()
- stem.disctities = sy  let enle
-  s by find entitieFihase: scovery p Di    
-    //await;
-_system().eate_test crtem =et sys) {
-    lis_workflow(ry_to_analysscoveest_disync fn t:test]
-akio:``rust
-#[tokflow)
-`covery Worn Tests (Disioegrat#### 2. Int
-
- }
-}
-```  ");
- nodeste file arain sept contaG should no"IS, _empty()e_nodes.isrt!(filsse        a    
-t();
-    collec       .le))
-     Type::Fiype, Entitytity_tta.entadaode.mehes!(n matcode|er(|nfilt           .des()
- = isg.no Vec<_> _nodes:filet les
-        themselvefiles  represent no nodesfy that  Veri     //    
-   
-    t_isg();e_tes isg = creatlet      {
-  des() le_norate_fitest_no_sepan test]
-    f    
-    #[
-));
-    }id, FileId(1n.file_catiofile_loert_eq!(     ass1)
-   ially O(; // Essents(100))nanom_uration::fropsed < Dert!(ela     ass        
-d();
-   .elapsetart elapsed = s      lettion;
-  e.file_locaation = &nod file_loc  let);
-      tant::now(= Insstart et      l(O(1))
-   cessible mediately acd be im shoulationle loc  // Fi
-           
-   );ion(_file_locatwithode_st_n = create_te   let node) {
-     ute_access(ibttrtion_ale_locafn test_fi]
-    stte  
-    #[uper::*;
-   use ss {
-   ed_node_testenhanc
-mod fg(test)]``rust
-#[cion)
-`nent IsolatComponit Tests (
-#### 1. Upproach
-ng ALayer Testii-## Multgy
-
-#trate S## Testingration.
-
-ural sepachitect arough carefulthrnce rformaalysis peg aning existinrveseprs) while erie queryth (discovcritical pae  on thcuszations foance optimi: Performnale**atioesign R
-
-**D
-```
-}  }    }
-  
-    (())       Ok{
-      } else               })
-         limit,
-     ,
-       sedactual: elap          
-      ring(),to_stn.tiora opeperation: o            on {
-   latirformanceViorror::PeyEDiscover    Err(        limit {
- elapsed >  if      
-    <50μs
-     ntract: xisting co// E(50); microsion::from_ratimit = Du llet {
-        or>veryErriscolt<(), D) -> Resuionapsed: Duraton: &str, elperati oce(&self,formanperting_alidate_exis pub fn v  mance
- in perforaintas mieg quert existine tha// Validat   
-    /
-  }
-    }
-       ())       Ok(
-     se { } el       })
-            imit,
-       l,
-         l: elapsed      actua    
-      _string(),peration.to oration:ope             
-   olation {rmanceVir::PerfoyErroiscover       Err(D    imit {
- d > lseelap  if            
-
-   00msact: <1 contriscovery(100); // Dllisrom_miration::f= Dut et limi
-        lr> {ryErroiscovelt<(), D Resu ->ration) elapsed: Dutr, &sn:peratioelf, o(&sperformancecovery_disidate_n val   pub fct
- e contra performancueries meetery q that discov/// Validatecs {
-    Metrice Performan
-impl,
-}
-String, f32>p< HashMat_rates:cache_hi  ize,
-  : us_usage
-    memoryn>,atios: Vec<Dur_timevery  discoetrics {
-  ceMmanuct Perforub str
-pnsoperatioery scov dig fortorince moni// Performan`rust
-/tion
-``t Validace Contrac Performan###
-```
-
-#    }
-}size]
- as urings[id.0  &self.st       {
-Id) -> &stringStrd: self, ie(&lv reso  pub fn
-    
-    }      }
-     id
-      + 1);
-     ext_id.0 gId(self.ntrind = St_i self.nex          (), id);
- to_stringsert(s.ndices.in self.i           ing());
-to_strings.push(s.strelf.      s     
- _id;extelf.n sd =       let i {
-           } else      id
-  ) {
-      .get(sindicesd) = self.et Some(&i        if l{
-> StringId tr) - &s s:mut self,tern(&  pub fn inrner {
-  l StringIntempgId,
-}
-
-i: Strinext_idId>,
-    ntringing, SashMap<Str: Hices
-    indg>,Strinec<trings: V serner {
-   ntingIct Str stru paths
-pub and filemesity narepeated entfor ge ing storaent strmory-effici/ Me``rust
-//on
-`ementatierning Implring Int St
-####tegy
-n Straiozatemory Optimi## Ms
-
-#onsiderationrformance C## Peers.
-
-r API consumndling fotic error hang programmaaintainile mto users whidance ui gabletion ac providersroctured ere**: Strualgn Ration`
-
-**Desi
-``eryError>;ovlt<T, Disc ResuT> =esult<yRiscoverb type Dxt
-pug with conter handlinl erroleveion-icat/// Appl}
-
-ISGError),
-G(#[from] 
-    CoreIS0}")]G error: {re IS"Cor(    #[erro
-    
-
-    },on,it: Durati    limtion,
-    ual: Dura act
-       ing,on: Strtira  ope     {
-  ceViolationorman
-    Perfimit:?}")] {lmit lictual:?},n} took {aeratioop: {tedt violastrainconce ("Performan[error   
-    #ing },
- on: Stry { reasReadxNot
-    Indefirst")]st'  ingearseltongue 'p Runason}. {renot ready:r("Index #[erro    
-     String },
-ttern:paooNarrow {  PatternT  ")]
- zzy searchy fu. Trieso entitmatches nrn}' '{patterrow: ern too nach patt"Sear#[error(   
- 
-    ize },uscount: : String, ernttroad { paernTooB]
-    Patt pattern")ecifice spmor Use ities.unt} enthes {co}' matcd: '{patternoaern too brattSearch perror(" #[    
-   ,
- }ring: StathNotFound { p
-    Filese")] codeba analyzedts in the file exisheck if'{path}'. Cot found: ile n #[error("F
-    },
-    tringname: SFound { otntityN   E
-  flag")]fuzzy -- search withzyy fuze}'. Tram'{nd: ty not founor("Enti
-    #[err{yError Discover
-pub enum )], Debug(Errorriveontext
-#[dectionable cs with ac errorfiery-specioviscust
-/// D```r
-
-chyHierar Error hensive### Compre
-
-dlingHanError # ion.
-
-#navigatnd very afor discoion needed rmatnfo essential icus onrchies. Foomplex hieraid cavoctures trulat data s Simple, fRationale**:sign 
-```
-
-**De}uzzy,
-
-    Fbstring, Su
-     Prefix,ct,
-      Exa {
-hType Matcnum)]
-pub eDebug, Clonee(
-#[deriv,
-}
-hTypee: Matctyppub match_,
-    y_score: f32b similarit  putch,
-   EntityMaity: pub ent  
- yMatch {zzruct Fu
-pub stlone)]ve(Debug, Ctch
-#[deriarch mauzzy se
-
-/// Focation,
-}ileLn: Focatiopub file_l  ype,
-  ype: EntityTity_t   pub enting,
-  name: Str{
-    pubtion ocayLtruct Entitub se)]
-pDebug, Clone([derivrmation
-#ocation info Entity l
-}
-
-///ore: f32,evance_scpub reln,
-    Locatioon: Filetib file_locapuype,
-    EntityTy_type: ub entiting,
-    p Str pub name:atch {
-   ityMuct Ent
-pub str Clone)]Debug,derive(result
-#[ch matntity / Simple e
-//```rust
-
-d)fieres (SimpliructuStry Data ovesc``
-
-### Dite,
-}
-`va  PriSuper,
-  
-    PublicublicCrate,c,
-    Pbli  Pubility {
-   enum VisiEq)]
-pubartialEq, Clone, Prive(Debug, levels
-#[deibility ntity vis}
-
-/// Etime,
-
-    Lifesociated,   Asric,
-   Gene  structs
-amming conogrric pr// Gene   
-       Type,
- atic,
- 
-    St,    Constro,
- Mac  mpl,
- 
-    IModule,   Method,
-  
-   nction,    Fuit,
-ra T   
-Enum,
-    ct,es
-    Strufic entitiRust-speci {
-    // ypenum EntityTub ee)]
-pialize, DeserlizHash, Seria, Eq, alEqartiug, Clone, Prive(Debdeation
-#[type enumerentity ehensive /// Comprst
-
-
-```ruypes Entity T
-
-### CoreModelsata .
-
-## Drequireddes  noeparate filel or saph traversamplex grently. No coses effici use ca9% ofdles 9ering hanute filtattrible imp: Snale** Ratioign*Des
-
-* }
-}
-```    }
-   (None)
-           Ok    se {
-        } ellone()))
- ocation.c(node.file_l     Ok(Some  me) {
-     ntity_na_node(eg.find) = self.iset Some(node if lss
-        accetionlocale  O(1) fiookup, then entity l O(1)       //or> {
- rr, DiscoveryEation>n<FileLocOptioesult<&str) -> Rntity_name: d(&self, ewhere_define fn   async  
-  
-    }
-  (entities)     Ok 
-        ct();
-    .colle       })
-              
- lone(),tion.clocaile_: node.focation file_l               y_type,
-it.ent.metadatape: node  entity_ty              ne(),
-.clo: node.name       name    {
-     tion Locae| Entityod     .map(|n     e_id)
-  d == fil.file_ication_lo| node.file(|node   .filter    s()
-     g.node> = self.isityLocationntities: Vec<Eet ent    le
-    buttriile_id atltering by f(n) fi/ Simple O       /
-         ;
-string() })?le_path.to_ath: fiotFound { pError::FileN Discoveryor_else(||       .ok_path)
-     e_id(file_et_filgistry.g.isg.file_ree_id = selft fil  le
-      Error> {coveryisn>, DyLocatioVec<Entitsult< -> Rer)ath: &stfile_plf, le(&seities_in_fic fn ent asyn{
-   overyEngine iscfor SimpleDerface iscoveryInt
-
-impl D,
-}gineSearchEngine: Fuzzy  fuzzy_en>,
-  cedISGArc<Enhan
-    isg: eryEngine {pleDiscovtruct Simb sg
-puterinttribute filg ainustation ple implemen/// Sim;
-}
-
-yError>iscoverLocation>, DOption<File-> Result<ame: &str) ty_nntined(&self, e_defieren wh  async f  ss)
-ceute acibO(1) attran entity (tion for ct file loca/ Get exa    
-    //ror>;
-yErver, Discoh>FuzzyMatclt<Vec< Resue) -> limit: usizuery: &str,rch(&self, qseazzy_func fn mes
-    asyy naor entit search f/// Fuzzy   r>;
-    
- iscoveryErron>, DntityLocatio<Eec-> Result<Vth: &str) elf, file_pae(&sities_in_filntasync fn eute)
-    attrib file_id ters byfile (filpecific n a s iind entities/ F
-    //
-    >;Erroriscoveryh>, DtyMatcti<EnVec> Result< -tern: &str)&self, patt_entities(n lis
-    async fribute)e attnamters by rn (fila pattees matching titi// List en
-    /ce {nterfaeryIit Discovion
-pub traty exploratace for entiry interf
-/// Discove
-
-```rustl.versaaph tragrlex than compther ring rabute filtettri aon simplet s, builionoperatovery entity discpoint for ary entry *: Prime***Purposect)
-
-and Dire (Simple  InterfacDiscovery3. ure.
-
-### ct strudet noing compacintainn while masolutio O(1) reId providese. Fileevery nodaths in ll file pring fuom stod frheaory overs memng reduceinterni String Rationale**:ign ``
-
-**Des32);
-`eId(pub uilpub struct F Hash)]
-alEq, Eq,py, Parti Coone,e(Debug, Cliver}
-
-#[d
-    }
- as usize]hs[file_id.0lf.pat   &se     {
- eId) -> &stril: Fid file_(&self,patholve_b fn resath
-    puto file p back ve FileIdsol  /// Re   
-  }
-    }
-       id
-              d.0 + 1);
-lf.next_ileId(se Fi.next_id =self            );
-ing(), ido_str(path.t_id.insertath_to    self.p       ());
- ringpath.to_stths.push(    self.pa;
-        t_idnexd = self.   let i        {
-  se  } elid
-                {
-   id.get(path)f.path_to_= sel(&id) f let Some      ileId {
-  tr) -> Fiath: &self, put sn_path(&minterpub fn   eId
-  ilweight F lightng ath, returnie pan a filterIn// try {
-    /Regis
-
-impl File FileId,
-}id:xt_Id
-    neilee Favailabl/// Next     
-    FileId>,
-ap<String, hM Hasd: path_to_in
-   licatior dedupileId fopath -> F/ File 
-    //g>,
-    Strinec<s: V  pathng
-  h strie pat> actual filleId -
-    /// FileRegistry {b struct Fitorage
-pue path sil fficientmemory-efing for  internngst
-/// Stri
-```ru.
- overheadto minimizenterning  ing using stripathse orage of filt stenciy-effior**: Mem**Purposening)
-
-ng Interstry (Strigiile Re 2. F##tities.
-
-#, not enontainers are clest fi thafeedbackser ing uowllate node, fo, not separs attributebedded aation is emce. File locman ISG perforves existingreseritance pr inherosition ovele**: Compionan Rat
-**Desig
-}
-```
-tring>,on<SOptiation: ocumentub d>,
-    pec<String_path: Voduleb m
-    puty,sibiliy: Viilitpub visibype,
-    e: EntityTy_typtit pub enadata {
-   yMett Entit]
-pub strucug, Clone)rive(Deb
-}
-
-#[deend: u32,column_pub 
-    tart: u32,umn_s  pub colnd: u32,
-  ub line_e
-    ptart: u32,ine_s pub lle
-   thin fiion wise locat  /// Preci  
-  Id,
-  ile_id: Fileub f  pg)
-  rninstring intereference (ile tweight f    /// Lightion {
-catruct FileLob sq, Eq)]
-puPartialEne, Debug, Clorive([de
-}
-
-#ata,tyMetad Entietadata:pub movery
-    ata for discadEntity met  ///    
-  ion,
- : FileLocatlocationile_
-    pub fey addition)ibute (kirect attr dtion asca/ File lo    
-    //ta,
-ta: NodeDaore_da   pub cibility)
- ard compated for backwrvata (presee dsting nod   /// Exie {
- nhancedNodpub struct E]
-e), Clonugderive(Debe
-#[tributation as atith file loc ISG node wnhanced/ E
-//```rust
-
-entities., not metadatales are finciple that ng the pries, followiuttion attribile locah fSG nodes wit Ingtiexis Extend urpose**:
-
-**Pnent)Core Compo ISG Node ( 1. Enhanced##s
-
-#aced Interfponents ane)
-
-## Comserdialization (hing, ser, fuzzy matcwork (clap) frameernal**: CLI3 Ext- **Lllections
-ching, comatattern erning, pinting , str indicesery: Discov**L2 Standard
-- **mpatible)co_std okups (nosh-based lotes, haribufile attodes with ISG n*: Enhanced e*or
-
-- **L1 Cttern: L1→L2→L3 paheowing t
-
-Foll Designrchitecture# Layered A
-
-##```nterface
-s DC,AC i
-    clas,PE coress ISG,QEry
-    clacove disEI,NR,FR class DI,   
-   dth:2px
- 2,stroke-wie7d3troke:#2f5e8,sl:#e8terface filssDef in   cladth:2px
- ke-wia2,strob1f:#75,stroke5fre fill:#f3essDef co   cla:2px
- widthroke-579b,ste:#01trokll:#e1f5fe,sery fissDef discov
-    claISG
-    
-    QE -->  --> ISG FR
-    EI
-    DI -->  DI --> NR --> EI
-  QE
-    DI --> 
-    ACDC --> DI
-    
-    
-    endommands]is CC[Analys     A]
-   y Commandserscov DC[Di"
-       I Interfaceph "CL   subgra   
- 
+```mermaid
+graph TD
+    subgraph "Discovery Layer (New)"
+        DQ[Discovery Queries]
+        EI[Entity Index]
+        FS[Fuzzy Search]
+        FL[File Location Index]
     end
- ine]ce Engrforman    PE[Pe  Engine]
-   QE[Query ]
-       ISG Storageced EnhanISG[      ced)"
-  nhan Layer (Eysisal "Core Ansubgraph      
- 
- 
-    endry]le Regist   FR[Fi    ry]
- [Name Regist   NRex]
-     Indntity     EI[Erface]
-    overy Intesc       DI[Dir (New)"
- scovery Layebgraph "Di   suTD
- ph mermaid
-gra
+    
+    subgraph "Core ISG Engine (Preserved)"
+        ISG[In-Memory ISG]
+        QE[Query Engine]
+        PE[Performance Engine]
+    end
+    
+    subgraph "CLI Interface"
+        DC[Discovery Commands]
+        AC[Analysis Commands]
+        BC[Blast Radius Commands]
+    end
+    
+    DC --> DQ
+    DQ --> EI
+    DQ --> FS
+    DQ --> FL
+    
+    AC --> QE
+    BC --> QE
+    
+    EI --> ISG
+    FL --> ISG
+    QE --> ISG
+    
+    classDef discovery fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef core fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef interface fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    
+    class DQ,EI,FS,FL discovery
+    class ISG,QE,PE core
+    class DC,AC,BC interface
+```
 
-```ure Architecttemevel Sysgh-L## Hi
+### Core Design Decisions
 
-#etectur
+#### Decision 1: File Location as Entity Attributes (Not Separate Nodes)
+**Rationale**: Files are containers, not semantic entities. Embedding file paths as attributes preserves O(1) performance while enabling file-based navigation.
 
-## Archission)s (no regreiexisting quers for etion**: <50μervaance pres **Performes)
--eneric nam gt ~30% forfrom currente**: 90%+ (s racces **Query su
--5+ minutes)current s (from ond secme**: <30iscovery tiEntity d
-- **Metricsess 
+**Implementation**: Each entity node includes `file_path` as a required attribute using string interning (FileId) for memory efficiency.
 
-### Succefficientlyses  use ca of9%andles 9ient** - hre sufficdices aary inh secondit wutestribmple atl
-- **Siaversagraph trires extra query requ every tion** -adaegrormance de perfeat nodes creparate file*Ss
-- *encitizclass graph not first-ta, adae methey should b - tities**ent, not inerscontare Files aeals:
-- **eedback revices. User fomplex indnd cdes ale no firateed with sepaver-engineern was oiginal desigk
+**Alternative Rejected**: Separate file nodes would require additional graph traversals and degrade performance.
 
-The ordbac Feefrom Usert igh## Core Ins**.
+#### Decision 2: Discovery Layer as Thin Index Over ISG
+**Rationale**: Avoid duplicating data structures. Build discovery capabilities as efficient indexes over the existing ISG rather than parallel data stores.
 
-#arate nodes not septributes, atntityn as ee locatiod fil: **embepleprincited  user-validafollows theitecture archue. The gue uniqrseltonhat makes Parformance tecond pee microsing thile maintainability whty discovers entiritizepriont ompone Every con**: Preservatirformancest with Peovery-Fir**Discphy
+**Implementation**: Discovery queries translate to optimized ISG traversals with caching for common patterns.
 
-soDesign Philo
-### s.
-eparate nodethan ser aths r attribute modeled asbend should es, a, not entitiers containfiles aree**: nciplication prilifradical simp **ws agn follo desilysis, theeedback ana fuserd on deep **. Basegence toolal intellitecturhi-first arc**discovery** into a ction frieryh discovitl wrst tooysis-fim an **analnsforms froongue v2 traParseltw
+**Alternative Rejected**: Separate discovery database would increase complexity and memory usage.
 
- Overvie
+#### Decision 3: Preserve Existing Query Engine Unchanged
+**Rationale**: Existing microsecond performance is the core competitive advantage. Any changes risk regression.
 
-##ntcumegn Do v2 Desieltongue# Pars
+**Implementation**: Discovery layer sits above existing query engine, translating discovery requests to existing query patterns.
+
+## Components and Interfaces
+
+### 1. Discovery Query Interface - MVP Focus
+
+```rust
+/// Discovery-focused query interface - solving the ACTUAL constraint
+pub trait DiscoveryEngine {
+    /// List all entities (the core constraint solver)
+    async fn list_all_entities(
+        &self,
+        entity_type: Option<EntityType>,
+        max_results: usize,
+    ) -> Result<Vec<EntityInfo>, DiscoveryError>;
+    
+    /// List all entities in a specific file
+    async fn entities_in_file(
+        &self,
+        file_path: &str,
+    ) -> Result<Vec<EntityInfo>, DiscoveryError>;
+    
+    /// Find exact file location for an entity (once they know the name)
+    async fn where_defined(
+        &self,
+        entity_name: &str,
+    ) -> Result<Option<FileLocation>, DiscoveryError>;
+    
+    // REMOVED: Fuzzy search - not solving the core constraint
+    // REMOVED: Pattern matching - premature optimization
+}
+
+// REMOVED: EntityMatch - fuzzy search complexity not needed for MVP
+
+#[derive(Debug, Clone)]
+pub struct EntityInfo {
+    pub name: String,
+    pub file_path: String,
+    pub entity_type: EntityType,
+    pub line_number: Option<u32>,
+}
+
+#[derive(Debug, Clone)]
+pub struct FileLocation {
+    pub file_path: String,
+    pub line_number: Option<u32>,
+    pub column: Option<u32>,
+}
+```
+
+### 2. Enhanced ISG Node Structure
+
+```rust
+/// Extended ISG node with file location attributes
+#[derive(Debug, Clone)]
+pub struct EnhancedIsgNode {
+    pub sig_hash: SigHash,
+    pub name: InternedString,
+    pub entity_type: EntityType,
+    
+    // New: File location attributes (not separate nodes)
+    pub file_path: FileId, // String interning for memory efficiency
+    pub line_number: Option<u32>,
+    pub column: Option<u32>,
+    
+    // Existing fields preserved
+    pub signature: InternedString,
+    pub relationships: Vec<Relationship>,
+}
+
+/// String interning for file paths to minimize memory overhead
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct FileId(u32);
+
+pub struct FileInterner {
+    paths: Vec<String>,
+    path_to_id: HashMap<String, FileId>,
+}
+```
+
+### 3. Discovery Index Structures - MVP Simplicity
+
+```rust
+/// Simple indexes solving the actual constraint
+pub struct DiscoveryIndexes {
+    /// All entities sorted by name (for simple listing)
+    pub all_entities: Vec<EntityInfo>,
+    
+    /// File-based index for file location queries
+    pub file_index: HashMap<FileId, Vec<SigHash>>,
+    
+    /// Entity type index for filtered listing
+    pub type_index: HashMap<EntityType, Vec<EntityInfo>>,
+}
+
+// REMOVED: FuzzyIndex - complex solution to wrong problem
+// REMOVED: PatternIndex - premature optimization
+// REMOVED: FuzzyAlgorithm - not solving core constraint
+```
+
+### 4. Readable Impact Analysis
+
+```rust
+/// Enhanced blast radius analysis with human-readable output
+pub struct BlastRadiusAnalyzer {
+    isg: Arc<InMemoryIsg>,
+    discovery: Arc<DiscoveryEngine>,
+}
+
+#[derive(Debug, Clone)]
+pub struct BlastRadiusResult {
+    pub target_entity: EntityInfo,
+    pub impacts: Vec<ImpactGroup>,
+    pub risk_level: RiskLevel,
+    pub summary: ImpactSummary,
+}
+
+#[derive(Debug, Clone)]
+pub struct ImpactGroup {
+    pub relationship_type: RelationshipType, // CALLS, USES, IMPLEMENTS
+    pub entities: Vec<EntityInfo>,
+    pub file_locations: Vec<FileLocation>,
+}
+
+#[derive(Debug, Clone)]
+pub enum RiskLevel {
+    Low,    // 1-5 impacts
+    Medium, // 6-20 impacts
+    High,   // 21-50 impacts
+    Critical, // 50+ impacts
+}
+
+#[derive(Debug, Clone)]
+pub struct ImpactSummary {
+    pub total_entities: usize,
+    pub production_files: usize,
+    pub test_files: usize,
+    pub risk_assessment: String,
+}
+```
+
+## Data Models
+
+### Entity Storage Model
+
+```rust
+/// Core entity representation with embedded file information
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Entity {
+    pub id: EntityId,
+    pub name: String,
+    pub entity_type: EntityType,
+    pub signature: String,
+    
+    // File location embedded as attributes
+    pub file_path: String,
+    pub line_number: Option<u32>,
+    pub column: Option<u32>,
+    
+    // Semantic relationships
+    pub relationships: Vec<Relationship>,
+    
+    // Metadata for discovery
+    pub visibility: Visibility,
+    pub module_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EntityType {
+    Function,
+    Struct,
+    Enum,
+    Trait,
+    Impl,
+    Module,
+    Constant,
+    Static,
+    Macro,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Visibility {
+    Public,
+    Private,
+    Crate,
+    Super,
+}
+```
+
+### Discovery Query Models - MVP Focus
+
+```rust
+/// Simple query patterns solving the core constraint
+#[derive(Debug, Clone)]
+pub enum DiscoveryQuery {
+    /// List all entities (the main constraint solver)
+    ListAll {
+        entity_type: Option<EntityType>,
+        max_results: usize,
+    },
+    
+    /// List entities in specific file
+    EntitiesInFile {
+        file_path: String,
+        entity_types: Option<Vec<EntityType>>,
+    },
+    
+    /// Find definition location (once they know the name)
+    WhereDefinedExact {
+        entity_name: String,
+    },
+}
+
+// REMOVED: FuzzyName - not the core constraint
+// REMOVED: ListPattern - premature optimization
+
+/// Simple results for MVP
+#[derive(Debug, Clone)]
+pub struct DiscoveryResult {
+    pub query: DiscoveryQuery,
+    pub entities: Vec<EntityInfo>, // Simple, no fuzzy matching complexity
+    pub execution_time: Duration,
+    pub total_entities: usize,
+}
+```
+
+## Error Handling
+
+### Structured Error Hierarchy
+
+```rust
+/// Comprehensive error handling for discovery operations
+#[derive(Error, Debug)]
+pub enum DiscoveryError {
+    #[error("Entity not found: {name}")]
+    EntityNotFound { name: String },
+    
+    #[error("File not found: {path}")]
+    FileNotFound { path: String },
+    
+    #[error("Invalid pattern: {pattern} - {reason}")]
+    InvalidPattern { pattern: String, reason: String },
+    
+    #[error("Fuzzy search failed: {algorithm} - {cause}")]
+    FuzzySearchFailed { algorithm: String, cause: String },
+    
+    #[error("Query timeout: {query} took longer than {limit:?}")]
+    QueryTimeout { query: String, limit: Duration },
+    
+    #[error("Index corruption detected: {index_type}")]
+    IndexCorruption { index_type: String },
+    
+    #[error("Performance contract violation: {operation} took {actual:?}, expected <{limit:?}")]
+    PerformanceViolation {
+        operation: String,
+        actual: Duration,
+        limit: Duration,
+    },
+    
+    #[error("ISG error: {0}")]
+    IsgError(#[from] IsgError),
+}
+
+/// Application-level error context
+pub type DiscoveryResult<T> = Result<T, DiscoveryError>;
+
+/// Context-rich error handling for CLI
+pub fn add_discovery_context(
+    result: DiscoveryResult<impl std::fmt::Debug>,
+    context: &str,
+) -> anyhow::Result<impl std::fmt::Debug> {
+    result.with_context(|| format!("Discovery operation failed: {}", context))
+}
+```
+
+## Testing Strategy
+
+### Performance Contract Testing
+
+```rust
+/// Validate performance contracts for discovery operations
+#[cfg(test)]
+mod performance_tests {
+    use super::*;
+    use std::time::Instant;
+    
+    #[tokio::test]
+    async fn test_discovery_query_performance_contract() {
+        let discovery = create_test_discovery_engine().await;
+        
+        // Load realistic test data
+        load_test_codebase(&discovery, "test_data/large_codebase.dump").await;
+        
+        let start = Instant::now();
+        let result = discovery.find_entities_fuzzy("Handler", 50).await.unwrap();
+        let elapsed = start.elapsed();
+        
+        // Performance contract: <100ms for discovery queries
+        assert!(elapsed < Duration::from_millis(100), 
+                "Discovery query took {:?}, expected <100ms", elapsed);
+        
+        // Validate result quality
+        assert!(!result.is_empty(), "Should find entities matching 'Handler'");
+        assert!(result.len() <= 50, "Should respect max_results limit");
+    }
+    
+    #[tokio::test]
+    async fn test_existing_query_performance_preserved() {
+        let system = create_test_system().await;
+        
+        let start = Instant::now();
+        let result = system.execute_blast_radius_query("SomeEntity").await.unwrap();
+        let elapsed = start.elapsed();
+        
+        // Critical: Existing performance must be preserved
+        assert!(elapsed < Duration::from_micros(50), 
+                "Existing query took {:?}, expected <50μs", elapsed);
+    }
+}
+```
+
+### Discovery Accuracy Testing
+
+```rust
+/// Validate discovery query accuracy and completeness
+#[cfg(test)]
+mod discovery_accuracy_tests {
+    use super::*;
+    
+    #[tokio::test]
+    async fn test_fuzzy_search_accuracy() {
+        let discovery = create_test_discovery_engine().await;
+        
+        // Test cases with expected matches
+        let test_cases = vec![
+            ("handlr", vec!["Handler", "MessageHandler", "RequestHandler"]),
+            ("usr", vec!["User", "UserService", "UserRepository"]),
+            ("msg", vec!["Message", "MessageQueue", "MessageProcessor"]),
+        ];
+        
+        for (query, expected) in test_cases {
+            let results = discovery.find_entities_fuzzy(query, 10).await.unwrap();
+            
+            for expected_match in expected {
+                assert!(
+                    results.iter().any(|r| r.name.contains(expected_match)),
+                    "Query '{}' should find entity containing '{}'", query, expected_match
+                );
+            }
+        }
+    }
+    
+    #[tokio::test]
+    async fn test_file_location_accuracy() {
+        let discovery = create_test_discovery_engine().await;
+        
+        let entities = discovery.entities_in_file("src/handlers/mod.rs").await.unwrap();
+        
+        // Validate all entities have correct file path
+        for entity in entities {
+            assert_eq!(entity.file_path, "src/handlers/mod.rs");
+            assert!(entity.line_number.is_some(), "Should have line number");
+        }
+    }
+}
+```
+
+### Integration Testing
+
+```rust
+/// End-to-end workflow validation
+#[cfg(test)]
+mod integration_tests {
+    use super::*;
+    
+    #[tokio::test]
+    async fn test_discovery_to_analysis_workflow() {
+        let system = create_test_system().await;
+        
+        // Step 1: Discover entities
+        let discoveries = system.find_entities_fuzzy("Handler", 5).await.unwrap();
+        assert!(!discoveries.is_empty(), "Should discover Handler entities");
+        
+        // Step 2: Get exact location
+        let first_entity = &discoveries[0];
+        let location = system.where_defined(&first_entity.name).await.unwrap();
+        assert!(location.is_some(), "Should find exact location");
+        
+        // Step 3: Perform blast radius analysis
+        let blast_radius = system.calculate_blast_radius(&first_entity.name).await.unwrap();
+        
+        // Validate readable output (no hash values)
+        for impact in blast_radius.impacts {
+            for entity in impact.entities {
+                assert!(!entity.name.starts_with("0x"), 
+                        "Entity name should be readable, not hash: {}", entity.name);
+                assert!(!entity.file_path.is_empty(), 
+                        "Should have file path for navigation");
+            }
+        }
+    }
+}
+```
+
+### Property-Based Testing
+
+```rust
+/// Validate invariants across input space
+#[cfg(test)]
+mod property_tests {
+    use super::*;
+    use proptest::prelude::*;
+    
+    proptest! {
+        #[test]
+        fn discovery_query_never_panics(
+            pattern in "[a-zA-Z0-9_]{1,50}",
+            max_results in 1usize..1000
+        ) {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(async {
+                let discovery = create_test_discovery_engine().await;
+                
+                // Should never panic, even with arbitrary input
+                let result = discovery.find_entities_fuzzy(&pattern, max_results).await;
+                
+                match result {
+                    Ok(entities) => {
+                        prop_assert!(entities.len() <= max_results);
+                        for entity in entities {
+                            prop_assert!(!entity.name.is_empty());
+                            prop_assert!(!entity.file_path.is_empty());
+                            prop_assert!(entity.confidence_score >= 0.0);
+                            prop_assert!(entity.confidence_score <= 1.0);
+                        }
+                    }
+                    Err(_) => {
+                        // Errors are acceptable, panics are not
+                    }
+                }
+            });
+        }
+    }
+}
+```
+
+## Implementation Architecture
+
+### Layered Implementation Strategy
+
+```mermaid
+graph TD
+    subgraph "L1: Core Language Features"
+        OWN[Ownership & Borrowing]
+        RAII[RAII Resource Management]
+        NT[Newtype Pattern]
+        RES[Result/Option]
+    end
+    
+    subgraph "L2: Standard Library"
+        COL[Collections & Iterators]
+        ARC[Arc/Mutex for Threading]
+        STR[String Interning]
+    end
+    
+    subgraph "L3: External Dependencies"
+        TOK[Tokio for Async]
+        SER[Serde for Serialization]
+        FUZ[Fuzzy Search Crates]
+    end
+    
+    L1 --> L2
+    L2 --> L3
+    
+    classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef std fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef external fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    
+    class OWN,RAII,NT,RES core
+    class COL,ARC,STR std
+    class TOK,SER,FUZ external
+```
+
+### Memory Layout Optimization
+
+```rust
+/// Optimized memory layout for discovery indexes
+#[repr(C)]
+pub struct CompactEntityInfo {
+    pub name_id: u32,        // String interning
+    pub file_id: u32,        // String interning
+    pub entity_type: u8,     // Enum as u8
+    pub visibility: u8,      // Enum as u8
+    pub line_number: u32,    // 0 = None
+    pub sig_hash: u128,      // Direct hash value
+}
+
+// Total size: 24 bytes per entity (vs ~200 bytes with String fields)
+
+/// Memory-efficient fuzzy search index
+pub struct CompactFuzzyIndex {
+    /// Trigram index for fast fuzzy matching
+    trigrams: HashMap<[u8; 3], Vec<u32>>, // entity_id references
+    
+    /// Entity metadata for result construction
+    entities: Vec<CompactEntityInfo>,
+    
+    /// String interner for names and paths
+    strings: StringInterner,
+}
+```
+
+### Concurrency Model
+
+```rust
+/// Thread-safe discovery engine with read-optimized locking
+pub struct ConcurrentDiscoveryEngine {
+    /// Core ISG (read-heavy, occasional updates)
+    isg: Arc<RwLock<InMemoryIsg>>,
+    
+    /// Discovery indexes (read-heavy, rebuilt on ISG updates)
+    indexes: Arc<RwLock<DiscoveryIndexes>>,
+    
+    /// String interner (append-only, lock-free reads)
+    strings: Arc<StringInterner>,
+}
+
+impl ConcurrentDiscoveryEngine {
+    /// Read-optimized discovery queries
+    pub async fn find_entities_fuzzy(
+        &self,
+        pattern: &str,
+        max_results: usize,
+    ) -> DiscoveryResult<Vec<EntityMatch>> {
+        // Read lock only, no blocking writes
+        let indexes = self.indexes.read().await;
+        
+        // CPU-intensive fuzzy search in background thread
+        let pattern = pattern.to_string();
+        let results = tokio::task::spawn_blocking(move || {
+            indexes.name_index.fuzzy_search(&pattern, max_results)
+        }).await?;
+        
+        Ok(results)
+    }
+}
+```
+
+## Performance Optimization Strategy
+
+### Critical Performance Contracts
+
+1. **Discovery Queries**: <100ms for interactive responsiveness
+2. **Existing Queries**: <50μs (no regression from v1)
+3. **Memory Usage**: <20% increase from v1
+4. **Index Rebuild**: <5 seconds for large codebases
+
+### Optimization Techniques
+
+```rust
+/// Performance-critical path optimizations
+impl DiscoveryEngine {
+    /// Zero-allocation entity filtering
+    pub fn filter_entities_by_type<'a>(
+        &'a self,
+        entities: &'a [EntityInfo],
+        entity_type: EntityType,
+    ) -> impl Iterator<Item = &'a EntityInfo> {
+        entities.iter().filter(move |e| e.entity_type == entity_type)
+    }
+    
+    /// Batch processing for multiple queries
+    pub async fn batch_discovery_queries(
+        &self,
+        queries: Vec<DiscoveryQuery>,
+    ) -> Vec<DiscoveryResult<Vec<EntityMatch>>> {
+        // Process queries in parallel with bounded concurrency
+        let semaphore = Arc::new(Semaphore::new(4)); // Max 4 concurrent
+        
+        let futures = queries.into_iter().map(|query| {
+            let semaphore = Arc::clone(&semaphore);
+            let engine = self.clone();
+            
+            async move {
+                let _permit = semaphore.acquire().await.unwrap();
+                engine.execute_discovery_query(query).await
+            }
+        });
+        
+        futures::future::join_all(futures).await
+    }
+}
+```
+
+## Migration Strategy
+
+### Backward Compatibility
+
+```rust
+/// Wrapper to maintain v1 API compatibility
+pub struct LegacyQueryAdapter {
+    discovery_engine: Arc<DiscoveryEngine>,
+    legacy_isg: Arc<InMemoryIsg>,
+}
+
+impl LegacyQueryAdapter {
+    /// Existing v1 query interface (unchanged)
+    pub async fn execute_query(&self, query: &str) -> Result<QueryResult, IsgError> {
+        // Route to existing ISG engine - zero changes
+        self.legacy_isg.execute_query(query).await
+    }
+    
+    /// New discovery interface (additive)
+    pub async fn discover_entities(&self, pattern: &str) -> DiscoveryResult<Vec<EntityMatch>> {
+        self.discovery_engine.find_entities_fuzzy(pattern, 50).await
+    }
+}
+```
+
+### Incremental Rollout Plan
+
+1. **Phase 1**: Add discovery layer without changing existing code
+2. **Phase 2**: Enhance ISG nodes with file location attributes
+3. **Phase 3**: Implement readable blast radius output
+4. **Phase 4**: Optimize performance and memory usage
+5. **Phase 5**: Full integration testing and validation
+
+## Success Metrics Validation
+
+### Automated Metric Collection
+
+```rust
+/// Built-in metrics collection for success validation
+pub struct DiscoveryMetrics {
+    pub entity_discovery_time: Histogram,
+    pub query_success_rate: Counter,
+    pub performance_violations: Counter,
+    pub user_workflow_completion: Counter,
+}
+
+impl DiscoveryMetrics {
+    pub fn record_discovery_time(&self, duration: Duration) {
+        self.entity_discovery_time.observe(duration.as_secs_f64());
+        
+        // Validate success criteria: <30 seconds
+        if duration > Duration::from_secs(30) {
+            self.performance_violations.inc();
+            warn!("Discovery time exceeded target: {:?}", duration);
+        }
+    }
+    
+    pub fn record_query_success(&self, success: bool) {
+        if success {
+            self.query_success_rate.inc();
+        }
+    }
+}
+```
+
+This design document addresses all requirements from the requirements specification while maintaining the core architectural principles of performance preservation and discovery-first user experience. The implementation strategy follows the layered Rust architecture pattern and includes comprehensive testing strategies to validate both functional correctness and performance contracts.
