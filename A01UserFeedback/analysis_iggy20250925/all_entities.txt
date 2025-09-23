@@ -1,0 +1,2525 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+=== Interface Signature Graph ===
+Nodes: 541, Edges: 894
+
+NODES:
+  SigHash(14867113745864604483) -> test_create_message_invalid_room_id (Function)
+    Signature: fn test_create_message_invalid_room_id
+    File: tests/message_handlers_test.rs:0
+  SigHash(5362064573706392954) -> test_search_room_messages (Function)
+    Signature: fn test_search_room_messages
+    File: tests/search_service_test.rs:0
+  SigHash(14315326936418254580) -> test_message_creation_with_broadcast (Function)
+    Signature: fn tests::test_message_creation_with_broadcast
+    File: src/services/message.rs:0
+  SigHash(1086217717435616366) -> update_notification_preferences_internal (Function)
+    Signature: fn update_notification_preferences_internal
+    File: src/database/mod.rs:0
+  SigHash(5882403525701864558) -> create_demo_users (Function)
+    Signature: fn create_demo_users
+    File: src/demo.rs:0
+  SigHash(13447908424593970396) -> test_search_messages_authorization_filtering (Function)
+    Signature: fn test_search_messages_authorization_filtering
+    File: tests/search_handlers_test.rs:0
+  SigHash(18221103189264055059) -> test_search_messages_ranking (Function)
+    Signature: fn test_search_messages_ranking
+    File: tests/search_service_test.rs:0
+  SigHash(5443465188613091469) -> test_create_message_without_auth (Function)
+    Signature: fn test_create_message_without_auth
+    File: tests/message_handlers_test.rs:0
+  SigHash(1650658888158989642) -> create_test_message (Function)
+    Signature: fn create_test_message
+    File: tests/search_service_test.rs:0
+  SigHash(8011002214237442110) -> cleanup (Function)
+    Signature: fn cleanup
+    File: src/shutdown.rs:0
+  SigHash(8975026078483229301) -> create_session (Function)
+    Signature: fn create_session
+    File: src/services/auth.rs:0
+  SigHash(12389027313105512242) -> test_connection_management (Function)
+    Signature: fn tests::test_connection_management
+    File: src/services/connection.rs:0
+  SigHash(4461227494310090735) -> reset_bot_token (Function)
+    Signature: fn reset_bot_token
+    File: src/services/bot.rs:0
+  SigHash(2537123299798894307) -> sanitize_user_input (Function)
+    Signature: fn sanitization::sanitize_user_input
+    File: src/validation.rs:0
+  SigHash(3523992803692662420) -> test_parse_message_id_valid (Function)
+    Signature: fn tests::test_parse_message_id_valid
+    File: src/handlers/messages.rs:0
+  SigHash(6005489175301010635) -> test_log_rotation (Function)
+    Signature: fn tests::test_log_rotation
+    File: src/logging.rs:0
+  SigHash(15398275901202816203) -> test_room_api_integration_structure (Function)
+    Signature: fn test_room_api_integration_structure
+    File: tests/room_handlers_test.rs:0
+  SigHash(5995893577476308927) -> test_authenticate_bot (Function)
+    Signature: fn test_authenticate_bot
+    File: tests/bot_service_test.rs:0
+  SigHash(1796932410525280380) -> SearchService (Struct)
+    Signature: struct SearchService
+    File: src/services/search.rs:0
+  SigHash(15565754980960638265) -> from_env (Function)
+    Signature: fn from_env
+    File: src/config.rs:0
+  SigHash(15837656027704887609) -> create_test_message_service (Function)
+    Signature: fn tests::create_test_message_service
+    File: src/services/message.rs:0
+  SigHash(9180320207386992685) -> is_valid_sound_name (Function)
+    Signature: fn is_valid_sound_name
+    File: src/sounds.rs:0
+  SigHash(14055690629232822695) -> request_timeout (Function)
+    Signature: fn request_timeout
+    File: src/config.rs:0
+  SigHash(942614515147940641) -> test_extract_session_token_from_auth_header (Function)
+    Signature: fn tests::test_extract_session_token_from_auth_header
+    File: src/middleware/session.rs:0
+  SigHash(12824326560454155041) -> test_extract_session_token_from_cookie (Function)
+    Signature: fn tests::test_extract_session_token_from_cookie
+    File: src/middleware/session.rs:0
+  SigHash(763303020526345560) -> SessionToken (Struct)
+    Signature: struct SessionToken
+    File: src/middleware/session.rs:0
+  SigHash(609841878925593944) -> test_typing_indicators (Function)
+    Signature: fn tests::test_typing_indicators
+    File: src/services/connection.rs:0
+  SigHash(2108057393411241682) -> health_check (Function)
+    Signature: fn health_check
+    File: src/health.rs:0
+  SigHash(13585649717695047756) -> create_cors_layer (Function)
+    Signature: fn create_cors_layer
+    File: src/middleware/security.rs:0
+  SigHash(14644502939418347974) -> CreateRoomRequest (Struct)
+    Signature: struct CreateRoomRequest
+    File: src/validation.rs:0
+  SigHash(1726582152879788407) -> test_password_validation (Function)
+    Signature: fn tests::test_password_validation
+    File: src/services/auth.rs:0
+  SigHash(14504512048803615095) -> sound_exists (Function)
+    Signature: fn sound_exists
+    File: src/sounds.rs:0
+  SigHash(12556550848799222056) -> create_webhook_payload (Function)
+    Signature: fn create_webhook_payload
+    File: src/services/bot.rs:0
+  SigHash(9461016113344852831) -> ShutdownTask (Struct)
+    Signature: struct ShutdownTask
+    File: src/shutdown.rs:0
+  SigHash(5975390007318375184) -> PushSubscription (Struct)
+    Signature: struct PushSubscription
+    File: src/models/mod.rs:0
+  SigHash(1770935737942593485) -> test_extract_session_token_empty_bearer (Function)
+    Signature: fn tests::test_extract_session_token_empty_bearer
+    File: src/middleware/session.rs:0
+  SigHash(2979400105908734279) -> test_get_user_rooms_empty (Function)
+    Signature: fn test_get_user_rooms_empty
+    File: tests/room_service_test.rs:0
+  SigHash(719751658096507585) -> test_get_sound_info (Function)
+    Signature: fn tests::test_get_sound_info
+    File: src/sounds.rs:0
+  SigHash(15834261395534353656) -> RoomServiceTrait (Trait)
+    Signature: trait RoomServiceTrait
+    File: src/services/room.rs:0
+  SigHash(5089551503794386357) -> test_create_bot_invalid_name (Function)
+    Signature: fn test_create_bot_invalid_name
+    File: tests/bot_service_test.rs:0
+  SigHash(17052898213245320361) -> test_search_messages_unauthorized (Function)
+    Signature: fn tests::test_search_messages_unauthorized
+    File: src/handlers/search.rs:0
+  SigHash(10886830709169948006) -> HealthResponse (Struct)
+    Signature: struct HealthResponse
+    File: src/health.rs:0
+  SigHash(1960138086001983846) -> create_timeout_layer (Function)
+    Signature: fn create_timeout_layer
+    File: src/middleware/security.rs:0
+  SigHash(8519521937135793699) -> test_broadcast_to_room (Function)
+    Signature: fn tests::test_broadcast_to_room
+    File: src/services/connection.rs:0
+  SigHash(6273958183537915805) -> SerializedDatabaseWriter (Struct)
+    Signature: struct SerializedDatabaseWriter
+    File: src/database/mod.rs:0
+  SigHash(2880247536530090720) -> test_message_api_integration_structure (Function)
+    Signature: fn test_message_api_integration_structure
+    File: tests/message_handlers_test.rs:0
+  SigHash(17495592405117646103) -> test_bot_message_creation_plain_text (Function)
+    Signature: fn test_bot_message_creation_plain_text
+    File: tests/bot_handlers_test.rs:0
+  SigHash(7186781088862662478) -> validate_email (Function)
+    Signature: fn validate_email
+    File: src/services/auth.rs:0
+  SigHash(12057912280481000459) -> test_get_room_invalid_id (Function)
+    Signature: fn test_get_room_invalid_id
+    File: tests/room_handlers_test.rs:0
+  SigHash(11662263699627566280) -> create_test_parts_with_auth_header (Function)
+    Signature: fn tests::create_test_parts_with_auth_header
+    File: src/middleware/session.rs:0
+  SigHash(5954950826790168508) -> create_user (Function)
+    Signature: fn create_user
+    File: src/services/auth.rs:0
+  SigHash(18245338861786172348) -> DemoDataInitializer (Struct)
+    Signature: struct DemoDataInitializer
+    File: src/demo.rs:0
+  SigHash(12497510304626434169) -> handle_websocket (Function)
+    Signature: fn handle_websocket
+    File: src/handlers/websocket.rs:0
+  SigHash(10310637367318607347) -> test_is_valid_sound (Function)
+    Signature: fn tests::test_is_valid_sound
+    File: src/rich_text.rs:0
+  SigHash(9133788075445637430) -> RoomPresence (Struct)
+    Signature: struct RoomPresence
+    File: src/services/connection.rs:0
+  SigHash(621392776191610166) -> CreateBotRequest (Struct)
+    Signature: struct CreateBotRequest
+    File: src/validation.rs:0
+  SigHash(6419198971251978282) -> DatabaseMetrics (Struct)
+    Signature: struct DatabaseMetrics
+    File: src/metrics.rs:0
+  SigHash(7228403583846110061) -> sanitize_room_name (Function)
+    Signature: fn sanitization::sanitize_room_name
+    File: src/validation.rs:0
+  SigHash(12375579986727752100) -> DatabaseStats (Struct)
+    Signature: struct DatabaseStats
+    File: src/database/mod.rs:0
+  SigHash(14308426197509526948) -> get_bot (Function)
+    Signature: fn get_bot
+    File: src/services/bot.rs:0
+  SigHash(5272479815804197552) -> test_create_bot_invalid_webhook_url (Function)
+    Signature: fn test_create_bot_invalid_webhook_url
+    File: tests/bot_service_test.rs:0
+  SigHash(1462898344191453147) -> test_demo_data_initialization (Function)
+    Signature: fn tests::test_demo_data_initialization
+    File: src/demo.rs:0
+  SigHash(10706473558610481304) -> get_messages (Function)
+    Signature: fn get_messages
+    File: src/handlers/messages.rs:0
+  SigHash(13543536198750886229) -> Resource (Trait)
+    Signature: trait Resource
+    File: src/shutdown.rs:0
+  SigHash(1807154973402599765) -> test_create_room_success (Function)
+    Signature: fn test_create_room_success
+    File: tests/room_service_test.rs:0
+  SigHash(16764400855809299529) -> create_message_with_deduplication_internal (Function)
+    Signature: fn create_message_with_deduplication_internal
+    File: src/database/mod.rs:0
+  SigHash(14724005106705625539) -> RoomService (Struct)
+    Signature: struct RoomService
+    File: src/services/room.rs:0
+  SigHash(3581229521790456259) -> create_test_bot_service (Function)
+    Signature: fn create_test_bot_service
+    File: tests/bot_service_test.rs:0
+  SigHash(17395025115641416509) -> UpdateNotificationPreferencesRequest (Struct)
+    Signature: struct UpdateNotificationPreferencesRequest
+    File: src/models/mod.rs:0
+  SigHash(13668748198954561530) -> is_valid_sound (Function)
+    Signature: fn is_valid_sound
+    File: src/rich_text.rs:0
+  SigHash(12917358397828815031) -> get_sound_info (Function)
+    Signature: fn get_sound_info
+    File: src/sounds.rs:0
+  SigHash(11296295907288731831) -> from_str (Function)
+    Signature: fn from_str
+    File: src/models/mod.rs:0
+  SigHash(1812774503265891889) -> ErrorResponse (Struct)
+    Signature: struct ErrorResponse
+    File: src/handlers/sounds.rs:0
+  SigHash(11262762891375511278) -> check_memory_health (Function)
+    Signature: fn check_memory_health
+    File: src/health.rs:0
+  SigHash(14991282151825856049) -> test_message_limit_enforcement (Function)
+    Signature: fn tests::test_message_limit_enforcement
+    File: src/services/message.rs:0
+  SigHash(4401965689389358184) -> get_user_by_id (Function)
+    Signature: fn get_user_by_id
+    File: src/database/mod.rs:0
+  SigHash(2921845090800368933) -> RoomId (Struct)
+    Signature: struct RoomId
+    File: src/models/mod.rs:0
+  SigHash(500881947859030498) -> process_rich_text (Function)
+    Signature: fn process_rich_text
+    File: src/demo.rs:0
+  SigHash(16466804141592358449) -> test_get_mime_type (Function)
+    Signature: fn tests::test_get_mime_type
+    File: src/sounds.rs:0
+  SigHash(17955820136756746045) -> test_writer_channel_resilience (Function)
+    Signature: fn test_writer_channel_resilience
+    File: tests/database_writer_test.rs:0
+  SigHash(514622327169218585) -> test_extract_session_token_missing (Function)
+    Signature: fn tests::test_extract_session_token_missing
+    File: src/middleware/session.rs:0
+  SigHash(991726636798889253) -> test_search_messages_pagination (Function)
+    Signature: fn test_search_messages_pagination
+    File: tests/search_service_test.rs:0
+  SigHash(7717530024461629197) -> create_push_subscription (Function)
+    Signature: fn create_push_subscription
+    File: src/handlers/push.rs:0
+  SigHash(13038701278197043981) -> liveness_check (Function)
+    Signature: fn liveness_check
+    File: src/health.rs:0
+  SigHash(8426707276887071501) -> sanitize_message_content (Function)
+    Signature: fn sanitization::sanitize_message_content
+    File: src/validation.rs:0
+  SigHash(3376466629943546180) -> SoundInfo (Struct)
+    Signature: struct SoundInfo
+    File: src/sounds.rs:0
+  SigHash(8075155478521417485) -> test_session_token_extraction_from_cookie (Function)
+    Signature: fn test_session_token_extraction_from_cookie
+    File: tests/integration_test.rs:0
+  SigHash(8246918992451005118) -> test_search_messages_invalid_query (Function)
+    Signature: fn tests::test_search_messages_invalid_query
+    File: src/handlers/search.rs:0
+  SigHash(9742042533787649915) -> test_complete_auth_flow (Function)
+    Signature: fn test_complete_auth_flow
+    File: tests/auth_flow_test.rs:0
+  SigHash(16209794756263475445) -> extract_session_token_from_headers (Function)
+    Signature: fn extract_session_token_from_headers
+    File: src/handlers/websocket.rs:0
+  SigHash(12378998191300414630) -> broadcast_to_room (Function)
+    Signature: fn broadcast_to_room
+    File: src/services/connection.rs:0
+  SigHash(16019829051137839191) -> test_get_sound_data (Function)
+    Signature: fn tests::test_get_sound_data
+    File: src/sounds.rs:0
+  SigHash(8726632820594450708) -> validate_request (Function)
+    Signature: fn validate_request
+    File: src/validation.rs:0
+  SigHash(7456206235885969873) -> create_push_subscription_internal (Function)
+    Signature: fn create_push_subscription_internal
+    File: src/database/mod.rs:0
+  SigHash(12612743140635194376) -> create_sample_conversations (Function)
+    Signature: fn create_sample_conversations
+    File: src/demo.rs:0
+  SigHash(3325893149575978181) -> delete_push_subscription (Function)
+    Signature: fn delete_push_subscription
+    File: src/handlers/push.rs:0
+  SigHash(5791762097716215548) -> default (Function)
+    Signature: fn default
+    File: src/services/push.rs:0
+  SigHash(9200422015674613689) -> validate_session (Function)
+    Signature: fn validate_session
+    File: src/services/auth.rs:0
+  SigHash(148241831013588086) -> test_determine_overall_status (Function)
+    Signature: fn tests::test_determine_overall_status
+    File: src/health.rs:0
+  SigHash(4257875499014151664) -> BotService (Trait)
+    Signature: trait BotService
+    File: src/services/bot.rs:0
+  SigHash(16689195133085257389) -> test_user_journey_message_deduplication_and_errors (Function)
+    Signature: fn test_user_journey_message_deduplication_and_errors
+    File: tests/user_journey_tests.rs:0
+  SigHash(14520062152504561514) -> pool (Function)
+    Signature: fn pool
+    File: src/database/mod.rs:0
+  SigHash(16936262762505893738) -> validate_and_process_content (Function)
+    Signature: fn validate_and_process_content
+    File: src/services/message.rs:0
+  SigHash(2169036942911119210) -> create_notification_payload (Function)
+    Signature: fn create_notification_payload
+    File: src/services/push.rs:0
+  SigHash(6529698034317615710) -> test_check_room_access_room_not_found (Function)
+    Signature: fn test_check_room_access_room_not_found
+    File: tests/room_service_test.rs:0
+  SigHash(13350393836732472091) -> test_process_content_with_mentions (Function)
+    Signature: fn tests::test_process_content_with_mentions
+    File: src/rich_text.rs:0
+  SigHash(10447534137110061016) -> SoundsListResponse (Struct)
+    Signature: struct SoundsListResponse
+    File: src/handlers/sounds.rs:0
+  SigHash(11086556339309036693) -> create_test_state (Function)
+    Signature: fn tests::create_test_state
+    File: src/handlers/websocket.rs:0
+  SigHash(17290954826463392728) -> record_database_query (Function)
+    Signature: fn record_database_query
+    File: src/metrics.rs:0
+  SigHash(17355297471957449688) -> add_resource (Function)
+    Signature: fn add_resource
+    File: src/shutdown.rs:0
+  SigHash(16182087653975343820) -> tracing_level (Function)
+    Signature: fn tracing_level
+    File: src/config.rs:0
+  SigHash(9051669916069399433) -> deliver_webhook (Function)
+    Signature: fn deliver_webhook
+    File: src/services/bot.rs:0
+  SigHash(2878143287833903064) -> test_get_current_user_unauthorized (Function)
+    Signature: fn test_get_current_user_unauthorized
+    File: tests/auth_handlers_test.rs:0
+  SigHash(264126065167038723) -> test_last_seen_message_tracking (Function)
+    Signature: fn tests::test_last_seen_message_tracking
+    File: src/services/connection.rs:0
+  SigHash(55756984397770176) -> create_message (Function)
+    Signature: fn create_message
+    File: src/handlers/messages.rs:0
+  SigHash(6463235747490640509) -> start_typing (Function)
+    Signature: fn start_typing
+    File: src/services/connection.rs:0
+  SigHash(15864039075841652995) -> test_uuid_insertion (Function)
+    Signature: fn tests::test_uuid_insertion
+    File: src/services/message.rs:0
+  SigHash(4683582053454109687) -> get_notification_recipients (Function)
+    Signature: fn get_notification_recipients
+    File: src/database/mod.rs:0
+  SigHash(18272458132327909556) -> test_resource_manager (Function)
+    Signature: fn test_resource_manager
+    File: tests/health_check_test.rs:0
+  SigHash(6630332889348065728) -> test_add_room_member_invalid_user_id (Function)
+    Signature: fn test_add_room_member_invalid_user_id
+    File: tests/room_handlers_test.rs:0
+  SigHash(11752508152045473027) -> test_check_room_access_open_room (Function)
+    Signature: fn test_check_room_access_open_room
+    File: tests/room_service_test.rs:0
+  SigHash(6152983020152727134) -> test_search_validation (Function)
+    Signature: fn test_search_validation
+    File: tests/simple_search_test.rs:0
+  SigHash(1927930323878102495) -> test_typing_message_handling (Function)
+    Signature: fn tests::test_typing_message_handling
+    File: src/handlers/websocket.rs:0
+  SigHash(5680330755968492188) -> ShutdownCoordinator (Struct)
+    Signature: struct ShutdownCoordinator
+    File: src/shutdown.rs:0
+  SigHash(13955312547082499094) -> test_get_rooms_without_auth (Function)
+    Signature: fn test_get_rooms_without_auth
+    File: tests/room_handlers_test.rs:0
+  SigHash(16608462396473483853) -> stop_typing (Function)
+    Signature: fn stop_typing
+    File: src/services/connection.rs:0
+  SigHash(14247178360312580984) -> init_logging (Function)
+    Signature: fn init_logging
+    File: src/logging.rs:0
+  SigHash(6341463231105385903) -> bot_error_to_response (Function)
+    Signature: fn bot_error_to_response
+    File: src/handlers/bot.rs:0
+  SigHash(6835172942301254630) -> migrate (Function)
+    Signature: fn migrate
+    File: src/database/mod.rs:0
+  SigHash(15062337229752246435) -> ProcessedContent (Struct)
+    Signature: struct ProcessedContent
+    File: src/rich_text.rs:0
+  SigHash(7309931166307453926) -> ResourceManager (Struct)
+    Signature: struct ResourceManager
+    File: src/shutdown.rs:0
+  SigHash(15089186789664232989) -> get_rooms (Function)
+    Signature: fn get_rooms
+    File: src/handlers/rooms.rs:0
+  SigHash(7710385941495012893) -> update_preferences (Function)
+    Signature: fn update_preferences
+    File: src/services/push.rs:0
+  SigHash(11171872195371183377) -> test_user_journey_new_user_onboarding (Function)
+    Signature: fn test_user_journey_new_user_onboarding
+    File: tests/user_journey_tests.rs:0
+  SigHash(2343182415754351054) -> ping (Function)
+    Signature: fn ping
+    File: src/database/mod.rs:0
+  SigHash(9426713386559774347) -> authenticate_bot (Function)
+    Signature: fn authenticate_bot
+    File: src/services/bot.rs:0
+  SigHash(1635947442089184072) -> build_sound_info_cache (Function)
+    Signature: fn build_sound_info_cache
+    File: src/sounds.rs:0
+  SigHash(11771010899767090181) -> create_test_room_with_messages (Function)
+    Signature: fn create_test_room_with_messages
+    File: tests/search_handlers_test.rs:0
+  SigHash(5199199352790518978) -> test_add_room_member_invalid_room_id (Function)
+    Signature: fn test_add_room_member_invalid_room_id
+    File: tests/room_handlers_test.rs:0
+  SigHash(6706050061961491193) -> collect_metrics_summary (Function)
+    Signature: fn collect_metrics_summary
+    File: src/metrics.rs:0
+  SigHash(2291172196178731958) -> DatabaseWriter (Trait)
+    Signature: trait DatabaseWriter
+    File: src/database/mod.rs:0
+  SigHash(11410127542830173110) -> test_email_validation (Function)
+    Signature: fn tests::test_email_validation
+    File: src/services/auth.rs:0
+  SigHash(6384820940156851315) -> MessageService (Struct)
+    Signature: struct MessageService
+    File: src/services/message.rs:0
+  SigHash(3074335879082930669) -> PushConfig (Struct)
+    Signature: struct PushConfig
+    File: src/config.rs:0
+  SigHash(7655263555752536746) -> add_connection (Function)
+    Signature: fn add_connection
+    File: src/services/connection.rs:0
+  SigHash(15954020058625366887) -> test_sound_command_extraction (Function)
+    Signature: fn tests::test_sound_command_extraction
+    File: src/demo.rs:0
+  SigHash(6892548063827030052) -> describe_metrics (Function)
+    Signature: fn describe_metrics
+    File: src/metrics.rs:0
+  SigHash(4033090392293609398) -> check_room_access (Function)
+    Signature: fn check_room_access
+    File: src/services/room.rs:0
+  SigHash(4866848713432214186) -> test_database_basic_operations (Function)
+    Signature: fn tests::test_database_basic_operations
+    File: src/services/message.rs:0
+  SigHash(16144757169300596315) -> fmt (Function)
+    Signature: fn fmt
+    File: src/models/mod.rs:0
+  SigHash(4092221633524396824) -> demo_status (Function)
+    Signature: fn demo_status
+    File: src/handlers/pages.rs:0
+  SigHash(17859649908320739285) -> get_push_subscriptions_for_user (Function)
+    Signature: fn get_push_subscriptions_for_user
+    File: src/database/mod.rs:0
+  SigHash(12679999962664930986) -> test_get_room_messages (Function)
+    Signature: fn tests::test_get_room_messages
+    File: src/services/message.rs:0
+  SigHash(6634102693681020397) -> DatabaseResource (Struct)
+    Signature: struct DatabaseResource
+    File: src/shutdown.rs:0
+  SigHash(7110705288487896966) -> test_config_defaults (Function)
+    Signature: fn tests::test_config_defaults
+    File: src/config.rs:0
+  SigHash(10569284040797154103) -> test_logout_success (Function)
+    Signature: fn test_logout_success
+    File: tests/auth_handlers_test.rs:0
+  SigHash(5440952323038237873) -> LoginRequest (Struct)
+    Signature: struct LoginRequest
+    File: src/validation.rs:0
+  SigHash(13352843861884034792) -> wait_for_shutdown (Function)
+    Signature: fn wait_for_shutdown
+    File: src/shutdown.rs:0
+  SigHash(12469323495042995676) -> DatabaseConnectivityCheck (Struct)
+    Signature: struct DatabaseConnectivityCheck
+    File: src/shutdown.rs:0
+  SigHash(10219321662175373142) -> create_room_internal (Function)
+    Signature: fn create_room_internal
+    File: src/database/mod.rs:0
+  SigHash(18116036386649931338) -> test_bot_message_creation_invalid_key (Function)
+    Signature: fn test_bot_message_creation_invalid_key
+    File: tests/bot_handlers_test.rs:0
+  SigHash(17765602257940478727) -> test_push_subscription_creation (Function)
+    Signature: fn test_push_subscription_creation
+    File: tests/push_notification_test.rs:0
+  SigHash(14875647430431779134) -> delete_session (Function)
+    Signature: fn delete_session
+    File: src/database/mod.rs:0
+  SigHash(4409195200508617022) -> test_startup_validator (Function)
+    Signature: fn tests::test_startup_validator
+    File: src/shutdown.rs:0
+  SigHash(9628710230745216050) -> UserId (Struct)
+    Signature: struct UserId
+    File: src/models/mod.rs:0
+  SigHash(8099875734651030578) -> test_presence_tracking (Function)
+    Signature: fn tests::test_presence_tracking
+    File: src/services/connection.rs:0
+  SigHash(8435167580218050988) -> extract_and_clean_play_commands (Function)
+    Signature: fn extract_and_clean_play_commands
+    File: src/rich_text.rs:0
+  SigHash(13437705090936374322) -> setup_test_app (Function)
+    Signature: fn setup_test_app
+    File: tests/search_handlers_test.rs:0
+  SigHash(5495452798197743398) -> AuthServiceTrait (Trait)
+    Signature: trait AuthServiceTrait
+    File: src/services/auth.rs:0
+  SigHash(7566054701496364003) -> test_missed_messages_error_handling (Function)
+    Signature: fn tests::test_missed_messages_error_handling
+    File: src/services/connection.rs:0
+  SigHash(9661604970629768919) -> test_create_message_request_validation (Function)
+    Signature: fn tests::test_create_message_request_validation
+    File: src/validation.rs:0
+  SigHash(13293717668301191060) -> NotificationPreferences (Struct)
+    Signature: struct NotificationPreferences
+    File: src/models/mod.rs:0
+  SigHash(3920096478405146327) -> test_create_bot_without_admin (Function)
+    Signature: fn test_create_bot_without_admin
+    File: tests/bot_handlers_test.rs:0
+  SigHash(6263978310322950981) -> test_concurrent_message_creation (Function)
+    Signature: fn test_concurrent_message_creation
+    File: tests/database_writer_test.rs:0
+  SigHash(12002533102875570178) -> OptionalAuthenticatedUser (Struct)
+    Signature: struct OptionalAuthenticatedUser
+    File: src/middleware/session.rs:0
+  SigHash(6472875059236568255) -> test_search_messages_success (Function)
+    Signature: fn tests::test_search_messages_success
+    File: src/handlers/search.rs:0
+  SigHash(5980202899940728645) -> test_search_messages_room_specific (Function)
+    Signature: fn test_search_messages_room_specific
+    File: tests/search_service_test.rs:0
+  SigHash(4763019057845853753) -> WebhookRoom (Struct)
+    Signature: struct WebhookRoom
+    File: src/models/mod.rs:0
+  SigHash(11658661028089905075) -> get_room_specific_presence (Function)
+    Signature: fn get_room_specific_presence
+    File: src/services/connection.rs:0
+  SigHash(5275051041244132842) -> has_rich_features (Function)
+    Signature: fn has_rich_features
+    File: src/models/mod.rs:0
+  SigHash(2297416726415915876) -> HttpMetrics (Struct)
+    Signature: struct HttpMetrics
+    File: src/metrics.rs:0
+  SigHash(5878427415300645732) -> add_task (Function)
+    Signature: fn add_task
+    File: src/shutdown.rs:0
+  SigHash(3356196062215808978) -> test_check_room_access_closed_room (Function)
+    Signature: fn test_check_room_access_closed_room
+    File: tests/room_service_test.rs:0
+  SigHash(5395691113643145359) -> BackgroundTaskResource (Struct)
+    Signature: struct BackgroundTaskResource
+    File: src/shutdown.rs:0
+  SigHash(7463721622139578700) -> create_room (Function)
+    Signature: fn create_room
+    File: src/services/room.rs:0
+  SigHash(3108642791759982089) -> search_room_messages (Function)
+    Signature: fn search_room_messages
+    File: src/services/search.rs:0
+  SigHash(12124236811570883081) -> create_test_db (Function)
+    Signature: fn create_test_db
+    File: tests/room_service_test.rs:0
+  SigHash(16298120631196461120) -> get_demo_credentials (Function)
+    Signature: fn get_demo_credentials
+    File: src/demo.rs:0
+  SigHash(16947415224723802097) -> extract_play_commands (Function)
+    Signature: fn extract_play_commands
+    File: src/rich_text.rs:0
+  SigHash(16473534237486044334) -> test_delete_bot_without_admin (Function)
+    Signature: fn test_delete_bot_without_admin
+    File: tests/bot_handlers_test.rs:0
+  SigHash(4226855393096311147) -> create_test_app (Function)
+    Signature: fn create_test_app
+    File: tests/room_handlers_test.rs:0
+  SigHash(10740570816758024744) -> User (Struct)
+    Signature: struct User
+    File: src/models/mod.rs:0
+  SigHash(18019050352151306713) -> test_get_messages_invalid_room_id (Function)
+    Signature: fn test_get_messages_invalid_room_id
+    File: tests/message_handlers_test.rs:0
+  SigHash(10194050553735409869) -> update_bot (Function)
+    Signature: fn update_bot
+    File: src/services/bot.rs:0
+  SigHash(11180298488881684984) -> Database (Struct)
+    Signature: struct Database
+    File: src/database/mod.rs:0
+  SigHash(14904030844618844664) -> determine_overall_status (Function)
+    Signature: fn determine_overall_status
+    File: src/health.rs:0
+  SigHash(496766344530142066) -> start_presence_cleanup (Function)
+    Signature: fn start_presence_cleanup
+    File: src/services/connection.rs:0
+  SigHash(7387078566255989429) -> test_notification_preferences_defaults (Function)
+    Signature: fn test_notification_preferences_defaults
+    File: tests/push_notification_test.rs:0
+  SigHash(6757763149677411296) -> demo_data_exists (Function)
+    Signature: fn demo_data_exists
+    File: src/demo.rs:0
+  SigHash(13151071319647808480) -> test_get_bot_without_admin (Function)
+    Signature: fn test_get_bot_without_admin
+    File: tests/bot_handlers_test.rs:0
+  SigHash(12720268889402724241) -> send_to_connection (Function)
+    Signature: fn send_to_connection
+    File: src/services/connection.rs:0
+  SigHash(7155907811471934920) -> create_subscription (Function)
+    Signature: fn create_subscription
+    File: src/services/push.rs:0
+  SigHash(4382626275055876741) -> create_security_headers_layer_legacy (Function)
+    Signature: fn create_security_headers_layer_legacy
+    File: src/middleware/security.rs:0
+  SigHash(676034552089778821) -> test_room_specific_presence (Function)
+    Signature: fn tests::test_room_specific_presence
+    File: src/services/connection.rs:0
+  SigHash(13353634472353963385) -> AuthenticatedUser (Struct)
+    Signature: struct AuthenticatedUser
+    File: src/middleware/session.rs:0
+  SigHash(775071417546300525) -> test_liveness_endpoint (Function)
+    Signature: fn test_liveness_endpoint
+    File: tests/health_endpoints_test.rs:0
+  SigHash(249554121436563486) -> create_session_internal (Function)
+    Signature: fn create_session_internal
+    File: src/database/mod.rs:0
+  SigHash(12732368159394044123) -> test_add_member_already_member (Function)
+    Signature: fn test_add_member_already_member
+    File: tests/room_service_test.rs:0
+  SigHash(18096849745645309336) -> AuthService (Struct)
+    Signature: struct AuthService
+    File: src/services/auth.rs:0
+  SigHash(2767672224279446022) -> create_membership (Function)
+    Signature: fn create_membership
+    File: src/database/mod.rs:0
+  SigHash(14187660471706533382) -> test_shutdown_coordinator (Function)
+    Signature: fn test_shutdown_coordinator
+    File: tests/health_check_test.rs:0
+  SigHash(3827554623503744896) -> PushNotificationService (Trait)
+    Signature: trait PushNotificationService
+    File: src/services/push.rs:0
+  SigHash(537296477179576948) -> test_websocket_message_parsing (Function)
+    Signature: fn tests::test_websocket_message_parsing
+    File: src/handlers/websocket.rs:0
+  SigHash(13153036800805069617) -> login (Function)
+    Signature: fn login
+    File: src/handlers/auth.rs:0
+  SigHash(9877099893950911281) -> remove_connection (Function)
+    Signature: fn remove_connection
+    File: src/services/connection.rs:0
+  SigHash(12762916701080983912) -> auth_error_to_response (Function)
+    Signature: fn auth_error_to_response
+    File: src/handlers/auth.rs:0
+  SigHash(2371061547811570134) -> test_mention_extraction (Function)
+    Signature: fn tests::test_mention_extraction
+    File: src/demo.rs:0
+  SigHash(6040073050068507094) -> TypingInfo (Struct)
+    Signature: struct TypingInfo
+    File: src/services/connection.rs:0
+  SigHash(6935674611770769421) -> init (Function)
+    Signature: fn init
+    File: src/health.rs:0
+  SigHash(13820733374971013322) -> get_disk_info (Function)
+    Signature: fn get_disk_info
+    File: src/health.rs:0
+  SigHash(17110054894635052045) -> test_mime_type_detection (Function)
+    Signature: fn test_mime_type_detection
+    File: tests/asset_serving_test.rs:0
+  SigHash(5400565966245608382) -> bot_key (Function)
+    Signature: fn bot_key
+    File: src/models/mod.rs:0
+  SigHash(7664626636958768062) -> test_shutdown_coordinator (Function)
+    Signature: fn tests::test_shutdown_coordinator
+    File: src/shutdown.rs:0
+  SigHash(17856387160369361586) -> is_bot (Function)
+    Signature: fn is_bot
+    File: src/models/mod.rs:0
+  SigHash(13203391142315260783) -> validate_all (Function)
+    Signature: fn validate_all
+    File: src/shutdown.rs:0
+  SigHash(5472374108956392492) -> WebhookUser (Struct)
+    Signature: struct WebhookUser
+    File: src/models/mod.rs:0
+  SigHash(18087237639492044009) -> add_room_member (Function)
+    Signature: fn add_room_member
+    File: src/handlers/rooms.rs:0
+  SigHash(4077092263075109396) -> test_resource_manager (Function)
+    Signature: fn tests::test_resource_manager
+    File: src/shutdown.rs:0
+  SigHash(2591781963619702292) -> test_logout_with_invalid_token (Function)
+    Signature: fn test_logout_with_invalid_token
+    File: tests/auth_flow_test.rs:0
+  SigHash(11483159738277601166) -> ReadinessResponse (Struct)
+    Signature: struct ReadinessResponse
+    File: src/health.rs:0
+  SigHash(4700101104052640654) -> PushSubscriptionId (Struct)
+    Signature: struct PushSubscriptionId
+    File: src/models/mod.rs:0
+  SigHash(17307349569298195909) -> MessagesResponse (Struct)
+    Signature: struct MessagesResponse
+    File: src/handlers/messages.rs:0
+  SigHash(1416059090758969151) -> SearchResult (Struct)
+    Signature: struct SearchResult
+    File: src/services/search.rs:0
+  SigHash(4169451278379216892) -> get_room_messages (Function)
+    Signature: fn get_room_messages
+    File: src/services/message.rs:0
+  SigHash(2942963924350697200) -> test_extract_session_token_invalid_auth_format (Function)
+    Signature: fn tests::test_extract_session_token_invalid_auth_format
+    File: src/middleware/session.rs:0
+  SigHash(1039291582167022509) -> test_parse_room_id_valid (Function)
+    Signature: fn tests::test_parse_room_id_valid
+    File: src/handlers/messages.rs:0
+  SigHash(16534255922253661290) -> VapidConfig (Struct)
+    Signature: struct VapidConfig
+    File: src/services/push.rs:0
+  SigHash(8834705336694234596) -> test_user_creation_and_authentication (Function)
+    Signature: fn tests::test_user_creation_and_authentication
+    File: src/services/auth.rs:0
+  SigHash(4623106177516653138) -> list_sounds (Function)
+    Signature: fn list_sounds
+    File: src/handlers/sounds.rs:0
+  SigHash(233835610530658630) -> test_user_journey_error_recovery_and_edge_cases (Function)
+    Signature: fn test_user_journey_error_recovery_and_edge_cases
+    File: tests/user_journey_tests.rs:0
+  SigHash(17026855298325135875) -> create_full_test_app (Function)
+    Signature: fn create_full_test_app
+    File: tests/user_journey_tests.rs:0
+  SigHash(10624859999976232640) -> update_system_metrics (Function)
+    Signature: fn update_system_metrics
+    File: src/metrics.rs:0
+  SigHash(5378306514224700285) -> new (Function)
+    Signature: fn new
+    File: src/sounds.rs:0
+  SigHash(10105585808465470144) -> test_extract_play_commands (Function)
+    Signature: fn tests::test_extract_play_commands
+    File: src/rich_text.rs:0
+  SigHash(9454296650973477489) -> test_extract_mentions (Function)
+    Signature: fn tests::test_extract_mentions
+    File: src/rich_text.rs:0
+  SigHash(13419692179413357358) -> ConfigurationCheck (Struct)
+    Signature: struct ConfigurationCheck
+    File: src/shutdown.rs:0
+  SigHash(15630013538099482603) -> test_extract_and_clean_play_commands (Function)
+    Signature: fn tests::test_extract_and_clean_play_commands
+    File: src/rich_text.rs:0
+  SigHash(5214672657271297381) -> test_login_invalid_credentials (Function)
+    Signature: fn test_login_invalid_credentials
+    File: tests/auth_handlers_test.rs:0
+  SigHash(159110913251201948) -> delete_session_internal (Function)
+    Signature: fn delete_session_internal
+    File: src/database/mod.rs:0
+  SigHash(17782991441787436956) -> test_create_room_trims_whitespace (Function)
+    Signature: fn test_create_room_trims_whitespace
+    File: tests/room_service_test.rs:0
+  SigHash(10881351656483268886) -> process_content (Function)
+    Signature: fn process_content
+    File: src/rich_text.rs:0
+  SigHash(13182284600110659027) -> test_content_validation (Function)
+    Signature: fn tests::test_content_validation
+    File: src/services/message.rs:0
+  SigHash(18338924235100784193) -> start_typing_cleanup (Function)
+    Signature: fn start_typing_cleanup
+    File: src/services/connection.rs:0
+  SigHash(5858770624006476353) -> send_mention_notification (Function)
+    Signature: fn send_mention_notification
+    File: src/services/push.rs:0
+  SigHash(17900263533202612344) -> ServerConfig (Struct)
+    Signature: struct ServerConfig
+    File: src/config.rs:0
+  SigHash(11273410496835305781) -> WebSocketResource (Struct)
+    Signature: struct WebSocketResource
+    File: src/shutdown.rs:0
+  SigHash(10271417722521647602) -> validate_involvement_level (Function)
+    Signature: fn validate_involvement_level
+    File: src/validation.rs:0
+  SigHash(3395602342839174264) -> test_startup_validator (Function)
+    Signature: fn test_startup_validator
+    File: tests/health_check_test.rs:0
+  SigHash(17813624942688728940) -> HealthChecks (Struct)
+    Signature: struct HealthChecks
+    File: src/health.rs:0
+  SigHash(2503265261352537129) -> test_search_messages_snippet_generation (Function)
+    Signature: fn test_search_messages_snippet_generation
+    File: tests/search_service_test.rs:0
+  SigHash(8878980656525104547) -> test_sound_assets_embedded (Function)
+    Signature: fn tests::test_sound_assets_embedded
+    File: src/sounds.rs:0
+  SigHash(2103600234547048221) -> ConnectionManager (Trait)
+    Signature: trait ConnectionManager
+    File: src/services/connection.rs:0
+  SigHash(13209995616106258961) -> record_message_processing (Function)
+    Signature: fn record_message_processing
+    File: src/metrics.rs:0
+  SigHash(4870422095693066769) -> ConnectionManagerImpl (Struct)
+    Signature: struct ConnectionManagerImpl
+    File: src/services/connection.rs:0
+  SigHash(7454487114355136017) -> test_typing_cleanup (Function)
+    Signature: fn tests::test_typing_cleanup
+    File: src/services/connection.rs:0
+  SigHash(4462017659316291577) -> validate_query (Function)
+    Signature: fn validate_query
+    File: src/services/search.rs:0
+  SigHash(209081952345511472) -> get_sound_data (Function)
+    Signature: fn get_sound_data
+    File: src/sounds.rs:0
+  SigHash(4402347950120097627) -> test_user_journey_room_management_and_permissions (Function)
+    Signature: fn test_user_journey_room_management_and_permissions
+    File: tests/user_journey_tests.rs:0
+  SigHash(17270666579212168405) -> test_user_journey_bot_integration (Function)
+    Signature: fn test_user_journey_bot_integration
+    File: tests/user_journey_tests.rs:0
+  SigHash(10678106071968175506) -> test_search_no_results (Function)
+    Signature: fn test_search_no_results
+    File: tests/search_service_test.rs:0
+  SigHash(10063453430405135116) -> test_create_room_invalid_data (Function)
+    Signature: fn test_create_room_invalid_data
+    File: tests/room_handlers_test.rs:0
+  SigHash(1129746889912059392) -> test_get_current_user_without_auth (Function)
+    Signature: fn test_get_current_user_without_auth
+    File: tests/integration_test.rs:0
+  SigHash(6115722153671726781) -> main (Function)
+    Signature: fn main
+    File: src/main.rs:0
+  SigHash(9316314738401396602) -> record_websocket_message (Function)
+    Signature: fn record_websocket_message
+    File: src/metrics.rs:0
+  SigHash(16140316819542539807) -> test_health_endpoint (Function)
+    Signature: fn test_health_endpoint
+    File: tests/health_endpoints_test.rs:0
+  SigHash(17358453761909922713) -> test_secure_token_generation (Function)
+    Signature: fn tests::test_secure_token_generation
+    File: src/services/auth.rs:0
+  SigHash(5617313067089027158) -> delete_bot (Function)
+    Signature: fn delete_bot
+    File: src/services/bot.rs:0
+  SigHash(18213284041514628182) -> test_available_sounds (Function)
+    Signature: fn tests::test_available_sounds
+    File: src/rich_text.rs:0
+  SigHash(12841775181861670541) -> get_session (Function)
+    Signature: fn get_session
+    File: src/database/mod.rs:0
+  SigHash(629498886640948042) -> extract_mentions (Function)
+    Signature: fn extract_mentions
+    File: src/rich_text.rs:0
+  SigHash(3950839292506603527) -> get_vapid_public_key (Function)
+    Signature: fn get_vapid_public_key
+    File: src/handlers/push.rs:0
+  SigHash(272230920296489802) -> CheckResult (Struct)
+    Signature: struct CheckResult
+    File: src/health.rs:0
+  SigHash(11539760606819581959) -> test_env_filter_creation (Function)
+    Signature: fn tests::test_env_filter_creation
+    File: src/logging.rs:0
+  SigHash(9472778299577863175) -> display_content (Function)
+    Signature: fn display_content
+    File: src/models/mod.rs:0
+  SigHash(13336651003843041476) -> PushNotificationPayload (Struct)
+    Signature: struct PushNotificationPayload
+    File: src/models/mod.rs:0
+  SigHash(1525363511227213374) -> test_invalid_credentials (Function)
+    Signature: fn tests::test_invalid_credentials
+    File: src/services/auth.rs:0
+  SigHash(9227630500039388466) -> test_reset_bot_token_without_admin (Function)
+    Signature: fn test_reset_bot_token_without_admin
+    File: tests/bot_handlers_test.rs:0
+  SigHash(6585055596606160178) -> test_critical_gap_3_write_serialization (Function)
+    Signature: fn test_critical_gap_3_write_serialization
+    File: tests/database_writer_test.rs:0
+  SigHash(2722581176002711968) -> send_test_notification (Function)
+    Signature: fn send_test_notification
+    File: src/handlers/push.rs:0
+  SigHash(2025338998704996957) -> test_serve_chat_interface (Function)
+    Signature: fn test_serve_chat_interface
+    File: tests/asset_serving_test.rs:0
+  SigHash(14779273985656188887) -> get_user_by_email (Function)
+    Signature: fn get_user_by_email
+    File: src/database/mod.rs:0
+  SigHash(2177154300007795025) -> get_messages_since (Function)
+    Signature: fn get_messages_since
+    File: src/database/mod.rs:0
+  SigHash(5858085061643138385) -> test_search_messages_with_pagination (Function)
+    Signature: fn test_search_messages_with_pagination
+    File: tests/search_handlers_test.rs:0
+  SigHash(1751950628493441093) -> generate_bot_token (Function)
+    Signature: fn generate_bot_token
+    File: src/services/bot.rs:0
+  SigHash(17415403268146244866) -> UpdateBotRequest (Struct)
+    Signature: struct UpdateBotRequest
+    File: src/models/mod.rs:0
+  SigHash(4422671054877861311) -> test_complete_room_workflow (Function)
+    Signature: fn test_complete_room_workflow
+    File: tests/room_service_test.rs:0
+  SigHash(12526269521069195254) -> get_memory_info (Function)
+    Signature: fn get_memory_info
+    File: src/health.rs:0
+  SigHash(13704817038679678966) -> create_test_user_and_session (Function)
+    Signature: fn create_test_user_and_session
+    File: tests/room_handlers_test.rs:0
+  SigHash(6848294348104616304) -> get_all_sound_info (Function)
+    Signature: fn get_all_sound_info
+    File: src/sounds.rs:0
+  SigHash(1972553288169417182) -> create_webhook_internal (Function)
+    Signature: fn create_webhook_internal
+    File: src/services/bot.rs:0
+  SigHash(5742087073092060827) -> check_disk_space_health (Function)
+    Signature: fn check_disk_space_health
+    File: src/health.rs:0
+  SigHash(5000846552497987148) -> CreateMessageRequest (Struct)
+    Signature: struct CreateMessageRequest
+    File: src/validation.rs:0
+  SigHash(4018606660401327424) -> test_config_validation (Function)
+    Signature: fn tests::test_config_validation
+    File: src/config.rs:0
+  SigHash(3034259973541722621) -> create_request_size_limit_layer (Function)
+    Signature: fn create_request_size_limit_layer
+    File: src/middleware/security.rs:0
+  SigHash(8760604503406525114) -> MetricsSummary (Struct)
+    Signature: struct MetricsSummary
+    File: src/metrics.rs:0
+  SigHash(5245885461759247869) -> name (Function)
+    Signature: fn name
+    File: src/shutdown.rs:0
+  SigHash(14168110022114300523) -> WebhookMessageBody (Struct)
+    Signature: struct WebhookMessageBody
+    File: src/models/mod.rs:0
+  SigHash(4551740067047799135) -> begin (Function)
+    Signature: fn begin
+    File: src/database/mod.rs:0
+  SigHash(8238397599261709852) -> parse_message_id (Function)
+    Signature: fn parse_message_id
+    File: src/handlers/messages.rs:0
+  SigHash(7286706392469658329) -> DiskInfo (Struct)
+    Signature: struct DiskInfo
+    File: src/health.rs:0
+  SigHash(14706725409361283801) -> test_update_bot_without_admin (Function)
+    Signature: fn test_update_bot_without_admin
+    File: tests/bot_handlers_test.rs:0
+  SigHash(3358473677392084240) -> create_test_parts_empty (Function)
+    Signature: fn tests::create_test_parts_empty
+    File: src/middleware/session.rs:0
+  SigHash(8696641735128719632) -> test_search_messages_query_too_long (Function)
+    Signature: fn test_search_messages_query_too_long
+    File: tests/search_handlers_test.rs:0
+  SigHash(13696792924686433662) -> generate_secure_token (Function)
+    Signature: fn generate_secure_token
+    File: src/services/auth.rs:0
+  SigHash(8894608953437083573) -> SearchRequest (Struct)
+    Signature: struct SearchRequest
+    File: src/validation.rs:0
+  SigHash(13324514716896844079) -> create_request_size_limit_layer_with_size (Function)
+    Signature: fn create_request_size_limit_layer_with_size
+    File: src/middleware/security.rs:0
+  SigHash(1651105384800583526) -> LoggingConfig (Struct)
+    Signature: struct LoggingConfig
+    File: src/config.rs:0
+  SigHash(1605988764999254886) -> test_create_room_without_auth (Function)
+    Signature: fn test_create_room_without_auth
+    File: tests/room_handlers_test.rs:0
+  SigHash(8373176421447566749) -> record_websocket_connection (Function)
+    Signature: fn record_websocket_connection
+    File: src/metrics.rs:0
+  SigHash(15656616285517558929) -> test_search_messages_no_results (Function)
+    Signature: fn test_search_messages_no_results
+    File: tests/search_handlers_test.rs:0
+  SigHash(17549742768529717692) -> MessageResponse (Struct)
+    Signature: struct MessageResponse
+    File: src/handlers/messages.rs:0
+  SigHash(11654474839376112249) -> subscribe (Function)
+    Signature: fn subscribe
+    File: src/shutdown.rs:0
+  SigHash(9367571861502908214) -> cleanup_old_logs (Function)
+    Signature: fn rotation::cleanup_old_logs
+    File: src/logging.rs:0
+  SigHash(263905885871635443) -> check_database_readiness (Function)
+    Signature: fn check_database_readiness
+    File: src/health.rs:0
+  SigHash(15449709763361216499) -> test_search_messages_unauthorized (Function)
+    Signature: fn test_search_messages_unauthorized
+    File: tests/search_handlers_test.rs:0
+  SigHash(15141985208807534311) -> create_user_internal (Function)
+    Signature: fn create_user_internal
+    File: src/database/mod.rs:0
+  SigHash(2113858827463024548) -> writer_task (Function)
+    Signature: fn writer_task
+    File: src/database/mod.rs:0
+  SigHash(17536621752043915172) -> WebhookPayload (Struct)
+    Signature: struct WebhookPayload
+    File: src/models/mod.rs:0
+  SigHash(3051673965033818398) -> test_user_journey_search_functionality (Function)
+    Signature: fn test_user_journey_search_functionality
+    File: tests/user_journey_tests.rs:0
+  SigHash(13198178061310762837) -> test_join_leave_room_messages (Function)
+    Signature: fn tests::test_join_leave_room_messages
+    File: src/handlers/websocket.rs:0
+  SigHash(2876976222384703616) -> extract_sound_commands (Function)
+    Signature: fn extract_sound_commands
+    File: src/demo.rs:0
+  SigHash(6935991069199524992) -> get_room_connections (Function)
+    Signature: fn get_room_connections
+    File: src/services/connection.rs:0
+  SigHash(9384302880625240759) -> StartupCheck (Trait)
+    Signature: trait StartupCheck
+    File: src/shutdown.rs:0
+  SigHash(103271708760495342) -> determine_notification_type (Function)
+    Signature: fn determine_notification_type
+    File: src/services/push.rs:0
+  SigHash(17322333332233905390) -> SearchResponse (Struct)
+    Signature: struct SearchResponse
+    File: src/services/search.rs:0
+  SigHash(10730510993916900590) -> add_check (Function)
+    Signature: fn add_check
+    File: src/shutdown.rs:0
+  SigHash(16452987417844499694) -> test_message_deduplication_with_writer_pattern (Function)
+    Signature: fn test_message_deduplication_with_writer_pattern
+    File: tests/database_writer_test.rs:0
+  SigHash(15372202811664495586) -> test_search_messages_invalid_query (Function)
+    Signature: fn test_search_messages_invalid_query
+    File: tests/search_handlers_test.rs:0
+  SigHash(15142357756367885550) -> test_user_journey_application_health_and_endpoints (Function)
+    Signature: fn test_user_journey_application_health_and_endpoints
+    File: tests/user_acceptance_tests.rs:0
+  SigHash(10483202359764467603) -> test_handle_incoming_message (Function)
+    Signature: fn tests::test_handle_incoming_message
+    File: src/handlers/websocket.rs:0
+  SigHash(3038611383768690579) -> test_presence_update_broadcast (Function)
+    Signature: fn tests::test_presence_update_broadcast
+    File: src/services/connection.rs:0
+  SigHash(15513614744755969860) -> execute_shutdown_tasks (Function)
+    Signature: fn execute_shutdown_tasks
+    File: src/shutdown.rs:0
+  SigHash(1292662056651710654) -> update_notification_preferences (Function)
+    Signature: fn update_notification_preferences
+    File: src/handlers/push.rs:0
+  SigHash(11009255780888969406) -> setup_test_db (Function)
+    Signature: fn setup_test_db
+    File: tests/search_service_test.rs:0
+  SigHash(16505714560213999160) -> cleanup_all (Function)
+    Signature: fn cleanup_all
+    File: src/shutdown.rs:0
+  SigHash(16234529751498602607) -> GetMessagesQuery (Struct)
+    Signature: struct GetMessagesQuery
+    File: src/handlers/messages.rs:0
+  SigHash(13337503157782652204) -> test_create_message_empty_content (Function)
+    Signature: fn test_create_message_empty_content
+    File: tests/message_handlers_test.rs:0
+  SigHash(18239357384747201568) -> MetricsConfig (Struct)
+    Signature: struct MetricsConfig
+    File: src/config.rs:0
+  SigHash(6090529350700844064) -> test_search_messages_authorization (Function)
+    Signature: fn test_search_messages_authorization
+    File: tests/search_service_test.rs:0
+  SigHash(16495544431840451994) -> create_membership_internal (Function)
+    Signature: fn create_membership_internal
+    File: src/database/mod.rs:0
+  SigHash(10989827638340363028) -> serve_root_page (Function)
+    Signature: fn serve_root_page
+    File: src/handlers/pages.rs:0
+  SigHash(17071478479202281236) -> WebSocketMetrics (Struct)
+    Signature: struct WebSocketMetrics
+    File: src/metrics.rs:0
+  SigHash(6291788729544300686) -> list_bots (Function)
+    Signature: fn list_bots
+    File: src/services/bot.rs:0
+  SigHash(17667040788489605262) -> test_search_messages_query_too_short (Function)
+    Signature: fn test_search_messages_query_too_short
+    File: tests/search_handlers_test.rs:0
+  SigHash(11353005793363080145) -> test_user_journey_sound_system_and_rich_text (Function)
+    Signature: fn test_user_journey_sound_system_and_rich_text
+    File: tests/user_journey_tests.rs:0
+  SigHash(554329500297373570) -> get_notification_preferences (Function)
+    Signature: fn get_notification_preferences
+    File: src/handlers/push.rs:0
+  SigHash(4877596981184432191) -> PushSubscriptionKeys (Struct)
+    Signature: struct PushSubscriptionKeys
+    File: src/validation.rs:0
+  SigHash(16953412271989943548) -> from (Function)
+    Signature: fn from
+    File: src/services/search.rs:0
+  SigHash(3790573692320429308) -> send_message_notification (Function)
+    Signature: fn send_message_notification
+    File: src/services/push.rs:0
+  SigHash(69109175266464374) -> test_sound_exists (Function)
+    Signature: fn tests::test_sound_exists
+    File: src/sounds.rs:0
+  SigHash(17505600709522227) -> CampfireDatabase (Struct)
+    Signature: struct CampfireDatabase
+    File: src/database/mod.rs:0
+  SigHash(88986703250056066) -> test_push_notification_service_creation (Function)
+    Signature: fn test_push_notification_service_creation
+    File: tests/push_notification_test.rs:0
+  SigHash(345763446879007271) -> test_search_messages_success (Function)
+    Signature: fn test_search_messages_success
+    File: tests/search_service_test.rs:0
+  SigHash(16340514907827322517) -> send_missed_messages (Function)
+    Signature: fn send_missed_messages
+    File: src/services/connection.rs:0
+  SigHash(6072836419750267730) -> get_mime_type (Function)
+    Signature: fn get_mime_type
+    File: src/sounds.rs:0
+  SigHash(16470245848062457871) -> Config (Struct)
+    Signature: struct Config
+    File: src/config.rs:0
+  SigHash(16973235476565301263) -> SystemMetrics (Struct)
+    Signature: struct SystemMetrics
+    File: src/metrics.rs:0
+  SigHash(11975510851877938569) -> update_last_seen_message (Function)
+    Signature: fn update_last_seen_message
+    File: src/services/connection.rs:0
+  SigHash(10282960712285087302) -> test_outgoing_message_serialization (Function)
+    Signature: fn tests::test_outgoing_message_serialization
+    File: src/handlers/websocket.rs:0
+  SigHash(11187304249863323017) -> listen_for_signals (Function)
+    Signature: fn listen_for_signals
+    File: src/shutdown.rs:0
+  SigHash(4441211806123524788) -> session_expiry (Function)
+    Signature: fn session_expiry
+    File: src/config.rs:0
+  SigHash(14887025518290878510) -> MemoryInfo (Struct)
+    Signature: struct MemoryInfo
+    File: src/health.rs:0
+  SigHash(249269517694059944) -> initialize_if_needed (Function)
+    Signature: fn initialize_if_needed
+    File: src/demo.rs:0
+  SigHash(14718060681104132709) -> ConnectionInfo (Struct)
+    Signature: struct ConnectionInfo
+    File: src/services/connection.rs:0
+  SigHash(6643197101652284194) -> broadcast_message (Function)
+    Signature: fn broadcast_message
+    File: src/services/message.rs:0
+  SigHash(16590406049430061858) -> test_add_member_success (Function)
+    Signature: fn test_add_member_success
+    File: tests/room_service_test.rs:0
+  SigHash(9227498930602077907) -> test_basic_search_functionality (Function)
+    Signature: fn test_basic_search_functionality
+    File: tests/simple_search_test.rs:0
+  SigHash(17157530684996817808) -> create_message_with_deduplication (Function)
+    Signature: fn create_message_with_deduplication
+    File: src/services/message.rs:0
+  SigHash(15567711093376545869) -> search_messages (Function)
+    Signature: fn search_messages
+    File: src/services/search.rs:0
+  SigHash(14830792562375462154) -> ServicesCheck (Struct)
+    Signature: struct ServicesCheck
+    File: src/shutdown.rs:0
+  SigHash(10719756647048029828) -> create_security_headers_layer (Function)
+    Signature: fn create_security_headers_layer
+    File: src/middleware/security.rs:0
+  SigHash(467028312246743684) -> get_room_presence (Function)
+    Signature: fn get_room_presence
+    File: src/services/connection.rs:0
+  SigHash(1680539967034720900) -> delete_subscription (Function)
+    Signature: fn delete_subscription
+    File: src/services/push.rs:0
+  SigHash(3367047118331351873) -> test_list_bots_without_admin (Function)
+    Signature: fn test_list_bots_without_admin
+    File: tests/bot_handlers_test.rs:0
+  SigHash(4316343747947196792) -> generate_snippet (Function)
+    Signature: fn generate_snippet
+    File: src/services/search.rs:0
+  SigHash(8936964310155504181) -> test_add_member_room_not_found (Function)
+    Signature: fn test_add_member_room_not_found
+    File: tests/room_service_test.rs:0
+  SigHash(1027535101067961641) -> SecurityConfig (Struct)
+    Signature: struct SecurityConfig
+    File: src/config.rs:0
+  SigHash(12696674337455869225) -> Session (Struct)
+    Signature: struct Session
+    File: src/models/mod.rs:0
+  SigHash(18015705532311888547) -> update_presence (Function)
+    Signature: fn update_presence
+    File: src/services/connection.rs:0
+  SigHash(5467768533916475799) -> WebhookMessage (Struct)
+    Signature: struct WebhookMessage
+    File: src/models/mod.rs:0
+  SigHash(7937731796584854856) -> test_login_with_invalid_credentials (Function)
+    Signature: fn test_login_with_invalid_credentials
+    File: tests/auth_flow_test.rs:0
+  SigHash(902481388447348229) -> extract_session_token (Function)
+    Signature: fn extract_session_token
+    File: src/middleware/session.rs:0
+  SigHash(5704928178252031682) -> SoundPlayback (Struct)
+    Signature: struct SoundPlayback
+    File: src/sounds.rs:0
+  SigHash(13020239298644116729) -> test_room_validation_logic (Function)
+    Signature: fn test_room_validation_logic
+    File: tests/room_handlers_test.rs:0
+  SigHash(15367150360067312243) -> LoginResponse (Struct)
+    Signature: struct LoginResponse
+    File: src/models/mod.rs:0
+  SigHash(1693306153654990829) -> test_missed_messages_delivery (Function)
+    Signature: fn tests::test_missed_messages_delivery
+    File: src/services/connection.rs:0
+  SigHash(12874369941110647978) -> test_add_member_not_authorized (Function)
+    Signature: fn test_add_member_not_authorized
+    File: tests/room_service_test.rs:0
+  SigHash(398939099500147047) -> get_user_room_ids (Function)
+    Signature: fn get_user_room_ids
+    File: src/services/search.rs:0
+  SigHash(3166137592586639073) -> test_bot_message_creation_empty_content (Function)
+    Signature: fn test_bot_message_creation_empty_content
+    File: tests/bot_handlers_test.rs:0
+  SigHash(2344724014026660309) -> parse_room_id (Function)
+    Signature: fn parse_room_id
+    File: src/handlers/rooms.rs:0
+  SigHash(7195254292228571605) -> SoundAssets (Struct)
+    Signature: struct SoundAssets
+    File: src/sounds.rs:0
+  SigHash(3446587645358574415) -> test_readiness_endpoint (Function)
+    Signature: fn test_readiness_endpoint
+    File: tests/health_endpoints_test.rs:0
+  SigHash(4713070502882282319) -> test_get_current_user_with_invalid_token (Function)
+    Signature: fn test_get_current_user_with_invalid_token
+    File: tests/integration_test.rs:0
+  SigHash(1493108117702295107) -> test_rich_text_processing (Function)
+    Signature: fn tests::test_rich_text_processing
+    File: src/demo.rs:0
+  SigHash(3141902212963691075) -> test_create_user_method (Function)
+    Signature: fn tests::test_create_user_method
+    File: src/services/message.rs:0
+  SigHash(17909291707022434237) -> connection_timeout (Function)
+    Signature: fn connection_timeout
+    File: src/config.rs:0
+  SigHash(6478324478522054211) -> SearchServiceTrait (Trait)
+    Signature: trait SearchServiceTrait
+    File: src/services/search.rs:0
+  SigHash(6452299303463601463) -> mock_user_lookup (Function)
+    Signature: fn tests::mock_user_lookup
+    File: src/rich_text.rs:0
+  SigHash(11782878364545280043) -> WebSocketQuery (Struct)
+    Signature: struct WebSocketQuery
+    File: src/handlers/websocket.rs:0
+  SigHash(210266319838872997) -> test_create_bot (Function)
+    Signature: fn test_create_bot
+    File: tests/bot_service_test.rs:0
+  SigHash(12308229419801265762) -> test_duplicate_email (Function)
+    Signature: fn tests::test_duplicate_email
+    File: src/services/auth.rs:0
+  SigHash(14700379420060169747) -> send_sound_notification (Function)
+    Signature: fn send_sound_notification
+    File: src/services/push.rs:0
+  SigHash(17242684908515610509) -> ReadinessChecks (Struct)
+    Signature: struct ReadinessChecks
+    File: src/health.rs:0
+  SigHash(18177373278802778186) -> create_env_filter (Function)
+    Signature: fn create_env_filter
+    File: src/logging.rs:0
+  SigHash(16781252249306009674) -> available_sounds (Function)
+    Signature: fn available_sounds
+    File: src/sounds.rs:0
+  SigHash(13622755944648519108) -> into_response (Function)
+    Signature: fn into_response
+    File: src/validation.rs:0
+  SigHash(14152636643094757828) -> Message (Struct)
+    Signature: struct Message
+    File: src/models/mod.rs:0
+  SigHash(15673388060780602442) -> SoundManager (Struct)
+    Signature: struct SoundManager
+    File: src/sounds.rs:0
+  SigHash(6814296651195070727) -> test_serve_manifest (Function)
+    Signature: fn test_serve_manifest
+    File: tests/asset_serving_test.rs:0
+  SigHash(13650628723718097379) -> MessageMetrics (Struct)
+    Signature: struct MessageMetrics
+    File: src/metrics.rs:0
+  SigHash(3920773220099183453) -> create_test_auth_service (Function)
+    Signature: fn tests::create_test_auth_service
+    File: src/services/auth.rs:0
+  SigHash(5847586330927118740) -> parse_bot_key (Function)
+    Signature: fn parse_bot_key
+    File: src/services/bot.rs:0
+  SigHash(5529624898102976916) -> AddRoomMemberRequest (Struct)
+    Signature: struct AddRoomMemberRequest
+    File: src/validation.rs:0
+  SigHash(13159097039616975252) -> test_user_journey_basic_chat_functionality (Function)
+    Signature: fn test_user_journey_basic_chat_functionality
+    File: tests/user_journey_tests.rs:0
+  SigHash(10746051270328000459) -> Membership (Struct)
+    Signature: struct Membership
+    File: src/models/mod.rs:0
+  SigHash(16274699083236058437) -> test_sound_playback_creation (Function)
+    Signature: fn tests::test_sound_playback_creation
+    File: src/sounds.rs:0
+  SigHash(7196331664809564028) -> readiness_check (Function)
+    Signature: fn readiness_check
+    File: src/health.rs:0
+  SigHash(14628426868336081977) -> get_membership (Function)
+    Signature: fn get_membership
+    File: src/database/mod.rs:0
+  SigHash(9544805171262828522) -> trace_requests (Function)
+    Signature: fn middleware::trace_requests
+    File: src/logging.rs:0
+  SigHash(16869443962174534823) -> ConnectionId (Struct)
+    Signature: struct ConnectionId
+    File: src/models/mod.rs:0
+  SigHash(1119297934527232356) -> Room (Struct)
+    Signature: struct Room
+    File: src/models/mod.rs:0
+  SigHash(14193772988661143073) -> create_demo_rooms (Function)
+    Signature: fn create_demo_rooms
+    File: src/demo.rs:0
+  SigHash(17435525855433002718) -> logout (Function)
+    Signature: fn logout
+    File: src/handlers/auth.rs:0
+  SigHash(12487798974584922846) -> record_http_request (Function)
+    Signature: fn record_http_request
+    File: src/metrics.rs:0
+  SigHash(8241121434238234334) -> test_authenticate_bot_invalid_key (Function)
+    Signature: fn test_authenticate_bot_invalid_key
+    File: tests/bot_service_test.rs:0
+  SigHash(14132535571645917162) -> test_create_room_invalid_name (Function)
+    Signature: fn test_create_room_invalid_name
+    File: tests/room_service_test.rs:0
+  SigHash(14435876134969029074) -> get_webhook_url_internal (Function)
+    Signature: fn get_webhook_url_internal
+    File: src/services/bot.rs:0
+  SigHash(10725890920515195913) -> serve_login_page (Function)
+    Signature: fn serve_login_page
+    File: src/handlers/pages.rs:0
+  SigHash(11874413230934203590) -> PushNotificationServiceImpl (Struct)
+    Signature: struct PushNotificationServiceImpl
+    File: src/services/push.rs:0
+  SigHash(14993645863739663558) -> get_sound_size (Function)
+    Signature: fn get_sound_size
+    File: src/sounds.rs:0
+  SigHash(7534048011681182004) -> get_typing_users (Function)
+    Signature: fn get_typing_users
+    File: src/services/connection.rs:0
+  SigHash(598614245468796779) -> broadcast_presence_update (Function)
+    Signature: fn broadcast_presence_update
+    File: src/services/connection.rs:0
+  SigHash(8777806593257364898) -> create_bot (Function)
+    Signature: fn create_bot
+    File: src/services/bot.rs:0
+  SigHash(1129886021128580514) -> create_test_user_with_session (Function)
+    Signature: fn create_test_user_with_session
+    File: tests/user_journey_tests.rs:0
+  SigHash(18135756061576764188) -> test_content_sanitization (Function)
+    Signature: fn tests::test_content_sanitization
+    File: src/validation.rs:0
+  SigHash(7917551385003580188) -> test_user_journey_complete_application_health (Function)
+    Signature: fn test_user_journey_complete_application_health
+    File: tests/user_journey_tests.rs:0
+  SigHash(12999592927697387670) -> test_login_missing_credentials (Function)
+    Signature: fn test_login_missing_credentials
+    File: tests/auth_handlers_test.rs:0
+  SigHash(5070910494903336196) -> metrics_endpoint (Function)
+    Signature: fn metrics_endpoint
+    File: src/metrics.rs:0
+  SigHash(13520481477534422654) -> connection_manager (Function)
+    Signature: fn connection_manager
+    File: src/services/message.rs:0
+  SigHash(8176350216277032306) -> rotate_if_needed (Function)
+    Signature: fn rotation::rotate_if_needed
+    File: src/logging.rs:0
+  SigHash(5399147612167805865) -> authenticate (Function)
+    Signature: fn authenticate
+    File: src/services/auth.rs:0
+  SigHash(9460642461430362135) -> test_get_current_user_success (Function)
+    Signature: fn test_get_current_user_success
+    File: tests/auth_handlers_test.rs:0
+  SigHash(10221881481996689) -> get_preferences (Function)
+    Signature: fn get_preferences
+    File: src/services/push.rs:0
+  SigHash(7641111071251068415) -> test_metrics_summary_serialization (Function)
+    Signature: fn tests::test_metrics_summary_serialization
+    File: src/metrics.rs:0
+  SigHash(12640681291812243510) -> from_request_parts (Function)
+    Signature: fn from_request_parts
+    File: src/middleware/session.rs:0
+  SigHash(9020341312938574067) -> check_services_readiness (Function)
+    Signature: fn check_services_readiness
+    File: src/health.rs:0
+  SigHash(4784434204092245235) -> PresenceInfo (Struct)
+    Signature: struct PresenceInfo
+    File: src/services/connection.rs:0
+  SigHash(15562247551535340976) -> with_push_service (Function)
+    Signature: fn with_push_service
+    File: src/services/message.rs:0
+  SigHash(17572127306788392100) -> test_html_sanitization (Function)
+    Signature: fn tests::test_html_sanitization
+    File: src/rich_text.rs:0
+  SigHash(10064733309529848917) -> metrics_summary (Function)
+    Signature: fn metrics_summary
+    File: src/metrics.rs:0
+  SigHash(7190710327056182357) -> test_extract_session_token_multiple_cookies (Function)
+    Signature: fn tests::test_extract_session_token_multiple_cookies
+    File: src/middleware/session.rs:0
+  SigHash(12698112475753595532) -> websocket_handler (Function)
+    Signature: fn websocket_handler
+    File: src/handlers/websocket.rs:0
+  SigHash(2338717811301327799) -> test_create_error_response (Function)
+    Signature: fn tests::test_create_error_response
+    File: src/handlers/sounds.rs:0
+  SigHash(3374146204848098231) -> test_login_request_validation (Function)
+    Signature: fn tests::test_login_request_validation
+    File: src/validation.rs:0
+  SigHash(5888716720666312820) -> make_authenticated_request (Function)
+    Signature: fn make_authenticated_request
+    File: tests/user_journey_tests.rs:0
+  SigHash(16405475267172849134) -> create_bot_message (Function)
+    Signature: fn create_bot_message
+    File: src/services/bot.rs:0
+  SigHash(532121883129151982) -> test_all_user_journeys_comprehensive (Function)
+    Signature: fn test_all_user_journeys_comprehensive
+    File: tests/user_journey_tests.rs:0
+  SigHash(9927852354161817637) -> create_test_membership (Function)
+    Signature: fn create_test_membership
+    File: tests/search_service_test.rs:0
+  SigHash(7262227221285863839) -> test_get_messages_without_auth (Function)
+    Signature: fn test_get_messages_without_auth
+    File: tests/message_handlers_test.rs:0
+  SigHash(3173580380782972051) -> ValidationErrorResponse (Struct)
+    Signature: struct ValidationErrorResponse
+    File: src/validation.rs:0
+  SigHash(13039289867600467280) -> FeatureFlags (Struct)
+    Signature: struct FeatureFlags
+    File: src/config.rs:0
+  SigHash(18434650129410532042) -> test_message_deduplication (Function)
+    Signature: fn tests::test_message_deduplication
+    File: src/services/message.rs:0
+  SigHash(9484381107343753095) -> BotServiceImpl (Struct)
+    Signature: struct BotServiceImpl
+    File: src/services/bot.rs:0
+  SigHash(4398091541373825092) -> create_timeout_layer_with_duration (Function)
+    Signature: fn create_timeout_layer_with_duration
+    File: src/middleware/security.rs:0
+  SigHash(2318665266861166660) -> CreateBotMessageRequest (Struct)
+    Signature: struct CreateBotMessageRequest
+    File: src/validation.rs:0
+  SigHash(6205903746235607754) -> test_session_operations_through_writer (Function)
+    Signature: fn test_session_operations_through_writer
+    File: tests/database_writer_test.rs:0
+  SigHash(14554095189961076914) -> validate_webhook_url (Function)
+    Signature: fn validate_webhook_url
+    File: src/services/bot.rs:0
+  SigHash(4055067452853334383) -> test_extract_invalid_play_commands (Function)
+    Signature: fn tests::test_extract_invalid_play_commands
+    File: src/rich_text.rs:0
+  SigHash(16379503301766753001) -> check_database_health (Function)
+    Signature: fn check_database_health
+    File: src/health.rs:0
+  SigHash(12276646296499053289) -> RichTextProcessor (Struct)
+    Signature: struct RichTextProcessor
+    File: src/rich_text.rs:0
+  SigHash(9304643818889995552) -> init_metrics (Function)
+    Signature: fn init_metrics
+    File: src/metrics.rs:0
+  SigHash(6192355750210843290) -> handle_incoming_message (Function)
+    Signature: fn handle_incoming_message
+    File: src/handlers/websocket.rs:0
+  SigHash(3422406322940508180) -> get_message_by_client_id (Function)
+    Signature: fn get_message_by_client_id
+    File: src/database/mod.rs:0
+  SigHash(1322596731011911054) -> DatabaseConfig (Struct)
+    Signature: struct DatabaseConfig
+    File: src/config.rs:0
+  SigHash(5704367885645752907) -> create_test_parts_with_cookie (Function)
+    Signature: fn tests::create_test_parts_with_cookie
+    File: src/middleware/session.rs:0
+  SigHash(13250530200198250248) -> with_rich_content (Function)
+    Signature: fn with_rich_content
+    File: src/models/mod.rs:0
+  SigHash(4436190302546517390) -> MessageServiceTrait (Trait)
+    Signature: trait MessageServiceTrait
+    File: src/services/message.rs:0
+  SigHash(917568512912061192) -> send_push_notification (Function)
+    Signature: fn send_push_notification
+    File: src/services/push.rs:0
+  SigHash(4166121558873619775) -> create_test_user (Function)
+    Signature: fn create_test_user
+    File: tests/search_service_test.rs:0
+  SigHash(3957751063926011388) -> revoke_session (Function)
+    Signature: fn revoke_session
+    File: src/services/auth.rs:0
+  SigHash(125169683221022283) -> test_search_messages_query_validation (Function)
+    Signature: fn test_search_messages_query_validation
+    File: tests/search_service_test.rs:0
+  SigHash(17057065487566561142) -> initialize_demo (Function)
+    Signature: fn initialize_demo
+    File: src/handlers/pages.rs:0
+  SigHash(4304456429211442983) -> has_html_formatting (Function)
+    Signature: fn has_html_formatting
+    File: src/rich_text.rs:0
+  SigHash(5053224217331853662) -> create_test_room (Function)
+    Signature: fn create_test_room
+    File: tests/search_service_test.rs:0
+  SigHash(10255542904304604699) -> test_serve_js_asset (Function)
+    Signature: fn test_serve_js_asset
+    File: tests/asset_serving_test.rs:0
+  SigHash(9614333834357112914) -> Bot (Struct)
+    Signature: struct Bot
+    File: src/models/mod.rs:0
+  SigHash(4041579202541032073) -> test_health_check_initialization (Function)
+    Signature: fn test_health_check_initialization
+    File: tests/health_check_test.rs:0
+  SigHash(9201020005158055750) -> test_login_success (Function)
+    Signature: fn test_login_success
+    File: tests/auth_handlers_test.rs:0
+  SigHash(9948811816410636291) -> writer (Function)
+    Signature: fn writer
+    File: src/database/mod.rs:0
+  SigHash(9375306611805085699) -> record_push_notification (Function)
+    Signature: fn record_push_notification
+    File: src/metrics.rs:0
+  SigHash(13833746529022101507) -> StartupValidator (Struct)
+    Signature: struct StartupValidator
+    File: src/shutdown.rs:0
+  SigHash(12990132721888915380) -> test_serve_css_asset (Function)
+    Signature: fn test_serve_css_asset
+    File: tests/asset_serving_test.rs:0
+  SigHash(14014416610521523313) -> test_create_room_request_validation (Function)
+    Signature: fn tests::test_create_room_request_validation
+    File: src/validation.rs:0
+  SigHash(10636423174764127912) -> get_current_user (Function)
+    Signature: fn get_current_user
+    File: src/handlers/users.rs:0
+  SigHash(10284173587286605669) -> shutdown (Function)
+    Signature: fn shutdown
+    File: src/shutdown.rs:0
+  SigHash(16219977680434402338) -> process_html_content (Function)
+    Signature: fn process_html_content
+    File: src/rich_text.rs:0
+  SigHash(14624429252412086495) -> shutdown_timeout (Function)
+    Signature: fn shutdown_timeout
+    File: src/config.rs:0
+  SigHash(6973623862162343135) -> get_room (Function)
+    Signature: fn get_room
+    File: src/handlers/rooms.rs:0
+  SigHash(5359169058567862873) -> test_metrics_initialization (Function)
+    Signature: fn test_metrics_initialization
+    File: tests/health_check_test.rs:0
+  SigHash(14189302044206242393) -> test_create_message_content_too_long (Function)
+    Signature: fn test_create_message_content_too_long
+    File: tests/message_handlers_test.rs:0
+  SigHash(17053920176113380496) -> update_room_presence (Function)
+    Signature: fn update_room_presence
+    File: src/services/connection.rs:0
+  SigHash(7080397337466320205) -> validate_room_name (Function)
+    Signature: fn validate_room_name
+    File: src/services/room.rs:0
+  SigHash(9433368976794406331) -> get_uptime_seconds (Function)
+    Signature: fn get_uptime_seconds
+    File: src/health.rs:0
+  SigHash(2274450093678878517) -> create_production_cors_layer (Function)
+    Signature: fn create_production_cors_layer
+    File: src/middleware/security.rs:0
+  SigHash(16357424151502530735) -> validate_password (Function)
+    Signature: fn validate_password
+    File: src/services/auth.rs:0
+  SigHash(7408722722752731500) -> test_room_name_validation_properties (Function)
+    Signature: fn test_room_name_validation_properties
+    File: tests/room_service_test.rs:0
+  SigHash(5269967014796302889) -> test_comprehensive_user_acceptance_validation (Function)
+    Signature: fn test_comprehensive_user_acceptance_validation
+    File: tests/user_acceptance_tests.rs:0
+  SigHash(7273434671491946592) -> test_serve_image_asset (Function)
+    Signature: fn test_serve_image_asset
+    File: tests/asset_serving_test.rs:0
+  SigHash(1951358959464453594) -> validate_room_type (Function)
+    Signature: fn validate_room_type
+    File: src/validation.rs:0
+  SigHash(4816593297437794967) -> MessageId (Struct)
+    Signature: struct MessageId
+    File: src/models/mod.rs:0
+  SigHash(7881819604624536026) -> test_user_journey_push_notifications (Function)
+    Signature: fn test_user_journey_push_notifications
+    File: tests/user_journey_tests.rs:0
+  SigHash(10670273343825595409) -> test_parse_message_id_invalid (Function)
+    Signature: fn tests::test_parse_message_id_invalid
+    File: src/handlers/messages.rs:0
+  SigHash(6101916187612950923) -> test_parse_room_id_invalid (Function)
+    Signature: fn tests::test_parse_room_id_invalid
+    File: src/handlers/messages.rs:0
+  SigHash(12194285884475182475) -> add_member (Function)
+    Signature: fn add_member
+    File: src/services/room.rs:0
+  SigHash(15279053724958283525) -> create_error_response (Function)
+    Signature: fn create_error_response
+    File: src/handlers/sounds.rs:0
+  SigHash(13631893851776140415) -> validate (Function)
+    Signature: fn validate
+    File: src/shutdown.rs:0
+  SigHash(15446869586959940924) -> get_sound (Function)
+    Signature: fn get_sound
+    File: src/handlers/sounds.rs:0
+  SigHash(6864654337521632383) -> to_bot (Function)
+    Signature: fn to_bot
+    File: src/models/mod.rs:0
+  SigHash(7178746970081758524) -> test_get_user_rooms (Function)
+    Signature: fn test_get_user_rooms
+    File: tests/room_service_test.rs:0
+  SigHash(13878522664085686320) -> get_room_by_id (Function)
+    Signature: fn get_room_by_id
+    File: src/services/room.rs:0
+  SigHash(4424055015803809005) -> CreatePushSubscriptionRequest (Struct)
+    Signature: struct CreatePushSubscriptionRequest
+    File: src/validation.rs:0
+  SigHash(13695658476842546602) -> AppState (Struct)
+    Signature: struct AppState
+    File: src/lib.rs:0
+  SigHash(9880842799001193898) -> test_is_valid_sound_name (Function)
+    Signature: fn tests::test_is_valid_sound_name
+    File: src/sounds.rs:0
+  SigHash(200432164153151268) -> check_user_can_add_member (Function)
+    Signature: fn check_user_can_add_member
+    File: src/database/mod.rs:0
+  SigHash(2985348928587988772) -> get_user_rooms (Function)
+    Signature: fn get_user_rooms
+    File: src/services/room.rs:0
+  SigHash(9302024605101139480) -> test_room_access_validation (Function)
+    Signature: fn test_room_access_validation
+    File: tests/room_handlers_test.rs:0
+  SigHash(7434969709975218901) -> test_extract_session_token_auth_header_priority (Function)
+    Signature: fn tests::test_extract_session_token_auth_header_priority
+    File: src/middleware/session.rs:0
+  SigHash(17552452553290478293) -> test_logout_without_token (Function)
+    Signature: fn test_logout_without_token
+    File: tests/auth_handlers_test.rs:0
+  SigHash(10134555182044642761) -> sanitize_plain_text (Function)
+    Signature: fn sanitization::sanitize_plain_text
+    File: src/validation.rs:0
+  SigHash(3545065924239504006) -> user_exists (Function)
+    Signature: fn user_exists
+    File: src/database/mod.rs:0
+  SigHash(4075073470089261513) -> test_read_write_separation (Function)
+    Signature: fn test_read_write_separation
+    File: tests/database_writer_test.rs:0
+
+EDGES:
+  from_env --Uses--> Config
+  from_env --Calls--> validate
+  from_env --Uses--> ServerConfig
+  from_env --Uses--> DatabaseConfig
+  from_env --Uses--> LoggingConfig
+  from_env --Uses--> SecurityConfig
+  from_env --Uses--> PushConfig
+  from_env --Uses--> MetricsConfig
+  from_env --Uses--> FeatureFlags
+  new --Uses--> Database
+  writer_task --Uses--> Database
+  writer_task --Calls--> create_user_internal
+  writer_task --Calls--> create_session_internal
+  writer_task --Calls--> delete_session_internal
+  writer_task --Calls--> create_message_with_deduplication_internal
+  writer_task --Calls--> create_room_internal
+  writer_task --Calls--> create_membership_internal
+  writer_task --Calls--> create_push_subscription_internal
+  writer_task --Calls--> update_notification_preferences_internal
+  SerializedDatabaseWriter --Implements--> DatabaseWriter
+  new --Calls--> migrate
+  begin --Calls--> begin
+  health_check --Uses--> DatabaseStats
+  create_message_with_deduplication_internal --Calls--> get_message_by_client_id
+  check_user_can_add_member --Calls--> get_room_by_id
+  check_user_can_add_member --Calls--> get_membership
+  pool --Calls--> pool
+  get_user_by_id --Calls--> get_user_by_id
+  get_user_by_email --Calls--> get_user_by_email
+  get_session --Calls--> get_session
+  get_message_by_client_id --Calls--> get_message_by_client_id
+  health_check --Calls--> health_check
+  ping --Calls--> ping
+  get_room_messages --Calls--> get_room_messages
+  get_messages_since --Calls--> get_messages_since
+  get_room_by_id --Calls--> get_room_by_id
+  get_membership --Calls--> get_membership
+  get_user_rooms --Calls--> get_user_rooms
+  check_user_can_add_member --Calls--> check_user_can_add_member
+  user_exists --Calls--> user_exists
+  create_user --Calls--> create_user
+  create_session --Calls--> create_session
+  delete_session --Calls--> delete_session
+  create_message_with_deduplication --Calls--> create_message_with_deduplication
+  create_room --Calls--> create_room
+  create_membership --Calls--> create_membership
+  get_push_subscriptions_for_user --Calls--> get_push_subscriptions_for_user
+  delete_push_subscription --Calls--> delete_push_subscription
+  get_notification_preferences --Calls--> get_notification_preferences
+  get_notification_recipients --Calls--> get_notification_recipients
+  create_push_subscription --Calls--> create_push_subscription
+  update_notification_preferences --Calls--> update_notification_preferences
+  get_notification_recipients --Calls--> get_user_by_email
+  get_notification_recipients --Calls--> get_notification_preferences
+  new --Uses--> CampfireDatabase
+  initialize_if_needed --Calls--> demo_data_exists
+  initialize_if_needed --Calls--> create_demo_users
+  initialize_if_needed --Calls--> create_demo_rooms
+  initialize_if_needed --Calls--> create_sample_conversations
+  demo_data_exists --Calls--> get_user_by_email
+  create_demo_users --Calls--> create_user
+  create_demo_rooms --Calls--> create_room
+  create_demo_rooms --Calls--> create_membership
+  create_sample_conversations --Calls--> create_message
+  create_message --Calls--> process_rich_text
+  create_message --Calls--> extract_mentions
+  create_message --Calls--> extract_sound_commands
+  create_message --Calls--> create_message_with_deduplication
+  test_demo_data_initialization --Calls--> initialize_if_needed
+  test_demo_data_initialization --Calls--> get_user_by_email
+  test_rich_text_processing --Calls--> process_rich_text
+  test_mention_extraction --Calls--> extract_mentions
+  test_sound_command_extraction --Calls--> extract_sound_commands
+  login --Calls--> auth_error_to_response
+  login --Calls--> create_error_response
+  auth_error_to_response --Calls--> create_error_response
+  list_bots --Calls--> create_error_response
+  list_bots --Calls--> list_bots
+  list_bots --Calls--> bot_error_to_response
+  create_bot --Calls--> create_error_response
+  create_bot --Calls--> create_bot
+  create_bot --Calls--> bot_error_to_response
+  get_bot --Calls--> create_error_response
+  get_bot --Calls--> get_bot
+  get_bot --Calls--> bot_error_to_response
+  update_bot --Calls--> create_error_response
+  update_bot --Calls--> update_bot
+  update_bot --Calls--> bot_error_to_response
+  delete_bot --Calls--> create_error_response
+  delete_bot --Calls--> delete_bot
+  delete_bot --Calls--> bot_error_to_response
+  reset_bot_token --Calls--> create_error_response
+  reset_bot_token --Calls--> reset_bot_token
+  reset_bot_token --Calls--> bot_error_to_response
+  create_bot_message --Calls--> create_error_response
+  create_bot_message --Calls--> create_bot_message
+  create_bot_message --Calls--> bot_error_to_response
+  bot_error_to_response --Calls--> create_error_response
+  create_message --Calls--> parse_room_id
+  create_message --Uses--> MessageResponse
+  create_message --Calls--> create_error_response
+  get_messages --Uses--> GetMessagesQuery
+  get_messages --Calls--> parse_room_id
+  get_messages --Calls--> create_error_response
+  get_messages --Calls--> parse_message_id
+  get_messages --Calls--> get_room_messages
+  get_messages --Uses--> MessagesResponse
+  parse_room_id --Calls--> create_error_response
+  parse_message_id --Calls--> create_error_response
+  create_error_response --Uses--> ErrorResponse
+  serve_login_page --Calls--> get_user_by_email
+  serve_root_page --Calls--> get_user_by_email
+  demo_status --Calls--> get_user_by_email
+  initialize_demo --Calls--> get_user_by_email
+  initialize_demo --Calls--> initialize_if_needed
+  get_rooms --Calls--> get_user_rooms
+  get_room --Calls--> parse_room_id
+  get_room --Calls--> get_room_by_id
+  add_room_member --Calls--> parse_room_id
+  into_response --Calls--> into_response
+  search_messages --Calls--> validate
+  search_messages --Calls--> search_messages
+  list_sounds --Calls--> into_response
+  list_sounds --Uses--> SoundsListResponse
+  get_sound --Calls--> create_error_response
+  get_sound --Calls--> into_response
+  get_sound_info --Calls--> create_error_response
+  get_sound_info --Calls--> into_response
+  create_error_response --Calls--> into_response
+  get_current_user --Calls--> into_response
+  websocket_handler --Uses--> WebSocketQuery
+  websocket_handler --Calls--> extract_session_token_from_headers
+  websocket_handler --Calls--> into_response
+  websocket_handler --Calls--> handle_websocket
+  handle_websocket --Calls--> handle_incoming_message
+  handle_incoming_message --Calls--> create_message_with_deduplication
+  create_test_state --Calls--> writer
+  test_handle_incoming_message --Calls--> create_test_state
+  test_typing_message_handling --Calls--> create_test_state
+  test_join_leave_room_messages --Calls--> create_test_state
+  health_check --Uses--> HealthResponse
+  health_check --Calls--> check_database_health
+  health_check --Calls--> check_memory_health
+  health_check --Calls--> check_disk_space_health
+  health_check --Calls--> determine_overall_status
+  health_check --Calls--> get_uptime_seconds
+  health_check --Uses--> HealthChecks
+  readiness_check --Uses--> ReadinessResponse
+  readiness_check --Calls--> check_database_readiness
+  readiness_check --Calls--> check_services_readiness
+  readiness_check --Uses--> ReadinessChecks
+  check_database_health --Uses--> CheckResult
+  check_database_health --Calls--> health_check
+  check_memory_health --Uses--> CheckResult
+  check_memory_health --Calls--> get_memory_info
+  check_disk_space_health --Uses--> CheckResult
+  check_disk_space_health --Calls--> get_disk_info
+  check_database_readiness --Calls--> ping
+  determine_overall_status --Uses--> CheckResult
+  get_memory_info --Uses--> MemoryInfo
+  get_disk_info --Uses--> DiskInfo
+  test_determine_overall_status --Uses--> CheckResult
+  init_logging --Uses--> Config
+  init_logging --Calls--> tracing_level
+  init_logging --Calls--> create_env_filter
+  init_logging --Calls--> init
+  rotate_if_needed --Calls--> cleanup_old_logs
+  main --Calls--> initialize_if_needed
+  main --Calls--> writer
+  main --Uses--> AppState
+  main --Calls--> request_timeout
+  init_metrics --Calls--> describe_metrics
+  metrics_endpoint --Calls--> into_response
+  metrics_summary --Uses--> AppState
+  metrics_summary --Uses--> MetricsSummary
+  metrics_summary --Calls--> collect_metrics_summary
+  collect_metrics_summary --Uses--> AppState
+  collect_metrics_summary --Uses--> MetricsSummary
+  collect_metrics_summary --Calls--> health_check
+  collect_metrics_summary --Uses--> DatabaseStats
+  collect_metrics_summary --Uses--> HttpMetrics
+  collect_metrics_summary --Uses--> WebSocketMetrics
+  collect_metrics_summary --Uses--> DatabaseMetrics
+  collect_metrics_summary --Uses--> MessageMetrics
+  collect_metrics_summary --Uses--> SystemMetrics
+  test_metrics_summary_serialization --Uses--> MetricsSummary
+  test_metrics_summary_serialization --Uses--> HttpMetrics
+  test_metrics_summary_serialization --Uses--> WebSocketMetrics
+  test_metrics_summary_serialization --Uses--> DatabaseMetrics
+  test_metrics_summary_serialization --Uses--> MessageMetrics
+  test_metrics_summary_serialization --Uses--> SystemMetrics
+  create_security_headers_layer_legacy --Calls--> create_security_headers_layer
+  create_production_cors_layer --Calls--> create_cors_layer
+  create_request_size_limit_layer --Calls--> create_request_size_limit_layer_with_size
+  create_timeout_layer --Calls--> create_timeout_layer_with_duration
+  from_request_parts --Uses--> AppState
+  from_request_parts --Calls--> extract_session_token
+  from_request_parts --Uses--> AuthenticatedUser
+  from_request_parts --Uses--> OptionalAuthenticatedUser
+  from_request_parts --Uses--> SessionToken
+  test_extract_session_token_from_auth_header --Calls--> create_test_parts_with_auth_header
+  test_extract_session_token_from_cookie --Calls--> create_test_parts_with_cookie
+  test_extract_session_token_missing --Calls--> create_test_parts_empty
+  from --Uses--> UserId
+  from --Uses--> RoomId
+  from --Uses--> MessageId
+  from --Uses--> ConnectionId
+  from --Uses--> PushSubscriptionId
+  to_bot --Uses--> Bot
+  new --Uses--> RoomId
+  new --Uses--> UserId
+  with_rich_content --Uses--> RoomId
+  with_rich_content --Uses--> UserId
+  process_content --Uses--> UserId
+  process_content --Uses--> ProcessedContent
+  process_html_content --Uses--> UserId
+  AuthService --Implements--> AuthServiceTrait
+  authenticate --Uses--> Session
+  authenticate --Calls--> get_user_by_email
+  authenticate --Calls--> create_session
+  create_session --Uses--> UserId
+  create_session --Uses--> Session
+  validate_session --Uses--> User
+  validate_session --Calls--> get_session
+  validate_session --Calls--> delete_session
+  validate_session --Calls--> get_user_by_id
+  revoke_session --Calls--> delete_session
+  create_user --Uses--> User
+  create_user --Calls--> get_user_by_email
+  test_user_creation_and_authentication --Calls--> create_test_auth_service
+  test_user_creation_and_authentication --Calls--> create_user
+  test_user_creation_and_authentication --Calls--> authenticate
+  test_user_creation_and_authentication --Calls--> validate_session
+  test_user_creation_and_authentication --Calls--> revoke_session
+  test_invalid_credentials --Calls--> create_test_auth_service
+  test_invalid_credentials --Calls--> create_user
+  test_invalid_credentials --Calls--> authenticate
+  test_password_validation --Calls--> create_test_auth_service
+  test_password_validation --Calls--> create_user
+  test_email_validation --Calls--> create_test_auth_service
+  test_email_validation --Calls--> create_user
+  test_duplicate_email --Calls--> create_test_auth_service
+  test_duplicate_email --Calls--> create_user
+  parse_bot_key --Uses--> UserId
+  create_webhook_payload --Uses--> Message
+  create_webhook_payload --Uses--> Room
+  create_webhook_payload --Uses--> User
+  create_webhook_payload --Uses--> Bot
+  create_webhook_payload --Uses--> WebhookPayload
+  create_webhook_payload --Uses--> WebhookUser
+  create_webhook_payload --Uses--> WebhookRoom
+  create_webhook_payload --Uses--> WebhookMessage
+  create_webhook_payload --Uses--> WebhookMessageBody
+  create_webhook_payload --Calls--> display_content
+  BotServiceImpl --Implements--> BotService
+  create_bot --Uses--> Bot
+  create_bot --Uses--> User
+  create_bot --Calls--> create_user
+  create_bot --Calls--> create_webhook_internal
+  update_bot --Uses--> UserId
+  update_bot --Uses--> Bot
+  update_bot --Calls--> get_bot
+  delete_bot --Uses--> UserId
+  delete_bot --Calls--> get_bot
+  get_bot --Uses--> UserId
+  get_bot --Uses--> Bot
+  get_bot --Calls--> get_user_by_id
+  get_bot --Calls--> to_bot
+  get_bot --Calls--> get_webhook_url_internal
+  list_bots --Uses--> Bot
+  authenticate_bot --Uses--> User
+  authenticate_bot --Calls--> get_user_by_id
+  reset_bot_token --Uses--> UserId
+  reset_bot_token --Calls--> get_bot
+  deliver_webhook --Uses--> Bot
+  deliver_webhook --Uses--> Message
+  deliver_webhook --Uses--> Room
+  deliver_webhook --Calls--> get_user_by_id
+  deliver_webhook --Calls--> create_webhook_payload
+  create_bot_message --Uses--> UserId
+  create_bot_message --Uses--> RoomId
+  create_bot_message --Uses--> Message
+  create_bot_message --Calls--> get_user_by_id
+  create_bot_message --Calls--> is_bot
+  create_bot_message --Calls--> create_message_with_deduplication
+  create_webhook_internal --Uses--> UserId
+  get_webhook_url_internal --Uses--> UserId
+  new --Calls--> start_presence_cleanup
+  new --Calls--> start_typing_cleanup
+  update_presence --Uses--> UserId
+  update_presence --Uses--> PresenceInfo
+  update_room_presence --Uses--> UserId
+  update_room_presence --Uses--> RoomPresence
+  get_room_connections --Uses--> RoomId
+  get_room_connections --Uses--> ConnectionId
+  ConnectionManagerImpl --Implements--> ConnectionManager
+  add_connection --Uses--> UserId
+  add_connection --Uses--> ConnectionId
+  add_connection --Uses--> ConnectionInfo
+  add_connection --Calls--> update_presence
+  add_connection --Calls--> update_room_presence
+  remove_connection --Uses--> ConnectionId
+  remove_connection --Calls--> update_presence
+  remove_connection --Calls--> update_room_presence
+  broadcast_to_room --Uses--> RoomId
+  broadcast_to_room --Calls--> get_room_connections
+  get_room_presence --Uses--> RoomId
+  get_room_presence --Uses--> UserId
+  send_missed_messages --Uses--> UserId
+  send_missed_messages --Uses--> ConnectionId
+  send_missed_messages --Uses--> MessageId
+  send_missed_messages --Calls--> get_messages_since
+  send_missed_messages --Calls--> update_last_seen_message
+  update_last_seen_message --Uses--> ConnectionId
+  update_last_seen_message --Uses--> MessageId
+  send_to_connection --Uses--> ConnectionId
+  get_room_specific_presence --Uses--> RoomId
+  get_room_specific_presence --Uses--> UserId
+  start_typing --Uses--> UserId
+  start_typing --Uses--> RoomId
+  start_typing --Uses--> RoomPresence
+  stop_typing --Uses--> UserId
+  stop_typing --Uses--> RoomId
+  get_typing_users --Uses--> RoomId
+  get_typing_users --Uses--> UserId
+  broadcast_presence_update --Uses--> RoomId
+  broadcast_presence_update --Calls--> get_room_specific_presence
+  broadcast_presence_update --Calls--> broadcast_to_room
+  test_connection_management --Calls--> add_connection
+  test_connection_management --Calls--> get_room_presence
+  test_connection_management --Calls--> remove_connection
+  test_presence_tracking --Calls--> get_room_presence
+  test_presence_tracking --Calls--> add_connection
+  test_presence_tracking --Calls--> remove_connection
+  test_broadcast_to_room --Calls--> add_connection
+  test_broadcast_to_room --Uses--> Message
+  test_broadcast_to_room --Calls--> broadcast_to_room
+  test_last_seen_message_tracking --Calls--> add_connection
+  test_last_seen_message_tracking --Calls--> update_last_seen_message
+  test_missed_messages_delivery --Uses--> User
+  test_missed_messages_delivery --Uses--> Room
+  test_missed_messages_delivery --Uses--> Membership
+  test_missed_messages_delivery --Calls--> create_user
+  test_missed_messages_delivery --Calls--> create_room
+  test_missed_messages_delivery --Calls--> create_membership
+  test_missed_messages_delivery --Uses--> Message
+  test_missed_messages_delivery --Calls--> create_message_with_deduplication
+  test_missed_messages_delivery --Calls--> add_connection
+  test_missed_messages_delivery --Calls--> send_missed_messages
+  test_missed_messages_error_handling --Calls--> send_missed_messages
+  test_missed_messages_error_handling --Calls--> add_connection
+  test_typing_indicators --Calls--> get_typing_users
+  test_typing_indicators --Calls--> start_typing
+  test_typing_indicators --Calls--> stop_typing
+  test_room_specific_presence --Calls--> get_room_specific_presence
+  test_room_specific_presence --Calls--> add_connection
+  test_room_specific_presence --Calls--> remove_connection
+  test_presence_update_broadcast --Calls--> add_connection
+  test_presence_update_broadcast --Calls--> broadcast_presence_update
+  test_typing_cleanup --Calls--> start_typing
+  test_typing_cleanup --Calls--> get_typing_users
+  with_push_service --Uses--> CampfireDatabase
+  validate_and_process_content --Uses--> UserId
+  check_room_access --Uses--> RoomId
+  check_room_access --Uses--> UserId
+  check_room_access --Calls--> check_room_access
+  MessageService --Implements--> MessageServiceTrait
+  create_message_with_deduplication --Uses--> RoomId
+  create_message_with_deduplication --Uses--> UserId
+  create_message_with_deduplication --Uses--> Message
+  create_message_with_deduplication --Calls--> validate_and_process_content
+  create_message_with_deduplication --Calls--> check_room_access
+  create_message_with_deduplication --Calls--> broadcast_message
+  create_message_with_deduplication --Calls--> get_room_by_id
+  create_message_with_deduplication --Calls--> get_user_by_id
+  create_message_with_deduplication --Calls--> get_user_by_email
+  create_message_with_deduplication --Calls--> broadcast_to_room
+  get_room_messages --Uses--> RoomId
+  get_room_messages --Uses--> UserId
+  get_room_messages --Uses--> MessageId
+  get_room_messages --Uses--> Message
+  get_room_messages --Calls--> check_room_access
+  broadcast_message --Uses--> Message
+  broadcast_message --Uses--> RoomId
+  broadcast_message --Calls--> broadcast_to_room
+  test_content_validation --Calls--> create_test_message_service
+  test_content_validation --Calls--> validate_and_process_content
+  test_database_basic_operations --Calls--> pool
+  test_uuid_insertion --Calls--> pool
+  test_create_user_method --Uses--> User
+  test_create_user_method --Calls--> create_user
+  test_message_deduplication --Calls--> create_test_message_service
+  test_message_deduplication --Uses--> User
+  test_message_deduplication --Calls--> create_user
+  test_message_deduplication --Uses--> Room
+  test_message_deduplication --Calls--> create_room
+  test_message_deduplication --Uses--> Membership
+  test_message_deduplication --Calls--> create_membership
+  test_message_deduplication --Calls--> create_message_with_deduplication
+  test_message_creation_with_broadcast --Calls--> create_test_message_service
+  test_message_creation_with_broadcast --Uses--> User
+  test_message_creation_with_broadcast --Calls--> create_user
+  test_message_creation_with_broadcast --Uses--> Room
+  test_message_creation_with_broadcast --Calls--> create_room
+  test_message_creation_with_broadcast --Uses--> Membership
+  test_message_creation_with_broadcast --Calls--> create_membership
+  test_message_creation_with_broadcast --Calls--> create_message_with_deduplication
+  test_get_room_messages --Calls--> create_test_message_service
+  test_get_room_messages --Uses--> User
+  test_get_room_messages --Calls--> create_user
+  test_get_room_messages --Uses--> Room
+  test_get_room_messages --Calls--> create_room
+  test_get_room_messages --Uses--> Membership
+  test_get_room_messages --Calls--> create_membership
+  test_get_room_messages --Calls--> get_room_messages
+  test_message_limit_enforcement --Calls--> create_test_message_service
+  test_message_limit_enforcement --Uses--> User
+  test_message_limit_enforcement --Calls--> create_user
+  test_message_limit_enforcement --Uses--> Room
+  test_message_limit_enforcement --Calls--> create_room
+  test_message_limit_enforcement --Uses--> Membership
+  test_message_limit_enforcement --Calls--> create_membership
+  test_message_limit_enforcement --Calls--> get_room_messages
+  new --Uses--> VapidConfig
+  send_push_notification --Uses--> PushSubscription
+  send_push_notification --Uses--> PushNotificationPayload
+  send_push_notification --Calls--> create_push_subscription
+  determine_notification_type --Uses--> Message
+  determine_notification_type --Uses--> Room
+  determine_notification_type --Uses--> UserId
+  create_notification_payload --Uses--> Message
+  create_notification_payload --Uses--> Room
+  create_notification_payload --Uses--> PushNotificationPayload
+  PushNotificationServiceImpl --Implements--> PushNotificationService
+  create_subscription --Uses--> UserId
+  create_subscription --Uses--> PushSubscription
+  create_subscription --Calls--> create_push_subscription
+  delete_subscription --Uses--> PushSubscriptionId
+  delete_subscription --Calls--> delete_push_subscription
+  update_preferences --Uses--> UserId
+  update_preferences --Uses--> UpdateNotificationPreferencesRequest
+  update_preferences --Uses--> NotificationPreferences
+  update_preferences --Calls--> get_notification_preferences
+  update_preferences --Calls--> update_notification_preferences
+  get_preferences --Uses--> UserId
+  get_preferences --Uses--> NotificationPreferences
+  get_preferences --Calls--> get_notification_preferences
+  send_message_notification --Uses--> Message
+  send_message_notification --Uses--> Room
+  send_message_notification --Calls--> get_notification_recipients
+  send_message_notification --Calls--> determine_notification_type
+  send_message_notification --Calls--> get_push_subscriptions_for_user
+  send_message_notification --Calls--> create_notification_payload
+  send_message_notification --Calls--> send_push_notification
+  send_mention_notification --Uses--> Message
+  send_mention_notification --Uses--> Room
+  send_mention_notification --Uses--> UserId
+  send_mention_notification --Calls--> get_notification_preferences
+  send_mention_notification --Calls--> get_push_subscriptions_for_user
+  send_mention_notification --Calls--> create_notification_payload
+  send_mention_notification --Calls--> send_push_notification
+  send_sound_notification --Uses--> Room
+  send_sound_notification --Calls--> pool
+  send_sound_notification --Calls--> get_push_subscriptions_for_user
+  send_sound_notification --Uses--> PushNotificationPayload
+  send_sound_notification --Calls--> send_push_notification
+  RoomService --Implements--> RoomServiceTrait
+  create_room --Uses--> UserId
+  create_room --Uses--> Room
+  create_room --Calls--> user_exists
+  create_room --Uses--> Membership
+  create_room --Calls--> create_membership
+  add_member --Uses--> RoomId
+  add_member --Uses--> UserId
+  add_member --Calls--> get_room_by_id
+  add_member --Calls--> user_exists
+  add_member --Calls--> get_membership
+  add_member --Calls--> check_user_can_add_member
+  add_member --Uses--> Membership
+  add_member --Calls--> create_membership
+  check_room_access --Calls--> get_room_by_id
+  check_room_access --Calls--> get_membership
+  get_user_rooms --Uses--> UserId
+  get_user_rooms --Uses--> Room
+  get_user_rooms --Calls--> user_exists
+  get_room_by_id --Uses--> RoomId
+  get_room_by_id --Uses--> Room
+  get_user_room_ids --Uses--> UserId
+  get_user_room_ids --Uses--> RoomId
+  get_user_room_ids --Calls--> get_user_rooms
+  SearchService --Implements--> SearchServiceTrait
+  search_messages --Uses--> UserId
+  search_messages --Uses--> SearchRequest
+  search_messages --Uses--> SearchResponse
+  search_messages --Calls--> validate_query
+  search_messages --Calls--> get_user_room_ids
+  search_messages --Calls--> pool
+  search_messages --Uses--> Message
+  search_messages --Calls--> generate_snippet
+  search_messages --Uses--> SearchResult
+  search_room_messages --Uses--> UserId
+  search_room_messages --Uses--> RoomId
+  search_room_messages --Uses--> SearchResponse
+  search_room_messages --Uses--> SearchRequest
+  search_room_messages --Calls--> search_messages
+  subscribe --Calls--> subscribe
+  add_task --Uses--> ShutdownTask
+  shutdown --Calls--> execute_shutdown_tasks
+  cleanup_all --Calls--> cleanup
+  DatabaseResource --Implements--> Resource
+  WebSocketResource --Implements--> Resource
+  BackgroundTaskResource --Implements--> Resource
+  validate_all --Calls--> validate
+  DatabaseConnectivityCheck --Implements--> StartupCheck
+  ConfigurationCheck --Implements--> StartupCheck
+  ServicesCheck --Implements--> StartupCheck
+  test_shutdown_coordinator --Calls--> add_task
+  test_shutdown_coordinator --Calls--> shutdown
+  test_resource_manager --Calls--> add_resource
+  test_resource_manager --Calls--> cleanup_all
+  test_startup_validator --Calls--> add_check
+  test_startup_validator --Calls--> validate_all
+  get_sound_info --Uses--> SoundInfo
+  get_all_sound_info --Uses--> SoundInfo
+  build_sound_info_cache --Uses--> SoundInfo
+  validate_request --Uses--> ValidationErrorResponse
+  validate_request --Calls--> validate
+  sanitize_user_input --Calls--> sanitize_plain_text
+  test_login_request_validation --Uses--> LoginRequest
+  test_create_room_request_validation --Uses--> CreateRoomRequest
+  test_create_message_request_validation --Uses--> CreateMessageRequest
+  create_test_app --Calls--> writer
+  create_test_app --Uses--> AppState
+  test_complete_auth_flow --Calls--> create_test_app
+  test_complete_auth_flow --Calls--> create_user
+  test_login_with_invalid_credentials --Calls--> create_test_app
+  test_logout_without_token --Calls--> create_test_app
+  test_logout_with_invalid_token --Calls--> create_test_app
+  create_test_app --Uses--> CampfireDatabase
+  test_login_success --Calls--> create_test_app
+  test_login_success --Calls--> create_user
+  test_login_invalid_credentials --Calls--> create_test_app
+  test_login_missing_credentials --Calls--> create_test_app
+  test_logout_success --Calls--> create_test_app
+  test_logout_success --Calls--> create_user
+  test_logout_success --Calls--> create_session
+  test_get_current_user_success --Calls--> create_test_app
+  test_get_current_user_success --Calls--> create_user
+  test_get_current_user_success --Calls--> create_session
+  test_get_current_user_unauthorized --Calls--> create_test_app
+  test_create_bot_without_admin --Calls--> create_test_app
+  test_bot_message_creation_invalid_key --Calls--> create_test_app
+  test_bot_message_creation_empty_content --Calls--> create_test_app
+  test_bot_message_creation_plain_text --Calls--> create_test_app
+  test_list_bots_without_admin --Calls--> create_test_app
+  test_get_bot_without_admin --Calls--> create_test_app
+  test_update_bot_without_admin --Calls--> create_test_app
+  test_delete_bot_without_admin --Calls--> create_test_app
+  test_reset_bot_token_without_admin --Calls--> create_test_app
+  create_test_bot_service --Uses--> BotServiceImpl
+  create_test_bot_service --Calls--> writer
+  test_create_bot --Calls--> create_test_bot_service
+  test_create_bot --Calls--> create_bot
+  test_create_bot_invalid_name --Calls--> create_test_bot_service
+  test_create_bot_invalid_name --Calls--> create_bot
+  test_create_bot_invalid_webhook_url --Calls--> create_test_bot_service
+  test_create_bot_invalid_webhook_url --Calls--> create_bot
+  test_authenticate_bot --Calls--> create_test_bot_service
+  test_authenticate_bot --Calls--> create_bot
+  test_authenticate_bot --Calls--> bot_key
+  test_authenticate_bot --Calls--> authenticate_bot
+  test_authenticate_bot_invalid_key --Calls--> create_test_bot_service
+  test_authenticate_bot_invalid_key --Calls--> authenticate_bot
+  test_critical_gap_3_write_serialization --Calls--> writer
+  test_critical_gap_3_write_serialization --Uses--> User
+  test_critical_gap_3_write_serialization --Calls--> create_user
+  test_message_deduplication_with_writer_pattern --Calls--> writer
+  test_message_deduplication_with_writer_pattern --Uses--> User
+  test_message_deduplication_with_writer_pattern --Calls--> create_user
+  test_message_deduplication_with_writer_pattern --Uses--> Room
+  test_message_deduplication_with_writer_pattern --Calls--> create_room
+  test_message_deduplication_with_writer_pattern --Uses--> Message
+  test_message_deduplication_with_writer_pattern --Calls--> create_message_with_deduplication
+  test_concurrent_message_creation --Calls--> writer
+  test_concurrent_message_creation --Uses--> User
+  test_concurrent_message_creation --Calls--> create_user
+  test_concurrent_message_creation --Uses--> Room
+  test_concurrent_message_creation --Calls--> create_room
+  test_concurrent_message_creation --Uses--> Message
+  test_concurrent_message_creation --Calls--> create_message_with_deduplication
+  test_writer_channel_resilience --Calls--> writer
+  test_writer_channel_resilience --Uses--> User
+  test_writer_channel_resilience --Calls--> create_user
+  test_read_write_separation --Calls--> writer
+  test_read_write_separation --Uses--> User
+  test_read_write_separation --Calls--> create_user
+  test_read_write_separation --Calls--> get_user_by_id
+  test_session_operations_through_writer --Calls--> writer
+  test_session_operations_through_writer --Uses--> User
+  test_session_operations_through_writer --Calls--> create_user
+  test_session_operations_through_writer --Uses--> Session
+  test_session_operations_through_writer --Calls--> create_session
+  test_session_operations_through_writer --Calls--> get_session
+  test_session_operations_through_writer --Calls--> delete_session
+  test_shutdown_coordinator --Calls--> add_task
+  test_shutdown_coordinator --Calls--> shutdown
+  test_resource_manager --Calls--> add_resource
+  test_resource_manager --Calls--> cleanup_all
+  test_startup_validator --Calls--> add_check
+  test_startup_validator --Calls--> validate_all
+  test_health_endpoint --Calls--> create_test_app
+  test_readiness_endpoint --Calls--> create_test_app
+  test_liveness_endpoint --Calls--> create_test_app
+  test_get_current_user_without_auth --Calls--> create_test_app
+  test_get_current_user_with_invalid_token --Calls--> create_test_app
+  test_session_token_extraction_from_cookie --Calls--> create_test_app
+  test_get_messages_without_auth --Calls--> create_test_app
+  test_create_message_without_auth --Calls--> create_test_app
+  test_create_message_invalid_room_id --Calls--> create_test_app
+  test_get_messages_invalid_room_id --Calls--> create_test_app
+  test_create_message_empty_content --Calls--> create_test_app
+  test_create_message_content_too_long --Calls--> create_test_app
+  test_message_api_integration_structure --Calls--> create_test_app
+  test_push_notification_service_creation --Calls--> writer
+  test_push_notification_service_creation --Uses--> NotificationPreferences
+  test_push_notification_service_creation --Calls--> update_preferences
+  test_push_notification_service_creation --Uses--> UpdateNotificationPreferencesRequest
+  test_push_subscription_creation --Calls--> writer
+  test_push_subscription_creation --Uses--> CreatePushSubscriptionRequest
+  test_push_subscription_creation --Uses--> PushSubscriptionKeys
+  test_push_subscription_creation --Calls--> create_subscription
+  test_notification_preferences_defaults --Calls--> writer
+  test_notification_preferences_defaults --Calls--> get_preferences
+  create_test_user_and_session --Uses--> User
+  create_test_user_and_session --Uses--> Session
+  test_get_rooms_without_auth --Calls--> create_test_app
+  test_create_room_without_auth --Calls--> create_test_app
+  test_create_room_invalid_data --Calls--> create_test_app
+  test_get_room_invalid_id --Calls--> create_test_app
+  test_add_room_member_invalid_room_id --Calls--> create_test_app
+  test_add_room_member_invalid_user_id --Calls--> create_test_app
+  test_room_api_integration_structure --Calls--> create_test_app
+  test_room_validation_logic --Uses--> User
+  test_room_validation_logic --Calls--> create_user
+  test_room_validation_logic --Calls--> create_room
+  test_room_access_validation --Uses--> User
+  test_room_access_validation --Calls--> create_user
+  test_room_access_validation --Calls--> create_room
+  test_room_access_validation --Calls--> check_room_access
+  create_test_db --Uses--> CampfireDatabase
+  create_test_user --Uses--> CampfireDatabase
+  create_test_user --Uses--> UserId
+  create_test_user --Uses--> User
+  create_test_user --Calls--> create_user
+  test_create_room_success --Calls--> create_test_db
+  test_create_room_success --Calls--> create_test_user
+  test_create_room_success --Calls--> create_room
+  test_create_room_success --Calls--> check_room_access
+  test_create_room_invalid_name --Calls--> create_test_db
+  test_create_room_invalid_name --Calls--> create_test_user
+  test_create_room_invalid_name --Calls--> create_room
+  test_create_room_trims_whitespace --Calls--> create_test_db
+  test_create_room_trims_whitespace --Calls--> create_test_user
+  test_create_room_trims_whitespace --Calls--> create_room
+  test_add_member_success --Calls--> create_test_db
+  test_add_member_success --Calls--> create_test_user
+  test_add_member_success --Calls--> create_room
+  test_add_member_success --Calls--> add_member
+  test_add_member_success --Calls--> check_room_access
+  test_add_member_not_authorized --Calls--> create_test_db
+  test_add_member_not_authorized --Calls--> create_test_user
+  test_add_member_not_authorized --Calls--> create_room
+  test_add_member_not_authorized --Calls--> add_member
+  test_add_member_already_member --Calls--> create_test_db
+  test_add_member_already_member --Calls--> create_test_user
+  test_add_member_already_member --Calls--> create_room
+  test_add_member_already_member --Calls--> add_member
+  test_add_member_room_not_found --Calls--> create_test_db
+  test_add_member_room_not_found --Calls--> create_test_user
+  test_add_member_room_not_found --Calls--> add_member
+  test_check_room_access_open_room --Calls--> create_test_db
+  test_check_room_access_open_room --Calls--> create_test_user
+  test_check_room_access_open_room --Calls--> create_room
+  test_check_room_access_open_room --Calls--> check_room_access
+  test_check_room_access_closed_room --Calls--> create_test_db
+  test_check_room_access_closed_room --Calls--> create_test_user
+  test_check_room_access_closed_room --Calls--> create_room
+  test_check_room_access_closed_room --Calls--> add_member
+  test_check_room_access_closed_room --Calls--> check_room_access
+  test_check_room_access_room_not_found --Calls--> create_test_db
+  test_check_room_access_room_not_found --Calls--> create_test_user
+  test_check_room_access_room_not_found --Calls--> check_room_access
+  test_get_user_rooms --Calls--> create_test_db
+  test_get_user_rooms --Calls--> create_test_user
+  test_get_user_rooms --Calls--> create_room
+  test_get_user_rooms --Calls--> add_member
+  test_get_user_rooms --Calls--> get_user_rooms
+  test_get_user_rooms_empty --Calls--> create_test_db
+  test_get_user_rooms_empty --Calls--> create_test_user
+  test_get_user_rooms_empty --Calls--> get_user_rooms
+  test_room_name_validation_properties --Calls--> create_test_db
+  test_room_name_validation_properties --Calls--> create_test_user
+  test_room_name_validation_properties --Calls--> create_room
+  test_complete_room_workflow --Calls--> create_test_db
+  test_complete_room_workflow --Calls--> create_test_user
+  test_complete_room_workflow --Calls--> create_room
+  test_complete_room_workflow --Calls--> add_member
+  test_complete_room_workflow --Calls--> check_room_access
+  test_complete_room_workflow --Calls--> get_user_rooms
+  setup_test_app --Uses--> CampfireDatabase
+  setup_test_app --Uses--> User
+  setup_test_app --Calls--> writer
+  setup_test_app --Uses--> AppState
+  setup_test_app --Calls--> create_user
+  setup_test_app --Calls--> create_session
+  create_test_room_with_messages --Uses--> CampfireDatabase
+  create_test_room_with_messages --Uses--> User
+  create_test_room_with_messages --Uses--> Room
+  create_test_room_with_messages --Calls--> create_room
+  create_test_room_with_messages --Calls--> writer
+  create_test_room_with_messages --Uses--> Membership
+  create_test_room_with_messages --Calls--> create_membership
+  create_test_room_with_messages --Uses--> Message
+  create_test_room_with_messages --Calls--> create_message_with_deduplication
+  test_search_messages_success --Calls--> setup_test_app
+  test_search_messages_success --Calls--> create_test_room_with_messages
+  test_search_messages_with_pagination --Calls--> setup_test_app
+  test_search_messages_with_pagination --Calls--> create_test_room_with_messages
+  test_search_messages_room_specific --Calls--> setup_test_app
+  test_search_messages_room_specific --Calls--> create_test_room_with_messages
+  test_search_messages_unauthorized --Calls--> setup_test_app
+  test_search_messages_invalid_query --Calls--> setup_test_app
+  test_search_messages_query_too_short --Calls--> setup_test_app
+  test_search_messages_query_too_long --Calls--> setup_test_app
+  test_search_messages_no_results --Calls--> setup_test_app
+  test_search_messages_no_results --Calls--> create_test_room_with_messages
+  test_search_messages_authorization_filtering --Calls--> setup_test_app
+  test_search_messages_authorization_filtering --Uses--> User
+  test_search_messages_authorization_filtering --Calls--> create_user
+  test_search_messages_authorization_filtering --Calls--> writer
+  test_search_messages_authorization_filtering --Uses--> Room
+  test_search_messages_authorization_filtering --Calls--> create_room
+  test_search_messages_authorization_filtering --Uses--> Membership
+  test_search_messages_authorization_filtering --Calls--> create_membership
+  test_search_messages_authorization_filtering --Uses--> Message
+  test_search_messages_authorization_filtering --Calls--> create_message_with_deduplication
+  test_search_messages_authorization_filtering --Calls--> create_test_room_with_messages
+  setup_test_db --Uses--> CampfireDatabase
+  create_test_user --Calls--> writer
+  create_test_room --Uses--> CampfireDatabase
+  create_test_room --Uses--> Room
+  create_test_room --Calls--> create_room
+  create_test_room --Calls--> writer
+  create_test_membership --Uses--> CampfireDatabase
+  create_test_membership --Uses--> RoomId
+  create_test_membership --Uses--> UserId
+  create_test_membership --Uses--> Membership
+  create_test_membership --Calls--> create_membership
+  create_test_membership --Calls--> writer
+  create_test_message --Uses--> CampfireDatabase
+  create_test_message --Uses--> RoomId
+  create_test_message --Uses--> UserId
+  create_test_message --Uses--> Message
+  create_test_message --Calls--> create_message_with_deduplication
+  create_test_message --Calls--> writer
+  test_search_messages_success --Calls--> setup_test_db
+  test_search_messages_success --Calls--> create_test_user
+  test_search_messages_success --Calls--> create_test_room
+  test_search_messages_success --Calls--> create_test_membership
+  test_search_messages_success --Calls--> create_test_message
+  test_search_messages_success --Uses--> SearchRequest
+  test_search_messages_success --Calls--> search_messages
+  test_search_messages_authorization --Calls--> setup_test_db
+  test_search_messages_authorization --Calls--> create_test_user
+  test_search_messages_authorization --Calls--> create_test_room
+  test_search_messages_authorization --Calls--> create_test_membership
+  test_search_messages_authorization --Calls--> create_test_message
+  test_search_messages_authorization --Uses--> SearchRequest
+  test_search_messages_authorization --Calls--> search_messages
+  test_search_messages_room_specific --Calls--> setup_test_db
+  test_search_messages_room_specific --Calls--> create_test_user
+  test_search_messages_room_specific --Calls--> create_test_room
+  test_search_messages_room_specific --Calls--> create_test_membership
+  test_search_messages_room_specific --Calls--> create_test_message
+  test_search_messages_room_specific --Uses--> SearchRequest
+  test_search_messages_room_specific --Calls--> search_messages
+  test_search_messages_pagination --Calls--> setup_test_db
+  test_search_messages_pagination --Calls--> create_test_user
+  test_search_messages_pagination --Calls--> create_test_room
+  test_search_messages_pagination --Calls--> create_test_membership
+  test_search_messages_pagination --Calls--> create_test_message
+  test_search_messages_pagination --Uses--> SearchRequest
+  test_search_messages_pagination --Calls--> search_messages
+  test_search_messages_query_validation --Calls--> setup_test_db
+  test_search_messages_query_validation --Calls--> create_test_user
+  test_search_messages_query_validation --Uses--> SearchRequest
+  test_search_messages_query_validation --Calls--> search_messages
+  test_search_messages_ranking --Calls--> setup_test_db
+  test_search_messages_ranking --Calls--> create_test_user
+  test_search_messages_ranking --Calls--> create_test_room
+  test_search_messages_ranking --Calls--> create_test_membership
+  test_search_messages_ranking --Calls--> create_test_message
+  test_search_messages_ranking --Uses--> SearchRequest
+  test_search_messages_ranking --Calls--> search_messages
+  test_search_messages_snippet_generation --Calls--> setup_test_db
+  test_search_messages_snippet_generation --Calls--> create_test_user
+  test_search_messages_snippet_generation --Calls--> create_test_room
+  test_search_messages_snippet_generation --Calls--> create_test_membership
+  test_search_messages_snippet_generation --Calls--> create_test_message
+  test_search_messages_snippet_generation --Uses--> SearchRequest
+  test_search_messages_snippet_generation --Calls--> search_messages
+  test_search_room_messages --Calls--> setup_test_db
+  test_search_room_messages --Calls--> create_test_user
+  test_search_room_messages --Calls--> create_test_room
+  test_search_room_messages --Calls--> create_test_membership
+  test_search_room_messages --Calls--> create_test_message
+  test_search_room_messages --Calls--> search_room_messages
+  test_search_no_results --Calls--> setup_test_db
+  test_search_no_results --Calls--> create_test_user
+  test_search_no_results --Calls--> create_test_room
+  test_search_no_results --Calls--> create_test_membership
+  test_search_no_results --Calls--> create_test_message
+  test_search_no_results --Uses--> SearchRequest
+  test_search_no_results --Calls--> search_messages
+  test_basic_search_functionality --Uses--> User
+  test_basic_search_functionality --Calls--> create_user
+  test_basic_search_functionality --Calls--> writer
+  test_basic_search_functionality --Uses--> Room
+  test_basic_search_functionality --Calls--> create_room
+  test_basic_search_functionality --Uses--> Membership
+  test_basic_search_functionality --Calls--> create_membership
+  test_basic_search_functionality --Uses--> Message
+  test_basic_search_functionality --Calls--> create_message_with_deduplication
+  test_basic_search_functionality --Uses--> SearchRequest
+  test_basic_search_functionality --Calls--> search_messages
+  test_search_validation --Uses--> User
+  test_search_validation --Calls--> create_user
+  test_search_validation --Calls--> writer
+  test_search_validation --Uses--> SearchRequest
+  test_search_validation --Calls--> search_messages
+  create_full_test_app --Uses--> CampfireDatabase
+  create_full_test_app --Calls--> writer
+  create_full_test_app --Uses--> AppState
+  create_test_user_with_session --Uses--> AuthService
+  create_test_user_with_session --Calls--> create_user
+  create_test_user_with_session --Calls--> create_session
+  test_user_journey_new_user_onboarding --Calls--> create_full_test_app
+  test_user_journey_new_user_onboarding --Calls--> create_test_user_with_session
+  test_user_journey_new_user_onboarding --Calls--> make_authenticated_request
+  test_user_journey_basic_chat_functionality --Calls--> create_full_test_app
+  test_user_journey_basic_chat_functionality --Calls--> create_test_user_with_session
+  test_user_journey_basic_chat_functionality --Calls--> make_authenticated_request
+  test_user_journey_basic_chat_functionality --Calls--> get_user_rooms
+  test_user_journey_message_deduplication_and_errors --Calls--> create_full_test_app
+  test_user_journey_message_deduplication_and_errors --Calls--> create_test_user_with_session
+  test_user_journey_message_deduplication_and_errors --Calls--> create_room
+  test_user_journey_message_deduplication_and_errors --Calls--> make_authenticated_request
+  test_user_journey_search_functionality --Calls--> create_full_test_app
+  test_user_journey_search_functionality --Calls--> create_test_user_with_session
+  test_user_journey_search_functionality --Calls--> create_room
+  test_user_journey_search_functionality --Calls--> make_authenticated_request
+  test_user_journey_application_health_and_endpoints --Calls--> create_full_test_app
+  test_user_journey_error_recovery_and_edge_cases --Calls--> create_full_test_app
+  test_user_journey_error_recovery_and_edge_cases --Calls--> create_test_user_with_session
+  test_user_journey_error_recovery_and_edge_cases --Calls--> make_authenticated_request
+  create_test_user_with_session --Uses--> User
+  test_user_journey_room_management_and_permissions --Calls--> create_full_test_app
+  test_user_journey_room_management_and_permissions --Calls--> create_test_user_with_session
+  test_user_journey_room_management_and_permissions --Calls--> make_authenticated_request
+  test_user_journey_room_management_and_permissions --Calls--> get_user_rooms
+  test_user_journey_sound_system_and_rich_text --Calls--> create_full_test_app
+  test_user_journey_sound_system_and_rich_text --Calls--> create_test_user_with_session
+  test_user_journey_sound_system_and_rich_text --Calls--> create_room
+  test_user_journey_sound_system_and_rich_text --Calls--> make_authenticated_request
+  test_user_journey_bot_integration --Calls--> create_full_test_app
+  test_user_journey_bot_integration --Calls--> writer
+  test_user_journey_bot_integration --Calls--> create_test_user_with_session
+  test_user_journey_bot_integration --Calls--> create_room
+  test_user_journey_bot_integration --Calls--> make_authenticated_request
+  test_user_journey_bot_integration --Calls--> create_user
+  test_user_journey_push_notifications --Calls--> create_full_test_app
+  test_user_journey_push_notifications --Calls--> create_test_user_with_session
+  test_user_journey_push_notifications --Calls--> make_authenticated_request
+  test_user_journey_complete_application_health --Calls--> create_full_test_app
+  test_all_user_journeys_comprehensive --Calls--> test_user_journey_new_user_onboarding
+  test_all_user_journeys_comprehensive --Calls--> test_user_journey_basic_chat_functionality
+  test_all_user_journeys_comprehensive --Calls--> test_user_journey_message_deduplication_and_errors
+  test_all_user_journeys_comprehensive --Calls--> test_user_journey_search_functionality
+  test_all_user_journeys_comprehensive --Calls--> test_user_journey_room_management_and_permissions
+  test_all_user_journeys_comprehensive --Calls--> test_user_journey_sound_system_and_rich_text
+  test_all_user_journeys_comprehensive --Calls--> test_user_journey_bot_integration
+  test_all_user_journeys_comprehensive --Calls--> test_user_journey_push_notifications
+  test_all_user_journeys_comprehensive --Calls--> test_user_journey_error_recovery_and_edge_cases
+  test_all_user_journeys_comprehensive --Calls--> test_user_journey_complete_application_health
+

@@ -1,0 +1,31 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+{
+  "target": {
+    "hash": 9484381107343753095,
+    "kind": "Struct",
+    "name": "BotServiceImpl",
+    "signature": "struct BotServiceImpl",
+    "file_path": "src/services/bot.rs",
+    "line": 0
+  },
+  "dependencies": [
+    {
+      "hash": 4257875499014151664,
+      "kind": "Trait",
+      "name": "BotService",
+      "signature": "trait BotService",
+      "file_path": "src/services/bot.rs",
+      "line": 0
+    }
+  ],
+  "callers": [
+    {
+      "hash": 3581229521790456259,
+      "kind": "Function",
+      "name": "create_test_bot_service",
+      "signature": "fn create_test_bot_service",
+      "file_path": "tests/bot_service_test.rs",
+      "line": 0
+    }
+  ]
+}

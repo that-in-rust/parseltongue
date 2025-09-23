@@ -1,0 +1,11 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+Entity: MessageService (Struct)
+Signature: struct MessageService
+File: src/services/message.rs:0
+
+Dependencies (1):
+  - MessageServiceTrait (src/services/message.rs): trait MessageServiceTrait
+
+Callers (0):
+
+Context generated in 0μs

@@ -1,0 +1,17 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+Entity: AppState (Struct)
+Signature: struct AppState
+File: src/lib.rs:0
+
+Dependencies (0):
+
+
+Callers (7):
+  - create_full_test_app (tests/user_journey_tests.rs): fn create_full_test_app
+  - setup_test_app (tests/search_handlers_test.rs): fn setup_test_app
+  - create_test_app (tests/room_handlers_test.rs): fn create_test_app
+  - from_request_parts (src/middleware/session.rs): fn from_request_parts
+  - collect_metrics_summary (src/metrics.rs): fn collect_metrics_summary
+  - metrics_summary (src/metrics.rs): fn metrics_summary
+  - main (src/main.rs): fn main
+Context generated in 1μs

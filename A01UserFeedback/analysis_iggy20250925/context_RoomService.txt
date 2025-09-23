@@ -1,0 +1,11 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+Entity: RoomService (Struct)
+Signature: struct RoomService
+File: src/services/room.rs:0
+
+Dependencies (1):
+  - RoomServiceTrait (src/services/room.rs): trait RoomServiceTrait
+
+Callers (0):
+
+Context generated in 0μs

@@ -1,0 +1,70 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+{
+  "target": {
+    "hash": 13695658476842546602,
+    "kind": "Struct",
+    "name": "AppState",
+    "signature": "struct AppState",
+    "file_path": "src/lib.rs",
+    "line": 0
+  },
+  "dependencies": [],
+  "callers": [
+    {
+      "hash": 17026855298325135875,
+      "kind": "Function",
+      "name": "create_full_test_app",
+      "signature": "fn create_full_test_app",
+      "file_path": "tests/user_journey_tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 13437705090936374322,
+      "kind": "Function",
+      "name": "setup_test_app",
+      "signature": "fn setup_test_app",
+      "file_path": "tests/search_handlers_test.rs",
+      "line": 0
+    },
+    {
+      "hash": 4226855393096311147,
+      "kind": "Function",
+      "name": "create_test_app",
+      "signature": "fn create_test_app",
+      "file_path": "tests/room_handlers_test.rs",
+      "line": 0
+    },
+    {
+      "hash": 12640681291812243510,
+      "kind": "Function",
+      "name": "from_request_parts",
+      "signature": "fn from_request_parts",
+      "file_path": "src/middleware/session.rs",
+      "line": 0
+    },
+    {
+      "hash": 6706050061961491193,
+      "kind": "Function",
+      "name": "collect_metrics_summary",
+      "signature": "fn collect_metrics_summary",
+      "file_path": "src/metrics.rs",
+      "line": 0
+    },
+    {
+      "hash": 10064733309529848917,
+      "kind": "Function",
+      "name": "metrics_summary",
+      "signature": "fn metrics_summary",
+      "file_path": "src/metrics.rs",
+      "line": 0
+    },
+    {
+      "hash": 6115722153671726781,
+      "kind": "Function",
+      "name": "main",
+      "signature": "fn main",
+      "file_path": "src/main.rs",
+      "line": 0
+    }
+  ]
+}

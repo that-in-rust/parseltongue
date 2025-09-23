@@ -1,0 +1,22 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+{
+  "target": {
+    "hash": 14724005106705625539,
+    "kind": "Struct",
+    "name": "RoomService",
+    "signature": "struct RoomService",
+    "file_path": "src/services/room.rs",
+    "line": 0
+  },
+  "dependencies": [
+    {
+      "hash": 15834261395534353656,
+      "kind": "Trait",
+      "name": "RoomServiceTrait",
+      "signature": "trait RoomServiceTrait",
+      "file_path": "src/services/room.rs",
+      "line": 0
+    }
+  ],
+  "callers": []
+}

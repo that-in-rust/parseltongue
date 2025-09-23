@@ -1,0 +1,22 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+{
+  "target": {
+    "hash": 6384820940156851315,
+    "kind": "Struct",
+    "name": "MessageService",
+    "signature": "struct MessageService",
+    "file_path": "src/services/message.rs",
+    "line": 0
+  },
+  "dependencies": [
+    {
+      "hash": 4436190302546517390,
+      "kind": "Trait",
+      "name": "MessageServiceTrait",
+      "signature": "trait MessageServiceTrait",
+      "file_path": "src/services/message.rs",
+      "line": 0
+    }
+  ],
+  "callers": []
+}
