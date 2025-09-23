@@ -3,7 +3,7 @@
 //! These tests validate the memory efficiency and performance characteristics
 //! of the FileInterner system as required by task 1.
 
-use super::{FileInterner, MemoryUsage, FileId};
+use super::{FileInterner, FileId};
 use std::time::Instant;
 
 #[cfg(test)]

@@ -1,13 +1,13 @@
 # Implementation Plan
 
-- [ ] 1. Set up discovery infrastructure and core interfaces
+- [x] 1. Set up discovery infrastructure and core interfaces
   - Create discovery module structure with trait definitions
   - Implement string interning system for file paths (FileId, FileInterner)
   - Define DiscoveryEngine trait with async methods for entity exploration
   - Write unit tests for string interning efficiency and memory usage
   - _Requirements: 1.1, 1.2, 2.1_
 
-- [ ] 2. Enhance ISG node structure with file location attributes
+- [-] 2. Enhance ISG node structure with file location attributes
   - Extend existing ISG node structure to include file_path, line_number, column fields
   - Implement EnhancedIsgNode with embedded file location data (not separate nodes)
   - Create conversion utilities between existing and enhanced node formats
