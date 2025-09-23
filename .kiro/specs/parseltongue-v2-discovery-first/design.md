@@ -1,562 +1,722 @@
-# Design Document
+# Parseltongue v2 Design Document
 
 ## Overview
 
-Parseltongue v2 transforms the architecture from **query-execution-optimized** to **discovery-first** while preserving the exceptional performance characteristics that make it uniquely valuable. The design addresses the core constraint: users spend 5+ minutes discovering entity names to achieve 1-microsecond queries.
+Parseltongue v2 transforms from an **analysis-first tool with discovery friction** into a **discovery-first architectural intelligence tool**. The core insight driving this redesign is that users spend 5+ minutes discovering entity names to achieve 1-microsecond queries—a 300,000:1 ratio that represents the primary constraint on adoption.
 
-**Design Philosophy**: Extend the existing Interface Signature Graph (ISG) with discovery-optimized indexes and navigation metadata, ensuring zero performance regression for existing workflows while enabling sub-100ms entity discovery.
+### Design Philosophy
+
+**Discovery-First Architecture**: Every component prioritizes entity discoverability while preserving the exceptional performance that makes Parseltongue unique. The design follows the constraint theory principle: optimize the primary constraint (entity discovery) rather than secondary capabilities (analysis speed, which is already excellent).
+
+### Success Metrics
+- **Entity discovery time**: <30 seconds (from current 5+ minutes)
+- **Query success rate**: 90%+ (from current ~30% for generic names)
+- **Performance preservation**: <50μs for existing queries (no regression)
 
 ## Architecture
 
-### High-Level Architecture Evolution
+### High-Level System Architecture
 
 ```mermaid
 graph TD
-    subgraph "v1 Architecture (Query-Optimized)"
-        A1[Code Ingestion] --> B1[ISG Construction]
-        B1 --> C1[Entity Nodes]
-        B1 --> D1[Relationship Edges]
-        C1 --> E1[Query Engine]
-        D1 --> E1
-        E1 --> F1[Microsecond Results]
+    subgraph "Discovery Layer (New)"
+        DI[Discovery Interface]
+        EI[Entity Index]
+        FI[File Index]
+        SI[Search Engine]
     end
     
-    subgraph "v2 Architecture (Discovery-First)"
-        A2[Code Ingestion] --> B2[Enhanced ISG Construction]
-        B2 --> C2[Entity Nodes + File Metadata]
-        B2 --> D2[Relationship Edges]
-        B2 --> G2[Discovery Indexes]
-        
-        C2 --> E2[Query Engine]
-        D2 --> E2
-        G2 --> H2[Discovery Engine]
-        
-        E2 --> F2[Microsecond Results]
-        H2 --> I2[Sub-100ms Discovery]
+    subgraph "Core Analysis Layer (Existing)"
+        ISG[ISG Storage]
+        QE[Query Engine]
+        PE[Performance Engine]
     end
     
-    classDef v1 fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef v2 fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef new fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    subgraph "CLI Interface"
+        DC[Discovery Commands]
+        AC[Analysis Commands]
+    end
     
-    class A1,B1,C1,D1,E1,F1 v1
-    class A2,B2,C2,D2,E2,F2 v2
-    class G2,H2,I2 new
+    DC --> DI
+    AC --> QE
+    DI --> EI
+    DI --> FI
+    DI --> SI
+    EI --> ISG
+    FI --> ISG
+    SI --> ISG
+    QE --> ISG
+    
+    classDef discovery fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef core fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef interface fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    
+    class DI,EI,FI,SI discovery
+    class ISG,QE,PE core
+    class DC,AC interface
 ```
 
-### Core Design Principles
+### Layered Architecture Design
 
-1. **Additive Architecture**: All v2 features are extensions, never replacements
-2. **Performance Preservation**: New features must not impact existing query performance
-3. **Memory Efficiency**: Use string interning and efficient indexing to minimize overhead
-4. **Backward Compatibility**: 100% of v1 APIs continue to work unchanged
+Following the L1→L2→L3 pattern from the design principles:
+
+- **L1 Core**: ISG data structures, entity relationships, hash-based lookups (no_std compatible)
+- **L2 Standard**: Discovery indices, file mappings, string processing, collections
+- **L3 External**: CLI framework (clap), fuzzy matching (fuse), serialization (serde)
 
 ## Components and Interfaces
 
-### Enhanced ISG Node Structure
+### 1. Discovery Interface (New Component)
+
+**Purpose**: Primary entry point for all entity discovery operations, bridging the gap between user intent and precise entity identification.
 
 ```rust
-// v1 Node Structure (preserved)
-pub struct ISGNode {
-    pub id: NodeId,
+/// Discovery interface for entity exploration and navigation
+pub trait DiscoveryInterface {
+    /// List entities matching a pattern with file context
+    async fn list_entities(&self, pattern: &str) -> Result<Vec<EntityMatch>, DiscoveryError>;
+    
+    /// Find entities in a specific file
+    async fn entities_in_file(&self, file_path: &str) -> Result<Vec<EntityLocation>, DiscoveryError>;
+    
+    /// Fuzzy search for entity names
+    async fn fuzzy_search(&self, query: &str, limit: usize) -> Result<Vec<FuzzyMatch>, DiscoveryError>;
+    
+    /// Get exact file location for an entity
+    async fn where_defined(&self, entity_name: &str) -> Result<Option<FileLocation>, DiscoveryError>;
+}
+
+#[derive(Debug, Clone)]
+pub struct EntityMatch {
     pub name: String,
-    pub kind: NodeKind,
-    pub relationships: Vec<Relationship>,
-    // ... existing fields
-}
-
-// v2 Enhanced Node Structure (additive)
-pub struct EnhancedISGNode {
-    // v1 compatibility layer
-    pub v1_node: ISGNode,
-    
-    // v2 discovery extensions
-    pub file_metadata: FileMetadata,
-    pub search_metadata: SearchMetadata,
+    pub entity_type: EntityType,
+    pub file_location: FileLocation,
+    pub relevance_score: f32,
 }
 
 #[derive(Debug, Clone)]
-pub struct FileMetadata {
-    pub file_path: InternedString,      // Relative path from project root
-    pub module_path: InternedString,    // Rust module path
-    pub line_range: (u32, u32),         // Start and end line numbers
-    pub file_id: FileId,                // Efficient file reference
+pub struct FileLocation {
+    pub file_path: String,
+    pub line_start: u32,
+    pub line_end: u32,
+    pub column_start: u32,
+    pub column_end: u32,
+}
+```
+
+**Design Rationale**: Trait-based design enables testing with mock implementations while providing a clean abstraction over the underlying indices.
+
+### 2. Entity Index (New Component)
+
+**Purpose**: Fast lookup structure for entity names with pattern matching and fuzzy search capabilities.
+
+```rust
+/// High-performance entity index with multiple access patterns
+pub struct EntityIndex {
+    /// Primary hash map for exact lookups (existing performance)
+    exact_lookup: HashMap<String, EntityId>,
+    
+    /// Trie structure for prefix matching
+    prefix_trie: Trie<EntityId>,
+    
+    /// Inverted index for substring searches
+    substring_index: InvertedIndex,
+    
+    /// Fuzzy search engine
+    fuzzy_engine: FuzzySearchEngine,
+    
+    /// String interning for memory efficiency
+    string_interner: StringInterner,
+}
+
+impl EntityIndex {
+    /// O(1) exact lookup (preserves existing performance)
+    pub fn get_exact(&self, name: &str) -> Option<EntityId> {
+        self.exact_lookup.get(name).copied()
+    }
+    
+    /// O(k) prefix search where k is number of matches
+    pub fn find_by_prefix(&self, prefix: &str) -> Vec<EntityMatch> {
+        self.prefix_trie.find_with_prefix(prefix)
+    }
+    
+    /// O(log n) substring search with ranking
+    pub fn find_by_substring(&self, substring: &str) -> Vec<EntityMatch> {
+        self.substring_index.search(substring)
+    }
+    
+    /// O(n) fuzzy search with configurable threshold
+    pub fn fuzzy_search(&self, query: &str, threshold: f32) -> Vec<FuzzyMatch> {
+        self.fuzzy_engine.search(query, threshold)
+    }
+}
+```
+
+**Design Rationale**: Multiple index structures optimize for different search patterns while preserving O(1) exact lookups. String interning reduces memory overhead for repeated entity names.
+
+### 3. File Index (New Component)
+
+**Purpose**: Bidirectional mapping between entities and their file locations for immediate navigation.
+
+```rust
+/// Bidirectional file-entity mapping for navigation
+pub struct FileIndex {
+    /// File path -> entities defined in that file
+    file_to_entities: HashMap<String, Vec<EntityLocation>>,
+    
+    /// Entity ID -> file location
+    entity_to_file: HashMap<EntityId, FileLocation>,
+    
+    /// Directory structure for hierarchical browsing
+    directory_tree: DirectoryTree,
+}
+
+impl FileIndex {
+    /// Get all entities defined in a specific file
+    pub fn entities_in_file(&self, file_path: &str) -> Option<&[EntityLocation]> {
+        self.file_to_entities.get(file_path).map(|v| v.as_slice())
+    }
+    
+    /// Get file location for a specific entity
+    pub fn file_location(&self, entity_id: EntityId) -> Option<&FileLocation> {
+        self.entity_to_file.get(&entity_id)
+    }
+    
+    /// List all files containing entities matching a pattern
+    pub fn files_containing_pattern(&self, pattern: &str) -> Vec<String> {
+        self.file_to_entities
+            .keys()
+            .filter(|path| path.contains(pattern))
+            .cloned()
+            .collect()
+    }
+}
+```
+
+**Design Rationale**: Bidirectional mapping enables both "what's in this file?" and "where is this entity?" queries with O(1) lookup performance.
+
+### 4. Enhanced ISG Storage (Modified Component)
+
+**Purpose**: Extend existing ISG with file location metadata while preserving performance.
+
+```rust
+/// Enhanced ISG node with file location metadata
+#[derive(Debug, Clone)]
+pub struct EnhancedNode {
+    /// Existing node data (preserved)
+    pub core_data: NodeData,
+    
+    /// File location information (new)
+    pub file_location: Option<FileLocation>,
+    
+    /// Entity metadata for discovery (new)
+    pub metadata: EntityMetadata,
 }
 
 #[derive(Debug, Clone)]
-pub struct SearchMetadata {
-    pub normalized_name: String,        // Lowercase for case-insensitive search
-    pub name_tokens: Vec<String>,       // Split for partial matching
-    pub search_tags: Vec<String>,       // Additional searchable terms
+pub struct EntityMetadata {
+    pub entity_type: EntityType,
+    pub visibility: Visibility,
+    pub module_path: Vec<String>,
+    pub documentation: Option<String>,
+}
+
+/// Enhanced ISG with discovery capabilities
+pub struct EnhancedISG {
+    /// Core ISG functionality (preserved)
+    core_isg: ISG,
+    
+    /// Discovery indices (new)
+    entity_index: EntityIndex,
+    file_index: FileIndex,
+    
+    /// Performance monitoring
+    metrics: PerformanceMetrics,
 }
 ```
 
-### Discovery Index Architecture
+**Design Rationale**: Composition over inheritance preserves existing ISG performance while adding discovery capabilities. Optional file locations maintain backward compatibility.
+
+### 5. Readable Output Formatter (New Component)
+
+**Purpose**: Transform hash-based output into human-readable results with file context.
 
 ```rust
-pub struct DiscoveryIndexes {
-    // Primary indexes for fast lookup
-    pub name_index: FxHashMap<String, FxHashSet<NodeId>>,           // Exact name matches
-    pub fuzzy_index: FxHashMap<String, FxHashSet<NodeId>>,          // Normalized names
-    pub file_index: FxHashMap<FileId, FxHashSet<NodeId>>,           // Entities by file
-    pub path_index: FxHashMap<String, FxHashSet<FileId>>,           // Files by path pattern
-    
-    // Secondary indexes for advanced discovery
-    pub token_index: FxHashMap<String, FxHashSet<NodeId>>,          // Partial name matching
-    pub kind_index: FxHashMap<NodeKind, FxHashSet<NodeId>>,         // Entities by type
-    
-    // String interning for memory efficiency
-    pub string_interner: StringInterner,
+/// Formats analysis results for human consumption
+pub struct ReadableFormatter {
+    entity_resolver: EntityResolver,
+    file_resolver: FileResolver,
+    output_config: OutputConfig,
 }
 
-impl DiscoveryIndexes {
-    pub fn find_entities_fuzzy(&self, query: &str) -> Vec<(NodeId, f32)> {
-        // Fuzzy string matching with relevance scoring
-    }
-    
-    pub fn find_entities_in_file(&self, file_path: &str) -> Vec<NodeId> {
-        // Direct file-based entity lookup
-    }
-    
-    pub fn find_entities_by_path_pattern(&self, pattern: &str) -> Vec<NodeId> {
-        // Glob pattern matching against file paths
-    }
-}
-```
-
-### Query Engine Extension
-
-```rust
-pub struct QueryEngine {
-    // v1 query engine (unchanged)
-    pub v1_engine: V1QueryEngine,
-    
-    // v2 discovery engine (additive)
-    pub discovery_engine: DiscoveryEngine,
-}
-
-pub struct DiscoveryEngine {
-    pub indexes: DiscoveryIndexes,
-    pub fuzzy_matcher: FuzzyMatcher,
-}
-
-impl DiscoveryEngine {
-    pub fn list_entities(&self, filter: Option<&str>) -> Vec<EntitySummary> {
-        // Implementation for list-entities command
-    }
-    
-    pub fn find_entity_fuzzy(&self, query: &str) -> Vec<FuzzyMatch> {
-        // Implementation for fuzzy entity search
-    }
-    
-    pub fn where_defined(&self, entity_name: &str) -> Option<FileLocation> {
-        // Implementation for where-defined command
-    }
-}
-```
-
-### Backward Compatibility Layer
-
-```rust
-pub struct CompatibilityLayer {
-    pub v2_engine: QueryEngine,
-}
-
-impl CompatibilityLayer {
-    // All v1 commands route through this layer
-    pub fn execute_v1_command(&self, command: V1Command) -> V1Result {
-        match command {
-            V1Command::WhatImplements(trait_name) => {
-                // Route to v1 engine, return v1 format
-                self.v2_engine.v1_engine.what_implements(trait_name)
-            }
-            V1Command::BlastRadius(entity) => {
-                // Enhanced implementation with readable output
-                self.execute_enhanced_blast_radius(entity)
-            }
-            // ... all other v1 commands
+impl ReadableFormatter {
+    /// Convert blast radius hashes to readable entity names
+    pub fn format_blast_radius(&self, result: BlastRadiusResult) -> ReadableBlastRadius {
+        ReadableBlastRadius {
+            center_entity: self.resolve_entity_name(result.center_hash),
+            impacts: result.impacts
+                .into_iter()
+                .map(|impact| ReadableImpact {
+                    entity_name: self.resolve_entity_name(impact.hash),
+                    file_location: self.resolve_file_location(impact.hash),
+                    relationship_type: impact.relationship_type,
+                    impact_level: self.calculate_impact_level(impact.distance),
+                })
+                .collect(),
+            risk_assessment: self.assess_risk_level(result.impacts.len()),
         }
     }
-    
-    fn execute_enhanced_blast_radius(&self, entity: &str) -> V1Result {
-        // Use v2 capabilities but return v1-compatible format
-        // with readable names instead of hashes
-    }
+}
+
+#[derive(Debug)]
+pub struct ReadableBlastRadius {
+    pub center_entity: String,
+    pub impacts: Vec<ReadableImpact>,
+    pub risk_assessment: RiskLevel,
+}
+
+#[derive(Debug)]
+pub enum RiskLevel {
+    Low,      // 1-5 impacts
+    Medium,   // 6-20 impacts
+    High,     // 21-50 impacts
+    Critical, // 50+ impacts
 }
 ```
+
+**Design Rationale**: Separate formatting layer enables different output formats (JSON, human-readable, IDE integration) without affecting core analysis performance.
 
 ## Data Models
 
-### String Interning for Memory Efficiency
+### Core Entity Types
 
 ```rust
-pub struct StringInterner {
-    strings: Vec<String>,
-    string_to_id: FxHashMap<String, StringId>,
-}
-
-pub type InternedString = StringId;
-
-impl StringInterner {
-    pub fn intern(&mut self, s: String) -> InternedString {
-        if let Some(&id) = self.string_to_id.get(&s) {
-            id
-        } else {
-            let id = StringId(self.strings.len());
-            self.strings.push(s.clone());
-            self.string_to_id.insert(s, id);
-            id
-        }
-    }
+/// Comprehensive entity type enumeration
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum EntityType {
+    // Rust-specific entities
+    Struct,
+    Enum,
+    Trait,
+    Function,
+    Method,
+    Module,
+    Impl,
+    Macro,
+    Const,
+    Static,
+    Type,
     
-    pub fn resolve(&self, id: InternedString) -> &str {
-        &self.strings[id.0]
-    }
+    // Generic programming constructs
+    Generic,
+    Associated,
+    Lifetime,
+}
+
+/// Entity visibility levels
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Visibility {
+    Public,
+    PublicCrate,
+    PublicSuper,
+    Private,
 }
 ```
 
-### File Management System
+### Discovery Data Structures
 
 ```rust
-pub struct FileManager {
-    pub files: Vec<FileInfo>,
-    pub path_to_id: FxHashMap<String, FileId>,
+/// Optimized trie for prefix searches
+pub struct Trie<T> {
+    root: TrieNode<T>,
+    size: usize,
 }
 
-#[derive(Debug, Clone)]
-pub struct FileInfo {
-    pub id: FileId,
-    pub path: InternedString,
-    pub last_modified: SystemTime,
-    pub entity_count: usize,
+struct TrieNode<T> {
+    children: HashMap<char, Box<TrieNode<T>>>,
+    values: Vec<T>,
+    is_terminal: bool,
 }
 
-impl FileManager {
-    pub fn register_file(&mut self, path: String) -> FileId {
-        if let Some(&id) = self.path_to_id.get(&path) {
-            id
-        } else {
-            let id = FileId(self.files.len());
-            let interned_path = self.string_interner.intern(path.clone());
-            self.files.push(FileInfo {
-                id,
-                path: interned_path,
-                last_modified: SystemTime::now(),
-                entity_count: 0,
-            });
-            self.path_to_id.insert(path, id);
-            id
-        }
-    }
-}
-```
-
-### Fuzzy Matching Algorithm
-
-```rust
-pub struct FuzzyMatcher {
-    // Levenshtein distance threshold
-    pub max_distance: usize,
-}
-
-#[derive(Debug, Clone)]
-pub struct FuzzyMatch {
-    pub node_id: NodeId,
-    pub entity_name: String,
-    pub file_location: String,
-    pub relevance_score: f32,  // 0.0 to 1.0
-    pub match_type: MatchType,
-}
-
-#[derive(Debug, Clone)]
-pub enum MatchType {
-    ExactMatch,
-    PrefixMatch,
-    SubstringMatch,
-    FuzzyMatch { distance: usize },
-}
-
-impl FuzzyMatcher {
-    pub fn find_matches(&self, query: &str, candidates: &[String]) -> Vec<FuzzyMatch> {
-        let mut matches = Vec::new();
-        
-        for (idx, candidate) in candidates.iter().enumerate() {
-            if let Some(match_info) = self.calculate_match(query, candidate) {
-                matches.push(FuzzyMatch {
-                    node_id: NodeId(idx),
-                    entity_name: candidate.clone(),
-                    file_location: "".to_string(), // Filled by caller
-                    relevance_score: match_info.score,
-                    match_type: match_info.match_type,
-                });
-            }
-        }
-        
-        // Sort by relevance score (highest first)
-        matches.sort_by(|a, b| b.relevance_score.partial_cmp(&a.relevance_score).unwrap());
-        matches
-    }
+/// Inverted index for substring searches
+pub struct InvertedIndex {
+    /// Substring -> list of entity IDs containing it
+    index: HashMap<String, Vec<EntityId>>,
     
-    fn calculate_match(&self, query: &str, candidate: &str) -> Option<MatchInfo> {
-        // Exact match (highest score)
-        if query.eq_ignore_ascii_case(candidate) {
-            return Some(MatchInfo {
-                score: 1.0,
-                match_type: MatchType::ExactMatch,
-            });
-        }
-        
-        // Prefix match (high score)
-        if candidate.to_lowercase().starts_with(&query.to_lowercase()) {
-            let score = 0.9 * (query.len() as f32 / candidate.len() as f32);
-            return Some(MatchInfo {
-                score,
-                match_type: MatchType::PrefixMatch,
-            });
-        }
-        
-        // Substring match (medium score)
-        if candidate.to_lowercase().contains(&query.to_lowercase()) {
-            let score = 0.7 * (query.len() as f32 / candidate.len() as f32);
-            return Some(MatchInfo {
-                score,
-                match_type: MatchType::SubstringMatch,
-            });
-        }
-        
-        // Fuzzy match (lower score based on distance)
-        let distance = levenshtein_distance(&query.to_lowercase(), &candidate.to_lowercase());
-        if distance <= self.max_distance {
-            let score = 0.5 * (1.0 - (distance as f32 / query.len().max(candidate.len()) as f32));
-            return Some(MatchInfo {
-                score,
-                match_type: MatchType::FuzzyMatch { distance },
-            });
-        }
-        
-        None
-    }
+    /// Minimum substring length for indexing
+    min_length: usize,
+    
+    /// Maximum number of results per query
+    max_results: usize,
 }
 
-struct MatchInfo {
-    score: f32,
-    match_type: MatchType,
+/// Fuzzy search configuration
+pub struct FuzzySearchEngine {
+    /// Levenshtein distance threshold
+    distance_threshold: usize,
+    
+    /// Jaro-Winkler similarity threshold
+    similarity_threshold: f32,
+    
+    /// Cached distance calculations
+    distance_cache: LruCache<(String, String), usize>,
 }
 ```
+
+**Design Rationale**: Specialized data structures optimize for different search patterns while maintaining memory efficiency through caching and configurable limits.
 
 ## Error Handling
 
-### Discovery-Specific Error Types
+### Comprehensive Error Hierarchy
 
 ```rust
+/// Discovery-specific errors with actionable context
 #[derive(Error, Debug)]
 pub enum DiscoveryError {
-    #[error("No entities found matching pattern: {pattern}")]
-    NoMatches { pattern: String },
+    #[error("Entity not found: '{name}'. Try fuzzy search with --fuzzy flag")]
+    EntityNotFound { name: String },
     
-    #[error("File not found: {path}")]
+    #[error("File not found: '{path}'. Check if file exists in the analyzed codebase")]
     FileNotFound { path: String },
     
-    #[error("Invalid search pattern: {pattern} - {reason}")]
-    InvalidPattern { pattern: String, reason: String },
+    #[error("Search pattern too broad: '{pattern}' matches {count} entities. Use more specific pattern")]
+    PatternTooBroad { pattern: String, count: usize },
     
-    #[error("Search timeout after {timeout_ms}ms")]
-    SearchTimeout { timeout_ms: u64 },
+    #[error("Search pattern too narrow: '{pattern}' matches no entities. Try fuzzy search")]
+    PatternTooNarrow { pattern: String },
     
-    #[error("Index corruption detected: {details}")]
-    IndexCorruption { details: String },
+    #[error("Index not ready: {reason}. Run 'parseltongue ingest' first")]
+    IndexNotReady { reason: String },
+    
+    #[error("Performance constraint violated: {operation} took {actual:?}, limit {limit:?}")]
+    PerformanceViolation {
+        operation: String,
+        actual: Duration,
+        limit: Duration,
+    },
+    
+    #[error("Core ISG error: {0}")]
+    CoreISG(#[from] ISGError),
 }
 
+/// Application-level error handling with context
 pub type DiscoveryResult<T> = Result<T, DiscoveryError>;
-```
 
-### Graceful Degradation Strategy
-
-```rust
-impl DiscoveryEngine {
-    pub fn find_entities_with_fallback(&self, query: &str) -> DiscoveryResult<Vec<EntitySummary>> {
-        // Try fuzzy search first
-        match self.find_entity_fuzzy(query) {
-            Ok(results) if !results.is_empty() => Ok(results.into_iter().map(Into::into).collect()),
-            _ => {
-                // Fallback to substring search
-                match self.find_entities_substring(query) {
-                    Ok(results) if !results.is_empty() => Ok(results),
-                    _ => {
-                        // Final fallback to debug --graph | grep equivalent
-                        self.find_entities_debug_fallback(query)
-                    }
-                }
-            }
-        }
-    }
+/// Error context for debugging and user guidance
+#[derive(Debug)]
+pub struct ErrorContext {
+    pub operation: String,
+    pub entity_name: Option<String>,
+    pub file_path: Option<String>,
+    pub suggestions: Vec<String>,
 }
 ```
+
+**Design Rationale**: Structured errors provide actionable guidance to users while maintaining programmatic error handling for API consumers.
 
 ## Testing Strategy
 
-### Performance Regression Testing
+### Multi-Layer Testing Approach
 
+#### 1. Unit Tests (Component Isolation)
 ```rust
 #[cfg(test)]
-mod performance_tests {
+mod entity_index_tests {
     use super::*;
-    use std::time::Instant;
     
     #[test]
-    fn test_v1_query_performance_preservation() {
-        let engine = create_test_engine_with_large_dataset();
+    fn test_exact_lookup_performance() {
+        let index = create_test_index_with_entities(10_000);
         
-        // Test existing v1 queries maintain <50μs performance
         let start = Instant::now();
-        let result = engine.what_implements("TestTrait");
-        let duration = start.elapsed();
+        let result = index.get_exact("TestEntity");
+        let elapsed = start.elapsed();
         
-        assert!(duration.as_micros() < 50, "Query took {:?}, expected <50μs", duration);
-        assert!(result.is_ok());
+        assert!(elapsed < Duration::from_micros(50));
+        assert!(result.is_some());
     }
     
     #[test]
-    fn test_discovery_query_performance() {
-        let engine = create_test_engine_with_large_dataset();
+    fn test_prefix_search_accuracy() {
+        let index = create_test_index();
+        let results = index.find_by_prefix("Handler");
         
-        // Test new discovery queries complete <100ms
-        let start = Instant::now();
-        let result = engine.find_entity_fuzzy("Handler");
-        let duration = start.elapsed();
-        
-        assert!(duration.as_millis() < 100, "Discovery took {:?}, expected <100ms", duration);
-        assert!(result.is_ok());
-    }
-    
-    #[test]
-    fn test_memory_overhead() {
-        let v1_engine = create_v1_engine_with_dataset();
-        let v2_engine = create_v2_engine_with_dataset();
-        
-        let v1_memory = measure_memory_usage(&v1_engine);
-        let v2_memory = measure_memory_usage(&v2_engine);
-        
-        let overhead_ratio = (v2_memory as f64) / (v1_memory as f64);
-        assert!(overhead_ratio < 1.2, "Memory overhead {}% exceeds 20% limit", (overhead_ratio - 1.0) * 100.0);
+        assert!(results.iter().all(|m| m.name.starts_with("Handler")));
+        assert!(results.len() > 0);
     }
 }
 ```
 
-### Backward Compatibility Testing
+#### 2. Integration Tests (Component Interaction)
+```rust
+#[tokio::test]
+async fn test_discovery_to_analysis_workflow() {
+    let system = create_test_system().await;
+    
+    // Discovery phase
+    let entities = system.discovery()
+        .list_entities("*Handler*")
+        .await
+        .unwrap();
+    
+    assert!(!entities.is_empty());
+    
+    // Analysis phase using discovered entity
+    let entity_name = &entities[0].name;
+    let blast_radius = system.analysis()
+        .calculate_blast_radius(entity_name)
+        .await
+        .unwrap();
+    
+    // Verify readable output
+    assert!(!blast_radius.center_entity.contains("hash"));
+    assert!(blast_radius.impacts.iter().all(|i| !i.entity_name.contains("hash")));
+}
+```
+
+#### 3. Property-Based Tests (Invariant Validation)
+```rust
+use proptest::prelude::*;
+
+proptest! {
+    #[test]
+    fn discovery_performance_contract(
+        pattern in "[a-zA-Z*]{1,20}",
+        entity_count in 1000usize..50000
+    ) {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            let system = create_test_system_with_entities(entity_count).await;
+            
+            let start = Instant::now();
+            let results = system.discovery().list_entities(&pattern).await.unwrap();
+            let elapsed = start.elapsed();
+            
+            // Discovery must complete within 100ms regardless of pattern or entity count
+            prop_assert!(elapsed < Duration::from_millis(100));
+            
+            // Results must be relevant to pattern
+            if !pattern.contains('*') {
+                prop_assert!(results.iter().all(|r| r.name.contains(&pattern)));
+            }
+        });
+    }
+}
+```
+
+#### 4. Performance Contract Tests
+```rust
+#[test]
+fn test_memory_usage_contract() {
+    let initial_memory = get_memory_usage();
+    let system = create_large_test_system(100_000); // 100K entities
+    let final_memory = get_memory_usage();
+    
+    let memory_increase = final_memory - initial_memory;
+    let max_allowed = initial_memory * 1.2; // 20% increase limit
+    
+    assert!(memory_increase < max_allowed, 
+            "Memory usage increased by {:.1}%, limit is 20%", 
+            (memory_increase as f64 / initial_memory as f64) * 100.0);
+}
+
+#[test]
+fn test_existing_query_performance_preservation() {
+    let system = create_test_system();
+    
+    // Test existing query performance is unchanged
+    let start = Instant::now();
+    let result = system.core_isg().execute_simple_query("TestEntity");
+    let elapsed = start.elapsed();
+    
+    assert!(elapsed < Duration::from_micros(50), 
+            "Existing query performance degraded: {:?}", elapsed);
+}
+```
+
+### Test Data Strategy
 
 ```rust
-#[cfg(test)]
-mod compatibility_tests {
-    use super::*;
-    
-    #[test]
-    fn test_all_v1_commands_unchanged() {
-        let v1_commands = vec![
-            "query what-implements TestTrait",
-            "query uses TestStruct", 
-            "query calls test_function",
-            "query blast-radius TestEntity",
-            "generate-context TestEntity",
-            "visualize",
-            "debug --graph",
-        ];
-        
-        for command in v1_commands {
-            let v1_result = execute_v1_command(command);
-            let v2_result = execute_v2_command_in_v1_mode(command);
-            
-            assert_eq!(v1_result, v2_result, "Command '{}' produces different results", command);
+/// Realistic test data generation
+pub struct TestDataGenerator {
+    entity_patterns: Vec<String>,
+    file_patterns: Vec<String>,
+    relationship_patterns: Vec<RelationshipType>,
+}
+
+impl TestDataGenerator {
+    /// Generate test data matching real Rust codebase patterns
+    pub fn generate_realistic_codebase(&self, size: CodebaseSize) -> TestCodebase {
+        match size {
+            CodebaseSize::Small => self.generate_entities(1_000),
+            CodebaseSize::Medium => self.generate_entities(10_000),
+            CodebaseSize::Large => self.generate_entities(100_000),
         }
     }
+    
+    /// Generate entities with realistic naming patterns
+    fn generate_entities(&self, count: usize) -> Vec<TestEntity> {
+        // Generate entities following real Rust naming conventions
+        // Include common patterns like Handler, Service, Manager, etc.
+        // Create realistic file hierarchies (src/lib.rs, src/handlers/, etc.)
+        // Generate appropriate relationships between entities
+    }
 }
 ```
 
-### Discovery Functionality Testing
+**Design Rationale**: Multi-layer testing ensures both component correctness and system-level behavior while validating performance contracts at every level.
 
+## Performance Considerations
+
+### Memory Optimization Strategy
+
+#### String Interning for Entity Names
 ```rust
-#[cfg(test)]
-mod discovery_tests {
-    use super::*;
-    
-    #[test]
-    fn test_entity_discovery_workflow() {
-        let engine = create_test_engine();
-        
-        // Test the core discovery workflow
-        let entities = engine.list_entities(Some("*Handler*")).unwrap();
-        assert!(!entities.is_empty());
-        
-        let first_entity = &entities[0];
-        let location = engine.where_defined(&first_entity.name).unwrap();
-        assert!(location.file_path.contains(".rs"));
-        
-        let file_entities = engine.find_entities_in_file(&location.file_path).unwrap();
-        assert!(file_entities.iter().any(|e| e.name == first_entity.name));
+/// Memory-efficient string storage for repeated entity names
+pub struct StringInterner {
+    strings: Vec<String>,
+    indices: HashMap<String, StringId>,
+    next_id: StringId,
+}
+
+impl StringInterner {
+    pub fn intern(&mut self, s: &str) -> StringId {
+        if let Some(&id) = self.indices.get(s) {
+            id
+        } else {
+            let id = self.next_id;
+            self.strings.push(s.to_string());
+            self.indices.insert(s.to_string(), id);
+            self.next_id = StringId(self.next_id.0 + 1);
+            id
+        }
     }
     
-    #[test]
-    fn test_fuzzy_search_quality() {
-        let engine = create_test_engine();
-        
-        // Test fuzzy search finds relevant entities
-        let results = engine.find_entity_fuzzy("handlr").unwrap(); // Typo in "handler"
-        assert!(!results.is_empty());
-        
-        let handler_results: Vec<_> = results.iter()
-            .filter(|r| r.entity_name.to_lowercase().contains("handler"))
-            .collect();
-        assert!(!handler_results.is_empty(), "Fuzzy search should find handler-related entities");
+    pub fn resolve(&self, id: StringId) -> &str {
+        &self.strings[id.0 as usize]
     }
 }
 ```
+
+#### Lazy Loading for Large Codebases
+```rust
+/// Lazy-loaded indices for memory efficiency
+pub struct LazyEntityIndex {
+    core_index: EntityIndex,
+    extended_indices: HashMap<IndexType, Option<Box<dyn ExtendedIndex>>>,
+    loading_strategy: LoadingStrategy,
+}
+
+impl LazyEntityIndex {
+    pub fn get_fuzzy_search(&mut self) -> &dyn FuzzySearchEngine {
+        self.extended_indices
+            .entry(IndexType::FuzzySearch)
+            .or_insert_with(|| {
+                Some(Box::new(self.load_fuzzy_index()))
+            })
+            .as_ref()
+            .unwrap()
+    }
+}
+```
+
+### Query Optimization
+
+#### Multi-Level Caching Strategy
+```rust
+/// Hierarchical caching for discovery queries
+pub struct DiscoveryCache {
+    /// L1: Exact entity lookups (hot cache)
+    exact_cache: LruCache<String, EntityId>,
+    
+    /// L2: Pattern-based searches (warm cache)
+    pattern_cache: LruCache<String, Vec<EntityMatch>>,
+    
+    /// L3: Fuzzy search results (cold cache)
+    fuzzy_cache: LruCache<(String, f32), Vec<FuzzyMatch>>,
+    
+    /// Cache statistics for optimization
+    stats: CacheStats,
+}
+```
+
+#### Parallel Processing for Large Results
+```rust
+/// Parallel processing for discovery operations
+impl DiscoveryInterface for ParallelDiscoveryEngine {
+    async fn list_entities(&self, pattern: &str) -> Result<Vec<EntityMatch>, DiscoveryError> {
+        let chunks = self.partition_search_space(pattern);
+        
+        let results = futures::future::join_all(
+            chunks.into_iter().map(|chunk| {
+                tokio::spawn(async move {
+                    self.search_chunk(chunk).await
+                })
+            })
+        ).await;
+        
+        let mut combined_results = Vec::new();
+        for result in results {
+            combined_results.extend(result??);
+        }
+        
+        // Sort by relevance and apply limits
+        combined_results.sort_by(|a, b| b.relevance_score.partial_cmp(&a.relevance_score).unwrap());
+        combined_results.truncate(self.max_results);
+        
+        Ok(combined_results)
+    }
+}
+```
+
+**Design Rationale**: Performance optimizations focus on the critical path (discovery queries) while preserving existing analysis performance through careful architectural separation.
 
 ## Implementation Phases
 
-### Phase 1: Foundation (Weeks 1-2)
-1. **Enhanced ISG Node Structure**: Add file metadata to existing nodes
-2. **String Interning System**: Implement memory-efficient string storage
-3. **Basic Discovery Indexes**: Name and file-based indexes
-4. **Backward Compatibility Layer**: Ensure 100% v1 command compatibility
+### Phase 1: Core Discovery Infrastructure (Weeks 1-2)
+- Entity Index implementation with exact/prefix/substring search
+- File Index with bidirectional mapping
+- Basic CLI commands for entity discovery
+- Performance contract validation
 
-### Phase 2: Core Discovery (Weeks 3-4)
-1. **Fuzzy Search Engine**: Implement fuzzy matching with relevance scoring
-2. **Discovery Commands**: `list-entities`, `where-defined`, `entities-in-file`
-3. **Enhanced Blast Radius**: Readable output instead of hashes
-4. **Performance Validation**: Ensure no regression in existing queries
+### Phase 2: Enhanced Search Capabilities (Weeks 3-4)
+- Fuzzy search engine integration
+- Readable output formatting
+- Comprehensive error handling with user guidance
+- Integration with existing ISG
 
-### Phase 3: Polish and Optimization (Weeks 5-6)
-1. **Advanced Discovery**: Path pattern matching, entity type filtering
-2. **Error Handling**: Comprehensive error types and graceful degradation
-3. **Performance Tuning**: Optimize indexes and memory usage
-4. **Documentation**: Update all documentation for new capabilities
+### Phase 3: Optimization and Polish (Weeks 5-6)
+- Memory optimization with string interning
+- Lazy loading for large codebases
+- Parallel processing for complex queries
+- Comprehensive testing and documentation
 
-## Risk Mitigation
+**Design Rationale**: Phased approach enables early validation of core concepts while building complexity incrementally. Each phase delivers user value independently.
 
-### Performance Risk
-- **Risk**: New indexes and metadata slow down existing queries
-- **Mitigation**: Separate discovery engine, lazy index loading, comprehensive benchmarking
+## Migration Strategy
 
-### Memory Risk  
-- **Risk**: File metadata significantly increases memory usage
-- **Mitigation**: String interning, efficient data structures, memory profiling
+### Backward Compatibility
+- Existing CLI commands remain unchanged
+- Core ISG API preserved
+- Performance characteristics maintained
+- Existing test suites continue to pass
 
-### Compatibility Risk
-- **Risk**: Changes break existing user workflows
-- **Mitigation**: Compatibility layer, comprehensive regression testing, gradual rollout
+### New Command Integration
+```bash
+# New discovery commands (additive)
+parseltongue query list-entities --filter "*Handler*"
+parseltongue query entities-in-file src/handlers/mod.rs
+parseltongue query find-entity "handlr" --fuzzy
+parseltongue query where-defined MessageHandler
 
-### Complexity Risk
-- **Risk**: Added complexity makes the system harder to maintain
-- **Mitigation**: Clean separation of concerns, extensive documentation, modular design
+# Enhanced existing commands (improved output)
+parseltongue query blast-radius MessageHandler  # Now returns readable names
+```
 
-## Success Criteria
+### Data Migration
+- Existing ISG files remain compatible
+- New metadata added during next ingestion
+- Incremental index building for large codebases
+- Graceful degradation when indices unavailable
 
-The design succeeds if:
-
-1. **Discovery Time**: New users can find entities in <30 seconds (vs current 5+ minutes)
-2. **Performance Preservation**: All v1 queries maintain <50μs performance
-3. **Memory Efficiency**: Total memory increase <20% through efficient data structures
-4. **Backward Compatibility**: 100% of existing workflows continue unchanged
-5. **User Experience**: New user time-to-first-successful-analysis <10 minutes
-
-This design transforms Parseltongue from a powerful but hard-to-discover tool into an immediately accessible architectural intelligence platform while preserving everything that makes it exceptional.
+**Design Rationale**: Zero-disruption migration ensures existing users can adopt v2 without workflow changes while gaining immediate benefits from enhanced discovery capabilities.
