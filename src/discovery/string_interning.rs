@@ -226,6 +226,9 @@ impl MemoryUsage {
 }
 
 #[cfg(test)]
+mod string_interning_performance_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     
