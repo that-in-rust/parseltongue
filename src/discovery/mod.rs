@@ -12,9 +12,11 @@ pub mod string_interning;
 pub mod engine;
 pub mod types;
 pub mod error;
+pub mod enhanced_isg_node;
 
 // Re-export core types for convenience
 pub use string_interning::{FileId, FileInterner};
 pub use engine::DiscoveryEngine;
 pub use types::{EntityInfo, FileLocation, DiscoveryQuery, DiscoveryResult};
 pub use error::{DiscoveryError, DiscoveryResult as Result};
+pub use enhanced_isg_node::{EnhancedIsgNode, NodeConverter};
