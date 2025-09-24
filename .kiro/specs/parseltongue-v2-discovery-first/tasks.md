@@ -146,7 +146,7 @@
   - Write formatting tests ensuring consistent, copy-pastable outputs across all formats
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 21. Integration with existing ISG engine and final wiring
+- [x] 21. Integration with existing ISG engine and final wiring
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Integrate discovery layer with existing InMemoryIsg without modifications
   - Wire discovery commands through existing CLI infrastructure

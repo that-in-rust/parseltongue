@@ -1390,6 +1390,12 @@ impl FormatterFactory {
 mod tests {
     use super::*;
     use std::time::Instant;
+    use crate::discovery::{
+        OnboardingResult, FeaturePlanResult, DebugResult, RefactorResult,
+        CodebaseOverview, EntryPoint, KeyContext, ImpactAnalysis, ScopeGuidance,
+        TestRecommendation, ChangeScope, RiskAssessment, ChecklistItem, ReviewerGuidance,
+        ModuleInfo, RiskFactor, ComplexityLevel, ConfidenceLevel, Priority, FileLocation
+    };
 
     // TDD RED PHASE: Test formatter creation
     #[test]
@@ -1526,5 +1532,326 @@ mod tests {
         ];
         
         assert_eq!(formatters.len(), 4);
+    }
+
+    // TDD GREEN PHASE: Test actual formatting with real data
+    #[test]
+    fn test_human_formatter_onboarding_output() {
+        let formatter = HumanFormatter::new();
+        let result = create_test_onboarding_result();
+        
+        let output = formatter.format_onboarding(&result).unwrap();
+        
+        // Should contain key sections
+        assert!(output.contains("🚀 Codebase Onboarding Complete"));
+        assert!(output.contains("📊 Codebase Overview:"));
+        assert!(output.contains("Total files: 100"));
+        assert!(output.contains("Total entities: 500"));
+        assert!(output.contains("⏱️  Workflow completed"));
+        
+        // Should be copy-pastable (no control characters)
+        assert!(!output.contains('\x1b')); // No ANSI escape codes
+        
+        // Should not contain problematic control characters
+        assert!(!output.chars().any(|c| c.is_control() && c != '\n' && c != '\t'));
+    }
+
+    #[test]
+    fn test_json_formatter_onboarding_output() {
+        let formatter = JsonFormatter::new();
+        let result = create_test_onboarding_result();
+        
+        let output = formatter.format_onboarding(&result).unwrap();
+        
+        // Should be valid JSON
+        let parsed: serde_json::Value = serde_json::from_str(&output).unwrap();
+        assert_eq!(parsed["workflow"], "onboard");
+        assert!(parsed["result"].is_object());
+        assert!(parsed["execution_time_s"].is_number());
+        assert!(parsed["timestamp"].is_string());
+        
+        // Should be pretty-printed by default
+        assert!(output.contains("  ")); // Indentation
+        assert!(output.contains("\n")); // Line breaks
+    }
+
+    #[test]
+    fn test_pr_summary_formatter_feature_plan_output() {
+        let formatter = PrSummaryFormatter::new();
+        let result = create_test_feature_plan_result();
+        
+        let output = formatter.format_feature_plan(&result).unwrap();
+        
+        // Should be valid markdown
+        assert!(output.starts_with("# Feature Development Plan"));
+        assert!(output.contains("**Target Entity**: `test_function`"));
+        assert!(output.contains("## Risk Assessment"));
+        assert!(output.contains("- **Risk Level**: Medium"));
+        assert!(output.contains("```mermaid"));
+        assert!(output.contains("## Pre-Development Checklist"));
+        assert!(output.contains("- [ ] Review impact analysis"));
+        
+        // Should be copy-pastable markdown
+        assert!(!output.contains('\x1b')); // No ANSI escape codes
+        assert!(output.lines().all(|line| line.len() <= 120)); // Reasonable line length
+    }
+
+    #[test]
+    fn test_ci_formatter_github_actions_output() {
+        let formatter = CiFormatter::for_platform(CiPlatform::GitHub);
+        let result = create_test_refactor_result();
+        
+        let output = formatter.format_refactor(&result).unwrap();
+        
+        // Should contain GitHub Actions annotations
+        if result.risk_assessment.overall_risk == crate::discovery::WorkflowRiskLevel::High {
+            assert!(output.contains("::error title=High Risk Refactor::"));
+        }
+        assert!(output.contains("echo \"REFACTOR_RISK="));
+        assert!(output.contains(">> $GITHUB_ENV"));
+        assert!(output.contains("::group::Safety Checklist"));
+        assert!(output.contains("::endgroup::"));
+        
+        // Should be valid shell commands
+        for line in output.lines() {
+            if line.starts_with("echo ") {
+                assert!(line.contains(">> $GITHUB_ENV") || line.starts_with("echo \""));
+            }
+        }
+    }
+
+    #[test]
+    fn test_ci_formatter_gitlab_output() {
+        let formatter = CiFormatter::for_platform(CiPlatform::GitLab);
+        let result = create_test_debug_result();
+        
+        let output = formatter.format_debug(&result).unwrap();
+        
+        // Should contain GitLab CI format
+        assert!(output.contains("echo \"🐛 Debug analysis"));
+        assert!(output.contains("export DEBUG_TARGET="));
+        assert!(output.contains("export CALLER_COUNT="));
+        
+        // Should be valid shell commands
+        for line in output.lines() {
+            if line.starts_with("export ") {
+                assert!(line.contains("="));
+            }
+        }
+    }
+
+    #[test]
+    fn test_formatter_consistency_across_formats() {
+        let onboarding_result = create_test_onboarding_result();
+        
+        let human_formatter = HumanFormatter::new();
+        let json_formatter = JsonFormatter::new();
+        let pr_formatter = PrSummaryFormatter::new();
+        let ci_formatter = CiFormatter::new();
+        
+        // All formatters should handle the same data without errors
+        assert!(human_formatter.format_onboarding(&onboarding_result).is_ok());
+        assert!(json_formatter.format_onboarding(&onboarding_result).is_ok());
+        assert!(pr_formatter.format_onboarding(&onboarding_result).is_ok());
+        assert!(ci_formatter.format_onboarding(&onboarding_result).is_ok());
+        
+        // All outputs should contain the core information
+        let human_output = human_formatter.format_onboarding(&onboarding_result).unwrap();
+        let json_output = json_formatter.format_onboarding(&onboarding_result).unwrap();
+        let pr_output = pr_formatter.format_onboarding(&onboarding_result).unwrap();
+        let ci_output = ci_formatter.format_onboarding(&onboarding_result).unwrap();
+        
+        // Core data should be present in all formats
+        assert!(human_output.contains("100")); // Total files
+        assert!(json_output.contains("100"));
+        assert!(pr_output.contains("100"));
+        assert!(ci_output.contains("100"));
+    }
+
+    #[test]
+    fn test_formatter_performance_contracts() {
+        let result = create_test_onboarding_result();
+        let formatters: Vec<Box<dyn OutputFormatter>> = vec![
+            Box::new(HumanFormatter::new()),
+            Box::new(JsonFormatter::new()),
+            Box::new(PrSummaryFormatter::new()),
+            Box::new(CiFormatter::new()),
+        ];
+        
+        for formatter in formatters {
+            let start = Instant::now();
+            let output = formatter.format_onboarding(&result).unwrap();
+            let elapsed = start.elapsed();
+            
+            // Contract: All formatting should complete within 100ms
+            assert!(elapsed < Duration::from_millis(100), 
+                    "Formatting took {:?}, expected <100ms", elapsed);
+            
+            // Output should not be empty
+            assert!(!output.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_copy_pastable_output_validation() {
+        let result = create_test_feature_plan_result();
+        
+        // Human formatter should produce clean terminal output
+        let human_formatter = HumanFormatter::new();
+        let human_output = human_formatter.format_feature_plan(&result).unwrap();
+        
+        // Should not contain control characters that break copy-paste
+        assert!(!human_output.contains('\x1b')); // ANSI escape codes
+        assert!(!human_output.contains('\x07')); // Bell character
+        assert!(!human_output.contains('\x08')); // Backspace
+        
+        // Should not contain problematic control characters
+        assert!(!human_output.chars().any(|c| c.is_control() && c != '\n' && c != '\t'));
+        
+        // PR formatter should produce valid markdown
+        let pr_formatter = PrSummaryFormatter::new();
+        let pr_output = pr_formatter.format_feature_plan(&result).unwrap();
+        
+        // Should be valid markdown structure
+        assert!(pr_output.lines().any(|line| line.starts_with("# ")));
+        assert!(pr_output.lines().any(|line| line.starts_with("## ")));
+        assert!(pr_output.lines().any(|line| line.starts_with("- ")));
+        
+        // JSON formatter should produce valid JSON
+        let json_formatter = JsonFormatter::new();
+        let json_output = json_formatter.format_feature_plan(&result).unwrap();
+        
+        // Should parse as valid JSON
+        let parsed: serde_json::Value = serde_json::from_str(&json_output).unwrap();
+        assert!(parsed.is_object());
+    }
+
+    // Helper functions for creating test data
+    fn create_test_onboarding_result() -> OnboardingResult {
+        use std::collections::HashMap;
+        
+        OnboardingResult {
+            timestamp: chrono::Utc::now(),
+            execution_time: Duration::from_secs(30),
+            overview: CodebaseOverview {
+                total_files: 100,
+                total_entities: 500,
+                entities_by_type: {
+                    let mut map = HashMap::new();
+                    map.insert("Function".to_string(), 300);
+                    map.insert("Struct".to_string(), 150);
+                    map.insert("Trait".to_string(), 50);
+                    map
+                },
+                key_modules: vec![
+                    ModuleInfo {
+                        name: "core".to_string(),
+                        purpose: "Core functionality".to_string(),
+                        key_entities: vec!["main".to_string(), "init".to_string()],
+                        dependencies: vec!["std".to_string()],
+                    }
+                ],
+                architecture_patterns: vec!["MVC".to_string(), "Repository".to_string()],
+            },
+            entry_points: vec![
+                EntryPoint {
+                    name: "main".to_string(),
+                    entry_type: "binary".to_string(),
+                    location: FileLocation::with_line("src/main.rs".to_string(), 1),
+                    description: "Application entry point".to_string(),
+                }
+            ],
+            key_contexts: vec![
+                KeyContext {
+                    name: "AppState".to_string(),
+                    context_type: "struct".to_string(),
+                    importance: "Central application state".to_string(),
+                    related_entities: vec!["Config".to_string(), "Database".to_string()],
+                    location: FileLocation::with_line("src/app.rs".to_string(), 10),
+                }
+            ],
+            next_steps: vec![
+                "Read main.rs to understand entry point".to_string(),
+                "Explore core module for key functionality".to_string(),
+            ],
+        }
+    }
+
+    fn create_test_feature_plan_result() -> FeaturePlanResult {
+        FeaturePlanResult {
+            timestamp: chrono::Utc::now(),
+            execution_time: Duration::from_secs(60),
+            target_entity: "test_function".to_string(),
+            impact_analysis: ImpactAnalysis {
+                direct_impact: vec![],
+                indirect_impact: vec![],
+                risk_level: crate::discovery::WorkflowRiskLevel::Medium,
+                complexity_estimate: ComplexityLevel::Moderate,
+            },
+            scope_guidance: ScopeGuidance {
+                boundaries: vec!["module_boundary".to_string()],
+                files_to_modify: vec!["src/lib.rs".to_string()],
+                files_to_avoid: vec!["src/main.rs".to_string()],
+                integration_points: vec!["API endpoint".to_string()],
+            },
+            test_recommendations: vec![
+                TestRecommendation {
+                    test_type: "unit".to_string(),
+                    test_target: "test_function".to_string(),
+                    rationale: "Verify core functionality".to_string(),
+                    suggested_location: "tests/unit/test_function_test.rs".to_string(),
+                }
+            ],
+        }
+    }
+
+    fn create_test_debug_result() -> DebugResult {
+        DebugResult {
+            timestamp: chrono::Utc::now(),
+            execution_time: Duration::from_secs(45),
+            target_entity: "debug_target".to_string(),
+            caller_traces: vec![],
+            usage_sites: vec![],
+            minimal_scope: ChangeScope {
+                minimal_files: vec!["src/target.rs".to_string()],
+                safe_boundaries: vec!["module boundary".to_string()],
+                side_effects: vec!["cache invalidation".to_string()],
+                rollback_strategy: "revert commit".to_string(),
+            },
+        }
+    }
+
+    fn create_test_refactor_result() -> RefactorResult {
+        RefactorResult {
+            timestamp: chrono::Utc::now(),
+            execution_time: Duration::from_secs(90),
+            target_entity: "refactor_target".to_string(),
+            risk_assessment: RiskAssessment {
+                overall_risk: crate::discovery::WorkflowRiskLevel::High,
+                risk_factors: vec![
+                    RiskFactor {
+                        description: "High coupling".to_string(),
+                        level: crate::discovery::WorkflowRiskLevel::High,
+                        impact: "May break multiple components".to_string(),
+                    }
+                ],
+                mitigations: vec!["Add comprehensive tests".to_string()],
+                confidence: ConfidenceLevel::High,
+            },
+            change_checklist: vec![
+                ChecklistItem {
+                    description: "Update tests".to_string(),
+                    priority: Priority::High,
+                    completed: false,
+                    notes: Some("Focus on integration tests".to_string()),
+                }
+            ],
+            reviewer_guidance: ReviewerGuidance {
+                focus_areas: vec!["Error handling".to_string()],
+                potential_issues: vec!["Race conditions".to_string()],
+                testing_recommendations: vec!["Load testing".to_string()],
+                approval_criteria: vec!["All tests pass".to_string()],
+            },
+        }
     }
 }

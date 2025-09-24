@@ -1047,6 +1047,14 @@
       "signature": "fn compute",
       "file_path": "src/lib.rs",
       "line": 0
+    },
+    {
+      "hash": 5765841187866401128,
+      "kind": "Function",
+      "name": "test_function",
+      "signature": "fn test_function",
+      "file_path": "src/lib.rs",
+      "line": 0
     }
   ],
   "edges": [
@@ -1083,8 +1091,8 @@
   ],
   "metadata": {
     "version": 1,
-    "timestamp": 1758727821,
-    "node_count": 131,
+    "timestamp": 1758732538,
+    "node_count": 132,
     "edge_count": 6
   }
 }
