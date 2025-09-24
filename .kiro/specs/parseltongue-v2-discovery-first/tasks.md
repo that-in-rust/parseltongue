@@ -121,7 +121,7 @@
   - Write integration tests for workspace isolation and state persistence
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [ ] 18. Create workflow orchestration layer (shell toolkit)
+- [-] 18. Create workflow orchestration layer (shell toolkit)
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Build `pt` shell script with subcommand architecture (onboard, feature-start, debug, refactor-check)
   - Implement WorkflowOrchestrator trait combining discovery commands into complete user journeys
