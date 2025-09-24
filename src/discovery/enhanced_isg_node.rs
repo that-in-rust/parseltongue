@@ -770,4 +770,111 @@ mod tests {
         // Verify data integrity
         assert_eq!(converted_back.len(), node_data_list.len());
     }
+    
+    /// Test memory efficiency of file path interning
+    /// 
+    /// Validates that string interning provides significant memory savings
+    /// when many nodes share the same file paths.
+    #[test]
+    fn test_memory_efficiency_with_interning() {
+        let mut interner = FileInterner::new();
+        
+        // Create many nodes that share file paths
+        let num_files = 10;
+        let nodes_per_file = 100;
+        let total_nodes = num_files * nodes_per_file;
+        
+        let nodes: Vec<EnhancedIsgNode> = (0..total_nodes)
+            .map(|i| {
+                let file_idx = i % num_files;
+                let file_id = interner.intern(&format!("src/shared_file_{}.rs", file_idx));
+                
+                EnhancedIsgNode::new(
+                    SigHash::from_signature(&format!("fn func_{}", i)),
+                    NodeKind::Function,
+                    Arc::from(format!("func_{}", i)),
+                    Arc::from(format!("fn func_{}()", i)),
+                    file_id,
+                    (i as u32) + 1,
+                    10,
+                )
+            })
+            .collect();
+        
+        // Check interner efficiency
+        let memory_usage = interner.memory_usage();
+        
+        // Should have only interned the unique file paths
+        assert_eq!(interner.len(), num_files);
+        
+        // Memory usage should be reasonable
+        assert!(memory_usage.total_bytes() < 10000, 
+                "Memory usage too high: {} bytes", memory_usage.total_bytes());
+        
+        // Test that all nodes can access their file paths efficiently
+        let start = std::time::Instant::now();
+        let mut path_count = 0;
+        
+        for node in &nodes {
+            if node.file_path(&interner).is_some() {
+                path_count += 1;
+            }
+        }
+        
+        let elapsed = start.elapsed();
+        
+        assert_eq!(path_count, total_nodes);
+        
+        // Should be very fast
+        assert!(elapsed.as_millis() < 50, 
+                "File path access too slow: {:?}", elapsed);
+    }
+    
+    /// Benchmark EntityInfo conversion performance
+    /// 
+    /// Tests the performance of converting EnhancedIsgNode to EntityInfo
+    /// for discovery operations.
+    #[test]
+    fn test_entity_info_conversion_performance() {
+        let mut interner = FileInterner::with_capacity(100);
+        
+        // Create test nodes
+        let nodes: Vec<EnhancedIsgNode> = (0..1000)
+            .map(|i| {
+                let file_id = interner.intern(&format!("src/file_{}.rs", i % 50));
+                EnhancedIsgNode::new(
+                    SigHash::from_signature(&format!("fn func_{}", i)),
+                    NodeKind::Function,
+                    Arc::from(format!("func_{}", i)),
+                    Arc::from(format!("fn func_{}() -> Result<i32, Error>", i)),
+                    file_id,
+                    (i as u32) + 1,
+                    (i as u32 % 80) + 1,
+                )
+            })
+            .collect();
+        
+        // Test conversion performance
+        let start = std::time::Instant::now();
+        let entity_infos: Vec<_> = nodes
+            .iter()
+            .filter_map(|node| node.to_entity_info(&interner))
+            .collect();
+        let elapsed = start.elapsed();
+        
+        // Should be fast - under 10ms for 1000 conversions
+        assert!(elapsed.as_millis() < 10, 
+                "EntityInfo conversion too slow: {:?}", elapsed);
+        
+        // Verify all conversions succeeded
+        assert_eq!(entity_infos.len(), nodes.len());
+        
+        // Verify data integrity
+        for (node, entity_info) in nodes.iter().zip(entity_infos.iter()) {
+            assert_eq!(entity_info.name, node.name.as_ref());
+            assert_eq!(entity_info.line_number, Some(node.line_number));
+            assert_eq!(entity_info.column, Some(node.column));
+            assert_eq!(entity_info.file_path, node.file_path(&interner).unwrap());
+        }
+    }
 }

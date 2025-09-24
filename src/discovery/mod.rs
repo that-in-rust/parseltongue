@@ -14,6 +14,9 @@ pub mod types;
 pub mod error;
 pub mod enhanced_isg_node;
 
+#[cfg(test)]
+mod integration_test;
+
 // Re-export core types for convenience
 pub use string_interning::{FileId, FileInterner};
 pub use engine::DiscoveryEngine;

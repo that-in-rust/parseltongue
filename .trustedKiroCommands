@@ -1,0 +1,120 @@
+# File operations (read-only and safe write operations)
+ls *
+cat *
+head *
+tail *
+less *
+more *
+find *
+grep *
+wc *
+sort *
+uniq *
+diff *
+file *
+stat *
+du *
+df *
+# Directory navigation
+pwd
+cd *
+# Text processing
+echo *
+printf *
+cut *
+awk *
+sed *
+tr *
+tee *
+
+# System information (read-only)
+whoami
+id
+groups
+uname *
+uptime
+date *
+cal *
+env
+printenv *
+which *
+whereis *
+type *
+history *
+
+# Process information (read-only)
+ps *
+top *
+htop *
+jobs *
+pgrep *
+
+# Network information (read-only)
+ping *
+nslookup *
+dig *
+curl -I *
+wget --spider *
+
+# Archive operations (extract only)
+tar -tf *
+tar -xf *
+unzip -l *
+unzip *
+
+# Safe utilities
+basename *
+dirname *
+realpath *
+readlink *
+sleep *
+timeout *
+yes *
+seq *
+shuf *
+factor *
+bc *
+expr *
+
+# Git operations (read-only)
+git status *
+git log *
+git show *
+git diff *
+git branch *
+git remote *
+git config --list *
+
+# Package management (query only)
+apt list *
+apt show *
+apt search *
+dpkg -l *
+dpkg -s *
+rpm -qa *
+rpm -qi *
+yum list *
+dnf list *
+
+# Safe file creation/editing
+touch *
+mkdir *
+cp *
+mv * (with caution)
+ln -s *
+
+# Text editors (safe for creating/editing files)
+nano *
+vim *
+emacs *
+
+# Rust/Cargo operations (safe development commands)
+cargo check *
+cargo build *
+cargo test *
+cargo clippy *
+cargo fmt *
+cargo doc *
+cargo --version *
+rustc --version *
+rustup *

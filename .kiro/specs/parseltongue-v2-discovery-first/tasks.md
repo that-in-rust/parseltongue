@@ -7,7 +7,7 @@
   - Write unit tests for string interning efficiency and memory usage
   - _Requirements: 1.1, 1.2, 2.1_
 
-- [-] 2. Enhance ISG node structure with file location attributes
+- [ ] 2. Enhance ISG node structure with file location attributes
   - Extend existing ISG node structure to include file_path, line_number, column fields
   - Implement EnhancedIsgNode with embedded file location data (not separate nodes)
   - Create conversion utilities between existing and enhanced node formats
