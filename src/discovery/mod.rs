@@ -19,8 +19,8 @@ pub mod file_navigation_provider;
 #[cfg(test)]
 mod integration_test;
 
-#[cfg(test)]
-mod file_navigation_tests;
+pub mod file_navigation_tests;
+pub mod blast_radius_analyzer;
 
 // Re-export core types for convenience
 pub use string_interning::{FileId, FileInterner};
@@ -31,3 +31,4 @@ pub use enhanced_isg_node::{EnhancedIsgNode, NodeConverter};
 pub use simple_discovery_engine::SimpleDiscoveryEngine;
 pub use file_navigation_provider::ISGFileNavigationProvider;
 pub use file_navigation_tests::{FileNavigationProvider, FileStats, MockFileNavigationProvider};
+pub use blast_radius_analyzer::{BlastRadiusAnalyzer, BlastRadiusAnalysis, ImpactGroup, ImpactedEntity, RiskLevel};

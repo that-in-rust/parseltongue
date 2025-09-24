@@ -36,14 +36,14 @@
   - Write unit tests validating file location accuracy and completeness
   - _Requirements: 2.2, 2.4, 2.5_
 
-- [-] 6. Build entity type filtering and organization
+- [x] 6. Build entity type filtering and organization
   - Implement type_index for efficient entity type filtering
   - Create organized entity listing by type (Functions, Structs, Traits, etc.)
   - Add entity count summaries by type for overview
   - Write unit tests for type-based organization and filtering
   - _Requirements: 1.1, 1.2 (MVP focus)_
 
-- [ ] 7. Implement readable blast radius analysis
+- [x] 7. Implement readable blast radius analysis
   - Create BlastRadiusAnalyzer with human-readable output (no hash values)
   - Implement ImpactGroup structure grouping by relationship type (CALLS, USES, IMPLEMENTS)
   - Build risk categorization logic (Low: 1-5, Medium: 6-20, High: 21-50, Critical: 50+)
@@ -51,7 +51,7 @@
   - Write unit tests ensuring 100% readable output with proper file context
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 8. Create simple discovery indexes
+- [x] 8. Create simple discovery indexes
   - Implement DiscoveryIndexes struct with all_entities, file_index, type_index
   - Build CompactEntityInfo with optimized memory layout (24 bytes per entity)
   - Create efficient index rebuild mechanism for ISG updates
