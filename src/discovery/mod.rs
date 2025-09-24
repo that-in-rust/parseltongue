@@ -28,6 +28,7 @@ pub mod performance_regression_tests;
 pub mod workspace_manager;
 pub mod workflow_orchestrator;
 pub mod concrete_workflow_orchestrator;
+pub mod output_formatter;
 
 #[cfg(test)]
 pub mod workflow_integration_tests;
@@ -55,3 +56,7 @@ pub use workflow_orchestrator::{
     RiskFactor
 };
 pub use concrete_workflow_orchestrator::ConcreteWorkflowOrchestrator;
+pub use output_formatter::{
+    OutputFormatter, FormattingError, HumanFormatter, JsonFormatter, 
+    PrSummaryFormatter, CiFormatter, CiPlatform, FormatterFactory
+};

@@ -159,6 +159,10 @@ pub enum OutputFormat {
     Human,
     /// JSON output for LLM consumption
     Json,
+    /// PR summary markdown format
+    PrSummary,
+    /// CI/CD integration format
+    Ci,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -344,6 +348,10 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                     });
                     println!("{}", serde_json::to_string_pretty(&output)?);
                 }
+                OutputFormat::PrSummary | OutputFormat::Ci => {
+                    // Query results don't support PR summary or CI formats
+                    return Err("PR summary and CI formats are not supported for query commands".into());
+                }
             }
         }
         
@@ -470,6 +478,10 @@ pub fn generate_context(daemon: &ParseltongueAIM, entity_name: &str, format: Out
             serde_json::to_string_pretty(&context)
                 .map_err(|e| ISGError::IoError(format!("JSON serialization failed: {}", e)))?
         }
+        OutputFormat::PrSummary | OutputFormat::Ci => {
+            // Context generation doesn't support PR summary or CI formats
+            return Err(ISGError::IoError("PR summary and CI formats are not supported for context generation".to_string()));
+        }
     };
     
     Ok(result)
@@ -505,6 +517,10 @@ async fn handle_list_entities_command(
         }
         OutputFormat::Json => {
             format_entities_json(&entities, elapsed)?;
+        }
+        OutputFormat::PrSummary | OutputFormat::Ci => {
+            // Entity listing doesn't support PR summary or CI formats
+            return Err("PR summary and CI formats are not supported for entity listing".into());
         }
     }
     
@@ -550,6 +566,10 @@ async fn handle_entities_in_file_command(
         OutputFormat::Json => {
             format_file_entities_json(&entities, file_path, elapsed)?;
         }
+        OutputFormat::PrSummary | OutputFormat::Ci => {
+            // File entity listing doesn't support PR summary or CI formats
+            return Err("PR summary and CI formats are not supported for file entity listing".into());
+        }
     }
     
     // Check performance contract
@@ -586,6 +606,10 @@ async fn handle_where_defined_command(
         }
         OutputFormat::Json => {
             format_location_json(entity_name, &location, elapsed)?;
+        }
+        OutputFormat::PrSummary | OutputFormat::Ci => {
+            // Location lookup doesn't support PR summary or CI formats
+            return Err("PR summary and CI formats are not supported for location lookup".into());
         }
     }
     
@@ -760,15 +784,18 @@ async fn handle_onboard_workflow(
     
     let elapsed = start.elapsed();
     
-    // Format and display results
-    match format {
-        OutputFormat::Human => {
-            format_onboard_result_human(&result, elapsed);
-        }
-        OutputFormat::Json => {
-            format_onboard_result_json(&result, elapsed)?;
-        }
-    }
+    // Format and display results using new OutputFormatter system
+    let formatter = match format {
+        OutputFormat::Human => crate::discovery::FormatterFactory::create_formatter("human")?,
+        OutputFormat::Json => crate::discovery::FormatterFactory::create_formatter("json")?,
+        OutputFormat::PrSummary => crate::discovery::FormatterFactory::create_formatter("pr-summary")?,
+        OutputFormat::Ci => crate::discovery::FormatterFactory::create_formatter("ci")?,
+    };
+    
+    let formatted_output = formatter.format_onboarding(&result)
+        .map_err(|e| format!("Output formatting error: {}", e))?;
+    
+    println!("{}", formatted_output);
     
     // Check performance contract: <15 minutes
     if elapsed.as_secs() > 15 * 60 {
@@ -795,15 +822,18 @@ async fn handle_feature_start_workflow(
     
     let elapsed = start.elapsed();
     
-    // Format and display results
-    match format {
-        OutputFormat::Human => {
-            format_feature_plan_result_human(&result, elapsed);
-        }
-        OutputFormat::Json => {
-            format_feature_plan_result_json(&result, elapsed)?;
-        }
-    }
+    // Format and display results using new OutputFormatter system
+    let formatter = match format {
+        OutputFormat::Human => crate::discovery::FormatterFactory::create_formatter("human")?,
+        OutputFormat::Json => crate::discovery::FormatterFactory::create_formatter("json")?,
+        OutputFormat::PrSummary => crate::discovery::FormatterFactory::create_formatter("pr-summary")?,
+        OutputFormat::Ci => crate::discovery::FormatterFactory::create_formatter("ci")?,
+    };
+    
+    let formatted_output = formatter.format_feature_plan(&result)
+        .map_err(|e| format!("Output formatting error: {}", e))?;
+    
+    println!("{}", formatted_output);
     
     // Check performance contract: <5 minutes
     if elapsed.as_secs() > 5 * 60 {
@@ -830,15 +860,18 @@ async fn handle_debug_workflow(
     
     let elapsed = start.elapsed();
     
-    // Format and display results
-    match format {
-        OutputFormat::Human => {
-            format_debug_result_human(&result, elapsed);
-        }
-        OutputFormat::Json => {
-            format_debug_result_json(&result, elapsed)?;
-        }
-    }
+    // Format and display results using new OutputFormatter system
+    let formatter = match format {
+        OutputFormat::Human => crate::discovery::FormatterFactory::create_formatter("human")?,
+        OutputFormat::Json => crate::discovery::FormatterFactory::create_formatter("json")?,
+        OutputFormat::PrSummary => crate::discovery::FormatterFactory::create_formatter("pr-summary")?,
+        OutputFormat::Ci => crate::discovery::FormatterFactory::create_formatter("ci")?,
+    };
+    
+    let formatted_output = formatter.format_debug(&result)
+        .map_err(|e| format!("Output formatting error: {}", e))?;
+    
+    println!("{}", formatted_output);
     
     // Check performance contract: <2 minutes
     if elapsed.as_secs() > 2 * 60 {
@@ -865,15 +898,18 @@ async fn handle_refactor_check_workflow(
     
     let elapsed = start.elapsed();
     
-    // Format and display results
-    match format {
-        OutputFormat::Human => {
-            format_refactor_result_human(&result, elapsed);
-        }
-        OutputFormat::Json => {
-            format_refactor_result_json(&result, elapsed)?;
-        }
-    }
+    // Format and display results using new OutputFormatter system
+    let formatter = match format {
+        OutputFormat::Human => crate::discovery::FormatterFactory::create_formatter("human")?,
+        OutputFormat::Json => crate::discovery::FormatterFactory::create_formatter("json")?,
+        OutputFormat::PrSummary => crate::discovery::FormatterFactory::create_formatter("pr-summary")?,
+        OutputFormat::Ci => crate::discovery::FormatterFactory::create_formatter("ci")?,
+    };
+    
+    let formatted_output = formatter.format_refactor(&result)
+        .map_err(|e| format!("Output formatting error: {}", e))?;
+    
+    println!("{}", formatted_output);
     
     // Check performance contract: <3 minutes
     if elapsed.as_secs() > 3 * 60 {
@@ -883,307 +919,7 @@ async fn handle_refactor_check_workflow(
     Ok(())
 }
 
-/// Format onboard result for human-readable output
-fn format_onboard_result_human(result: &crate::discovery::OnboardingResult, elapsed: std::time::Duration) {
-    println!("🚀 Codebase Onboarding Complete");
-    println!("================================");
-    println!();
-    
-    // Overview section
-    println!("📊 Codebase Overview:");
-    println!("  • Total files: {}", result.overview.total_files);
-    println!("  • Total entities: {}", result.overview.total_entities);
-    println!();
-    
-    // Entities by type
-    if !result.overview.entities_by_type.is_empty() {
-        println!("📈 Entities by Type:");
-        for (entity_type, count) in &result.overview.entities_by_type {
-            println!("  • {}: {}", entity_type, count);
-        }
-        println!();
-    }
-    
-    // Key modules
-    if !result.overview.key_modules.is_empty() {
-        println!("🏗️  Key Modules:");
-        for module in &result.overview.key_modules {
-            println!("  • {}: {}", module.name, module.purpose);
-        }
-        println!();
-    }
-    
-    // Entry points
-    if !result.entry_points.is_empty() {
-        println!("🚪 Entry Points:");
-        for entry in &result.entry_points {
-            println!("  • {} ({}): {}", entry.name, entry.entry_type, entry.description);
-            println!("    Location: {}", entry.location.format_for_editor());
-        }
-        println!();
-    }
-    
-    // Key contexts
-    if !result.key_contexts.is_empty() {
-        println!("🔑 Key Contexts to Understand:");
-        for context in &result.key_contexts {
-            println!("  • {} ({}): {}", context.name, context.context_type, context.importance);
-            println!("    Location: {}", context.location.format_for_editor());
-        }
-        println!();
-    }
-    
-    // Next steps
-    if !result.next_steps.is_empty() {
-        println!("📋 Recommended Next Steps:");
-        for (i, step) in result.next_steps.iter().enumerate() {
-            println!("  {}. {}", i + 1, step);
-        }
-        println!();
-    }
-    
-    println!("⏱️  Workflow completed in {:.2}s (target: <15 minutes)", elapsed.as_secs_f64());
-}
 
-/// Format onboard result for JSON output
-fn format_onboard_result_json(result: &crate::discovery::OnboardingResult, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
-    let output = serde_json::json!({
-        "workflow": "onboard",
-        "result": result,
-        "execution_time_s": elapsed.as_secs_f64(),
-        "performance_target_s": 15 * 60,
-        "timestamp": chrono::Utc::now().to_rfc3339()
-    });
-    
-    println!("{}", serde_json::to_string_pretty(&output)?);
-    Ok(())
-}
-
-/// Format feature plan result for human-readable output
-fn format_feature_plan_result_human(result: &crate::discovery::FeaturePlanResult, elapsed: std::time::Duration) {
-    println!("🎯 Feature Planning Complete");
-    println!("============================");
-    println!();
-    
-    println!("🎯 Target Entity: {}", result.target_entity);
-    println!();
-    
-    // Impact analysis
-    println!("📊 Impact Analysis:");
-    println!("  • Risk Level: {:?}", result.impact_analysis.risk_level);
-    println!("  • Complexity: {:?}", result.impact_analysis.complexity_estimate);
-    println!("  • Direct Impact: {} entities", result.impact_analysis.direct_impact.len());
-    println!("  • Indirect Impact: {} entities", result.impact_analysis.indirect_impact.len());
-    println!();
-    
-    // Scope guidance
-    println!("🎯 Scope Guidance:");
-    if !result.scope_guidance.boundaries.is_empty() {
-        println!("  Boundaries:");
-        for boundary in &result.scope_guidance.boundaries {
-            println!("    • {}", boundary);
-        }
-    }
-    if !result.scope_guidance.files_to_modify.is_empty() {
-        println!("  Files to modify:");
-        for file in &result.scope_guidance.files_to_modify {
-            println!("    • {}", file);
-        }
-    }
-    if !result.scope_guidance.files_to_avoid.is_empty() {
-        println!("  Files to avoid:");
-        for file in &result.scope_guidance.files_to_avoid {
-            println!("    • {}", file);
-        }
-    }
-    println!();
-    
-    // Test recommendations
-    if !result.test_recommendations.is_empty() {
-        println!("🧪 Test Recommendations:");
-        for test in &result.test_recommendations {
-            println!("  • {} ({}): {}", test.test_target, test.test_type, test.rationale);
-            println!("    Suggested location: {}", test.suggested_location);
-        }
-        println!();
-    }
-    
-    println!("⏱️  Workflow completed in {:.2}s (target: <5 minutes)", elapsed.as_secs_f64());
-}
-
-/// Format feature plan result for JSON output
-fn format_feature_plan_result_json(result: &crate::discovery::FeaturePlanResult, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
-    let output = serde_json::json!({
-        "workflow": "feature-start",
-        "result": result,
-        "execution_time_s": elapsed.as_secs_f64(),
-        "performance_target_s": 5 * 60,
-        "timestamp": chrono::Utc::now().to_rfc3339()
-    });
-    
-    println!("{}", serde_json::to_string_pretty(&output)?);
-    Ok(())
-}
-
-/// Format debug result for human-readable output
-fn format_debug_result_human(result: &crate::discovery::DebugResult, elapsed: std::time::Duration) {
-    println!("🐛 Debug Analysis Complete");
-    println!("==========================");
-    println!();
-    
-    println!("🎯 Target Entity: {}", result.target_entity);
-    println!();
-    
-    // Caller traces
-    if !result.caller_traces.is_empty() {
-        println!("📞 Caller Traces:");
-        for trace in &result.caller_traces {
-            println!("  • {} (depth: {}, context: {})", 
-                     trace.caller.name, trace.depth, trace.call_context);
-            println!("    Location: {}", trace.caller.file_path);
-            if let Some(freq) = &trace.frequency {
-                println!("    Frequency: {}", freq);
-            }
-        }
-        println!();
-    }
-    
-    // Usage sites
-    if !result.usage_sites.is_empty() {
-        println!("🔍 Usage Sites:");
-        for usage in &result.usage_sites {
-            println!("  • {} ({}): {}", usage.user.name, usage.usage_type, usage.context);
-            println!("    Location: {}", usage.location.format_for_editor());
-        }
-        println!();
-    }
-    
-    // Minimal change scope
-    println!("🎯 Minimal Change Scope:");
-    if !result.minimal_scope.minimal_files.is_empty() {
-        println!("  Files to change:");
-        for file in &result.minimal_scope.minimal_files {
-            println!("    • {}", file);
-        }
-    }
-    if !result.minimal_scope.safe_boundaries.is_empty() {
-        println!("  Safe boundaries:");
-        for boundary in &result.minimal_scope.safe_boundaries {
-            println!("    • {}", boundary);
-        }
-    }
-    if !result.minimal_scope.side_effects.is_empty() {
-        println!("  Watch for side effects:");
-        for effect in &result.minimal_scope.side_effects {
-            println!("    • {}", effect);
-        }
-    }
-    println!("  Rollback strategy: {}", result.minimal_scope.rollback_strategy);
-    println!();
-    
-    println!("⏱️  Workflow completed in {:.2}s (target: <2 minutes)", elapsed.as_secs_f64());
-}
-
-/// Format debug result for JSON output
-fn format_debug_result_json(result: &crate::discovery::DebugResult, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
-    let output = serde_json::json!({
-        "workflow": "debug",
-        "result": result,
-        "execution_time_s": elapsed.as_secs_f64(),
-        "performance_target_s": 2 * 60,
-        "timestamp": chrono::Utc::now().to_rfc3339()
-    });
-    
-    println!("{}", serde_json::to_string_pretty(&output)?);
-    Ok(())
-}
-
-/// Format refactor result for human-readable output
-fn format_refactor_result_human(result: &crate::discovery::RefactorResult, elapsed: std::time::Duration) {
-    println!("🔧 Refactor Safety Check Complete");
-    println!("=================================");
-    println!();
-    
-    println!("🎯 Target Entity: {}", result.target_entity);
-    println!();
-    
-    // Risk assessment
-    println!("⚠️  Risk Assessment:");
-    println!("  • Overall Risk: {:?}", result.risk_assessment.overall_risk);
-    println!("  • Confidence: {:?}", result.risk_assessment.confidence);
-    
-    if !result.risk_assessment.risk_factors.is_empty() {
-        println!("  Risk Factors:");
-        for factor in &result.risk_assessment.risk_factors {
-            println!("    • {} ({:?}): {}", factor.description, factor.level, factor.impact);
-        }
-    }
-    
-    if !result.risk_assessment.mitigations.is_empty() {
-        println!("  Mitigations:");
-        for mitigation in &result.risk_assessment.mitigations {
-            println!("    • {}", mitigation);
-        }
-    }
-    println!();
-    
-    // Change checklist
-    if !result.change_checklist.is_empty() {
-        println!("✅ Change Checklist:");
-        for item in &result.change_checklist {
-            let status = if item.completed { "✓" } else { "☐" };
-            println!("  {} {} ({:?})", status, item.description, item.priority);
-            if let Some(notes) = &item.notes {
-                println!("    Notes: {}", notes);
-            }
-        }
-        println!();
-    }
-    
-    // Reviewer guidance
-    println!("👥 Reviewer Guidance:");
-    if !result.reviewer_guidance.focus_areas.is_empty() {
-        println!("  Focus Areas:");
-        for area in &result.reviewer_guidance.focus_areas {
-            println!("    • {}", area);
-        }
-    }
-    if !result.reviewer_guidance.potential_issues.is_empty() {
-        println!("  Potential Issues:");
-        for issue in &result.reviewer_guidance.potential_issues {
-            println!("    • {}", issue);
-        }
-    }
-    if !result.reviewer_guidance.testing_recommendations.is_empty() {
-        println!("  Testing Recommendations:");
-        for rec in &result.reviewer_guidance.testing_recommendations {
-            println!("    • {}", rec);
-        }
-    }
-    if !result.reviewer_guidance.approval_criteria.is_empty() {
-        println!("  Approval Criteria:");
-        for criteria in &result.reviewer_guidance.approval_criteria {
-            println!("    • {}", criteria);
-        }
-    }
-    println!();
-    
-    println!("⏱️  Workflow completed in {:.2}s (target: <3 minutes)", elapsed.as_secs_f64());
-}
-
-/// Format refactor result for JSON output
-fn format_refactor_result_json(result: &crate::discovery::RefactorResult, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
-    let output = serde_json::json!({
-        "workflow": "refactor-check",
-        "result": result,
-        "execution_time_s": elapsed.as_secs_f64(),
-        "performance_target_s": 3 * 60,
-        "timestamp": chrono::Utc::now().to_rfc3339()
-    });
-    
-    println!("{}", serde_json::to_string_pretty(&output)?);
-    Ok(())
-}
 
 #[cfg(test)]
 mod tests {

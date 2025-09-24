@@ -1,0 +1,1530 @@
+//! Output Formatting System for Parseltongue v2
+//! 
+//! Provides multiple output formats for workflow results:
+//! - Human: Readable terminal output with emojis and structure
+//! - JSON: Structured data for LLM consumption and API integration
+//! - PR Summary: Markdown format for pull request descriptions
+//! - CI: GitHub Actions compatible output with risk levels and gates
+
+use std::time::Duration;
+use serde::{Serialize, Deserialize};
+use thiserror::Error;
+use chrono::Utc;
+
+use crate::discovery::{
+    OnboardingResult, FeaturePlanResult, DebugResult, RefactorResult
+};
+
+/// Core trait for output formatting
+/// 
+/// # Contract
+/// - All formatters must handle the same workflow result types
+/// - Formatting must complete within 100ms for responsiveness
+/// - Output must be consistent and copy-pastable where appropriate
+/// 
+/// # Error Conditions
+/// - FormattingError::SerializationFailed for JSON serialization issues
+/// - FormattingError::TemplateError for template rendering failures
+/// - FormattingError::InvalidFormat for unsupported formats
+pub trait OutputFormatter {
+    /// Format onboarding workflow result
+    /// 
+    /// # Preconditions
+    /// - OnboardingResult is valid and complete
+    /// 
+    /// # Postconditions
+    /// - Returns formatted string appropriate for the output type
+    /// - Completes within 100ms
+    /// 
+    /// # Error Conditions
+    /// - FormattingError if formatting fails
+    fn format_onboarding(&self, result: &OnboardingResult) -> Result<String, FormattingError>;
+    
+    /// Format feature planning workflow result
+    /// 
+    /// # Preconditions
+    /// - FeaturePlanResult contains valid impact analysis and scope guidance
+    /// 
+    /// # Postconditions
+    /// - Returns formatted output emphasizing risk and scope
+    /// - Highlights test recommendations and boundaries
+    fn format_feature_plan(&self, result: &FeaturePlanResult) -> Result<String, FormattingError>;
+    
+    /// Format debugging workflow result
+    /// 
+    /// # Preconditions
+    /// - DebugResult contains caller traces and usage sites
+    /// 
+    /// # Postconditions
+    /// - Returns formatted output focusing on minimal change scope
+    /// - Emphasizes rollback strategy and side effects
+    fn format_debug(&self, result: &DebugResult) -> Result<String, FormattingError>;
+    
+    /// Format refactoring safety check result
+    /// 
+    /// # Preconditions
+    /// - RefactorResult contains risk assessment and reviewer guidance
+    /// 
+    /// # Postconditions
+    /// - Returns formatted output emphasizing safety and review process
+    /// - Highlights risk factors and approval criteria
+    fn format_refactor(&self, result: &RefactorResult) -> Result<String, FormattingError>;
+}
+
+/// Formatting errors with structured error hierarchy
+#[derive(Error, Debug)]
+pub enum FormattingError {
+    #[error("JSON serialization failed: {message}")]
+    SerializationFailed { message: String },
+    
+    #[error("Template rendering failed: {template} - {error}")]
+    TemplateError { template: String, error: String },
+    
+    #[error("Invalid output format: {format}")]
+    InvalidFormat { format: String },
+    
+    #[error("IO error during formatting: {0}")]
+    IoError(#[from] std::io::Error),
+    
+    #[error("Formatting timeout: took {elapsed:?}, limit {limit:?}")]
+    Timeout { elapsed: Duration, limit: Duration },
+}
+
+/// Human-readable formatter for terminal output
+/// 
+/// Produces copy-pastable output with emojis, clear structure, and actionable information.
+/// Optimized for developer reading and terminal display.
+pub struct HumanFormatter {
+    /// Whether to include performance timing information
+    include_timing: bool,
+    /// Whether to use emoji icons in output
+    use_emojis: bool,
+}
+
+impl HumanFormatter {
+    /// Create new human formatter with default settings
+    pub fn new() -> Self {
+        Self {
+            include_timing: true,
+            use_emojis: true,
+        }
+    }
+    
+    /// Create human formatter with custom settings
+    pub fn with_options(include_timing: bool, use_emojis: bool) -> Self {
+        Self {
+            include_timing,
+            use_emojis,
+        }
+    }
+}
+
+impl Default for HumanFormatter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl OutputFormatter for HumanFormatter {
+    fn format_onboarding(&self, result: &OnboardingResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        
+        let emoji_prefix = if self.use_emojis { "🚀 " } else { "" };
+        let mut output = String::new();
+        
+        // Header
+        output.push_str(&format!("{}Codebase Onboarding Complete\n", emoji_prefix));
+        output.push_str("================================\n\n");
+        
+        // Overview section
+        let overview_emoji = if self.use_emojis { "📊 " } else { "" };
+        output.push_str(&format!("{}Codebase Overview:\n", overview_emoji));
+        output.push_str(&format!("  • Total files: {}\n", result.overview.total_files));
+        output.push_str(&format!("  • Total entities: {}\n", result.overview.total_entities));
+        output.push('\n');
+        
+        // Entities by type
+        if !result.overview.entities_by_type.is_empty() {
+            let entities_emoji = if self.use_emojis { "📈 " } else { "" };
+            output.push_str(&format!("{}Entities by Type:\n", entities_emoji));
+            for (entity_type, count) in &result.overview.entities_by_type {
+                output.push_str(&format!("  • {}: {}\n", entity_type, count));
+            }
+            output.push('\n');
+        }
+        
+        // Key modules
+        if !result.overview.key_modules.is_empty() {
+            let modules_emoji = if self.use_emojis { "🏗️  " } else { "" };
+            output.push_str(&format!("{}Key Modules:\n", modules_emoji));
+            for module in &result.overview.key_modules {
+                output.push_str(&format!("  • {}: {}\n", module.name, module.purpose));
+            }
+            output.push('\n');
+        }
+        
+        // Entry points
+        if !result.entry_points.is_empty() {
+            let entry_emoji = if self.use_emojis { "🚪 " } else { "" };
+            output.push_str(&format!("{}Entry Points:\n", entry_emoji));
+            for entry in &result.entry_points {
+                output.push_str(&format!("  • {} ({}): {}\n", entry.name, entry.entry_type, entry.description));
+                output.push_str(&format!("    Location: {}\n", entry.location.format_for_editor()));
+            }
+            output.push('\n');
+        }
+        
+        // Key contexts
+        if !result.key_contexts.is_empty() {
+            let context_emoji = if self.use_emojis { "🔑 " } else { "" };
+            output.push_str(&format!("{}Key Contexts to Understand:\n", context_emoji));
+            for context in &result.key_contexts {
+                output.push_str(&format!("  • {} ({}): {}\n", context.name, context.context_type, context.importance));
+                output.push_str(&format!("    Location: {}\n", context.location.format_for_editor()));
+            }
+            output.push('\n');
+        }
+        
+        // Next steps
+        if !result.next_steps.is_empty() {
+            let steps_emoji = if self.use_emojis { "📋 " } else { "" };
+            output.push_str(&format!("{}Recommended Next Steps:\n", steps_emoji));
+            for (i, step) in result.next_steps.iter().enumerate() {
+                output.push_str(&format!("  {}. {}\n", i + 1, step));
+            }
+            output.push('\n');
+        }
+        
+        // Timing information
+        if self.include_timing {
+            let timing_emoji = if self.use_emojis { "⏱️  " } else { "" };
+            output.push_str(&format!("{}Workflow completed in {:.2}s (target: <15 minutes)\n", 
+                                   timing_emoji, result.execution_time.as_secs_f64()));
+        }
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+    
+    fn format_feature_plan(&self, result: &FeaturePlanResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        
+        let emoji_prefix = if self.use_emojis { "🎯 " } else { "" };
+        let mut output = String::new();
+        
+        // Header
+        output.push_str(&format!("{}Feature Planning Complete\n", emoji_prefix));
+        output.push_str("============================\n\n");
+        
+        output.push_str(&format!("🎯 Target Entity: {}\n\n", result.target_entity));
+        
+        // Impact analysis
+        let analysis_emoji = if self.use_emojis { "📊 " } else { "" };
+        output.push_str(&format!("{}Impact Analysis:\n", analysis_emoji));
+        output.push_str(&format!("  • Risk Level: {:?}\n", result.impact_analysis.risk_level));
+        output.push_str(&format!("  • Complexity: {:?}\n", result.impact_analysis.complexity_estimate));
+        output.push_str(&format!("  • Direct Impact: {} entities\n", result.impact_analysis.direct_impact.len()));
+        output.push_str(&format!("  • Indirect Impact: {} entities\n", result.impact_analysis.indirect_impact.len()));
+        output.push('\n');
+        
+        // Scope guidance
+        let scope_emoji = if self.use_emojis { "🎯 " } else { "" };
+        output.push_str(&format!("{}Scope Guidance:\n", scope_emoji));
+        if !result.scope_guidance.boundaries.is_empty() {
+            output.push_str("  Boundaries:\n");
+            for boundary in &result.scope_guidance.boundaries {
+                output.push_str(&format!("    • {}\n", boundary));
+            }
+        }
+        if !result.scope_guidance.files_to_modify.is_empty() {
+            output.push_str("  Files to modify:\n");
+            for file in &result.scope_guidance.files_to_modify {
+                output.push_str(&format!("    • {}\n", file));
+            }
+        }
+        if !result.scope_guidance.files_to_avoid.is_empty() {
+            output.push_str("  Files to avoid:\n");
+            for file in &result.scope_guidance.files_to_avoid {
+                output.push_str(&format!("    • {}\n", file));
+            }
+        }
+        output.push('\n');
+        
+        // Test recommendations
+        if !result.test_recommendations.is_empty() {
+            let test_emoji = if self.use_emojis { "🧪 " } else { "" };
+            output.push_str(&format!("{}Test Recommendations:\n", test_emoji));
+            for test in &result.test_recommendations {
+                output.push_str(&format!("  • {} ({}): {}\n", test.test_target, test.test_type, test.rationale));
+                output.push_str(&format!("    Suggested location: {}\n", test.suggested_location));
+            }
+            output.push('\n');
+        }
+        
+        // Timing information
+        if self.include_timing {
+            let timing_emoji = if self.use_emojis { "⏱️  " } else { "" };
+            output.push_str(&format!("{}Workflow completed in {:.2}s (target: <5 minutes)\n", 
+                                   timing_emoji, result.execution_time.as_secs_f64()));
+        }
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+    
+    fn format_debug(&self, result: &DebugResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        
+        let emoji_prefix = if self.use_emojis { "🐛 " } else { "" };
+        let mut output = String::new();
+        
+        // Header
+        output.push_str(&format!("{}Debug Analysis Complete\n", emoji_prefix));
+        output.push_str("==========================\n\n");
+        
+        output.push_str(&format!("🎯 Target Entity: {}\n\n", result.target_entity));
+        
+        // Caller traces
+        if !result.caller_traces.is_empty() {
+            let caller_emoji = if self.use_emojis { "📞 " } else { "" };
+            output.push_str(&format!("{}Caller Traces:\n", caller_emoji));
+            for trace in &result.caller_traces {
+                output.push_str(&format!("  • {} (depth: {}, context: {})\n", 
+                                       trace.caller.name, trace.depth, trace.call_context));
+                output.push_str(&format!("    Location: {}\n", trace.caller.file_path));
+                if let Some(freq) = &trace.frequency {
+                    output.push_str(&format!("    Frequency: {}\n", freq));
+                }
+            }
+            output.push('\n');
+        }
+        
+        // Usage sites
+        if !result.usage_sites.is_empty() {
+            let usage_emoji = if self.use_emojis { "🔍 " } else { "" };
+            output.push_str(&format!("{}Usage Sites:\n", usage_emoji));
+            for usage in &result.usage_sites {
+                output.push_str(&format!("  • {} ({}): {}\n", usage.user.name, usage.usage_type, usage.context));
+                output.push_str(&format!("    Location: {}\n", usage.location.format_for_editor()));
+            }
+            output.push('\n');
+        }
+        
+        // Minimal change scope
+        let scope_emoji = if self.use_emojis { "🎯 " } else { "" };
+        output.push_str(&format!("{}Minimal Change Scope:\n", scope_emoji));
+        if !result.minimal_scope.minimal_files.is_empty() {
+            output.push_str("  Files to change:\n");
+            for file in &result.minimal_scope.minimal_files {
+                output.push_str(&format!("    • {}\n", file));
+            }
+        }
+        if !result.minimal_scope.safe_boundaries.is_empty() {
+            output.push_str("  Safe boundaries:\n");
+            for boundary in &result.minimal_scope.safe_boundaries {
+                output.push_str(&format!("    • {}\n", boundary));
+            }
+        }
+        if !result.minimal_scope.side_effects.is_empty() {
+            output.push_str("  Watch for side effects:\n");
+            for effect in &result.minimal_scope.side_effects {
+                output.push_str(&format!("    • {}\n", effect));
+            }
+        }
+        output.push_str(&format!("  Rollback strategy: {}\n", result.minimal_scope.rollback_strategy));
+        output.push('\n');
+        
+        // Timing information
+        if self.include_timing {
+            let timing_emoji = if self.use_emojis { "⏱️  " } else { "" };
+            output.push_str(&format!("{}Workflow completed in {:.2}s (target: <2 minutes)\n", 
+                                   timing_emoji, result.execution_time.as_secs_f64()));
+        }
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+    
+    fn format_refactor(&self, result: &RefactorResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        
+        let emoji_prefix = if self.use_emojis { "🔧 " } else { "" };
+        let mut output = String::new();
+        
+        // Header
+        output.push_str(&format!("{}Refactor Safety Check Complete\n", emoji_prefix));
+        output.push_str("=================================\n\n");
+        
+        output.push_str(&format!("🎯 Target Entity: {}\n\n", result.target_entity));
+        
+        // Risk assessment
+        let risk_emoji = if self.use_emojis { "⚠️  " } else { "" };
+        output.push_str(&format!("{}Risk Assessment:\n", risk_emoji));
+        output.push_str(&format!("  • Overall Risk: {:?}\n", result.risk_assessment.overall_risk));
+        output.push_str(&format!("  • Confidence: {:?}\n", result.risk_assessment.confidence));
+        
+        if !result.risk_assessment.risk_factors.is_empty() {
+            output.push_str("  Risk Factors:\n");
+            for factor in &result.risk_assessment.risk_factors {
+                output.push_str(&format!("    • {} ({:?}): {}\n", factor.description, factor.level, factor.impact));
+            }
+        }
+        
+        if !result.risk_assessment.mitigations.is_empty() {
+            output.push_str("  Mitigations:\n");
+            for mitigation in &result.risk_assessment.mitigations {
+                output.push_str(&format!("    • {}\n", mitigation));
+            }
+        }
+        output.push('\n');
+        
+        // Change checklist
+        if !result.change_checklist.is_empty() {
+            let checklist_emoji = if self.use_emojis { "✅ " } else { "" };
+            output.push_str(&format!("{}Change Checklist:\n", checklist_emoji));
+            for item in &result.change_checklist {
+                let status = if item.completed { "✓" } else { "☐" };
+                output.push_str(&format!("  {} {} ({:?})\n", status, item.description, item.priority));
+                if let Some(notes) = &item.notes {
+                    output.push_str(&format!("    Notes: {}\n", notes));
+                }
+            }
+            output.push('\n');
+        }
+        
+        // Reviewer guidance
+        let reviewer_emoji = if self.use_emojis { "👥 " } else { "" };
+        output.push_str(&format!("{}Reviewer Guidance:\n", reviewer_emoji));
+        if !result.reviewer_guidance.focus_areas.is_empty() {
+            output.push_str("  Focus Areas:\n");
+            for area in &result.reviewer_guidance.focus_areas {
+                output.push_str(&format!("    • {}\n", area));
+            }
+        }
+        if !result.reviewer_guidance.potential_issues.is_empty() {
+            output.push_str("  Potential Issues:\n");
+            for issue in &result.reviewer_guidance.potential_issues {
+                output.push_str(&format!("    • {}\n", issue));
+            }
+        }
+        if !result.reviewer_guidance.testing_recommendations.is_empty() {
+            output.push_str("  Testing Recommendations:\n");
+            for rec in &result.reviewer_guidance.testing_recommendations {
+                output.push_str(&format!("    • {}\n", rec));
+            }
+        }
+        if !result.reviewer_guidance.approval_criteria.is_empty() {
+            output.push_str("  Approval Criteria:\n");
+            for criteria in &result.reviewer_guidance.approval_criteria {
+                output.push_str(&format!("    • {}\n", criteria));
+            }
+        }
+        output.push('\n');
+        
+        // Timing information
+        if self.include_timing {
+            let timing_emoji = if self.use_emojis { "⏱️  " } else { "" };
+            output.push_str(&format!("{}Workflow completed in {:.2}s (target: <3 minutes)\n", 
+                                   timing_emoji, result.execution_time.as_secs_f64()));
+        }
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+}
+
+/// JSON formatter for structured data output
+/// 
+/// Produces valid JSON suitable for LLM consumption, API integration, and programmatic processing.
+/// Includes metadata and timing information for analysis.
+pub struct JsonFormatter {
+    /// Whether to pretty-print JSON output
+    pretty_print: bool,
+    /// Whether to include metadata fields
+    include_metadata: bool,
+}
+
+impl JsonFormatter {
+    /// Create new JSON formatter with default settings
+    pub fn new() -> Self {
+        Self {
+            pretty_print: true,
+            include_metadata: true,
+        }
+    }
+    
+    /// Create JSON formatter with custom settings
+    pub fn with_options(pretty_print: bool, include_metadata: bool) -> Self {
+        Self {
+            pretty_print,
+            include_metadata,
+        }
+    }
+}
+
+impl Default for JsonFormatter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl OutputFormatter for JsonFormatter {
+    fn format_onboarding(&self, result: &OnboardingResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        
+        let mut output = serde_json::json!({
+            "workflow": "onboard",
+            "result": result
+        });
+        
+        if self.include_metadata {
+            output["execution_time_s"] = serde_json::json!(result.execution_time.as_secs_f64());
+            output["performance_target_s"] = serde_json::json!(15 * 60);
+            output["timestamp"] = serde_json::json!(chrono::Utc::now().to_rfc3339());
+        }
+        
+        let json_string = if self.pretty_print {
+            serde_json::to_string_pretty(&output)
+        } else {
+            serde_json::to_string(&output)
+        }.map_err(|e| FormattingError::SerializationFailed {
+            message: e.to_string(),
+        })?;
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(json_string)
+    }
+    
+    fn format_feature_plan(&self, result: &FeaturePlanResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        
+        let mut output = serde_json::json!({
+            "workflow": "feature-start",
+            "result": result
+        });
+        
+        if self.include_metadata {
+            output["execution_time_s"] = serde_json::json!(result.execution_time.as_secs_f64());
+            output["performance_target_s"] = serde_json::json!(5 * 60);
+            output["timestamp"] = serde_json::json!(chrono::Utc::now().to_rfc3339());
+        }
+        
+        let json_string = if self.pretty_print {
+            serde_json::to_string_pretty(&output)
+        } else {
+            serde_json::to_string(&output)
+        }.map_err(|e| FormattingError::SerializationFailed {
+            message: e.to_string(),
+        })?;
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(json_string)
+    }
+    
+    fn format_debug(&self, result: &DebugResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        
+        let mut output = serde_json::json!({
+            "workflow": "debug",
+            "result": result
+        });
+        
+        if self.include_metadata {
+            output["execution_time_s"] = serde_json::json!(result.execution_time.as_secs_f64());
+            output["performance_target_s"] = serde_json::json!(2 * 60);
+            output["timestamp"] = serde_json::json!(chrono::Utc::now().to_rfc3339());
+        }
+        
+        let json_string = if self.pretty_print {
+            serde_json::to_string_pretty(&output)
+        } else {
+            serde_json::to_string(&output)
+        }.map_err(|e| FormattingError::SerializationFailed {
+            message: e.to_string(),
+        })?;
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(json_string)
+    }
+    
+    fn format_refactor(&self, result: &RefactorResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        
+        let mut output = serde_json::json!({
+            "workflow": "refactor-check",
+            "result": result
+        });
+        
+        if self.include_metadata {
+            output["execution_time_s"] = serde_json::json!(result.execution_time.as_secs_f64());
+            output["performance_target_s"] = serde_json::json!(3 * 60);
+            output["timestamp"] = serde_json::json!(chrono::Utc::now().to_rfc3339());
+        }
+        
+        let json_string = if self.pretty_print {
+            serde_json::to_string_pretty(&output)
+        } else {
+            serde_json::to_string(&output)
+        }.map_err(|e| FormattingError::SerializationFailed {
+            message: e.to_string(),
+        })?;
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(json_string)
+    }
+}
+
+/// PR Summary formatter for pull request descriptions
+/// 
+/// Produces markdown format with architectural context, impact analysis, and actionable checklists.
+/// Optimized for code review and team communication.
+pub struct PrSummaryFormatter {
+    /// Whether to include architectural diagrams (mermaid)
+    include_diagrams: bool,
+    /// Whether to generate actionable checklists
+    include_checklists: bool,
+}
+
+impl PrSummaryFormatter {
+    /// Create new PR summary formatter with default settings
+    pub fn new() -> Self {
+        Self {
+            include_diagrams: true,
+            include_checklists: true,
+        }
+    }
+    
+    /// Create PR summary formatter with custom settings
+    pub fn with_options(include_diagrams: bool, include_checklists: bool) -> Self {
+        Self {
+            include_diagrams,
+            include_checklists,
+        }
+    }
+}
+
+impl Default for PrSummaryFormatter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl OutputFormatter for PrSummaryFormatter {
+    fn format_onboarding(&self, result: &OnboardingResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        let mut output = String::new();
+        
+        // Header
+        output.push_str("# Codebase Onboarding Summary\n\n");
+        
+        // Overview
+        output.push_str("## Architectural Overview\n\n");
+        output.push_str(&format!("- **Total Files**: {}\n", result.overview.total_files));
+        output.push_str(&format!("- **Total Entities**: {}\n", result.overview.total_entities));
+        
+        if !result.overview.architecture_patterns.is_empty() {
+            output.push_str("- **Architecture Patterns**: ");
+            output.push_str(&result.overview.architecture_patterns.join(", "));
+            output.push('\n');
+        }
+        output.push('\n');
+        
+        // Entity breakdown
+        if !result.overview.entities_by_type.is_empty() {
+            output.push_str("### Entity Distribution\n\n");
+            for (entity_type, count) in &result.overview.entities_by_type {
+                output.push_str(&format!("- **{}**: {}\n", entity_type, count));
+            }
+            output.push('\n');
+        }
+        
+        // Key modules
+        if !result.overview.key_modules.is_empty() {
+            output.push_str("### Key Modules\n\n");
+            for module in &result.overview.key_modules {
+                output.push_str(&format!("- **{}**: {}\n", module.name, module.purpose));
+                if !module.key_entities.is_empty() {
+                    output.push_str(&format!("  - Key entities: {}\n", module.key_entities.join(", ")));
+                }
+            }
+            output.push('\n');
+        }
+        
+        // Entry points
+        if !result.entry_points.is_empty() {
+            output.push_str("## Entry Points\n\n");
+            for entry in &result.entry_points {
+                output.push_str(&format!("### {} ({})\n\n", entry.name, entry.entry_type));
+                output.push_str(&format!("{}\n\n", entry.description));
+                output.push_str(&format!("**Location**: `{}`\n\n", entry.location.format_for_editor()));
+            }
+        }
+        
+        // Recommended actions
+        if !result.next_steps.is_empty() && self.include_checklists {
+            output.push_str("## Recommended Actions\n\n");
+            for (i, step) in result.next_steps.iter().enumerate() {
+                output.push_str(&format!("- [ ] {}\n", step));
+            }
+            output.push('\n');
+        }
+        
+        // Architecture diagram
+        if self.include_diagrams && !result.overview.key_modules.is_empty() {
+            output.push_str("## Architecture Diagram\n\n");
+            output.push_str("```mermaid\n");
+            output.push_str("graph TD\n");
+            for (i, module) in result.overview.key_modules.iter().enumerate() {
+                let node_id = format!("M{}", i);
+                output.push_str(&format!("    {}[{}]\n", node_id, module.name));
+            }
+            output.push_str("```\n\n");
+        }
+        
+        // Metadata
+        output.push_str("---\n");
+        output.push_str(&format!("**Analysis completed in**: {:.2}s\n", result.execution_time.as_secs_f64()));
+        output.push_str(&format!("**Generated at**: {}\n", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")));
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+    
+    fn format_feature_plan(&self, result: &FeaturePlanResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        let mut output = String::new();
+        
+        // Header
+        output.push_str("# Feature Development Plan\n\n");
+        output.push_str(&format!("**Target Entity**: `{}`\n\n", result.target_entity));
+        
+        // Risk assessment
+        output.push_str("## Risk Assessment\n\n");
+        output.push_str(&format!("- **Risk Level**: {:?}\n", result.impact_analysis.risk_level));
+        output.push_str(&format!("- **Complexity**: {:?}\n", result.impact_analysis.complexity_estimate));
+        output.push_str(&format!("- **Direct Impact**: {} entities\n", result.impact_analysis.direct_impact.len()));
+        output.push_str(&format!("- **Indirect Impact**: {} entities\n", result.impact_analysis.indirect_impact.len()));
+        output.push('\n');
+        
+        // Scope boundaries
+        output.push_str("## Scope Boundaries\n\n");
+        if !result.scope_guidance.boundaries.is_empty() {
+            output.push_str("### Recommended Boundaries\n\n");
+            for boundary in &result.scope_guidance.boundaries {
+                output.push_str(&format!("- {}\n", boundary));
+            }
+            output.push('\n');
+        }
+        
+        if !result.scope_guidance.files_to_modify.is_empty() {
+            output.push_str("### Files to Modify\n\n");
+            for file in &result.scope_guidance.files_to_modify {
+                output.push_str(&format!("- `{}`\n", file));
+            }
+            output.push('\n');
+        }
+        
+        if !result.scope_guidance.files_to_avoid.is_empty() {
+            output.push_str("### Files to Avoid\n\n");
+            for file in &result.scope_guidance.files_to_avoid {
+                output.push_str(&format!("- `{}` ⚠️\n", file));
+            }
+            output.push('\n');
+        }
+        
+        // Testing strategy
+        if !result.test_recommendations.is_empty() {
+            output.push_str("## Testing Strategy\n\n");
+            for test in &result.test_recommendations {
+                output.push_str(&format!("### {} Tests\n\n", test.test_type.to_uppercase()));
+                output.push_str(&format!("**Target**: `{}`\n\n", test.test_target));
+                output.push_str(&format!("**Rationale**: {}\n\n", test.rationale));
+                output.push_str(&format!("**Suggested Location**: `{}`\n\n", test.suggested_location));
+            }
+        }
+        
+        // Pre-development checklist
+        if self.include_checklists {
+            output.push_str("## Pre-Development Checklist\n\n");
+            output.push_str("- [ ] Review impact analysis and risk assessment\n");
+            output.push_str("- [ ] Confirm scope boundaries with team\n");
+            output.push_str("- [ ] Set up test framework for recommended tests\n");
+            output.push_str("- [ ] Create feature branch\n");
+            output.push_str("- [ ] Document expected behavior changes\n");
+            output.push('\n');
+        }
+        
+        // Impact diagram
+        if self.include_diagrams {
+            output.push_str("## Impact Diagram\n\n");
+            output.push_str("```mermaid\n");
+            output.push_str("graph LR\n");
+            output.push_str(&format!("    Target[{}]\n", result.target_entity));
+            output.push_str("    Target --> DirectImpact[Direct Impact]\n");
+            output.push_str("    Target --> IndirectImpact[Indirect Impact]\n");
+            output.push_str("```\n\n");
+        }
+        
+        // Metadata
+        output.push_str("---\n");
+        output.push_str(&format!("**Analysis completed in**: {:.2}s\n", result.execution_time.as_secs_f64()));
+        output.push_str(&format!("**Generated at**: {}\n", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")));
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+    
+    fn format_debug(&self, result: &DebugResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        let mut output = String::new();
+        
+        // Header
+        output.push_str("# Debug Analysis Report\n\n");
+        output.push_str(&format!("**Target Entity**: `{}`\n\n", result.target_entity));
+        
+        // Caller analysis
+        if !result.caller_traces.is_empty() {
+            output.push_str("## Caller Analysis\n\n");
+            for trace in &result.caller_traces {
+                output.push_str(&format!("### {}\n\n", trace.caller.name));
+                output.push_str(&format!("- **Call Depth**: {}\n", trace.depth));
+                output.push_str(&format!("- **Context**: {}\n", trace.call_context));
+                output.push_str(&format!("- **Location**: `{}`\n", trace.caller.file_path));
+                if let Some(freq) = &trace.frequency {
+                    output.push_str(&format!("- **Frequency**: {}\n", freq));
+                }
+                output.push('\n');
+            }
+        }
+        
+        // Usage analysis
+        if !result.usage_sites.is_empty() {
+            output.push_str("## Usage Sites\n\n");
+            for usage in &result.usage_sites {
+                output.push_str(&format!("### {}\n\n", usage.user.name));
+                output.push_str(&format!("- **Usage Type**: {}\n", usage.usage_type));
+                output.push_str(&format!("- **Context**: {}\n", usage.context));
+                output.push_str(&format!("- **Location**: `{}`\n", usage.location.format_for_editor()));
+                output.push('\n');
+            }
+        }
+        
+        // Change recommendations
+        output.push_str("## Change Recommendations\n\n");
+        output.push_str("### Minimal Change Scope\n\n");
+        
+        if !result.minimal_scope.minimal_files.is_empty() {
+            output.push_str("**Files to modify**:\n");
+            for file in &result.minimal_scope.minimal_files {
+                output.push_str(&format!("- `{}`\n", file));
+            }
+            output.push('\n');
+        }
+        
+        if !result.minimal_scope.safe_boundaries.is_empty() {
+            output.push_str("**Safe boundaries**:\n");
+            for boundary in &result.minimal_scope.safe_boundaries {
+                output.push_str(&format!("- {}\n", boundary));
+            }
+            output.push('\n');
+        }
+        
+        output.push_str(&format!("**Rollback strategy**: {}\n\n", result.minimal_scope.rollback_strategy));
+        
+        // Safety checklist
+        if self.include_checklists {
+            output.push_str("## Safety Checklist\n\n");
+            output.push_str("- [ ] Backup current state\n");
+            output.push_str("- [ ] Write tests for current behavior\n");
+            output.push_str("- [ ] Make minimal changes only\n");
+            output.push_str("- [ ] Test all caller sites\n");
+            output.push_str("- [ ] Verify rollback strategy works\n");
+            output.push('\n');
+        }
+        
+        // Metadata
+        output.push_str("---\n");
+        output.push_str(&format!("**Analysis completed in**: {:.2}s\n", result.execution_time.as_secs_f64()));
+        output.push_str(&format!("**Generated at**: {}\n", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")));
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+    
+    fn format_refactor(&self, result: &RefactorResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        let mut output = String::new();
+        
+        // Header
+        output.push_str("# Refactoring Safety Analysis\n\n");
+        output.push_str(&format!("**Target Entity**: `{}`\n\n", result.target_entity));
+        
+        // Risk factors
+        output.push_str("## Risk Factors\n\n");
+        output.push_str(&format!("**Overall Risk**: {:?}\n", result.risk_assessment.overall_risk));
+        output.push_str(&format!("**Confidence Level**: {:?}\n\n", result.risk_assessment.confidence));
+        
+        if !result.risk_assessment.risk_factors.is_empty() {
+            output.push_str("### Identified Risks\n\n");
+            for factor in &result.risk_assessment.risk_factors {
+                output.push_str(&format!("#### {} ({:?})\n\n", factor.description, factor.level));
+                output.push_str(&format!("{}\n\n", factor.impact));
+            }
+        }
+        
+        if !result.risk_assessment.mitigations.is_empty() {
+            output.push_str("### Risk Mitigations\n\n");
+            for mitigation in &result.risk_assessment.mitigations {
+                output.push_str(&format!("- {}\n", mitigation));
+            }
+            output.push('\n');
+        }
+        
+        // Pre-refactor checklist
+        if !result.change_checklist.is_empty() && self.include_checklists {
+            output.push_str("## Pre-Refactor Checklist\n\n");
+            for item in &result.change_checklist {
+                let checkbox = if item.completed { "- [x]" } else { "- [ ]" };
+                output.push_str(&format!("{} {} ({:?})\n", checkbox, item.description, item.priority));
+                if let Some(notes) = &item.notes {
+                    output.push_str(&format!("  - *Note: {}*\n", notes));
+                }
+            }
+            output.push('\n');
+        }
+        
+        // Reviewer focus areas
+        output.push_str("## Reviewer Focus Areas\n\n");
+        if !result.reviewer_guidance.focus_areas.is_empty() {
+            output.push_str("### Key Areas to Review\n\n");
+            for area in &result.reviewer_guidance.focus_areas {
+                output.push_str(&format!("- {}\n", area));
+            }
+            output.push('\n');
+        }
+        
+        if !result.reviewer_guidance.potential_issues.is_empty() {
+            output.push_str("### Potential Issues to Watch For\n\n");
+            for issue in &result.reviewer_guidance.potential_issues {
+                output.push_str(&format!("- ⚠️ {}\n", issue));
+            }
+            output.push('\n');
+        }
+        
+        if !result.reviewer_guidance.testing_recommendations.is_empty() {
+            output.push_str("### Testing Recommendations\n\n");
+            for rec in &result.reviewer_guidance.testing_recommendations {
+                output.push_str(&format!("- {}\n", rec));
+            }
+            output.push('\n');
+        }
+        
+        if !result.reviewer_guidance.approval_criteria.is_empty() {
+            output.push_str("### Approval Criteria\n\n");
+            for criteria in &result.reviewer_guidance.approval_criteria {
+                output.push_str(&format!("- [ ] {}\n", criteria));
+            }
+            output.push('\n');
+        }
+        
+        // Risk diagram
+        if self.include_diagrams {
+            output.push_str("## Risk Assessment Diagram\n\n");
+            output.push_str("```mermaid\n");
+            output.push_str("graph TD\n");
+            output.push_str(&format!("    Target[{}]\n", result.target_entity));
+            output.push_str(&format!("    Risk[Overall Risk: {:?}]\n", result.risk_assessment.overall_risk));
+            output.push_str("    Target --> Risk\n");
+            output.push_str("```\n\n");
+        }
+        
+        // Metadata
+        output.push_str("---\n");
+        output.push_str(&format!("**Analysis completed in**: {:.2}s\n", result.execution_time.as_secs_f64()));
+        output.push_str(&format!("**Generated at**: {}\n", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")));
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+}
+
+/// CI/CD formatter for continuous integration output
+/// 
+/// Produces GitHub Actions compatible output with risk levels, gates, and actionable recommendations.
+/// Includes environment variables and workflow annotations.
+pub struct CiFormatter {
+    /// CI/CD platform type (github, gitlab, etc.)
+    platform: CiPlatform,
+    /// Whether to include environment variable exports
+    export_variables: bool,
+}
+
+/// Supported CI/CD platforms
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CiPlatform {
+    /// GitHub Actions
+    GitHub,
+    /// GitLab CI
+    GitLab,
+    /// Generic CI (basic output)
+    Generic,
+}
+
+impl CiFormatter {
+    /// Create new CI formatter for GitHub Actions
+    pub fn new() -> Self {
+        Self {
+            platform: CiPlatform::GitHub,
+            export_variables: true,
+        }
+    }
+    
+    /// Create CI formatter for specific platform
+    pub fn for_platform(platform: CiPlatform) -> Self {
+        Self {
+            platform,
+            export_variables: true,
+        }
+    }
+    
+    /// Create CI formatter with custom settings
+    pub fn with_options(platform: CiPlatform, export_variables: bool) -> Self {
+        Self {
+            platform,
+            export_variables,
+        }
+    }
+}
+
+impl Default for CiFormatter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl OutputFormatter for CiFormatter {
+    fn format_onboarding(&self, result: &OnboardingResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        let mut output = String::new();
+        
+        match self.platform {
+            CiPlatform::GitHub => {
+                // GitHub Actions format
+                output.push_str("::notice title=Onboarding Complete::Codebase analysis completed successfully\n");
+                
+                if self.export_variables {
+                    output.push_str(&format!("echo \"ONBOARD_STATUS=SUCCESS\" >> $GITHUB_ENV\n"));
+                    output.push_str(&format!("echo \"TOTAL_FILES={}\" >> $GITHUB_ENV\n", result.overview.total_files));
+                    output.push_str(&format!("echo \"TOTAL_ENTITIES={}\" >> $GITHUB_ENV\n", result.overview.total_entities));
+                    
+                    if !result.overview.architecture_patterns.is_empty() {
+                        let patterns = result.overview.architecture_patterns.join(",");
+                        output.push_str(&format!("echo \"ARCHITECTURE_PATTERNS={}\" >> $GITHUB_ENV\n", patterns));
+                    }
+                    
+                    if !result.next_steps.is_empty() {
+                        let actions = result.next_steps.join(";");
+                        output.push_str(&format!("echo \"NEXT_ACTIONS={}\" >> $GITHUB_ENV\n", actions));
+                    }
+                }
+                
+                // Summary
+                output.push_str("::group::Onboarding Summary\n");
+                output.push_str(&format!("Total files analyzed: {}\n", result.overview.total_files));
+                output.push_str(&format!("Total entities found: {}\n", result.overview.total_entities));
+                output.push_str(&format!("Entry points identified: {}\n", result.entry_points.len()));
+                output.push_str(&format!("Key contexts: {}\n", result.key_contexts.len()));
+                output.push_str("::endgroup::\n");
+            }
+            
+            CiPlatform::GitLab => {
+                // GitLab CI format
+                output.push_str("echo \"✅ Onboarding analysis completed\"\n");
+                
+                if self.export_variables {
+                    output.push_str(&format!("export ONBOARD_STATUS=SUCCESS\n"));
+                    output.push_str(&format!("export TOTAL_FILES={}\n", result.overview.total_files));
+                    output.push_str(&format!("export TOTAL_ENTITIES={}\n", result.overview.total_entities));
+                }
+            }
+            
+            CiPlatform::Generic => {
+                // Generic CI format
+                output.push_str("# Onboarding Analysis Complete\n");
+                output.push_str(&format!("ONBOARD_STATUS=SUCCESS\n"));
+                output.push_str(&format!("TOTAL_FILES={}\n", result.overview.total_files));
+                output.push_str(&format!("TOTAL_ENTITIES={}\n", result.overview.total_entities));
+            }
+        }
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+    
+    fn format_feature_plan(&self, result: &FeaturePlanResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        let mut output = String::new();
+        
+        let risk_level_str = format!("{:?}", result.impact_analysis.risk_level).to_uppercase();
+        let complexity_str = format!("{:?}", result.impact_analysis.complexity_estimate).to_uppercase();
+        
+        match self.platform {
+            CiPlatform::GitHub => {
+                // Risk-based notifications
+                match result.impact_analysis.risk_level {
+                    crate::discovery::WorkflowRiskLevel::High | crate::discovery::WorkflowRiskLevel::Critical => {
+                        output.push_str(&format!("::error title=High Risk Feature::Feature {} has high risk level\n", result.target_entity));
+                    }
+                    crate::discovery::WorkflowRiskLevel::Medium => {
+                        output.push_str(&format!("::warning title=Medium Risk Feature::Feature {} requires careful review\n", result.target_entity));
+                    }
+                    crate::discovery::WorkflowRiskLevel::Low => {
+                        output.push_str(&format!("::notice title=Low Risk Feature::Feature {} is low risk\n", result.target_entity));
+                    }
+                }
+                
+                if self.export_variables {
+                    output.push_str(&format!("echo \"RISK_LEVEL={}\" >> $GITHUB_ENV\n", risk_level_str));
+                    output.push_str(&format!("echo \"COMPLEXITY={}\" >> $GITHUB_ENV\n", complexity_str));
+                    output.push_str(&format!("echo \"TARGET_ENTITY={}\" >> $GITHUB_ENV\n", result.target_entity));
+                    output.push_str(&format!("echo \"REQUIRED_TESTS={}\" >> $GITHUB_ENV\n", result.test_recommendations.len()));
+                    
+                    // Set approval requirements based on risk
+                    let approval_required = match result.impact_analysis.risk_level {
+                        crate::discovery::WorkflowRiskLevel::High | crate::discovery::WorkflowRiskLevel::Critical => "true",
+                        _ => "false",
+                    };
+                    output.push_str(&format!("echo \"APPROVAL_REQUIRED={}\" >> $GITHUB_ENV\n", approval_required));
+                }
+                
+                // Test requirements
+                if !result.test_recommendations.is_empty() {
+                    output.push_str("::group::Required Tests\n");
+                    for test in &result.test_recommendations {
+                        output.push_str(&format!("- {} test for {}: {}\n", test.test_type, test.test_target, test.rationale));
+                    }
+                    output.push_str("::endgroup::\n");
+                }
+            }
+            
+            CiPlatform::GitLab => {
+                output.push_str(&format!("echo \"🎯 Feature planning for {} complete\"\n", result.target_entity));
+                
+                if self.export_variables {
+                    output.push_str(&format!("export RISK_LEVEL={}\n", risk_level_str));
+                    output.push_str(&format!("export COMPLEXITY={}\n", complexity_str));
+                    output.push_str(&format!("export TARGET_ENTITY={}\n", result.target_entity));
+                }
+            }
+            
+            CiPlatform::Generic => {
+                output.push_str(&format!("# Feature Planning: {}\n", result.target_entity));
+                output.push_str(&format!("RISK_LEVEL={}\n", risk_level_str));
+                output.push_str(&format!("COMPLEXITY={}\n", complexity_str));
+                output.push_str(&format!("REQUIRED_TESTS={}\n", result.test_recommendations.len()));
+            }
+        }
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+    
+    fn format_debug(&self, result: &DebugResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        let mut output = String::new();
+        
+        match self.platform {
+            CiPlatform::GitHub => {
+                output.push_str(&format!("::notice title=Debug Analysis::Analysis complete for {}\n", result.target_entity));
+                
+                if self.export_variables {
+                    output.push_str(&format!("echo \"DEBUG_TARGET={}\" >> $GITHUB_ENV\n", result.target_entity));
+                    output.push_str(&format!("echo \"CALLER_COUNT={}\" >> $GITHUB_ENV\n", result.caller_traces.len()));
+                    output.push_str(&format!("echo \"USAGE_SITES={}\" >> $GITHUB_ENV\n", result.usage_sites.len()));
+                    output.push_str(&format!("echo \"FILES_TO_CHANGE={}\" >> $GITHUB_ENV\n", result.minimal_scope.minimal_files.len()));
+                }
+                
+                // Change scope summary
+                output.push_str("::group::Change Scope\n");
+                output.push_str(&format!("Files to modify: {}\n", result.minimal_scope.minimal_files.len()));
+                output.push_str(&format!("Rollback strategy: {}\n", result.minimal_scope.rollback_strategy));
+                output.push_str("::endgroup::\n");
+            }
+            
+            CiPlatform::GitLab => {
+                output.push_str(&format!("echo \"🐛 Debug analysis for {} complete\"\n", result.target_entity));
+                
+                if self.export_variables {
+                    output.push_str(&format!("export DEBUG_TARGET={}\n", result.target_entity));
+                    output.push_str(&format!("export CALLER_COUNT={}\n", result.caller_traces.len()));
+                }
+            }
+            
+            CiPlatform::Generic => {
+                output.push_str(&format!("# Debug Analysis: {}\n", result.target_entity));
+                output.push_str(&format!("CALLER_COUNT={}\n", result.caller_traces.len()));
+                output.push_str(&format!("USAGE_SITES={}\n", result.usage_sites.len()));
+                output.push_str(&format!("FILES_TO_CHANGE={}\n", result.minimal_scope.minimal_files.len()));
+            }
+        }
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+    
+    fn format_refactor(&self, result: &RefactorResult) -> Result<String, FormattingError> {
+        let start = std::time::Instant::now();
+        let mut output = String::new();
+        
+        let risk_level_str = format!("{:?}", result.risk_assessment.overall_risk).to_uppercase();
+        
+        match self.platform {
+            CiPlatform::GitHub => {
+                // Risk-based notifications
+                match result.risk_assessment.overall_risk {
+                    crate::discovery::WorkflowRiskLevel::High | crate::discovery::WorkflowRiskLevel::Critical => {
+                        output.push_str(&format!("::error title=High Risk Refactor::Refactoring {} is high risk - requires approval\n", result.target_entity));
+                    }
+                    crate::discovery::WorkflowRiskLevel::Medium => {
+                        output.push_str(&format!("::warning title=Medium Risk Refactor::Refactoring {} requires careful review\n", result.target_entity));
+                    }
+                    crate::discovery::WorkflowRiskLevel::Low => {
+                        output.push_str(&format!("::notice title=Low Risk Refactor::Refactoring {} is low risk\n", result.target_entity));
+                    }
+                }
+                
+                if self.export_variables {
+                    output.push_str(&format!("echo \"REFACTOR_RISK={}\" >> $GITHUB_ENV\n", risk_level_str));
+                    output.push_str(&format!("echo \"TARGET_ENTITY={}\" >> $GITHUB_ENV\n", result.target_entity));
+                    
+                    // Set approval requirements
+                    let approval_required = match result.risk_assessment.overall_risk {
+                        crate::discovery::WorkflowRiskLevel::High | crate::discovery::WorkflowRiskLevel::Critical => "true",
+                        _ => "false",
+                    };
+                    output.push_str(&format!("echo \"APPROVAL_REQUIRED={}\" >> $GITHUB_ENV\n", approval_required));
+                    
+                    // Safety checks count
+                    let incomplete_checks = result.change_checklist.iter()
+                        .filter(|item| !item.completed)
+                        .count();
+                    output.push_str(&format!("echo \"SAFETY_CHECKS={}\" >> $GITHUB_ENV\n", incomplete_checks));
+                }
+                
+                // Safety checklist
+                if !result.change_checklist.is_empty() {
+                    output.push_str("::group::Safety Checklist\n");
+                    for item in &result.change_checklist {
+                        let status = if item.completed { "✅" } else { "❌" };
+                        output.push_str(&format!("{} {} ({:?})\n", status, item.description, item.priority));
+                    }
+                    output.push_str("::endgroup::\n");
+                }
+            }
+            
+            CiPlatform::GitLab => {
+                output.push_str(&format!("echo \"🔧 Refactor safety check for {} complete\"\n", result.target_entity));
+                
+                if self.export_variables {
+                    output.push_str(&format!("export REFACTOR_RISK={}\n", risk_level_str));
+                    output.push_str(&format!("export TARGET_ENTITY={}\n", result.target_entity));
+                }
+            }
+            
+            CiPlatform::Generic => {
+                output.push_str(&format!("# Refactor Safety: {}\n", result.target_entity));
+                output.push_str(&format!("REFACTOR_RISK={}\n", risk_level_str));
+                
+                let incomplete_checks = result.change_checklist.iter()
+                    .filter(|item| !item.completed)
+                    .count();
+                output.push_str(&format!("SAFETY_CHECKS={}\n", incomplete_checks));
+            }
+        }
+        
+        let elapsed = start.elapsed();
+        if elapsed > Duration::from_millis(100) {
+            return Err(FormattingError::Timeout {
+                elapsed,
+                limit: Duration::from_millis(100),
+            });
+        }
+        
+        Ok(output)
+    }
+}
+
+/// Factory for creating formatters based on format string
+pub struct FormatterFactory;
+
+impl FormatterFactory {
+    /// Create formatter from format string
+    /// 
+    /// # Supported Formats
+    /// - "human" -> HumanFormatter
+    /// - "json" -> JsonFormatter  
+    /// - "pr-summary" -> PrSummaryFormatter
+    /// - "ci" -> CiFormatter
+    /// 
+    /// # Error Conditions
+    /// - FormattingError::InvalidFormat for unsupported format strings
+    pub fn create_formatter(format: &str) -> Result<Box<dyn OutputFormatter>, FormattingError> {
+        match format.to_lowercase().as_str() {
+            "human" => Ok(Box::new(HumanFormatter::new())),
+            "json" => Ok(Box::new(JsonFormatter::new())),
+            "pr-summary" | "pr_summary" => Ok(Box::new(PrSummaryFormatter::new())),
+            "ci" | "ci-cd" => Ok(Box::new(CiFormatter::new())),
+            _ => Err(FormattingError::InvalidFormat {
+                format: format.to_string(),
+            }),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Instant;
+
+    // TDD RED PHASE: Test formatter creation
+    #[test]
+    fn test_formatter_factory_creation() {
+        // Test valid format strings
+        assert!(FormatterFactory::create_formatter("human").is_ok());
+        assert!(FormatterFactory::create_formatter("json").is_ok());
+        assert!(FormatterFactory::create_formatter("pr-summary").is_ok());
+        assert!(FormatterFactory::create_formatter("ci").is_ok());
+        
+        // Test invalid format string
+        assert!(FormatterFactory::create_formatter("invalid").is_err());
+    }
+
+    #[test]
+    fn test_formatter_factory_case_insensitive() {
+        // Should handle case variations
+        assert!(FormatterFactory::create_formatter("HUMAN").is_ok());
+        assert!(FormatterFactory::create_formatter("Json").is_ok());
+        assert!(FormatterFactory::create_formatter("PR-SUMMARY").is_ok());
+        assert!(FormatterFactory::create_formatter("CI").is_ok());
+    }
+
+    #[test]
+    fn test_formatter_factory_aliases() {
+        // Should handle format aliases
+        assert!(FormatterFactory::create_formatter("pr_summary").is_ok());
+        assert!(FormatterFactory::create_formatter("ci-cd").is_ok());
+    }
+
+    // TDD RED PHASE: Test formatter defaults
+    #[test]
+    fn test_human_formatter_defaults() {
+        let formatter = HumanFormatter::new();
+        assert!(formatter.include_timing);
+        assert!(formatter.use_emojis);
+    }
+
+    #[test]
+    fn test_json_formatter_defaults() {
+        let formatter = JsonFormatter::new();
+        assert!(formatter.pretty_print);
+        assert!(formatter.include_metadata);
+    }
+
+    #[test]
+    fn test_pr_summary_formatter_defaults() {
+        let formatter = PrSummaryFormatter::new();
+        assert!(formatter.include_diagrams);
+        assert!(formatter.include_checklists);
+    }
+
+    #[test]
+    fn test_ci_formatter_defaults() {
+        let formatter = CiFormatter::new();
+        assert_eq!(formatter.platform, CiPlatform::GitHub);
+        assert!(formatter.export_variables);
+    }
+
+    // TDD RED PHASE: Test formatter customization
+    #[test]
+    fn test_human_formatter_customization() {
+        let formatter = HumanFormatter::with_options(false, false);
+        assert!(!formatter.include_timing);
+        assert!(!formatter.use_emojis);
+    }
+
+    #[test]
+    fn test_json_formatter_customization() {
+        let formatter = JsonFormatter::with_options(false, false);
+        assert!(!formatter.pretty_print);
+        assert!(!formatter.include_metadata);
+    }
+
+    #[test]
+    fn test_ci_formatter_platform_selection() {
+        let github_formatter = CiFormatter::for_platform(CiPlatform::GitHub);
+        assert_eq!(github_formatter.platform, CiPlatform::GitHub);
+        
+        let gitlab_formatter = CiFormatter::for_platform(CiPlatform::GitLab);
+        assert_eq!(gitlab_formatter.platform, CiPlatform::GitLab);
+        
+        let generic_formatter = CiFormatter::for_platform(CiPlatform::Generic);
+        assert_eq!(generic_formatter.platform, CiPlatform::Generic);
+    }
+
+    // TDD RED PHASE: Test error types
+    #[test]
+    fn test_formatting_error_types() {
+        let serialization_error = FormattingError::SerializationFailed {
+            message: "Invalid JSON".to_string(),
+        };
+        assert!(serialization_error.to_string().contains("JSON serialization failed"));
+        
+        let template_error = FormattingError::TemplateError {
+            template: "test_template".to_string(),
+            error: "Missing variable".to_string(),
+        };
+        assert!(template_error.to_string().contains("Template rendering failed"));
+        
+        let format_error = FormattingError::InvalidFormat {
+            format: "unknown".to_string(),
+        };
+        assert!(format_error.to_string().contains("Invalid output format"));
+        
+        let timeout_error = FormattingError::Timeout {
+            elapsed: Duration::from_millis(200),
+            limit: Duration::from_millis(100),
+        };
+        assert!(timeout_error.to_string().contains("Formatting timeout"));
+    }
+
+    // TDD RED PHASE: Test performance contract
+    #[test]
+    fn test_formatter_performance_contract() {
+        // Contract: Formatter creation should be fast
+        let start = Instant::now();
+        let _formatter = HumanFormatter::new();
+        let elapsed = start.elapsed();
+        
+        assert!(elapsed < Duration::from_millis(10), 
+                "Formatter creation took {:?}, expected <10ms", elapsed);
+    }
+
+    // TDD RED PHASE: Test trait object compatibility
+    #[test]
+    fn test_trait_object_compatibility() {
+        // Should be able to use formatters as trait objects
+        let formatters: Vec<Box<dyn OutputFormatter>> = vec![
+            Box::new(HumanFormatter::new()),
+            Box::new(JsonFormatter::new()),
+            Box::new(PrSummaryFormatter::new()),
+            Box::new(CiFormatter::new()),
+        ];
+        
+        assert_eq!(formatters.len(), 4);
+    }
+}
