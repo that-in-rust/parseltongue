@@ -79,21 +79,24 @@
   - Write CLI integration tests for all discovery command variations
   - _Requirements: 1.1, 1.2 (MVP focus)_
 
-- [x] 12. Implement performance monitoring and contract validation
+- [ ] 12. Implement performance monitoring and contract validation
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Create DiscoveryMetrics struct with Histogram and Counter metrics
   - Add automated performance contract validation (<100ms discovery, <50μs existing queries)
   - Implement memory usage monitoring with <20% increase constraint
   - Write performance regression tests for all critical paths
   - _Requirements: Performance preservation constraint, 1.1, 1.2, 1.3_
 
-- [x] 13. Create backward compatibility layer
+- [ ] 13. Create backward compatibility layer
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Implement LegacyQueryAdapter maintaining v1 API compatibility
   - Ensure existing query interface remains unchanged (zero breaking changes)
   - Add discovery capabilities as additive features only
   - Write compatibility tests ensuring v1 functionality preservation
   - _Requirements: Performance preservation constraint_
 
-- [x] 14. Build comprehensive integration and end-to-end tests
+- [ ] 14. Build comprehensive integration and end-to-end tests
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Create test scenarios covering discovery-to-analysis workflows
   - Implement property-based tests for discovery query invariants
   - Add stress tests with realistic codebase sizes (Iggy: 983 files, Axum: 295 files)
@@ -101,13 +104,15 @@
   - _Requirements: All requirements validation_
 
 - [ ] 15. Optimize memory layout and performance critical paths
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Implement zero-allocation entity filtering with iterator patterns
   - Add batch processing for multiple discovery queries with bounded concurrency
   - Optimize string interning and trigram index memory usage
   - Write micro-benchmarks for all performance-critical operations
   - _Requirements: Performance preservation constraint, memory efficiency_
 
-- [-] 16. Add JSON output support for tooling integration
+- [] 16. Add JSON output support for tooling integration
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Implement `--json` flag for all discovery commands (list-entities, entities-in-file, where-defined)
   - Create structured JSON schemas with metadata (timestamps, file paths, confidence scores)
   - Add JSON output for blast-radius analysis with machine-readable impact data
@@ -115,6 +120,7 @@
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
 - [ ] 17. Build workspace state management system
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Implement WorkspaceManager for persistent analysis sessions in `./parseltongue_workspace/`
   - Create AnalysisSession tracking with timestamps and automatic latest linking
   - Add workspace cleanup commands and stale analysis detection
@@ -122,6 +128,7 @@
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
 - [ ] 18. Create workflow orchestration layer (shell toolkit)
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Build `pt` shell script with subcommand architecture (onboard, feature-start, debug, refactor-check)
   - Implement WorkflowOrchestrator trait combining discovery commands into complete user journeys
   - Create workflow result structures (OnboardingResult, FeaturePlanResult, DebugResult)
@@ -129,6 +136,7 @@
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
 - [ ] 19. Implement JTBD workflow commands
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Create `pt onboard` workflow: ingest → overview → routes → key contexts (complete in <15 minutes)
   - Build `pt feature-start` workflow: impact analysis → scope guidance → test recommendations
   - Implement `pt debug` workflow: caller traces → usage sites → minimal change scope
@@ -137,6 +145,7 @@
   - _Requirements: JTBD 1, 2, 3, 4 workflows_
 
 - [ ] 20. Build output integration and formatting system
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Implement OutputFormatter trait with human, JSON, PR summary, and CI output formats
   - Create PR-ready markdown summaries with architectural context and impact analysis
   - Add CI/CD integration outputs with risk levels and actionable recommendations
@@ -144,6 +153,7 @@
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
 - [ ] 21. Integration with existing ISG engine and final wiring
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Integrate discovery layer with existing InMemoryIsg without modifications
   - Wire discovery commands through existing CLI infrastructure
   - Connect workflow orchestration layer to core discovery primitives
