@@ -287,16 +287,7 @@ where
     /// Get entities of a specific type with efficient filtering
     /// 
     /// Uses the type index for O(1) access to entities of a specific type.
-    /// More efficient than filtering all entities when you know the type.
-    pub async fn entities_by_type_efficient(
-        &self, 
-        entity_type: EntityType, 
-        max_results: usize
-    ) -> Result<Vec<EntityInfo>> {
-        self.ensure_type_index_built()?;
-        let index = self.type_index.read().unwrap();
-        Ok(index.entities_by_type_paginated(entity_type, max_results))
-    }
+
     
     /// Get available entity types in the codebase
     /// 
@@ -325,6 +316,37 @@ where
     pub fn invalidate_type_index(&self) {
         let mut index = self.type_index.write().unwrap();
         index.is_built = false;
+    }
+    
+    /// Efficient entity listing by type with limit
+    /// 
+    /// Optimized version that uses the type index for fast access
+    /// and applies limits without collecting all entities first.
+    pub async fn entities_by_type_efficient(
+        &self,
+        entity_type: EntityType,
+        max_results: usize,
+    ) -> Result<Vec<EntityInfo>> {
+        let start = Instant::now();
+        
+        // Ensure type index is built
+        self.ensure_type_index_built()?;
+        
+        let index = self.type_index.read().unwrap();
+        let entities = index.type_to_entities
+            .get(&entity_type)
+            .map(|entities| {
+                entities.iter()
+                    .take(max_results)
+                    .cloned()
+                    .collect()
+            })
+            .unwrap_or_default();
+        
+        let elapsed = start.elapsed();
+        self.performance_monitor.check_discovery_performance("entities_by_type_efficient", elapsed)?;
+        
+        Ok(entities)
     }
 }
 

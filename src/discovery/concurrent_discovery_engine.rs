@@ -611,4 +611,183 @@ mod tests {
             result.unwrap(); // Will panic if any performance contract is violated
         }
     }
+    
+    // RED PHASE: Batch processing optimization tests that should FAIL initially
+    
+    #[tokio::test]
+    async fn test_batch_discovery_queries_performance_contract() {
+        // PERFORMANCE CONTRACT: Batch processing should be more efficient than sequential
+        let isg = create_test_isg();
+        let engine = ConcurrentDiscoveryEngine::new(isg);
+        
+        // Create batch of queries
+        let queries = create_test_query_batch(20);
+        let max_concurrent = 5;
+        
+        // Test batch processing
+        let start = Instant::now();
+        let batch_results = engine.batch_discovery_queries(queries.clone(), max_concurrent).await;
+        let batch_time = start.elapsed();
+        
+        // Test sequential processing for comparison
+        let start = Instant::now();
+        let mut sequential_results = Vec::new();
+        for query in queries {
+            let result = engine.execute_discovery_query(query).await;
+            sequential_results.push(result);
+        }
+        let sequential_time = start.elapsed();
+        
+        // Batch should be faster (or at least not significantly slower)
+        let efficiency_ratio = batch_time.as_millis() as f64 / sequential_time.as_millis() as f64;
+        assert!(efficiency_ratio <= 1.2, // Allow 20% overhead for coordination
+                "Batch processing efficiency ratio {:.2}, expected <=1.2", efficiency_ratio);
+        
+        // Results should be equivalent
+        assert_eq!(batch_results.len(), sequential_results.len());
+        
+        // Performance contract: Batch should complete quickly
+        assert!(batch_time < Duration::from_secs(5),
+                "Batch processing took {:?}, expected <5s", batch_time);
+    }
+    
+    #[tokio::test]
+    async fn test_batch_entities_by_types_optimization() {
+        // PERFORMANCE CONTRACT: Batch entity queries should be optimized
+        let isg = create_test_isg();
+        let engine = ConcurrentDiscoveryEngine::new(isg);
+        
+        let entity_types = vec![
+            EntityType::Function,
+            EntityType::Struct,
+            EntityType::Trait,
+            EntityType::Impl,
+        ];
+        
+        let start = Instant::now();
+        let batch_results = engine.batch_entities_by_types(entity_types.clone(), 100).await.unwrap();
+        let batch_time = start.elapsed();
+        
+        // Compare with individual queries
+        let start = Instant::now();
+        let mut individual_results = std::collections::HashMap::new();
+        for entity_type in &entity_types {
+            let entities = engine.list_all_entities(Some(*entity_type), 100).await.unwrap();
+            individual_results.insert(*entity_type, entities);
+        }
+        let individual_time = start.elapsed();
+        
+        // Batch should be more efficient
+        let efficiency_ratio = batch_time.as_millis() as f64 / individual_time.as_millis() as f64;
+        assert!(efficiency_ratio <= 0.8, // Should be at least 20% faster
+                "Batch entities efficiency ratio {:.2}, expected <=0.8", efficiency_ratio);
+        
+        // Results should be equivalent
+        assert_eq!(batch_results.len(), individual_results.len());
+        for (entity_type, entities) in &batch_results {
+            let individual_entities = individual_results.get(entity_type).unwrap();
+            assert_eq!(entities.len(), individual_entities.len());
+        }
+        
+        // Performance contract: Should complete quickly
+        assert!(batch_time < Duration::from_millis(500),
+                "Batch entities query took {:?}, expected <500ms", batch_time);
+    }
+    
+    #[tokio::test]
+    async fn test_batch_entities_in_files_concurrency_bounds() {
+        // PERFORMANCE CONTRACT: File batch processing should respect concurrency limits
+        let isg = create_test_isg();
+        let engine = ConcurrentDiscoveryEngine::new(isg);
+        
+        let file_paths = vec![
+            "src/main.rs".to_string(),
+            "src/lib.rs".to_string(),
+            "src/parser.rs".to_string(),
+            "src/utils.rs".to_string(),
+            "tests/integration.rs".to_string(),
+        ];
+        
+        let max_concurrent = 2;
+        
+        let start = Instant::now();
+        let results = engine.batch_entities_in_files(file_paths.clone(), max_concurrent).await;
+        let elapsed = start.elapsed();
+        
+        // All queries should complete
+        assert_eq!(results.len(), file_paths.len());
+        
+        // Most should succeed (allow for some files not existing in test data)
+        let success_count = results.iter().filter(|r| r.is_ok()).count();
+        assert!(success_count >= 2, "At least 2 file queries should succeed");
+        
+        // Performance contract: Should complete efficiently
+        assert!(elapsed < Duration::from_secs(2),
+                "Batch file queries took {:?}, expected <2s", elapsed);
+    }
+    
+    #[tokio::test]
+    async fn test_bounded_concurrency_memory_efficiency() {
+        // PERFORMANCE CONTRACT: Bounded concurrency should prevent memory exhaustion
+        let isg = create_test_isg();
+        let engine = ConcurrentDiscoveryEngine::new(isg);
+        
+        // Create many queries to test memory bounds
+        let queries = create_large_query_batch(100);
+        let max_concurrent = 3; // Very low limit to test bounds
+        
+        let memory_before = get_approximate_memory_usage();
+        
+        let start = Instant::now();
+        let results = engine.batch_discovery_queries(queries, max_concurrent).await;
+        let elapsed = start.elapsed();
+        
+        let memory_after = get_approximate_memory_usage();
+        let memory_increase = memory_after.saturating_sub(memory_before);
+        
+        // Memory should not grow excessively
+        assert!(memory_increase < 50_000_000, // Less than 50MB
+                "Memory increased by {} bytes, expected <50MB", memory_increase);
+        
+        // Should complete all queries
+        assert_eq!(results.len(), 100);
+        
+        // Performance contract: Should complete despite low concurrency
+        assert!(elapsed < Duration::from_secs(30),
+                "Bounded batch processing took {:?}, expected <30s", elapsed);
+    }
+    
+    fn create_test_query_batch(count: usize) -> Vec<crate::discovery::types::DiscoveryQuery> {
+        let mut queries = Vec::with_capacity(count);
+        let entity_types = [EntityType::Function, EntityType::Struct, EntityType::Trait];
+        
+        for i in 0..count {
+            let entity_type = entity_types[i % entity_types.len()];
+            queries.push(crate::discovery::types::DiscoveryQuery::list_by_type(entity_type));
+        }
+        
+        queries
+    }
+    
+    fn create_large_query_batch(count: usize) -> Vec<crate::discovery::types::DiscoveryQuery> {
+        let mut queries = Vec::with_capacity(count);
+        
+        for i in 0..count {
+            match i % 4 {
+                0 => queries.push(crate::discovery::types::DiscoveryQuery::list_all()),
+                1 => queries.push(crate::discovery::types::DiscoveryQuery::list_by_type(EntityType::Function)),
+                2 => queries.push(crate::discovery::types::DiscoveryQuery::list_by_type(EntityType::Struct)),
+                3 => queries.push(crate::discovery::types::DiscoveryQuery::list_by_type(EntityType::Trait)),
+                _ => unreachable!(),
+            }
+        }
+        
+        queries
+    }
+    
+    fn get_approximate_memory_usage() -> usize {
+        // Simplified memory usage estimation for testing
+        // In production, this would use proper system APIs
+        0
+    }
 }

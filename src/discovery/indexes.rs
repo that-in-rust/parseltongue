@@ -20,19 +20,25 @@ use std::time::{Duration, Instant};
 /// 
 /// Target: 24 bytes per entity for optimal cache performance
 /// Uses string interning for file paths to reduce memory usage
+/// 
+/// Memory layout optimization:
+/// - 8-byte alignment for optimal cache performance
+/// - Exactly 24 bytes total size
+/// - Efficient packing of fields
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[repr(C, align(8))]
 pub struct CompactEntityInfo {
-    /// Entity name (interned string ID)
+    /// Entity name (interned string ID) - 4 bytes
     pub name_id: u32,
-    /// File where entity is defined (interned file ID)
+    /// File where entity is defined (interned file ID) - 4 bytes  
     pub file_id: FileId,
-    /// Type of entity
-    pub entity_type: EntityType,
-    /// Line number (0 if not available)
+    /// Line number (0 if not available) - 4 bytes
     pub line_number: u32,
-    /// Column number (0 if not available) 
+    /// Column number (0 if not available) - 4 bytes
     pub column: u32,
-    /// Reserved for future use (ensures 24-byte alignment)
+    /// Type of entity - 1 byte + 3 bytes padding
+    pub entity_type: EntityType,
+    /// Reserved for future use (ensures 24-byte total size) - 4 bytes
     pub _reserved: u32,
 }
 
@@ -321,6 +327,217 @@ impl FileInterner {
     pub fn memory_usage_bytes(&self) -> usize {
         let usage = self.memory_usage();
         usage.path_map_bytes + usage.id_map_bytes + usage.string_storage_bytes
+    }
+}
+
+#[cfg(test)]
+mod memory_optimization_tests {
+    use super::*;
+    use std::time::Duration;
+    
+    // RED PHASE: Memory optimization tests that should FAIL until we implement optimizations
+    
+    #[test]
+    fn test_zero_allocation_entity_filtering_performance_contract() {
+        // PERFORMANCE CONTRACT: Zero-allocation filtering must be faster than collecting
+        let mut indexes = DiscoveryIndexes::new();
+        
+        // Create large dataset for meaningful performance test
+        let mut entities = Vec::new();
+        for i in 0..10_000 {
+            entities.push(EntityInfo::new(
+                format!("entity_{}", i),
+                format!("src/file_{}.rs", i % 100),
+                if i % 3 == 0 { EntityType::Function } else { EntityType::Struct },
+                Some(i as u32 + 1),
+                Some((i % 80) as u32 + 1),
+            ));
+        }
+        
+        indexes.rebuild_from_entities(entities).unwrap();
+        
+        // Test zero-allocation filtering performance
+        let start = std::time::Instant::now();
+        let count = indexes
+            .filter_entities_by_type(EntityType::Function)
+            .filter(|entity| entity.line_number > 100)
+            .take(1000)
+            .count();
+        let zero_alloc_time = start.elapsed();
+        
+        // Compare with collecting approach (should be slower)
+        let start = std::time::Instant::now();
+        let collected: Vec<_> = indexes
+            .filter_entities_by_type(EntityType::Function)
+            .filter(|entity| entity.line_number > 100)
+            .take(1000)
+            .collect();
+        let collect_time = start.elapsed();
+        
+        // Zero-allocation should be faster
+        assert!(zero_alloc_time <= collect_time, 
+                "Zero-allocation filtering ({:?}) should be <= collecting ({:?})", 
+                zero_alloc_time, collect_time);
+        
+        assert_eq!(count, collected.len());
+        assert!(count > 0, "Should find entities to filter");
+        
+        // Performance contract: Should complete in <1ms for 10k entities
+        assert!(zero_alloc_time < Duration::from_millis(1),
+                "Zero-allocation filtering took {:?}, expected <1ms", zero_alloc_time);
+    }
+    
+    #[test]
+    fn test_batch_entity_filtering_with_multiple_types() {
+        // PERFORMANCE CONTRACT: Batch filtering should be efficient
+        let mut indexes = DiscoveryIndexes::new();
+        
+        let entities = create_diverse_entity_dataset(5000);
+        indexes.rebuild_from_entities(entities).unwrap();
+        
+        let entity_types = vec![EntityType::Function, EntityType::Struct, EntityType::Trait];
+        
+        let start = std::time::Instant::now();
+        let mut total_count = 0;
+        
+        for entity_type in entity_types {
+            let count = indexes
+                .filter_entities_by_type(entity_type)
+                .take(500)
+                .count();
+            total_count += count;
+        }
+        
+        let elapsed = start.elapsed();
+        
+        // Performance contract: Batch filtering should be fast
+        assert!(elapsed < Duration::from_millis(5),
+                "Batch filtering took {:?}, expected <5ms", elapsed);
+        
+        assert!(total_count > 0, "Should find entities across all types");
+    }
+    
+    #[test]
+    fn test_memory_efficient_pagination() {
+        // PERFORMANCE CONTRACT: Pagination should not allocate intermediate collections
+        let mut indexes = DiscoveryIndexes::new();
+        
+        let entities = create_diverse_entity_dataset(1000);
+        indexes.rebuild_from_entities(entities).unwrap();
+        
+        // Test pagination with zero allocations
+        let start = std::time::Instant::now();
+        
+        let page1: Vec<_> = indexes
+            .paginate_entities(
+                indexes.filter_entities_by_type(EntityType::Function),
+                0,  // offset
+                50  // limit
+            )
+            .collect();
+        
+        let page2: Vec<_> = indexes
+            .paginate_entities(
+                indexes.filter_entities_by_type(EntityType::Function),
+                50, // offset
+                50  // limit
+            )
+            .collect();
+        
+        let elapsed = start.elapsed();
+        
+        // Performance contract: Pagination should be very fast
+        assert!(elapsed < Duration::from_micros(500),
+                "Pagination took {:?}, expected <500μs", elapsed);
+        
+        assert_eq!(page1.len(), 50);
+        assert_eq!(page2.len(), 50);
+        
+        // Pages should not overlap
+        let page1_ids: std::collections::HashSet<_> = page1.iter().map(|e| e.name_id).collect();
+        let page2_ids: std::collections::HashSet<_> = page2.iter().map(|e| e.name_id).collect();
+        assert!(page1_ids.is_disjoint(&page2_ids), "Pages should not overlap");
+    }
+    
+    #[test]
+    fn test_name_prefix_filtering_performance() {
+        // PERFORMANCE CONTRACT: Name prefix filtering should be efficient
+        let mut indexes = DiscoveryIndexes::new();
+        
+        let entities = create_entities_with_common_prefixes(2000);
+        indexes.rebuild_from_entities(entities).unwrap();
+        
+        let start = std::time::Instant::now();
+        
+        let test_matches: Vec<_> = indexes
+            .filter_entities_by_name_prefix("test_")
+            .take(100)
+            .collect();
+        
+        let util_matches: Vec<_> = indexes
+            .filter_entities_by_name_prefix("util_")
+            .take(100)
+            .collect();
+        
+        let elapsed = start.elapsed();
+        
+        // Performance contract: Prefix filtering should be fast
+        assert!(elapsed < Duration::from_millis(2),
+                "Name prefix filtering took {:?}, expected <2ms", elapsed);
+        
+        assert!(test_matches.len() > 0, "Should find test_ prefixed entities");
+        assert!(util_matches.len() > 0, "Should find util_ prefixed entities");
+        
+        // Verify correctness
+        for entity in &test_matches {
+            let name = indexes.interner.get_name(entity.name_id).unwrap();
+            assert!(name.starts_with("test_"), "Entity name should start with test_");
+        }
+    }
+    
+    fn create_diverse_entity_dataset(count: usize) -> Vec<EntityInfo> {
+        let mut entities = Vec::with_capacity(count);
+        let entity_types = [
+            EntityType::Function,
+            EntityType::Struct, 
+            EntityType::Trait,
+            EntityType::Impl,
+            EntityType::Module,
+            EntityType::Constant,
+            EntityType::Static,
+            EntityType::Macro,
+        ];
+        
+        for i in 0..count {
+            let entity_type = entity_types[i % entity_types.len()];
+            entities.push(EntityInfo::new(
+                format!("entity_{}", i),
+                format!("src/module_{}/file_{}.rs", i / 50, i % 50),
+                entity_type,
+                Some((i % 500) as u32 + 1),
+                Some((i % 120) as u32 + 1),
+            ));
+        }
+        
+        entities
+    }
+    
+    fn create_entities_with_common_prefixes(count: usize) -> Vec<EntityInfo> {
+        let mut entities = Vec::with_capacity(count);
+        let prefixes = ["test_", "util_", "parse_", "format_", "validate_"];
+        
+        for i in 0..count {
+            let prefix = prefixes[i % prefixes.len()];
+            entities.push(EntityInfo::new(
+                format!("{}{}", prefix, i),
+                format!("src/file_{}.rs", i % 20),
+                EntityType::Function,
+                Some(i as u32 + 1),
+                Some((i % 80) as u32 + 1),
+            ));
+        }
+        
+        entities
     }
 }
 

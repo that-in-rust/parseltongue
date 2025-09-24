@@ -685,3 +685,187 @@ mod tests {
         assert!(violation.is_err());
     }
 }
+
+/// Micro-benchmark tests for performance optimization validation
+/// 
+/// Following TDD: RED → GREEN → REFACTOR cycle
+/// These tests establish performance contracts that must be met.
+#[cfg(test)]
+mod micro_benchmark_tests {
+    use super::*;
+    use crate::discovery::{
+        indexes::{DiscoveryIndexes, CompactEntityInfo},
+        string_interning::FileInterner,
+        types::{EntityInfo, EntityType},
+    };
+    use std::time::Instant;
+    
+    // RED PHASE: Micro-benchmark tests that should FAIL until optimizations are implemented
+    
+    #[test]
+    fn test_micro_benchmark_entity_filtering_performance() {
+        // PERFORMANCE CONTRACT: Entity filtering must complete in <50μs
+        let mut indexes = DiscoveryIndexes::new();
+        
+        // Create test dataset
+        let mut entities = Vec::new();
+        for i in 0..1000 {
+            entities.push(EntityInfo::new(
+                format!("entity_{}", i),
+                format!("src/file_{}.rs", i % 10),
+                if i % 2 == 0 { EntityType::Function } else { EntityType::Struct },
+                Some(i as u32 + 1),
+                Some((i % 80) as u32 + 1),
+            ));
+        }
+        
+        indexes.rebuild_from_entities(entities).unwrap();
+        
+        // Micro-benchmark: Zero-allocation filtering
+        let iterations = 100;
+        let start = Instant::now();
+        
+        for _ in 0..iterations {
+            let count = indexes
+                .filter_entities_by_type(EntityType::Function)
+                .filter(|e| e.line_number > 100)
+                .take(100)
+                .count();
+            std::hint::black_box(count);
+        }
+        
+        let elapsed = start.elapsed();
+        let per_iteration = elapsed / iterations;
+        
+        // PERFORMANCE CONTRACT: <50μs per filtering operation
+        assert!(per_iteration < Duration::from_micros(50),
+                "Entity filtering took {:?} per iteration, expected <50μs", per_iteration);
+    }
+    
+    #[test]
+    fn test_micro_benchmark_string_interning_performance() {
+        // PERFORMANCE CONTRACT: String interning must be efficient
+        let mut interner = FileInterner::new();
+        
+        let test_paths = vec![
+            "src/main.rs", "src/lib.rs", "src/parser.rs", "src/utils.rs",
+            "tests/integration.rs", "benches/benchmark.rs",
+        ];
+        
+        // Micro-benchmark: Interning performance
+        let iterations = 1000;
+        let start = Instant::now();
+        
+        for i in 0..iterations {
+            let path = test_paths[i % test_paths.len()];
+            let _file_id = interner.intern(path);
+        }
+        
+        let elapsed = start.elapsed();
+        let per_intern = elapsed / iterations as u32;
+        
+        // PERFORMANCE CONTRACT: <1μs per interning operation
+        assert!(per_intern < Duration::from_micros(1),
+                "String interning took {:?} per operation, expected <1μs", per_intern);
+        
+        // Test memory efficiency
+        let usage = interner.memory_usage();
+        let bytes_per_entry = usage.total_bytes() / interner.len();
+        
+        assert!(bytes_per_entry < 200,
+                "String interning uses {} bytes per entry, expected <200", bytes_per_entry);
+    }
+    
+    #[test]
+    fn test_micro_benchmark_memory_stats_calculation() {
+        // PERFORMANCE CONTRACT: Memory stats calculation must be fast
+        let mut indexes = DiscoveryIndexes::new();
+        
+        let entities = (0..1000).map(|i| {
+            EntityInfo::new(
+                format!("entity_{}", i),
+                format!("src/file_{}.rs", i % 20),
+                EntityType::Function,
+                Some(i as u32 + 1),
+                Some((i % 80) as u32 + 1),
+            )
+        }).collect();
+        
+        indexes.rebuild_from_entities(entities).unwrap();
+        
+        // Micro-benchmark: Memory stats calculation
+        let iterations = 100;
+        let start = Instant::now();
+        
+        for _ in 0..iterations {
+            let stats = indexes.memory_stats();
+            std::hint::black_box(stats);
+        }
+        
+        let elapsed = start.elapsed();
+        let per_calculation = elapsed / iterations;
+        
+        // PERFORMANCE CONTRACT: <10μs per calculation
+        assert!(per_calculation < Duration::from_micros(10),
+                "Memory stats calculation took {:?}, expected <10μs", per_calculation);
+    }
+    
+    #[test]
+    fn test_micro_benchmark_compact_entity_memory_layout() {
+        // PERFORMANCE CONTRACT: CompactEntityInfo must be exactly 24 bytes
+        let size = std::mem::size_of::<CompactEntityInfo>();
+        let align = std::mem::align_of::<CompactEntityInfo>();
+        
+        // This will FAIL until we optimize the memory layout
+        assert_eq!(size, 24, "CompactEntityInfo must be exactly 24 bytes, got {}", size);
+        assert_eq!(align, 8, "CompactEntityInfo must be 8-byte aligned, got {}", align);
+        
+        // Test that we can fit multiple entities in a cache line
+        let entities_per_cache_line = 64 / size; // 64-byte cache line
+        assert!(entities_per_cache_line >= 2,
+                "Should fit at least 2 entities per cache line, got {}", entities_per_cache_line);
+    }
+    
+    #[test]
+    fn test_micro_benchmark_index_rebuild_scalability() {
+        // PERFORMANCE CONTRACT: Index rebuild must scale efficiently
+        let test_sizes = vec![100, 500, 1000];
+        let mut rebuild_times = Vec::new();
+        
+        for &size in &test_sizes {
+            let mut indexes = DiscoveryIndexes::new();
+            let entities = (0..size).map(|i| {
+                EntityInfo::new(
+                    format!("entity_{}", i),
+                    format!("src/file_{}.rs", i % 10),
+                    EntityType::Function,
+                    Some(i as u32 + 1),
+                    Some((i % 80) as u32 + 1),
+                )
+            }).collect();
+            
+            let start = Instant::now();
+            indexes.rebuild_from_entities(entities).unwrap();
+            let rebuild_time = start.elapsed();
+            
+            rebuild_times.push(rebuild_time);
+            
+            // PERFORMANCE CONTRACT: Should rebuild quickly
+            let max_time = Duration::from_millis(size as u64); // 1ms per 1000 entities
+            assert!(rebuild_time < max_time,
+                    "Rebuild of {} entities took {:?}, expected <{:?}", 
+                    size, rebuild_time, max_time);
+        }
+        
+        // Test that rebuild time scales sub-linearly
+        if rebuild_times.len() >= 2 {
+            let size_ratio = test_sizes[1] as f64 / test_sizes[0] as f64;
+            let time_ratio = rebuild_times[1].as_nanos() as f64 / rebuild_times[0].as_nanos() as f64;
+            
+            // Time should scale better than linearly
+            assert!(time_ratio < size_ratio * 1.5,
+                    "Rebuild time scaling: {:.2}x time for {:.2}x size (should be sub-linear)",
+                    time_ratio, size_ratio);
+        }
+    }
+}
