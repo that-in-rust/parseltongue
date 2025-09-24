@@ -283,6 +283,7 @@ impl FileNavigationProvider for MockFileNavigationProvider {
 mod file_navigation_contract_tests {
     use super::*;
     use tokio;
+    use std::time::{Duration, Instant};
     
 /// STUB: Mock implementation for testing contracts
 pub struct MockFileNavigationProvider {

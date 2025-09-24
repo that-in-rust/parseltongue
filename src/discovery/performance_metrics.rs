@@ -132,6 +132,11 @@ impl Counter {
     pub fn reset(&self) {
         self.value.store(0, Ordering::Relaxed);
     }
+    
+    /// Get the counter name
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 impl Histogram {
@@ -221,6 +226,11 @@ impl Histogram {
     /// Reset the histogram
     pub fn reset(&self) {
         self.samples.lock().unwrap().clear();
+    }
+    
+    /// Get the histogram name
+    pub fn name(&self) -> &str {
+        &self.name
     }
 }
 
