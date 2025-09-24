@@ -14,7 +14,7 @@ use std::time::{Instant, Duration};
 #[derive(Parser)]
 #[command(name = "parseltongue")]
 #[command(about = "Rust-only architectural intelligence daemon")]
-#[command(version = "1.0.0")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
