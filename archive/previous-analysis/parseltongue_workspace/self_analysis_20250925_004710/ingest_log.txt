@@ -1,0 +1,29 @@
+✓ Loaded snapshot: 2177 nodes, 3933 edges (3ms)
+⚠️  Parse error in src//cli.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in src/lib.rs: expected one of: `fn`, `extern`, `use`, `static`, `const`, `unsafe`, `mod`, `type`, `struct`, `enum`, `union`, `trait`, `auto`, `impl`, `default`, `macro`, identifier, `self`, `super`, `crate`, `::` (continuing with other files)
+⚠️  Parse error in src/lib.rs: expected one of: `fn`, `extern`, `use`, `static`, `const`, `unsafe`, `mod`, `type`, `struct`, `enum`, `union`, `trait`, `auto`, `impl`, `default`, `macro`, identifier, `self`, `super`, `crate`, `::` (continuing with other files)
+⚠️  Parse error in src/lib.rs: expected one of: `fn`, `extern`, `use`, `static`, `const`, `unsafe`, `mod`, `type`, `struct`, `enum`, `union`, `trait`, `auto`, `impl`, `default`, `macro`, identifier, `self`, `super`, `crate`, `::` (continuing with other files)
+⚠️  Parse error in src/lib.rs: expected one of: `fn`, `extern`, `use`, `static`, `const`, `unsafe`, `mod`, `type`, `struct`, `enum`, `union`, `trait`, `auto`, `impl`, `default`, `macro`, identifier, `self`, `super`, `crate`, `::` (continuing with other files)
+⚠️  Parse error in src/lib.rs: expected one of: `fn`, `extern`, `use`, `static`, `const`, `unsafe`, `mod`, `type`, `struct`, `enum`, `union`, `trait`, `auto`, `impl`, `default`, `macro`, identifier, `self`, `super`, `crate`, `::` (continuing with other files)
+⚠️  Parse error in src/lib.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in src//daemon.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in src//discovery/output_formatter_integration_test.rs: expected one of: `default`, `fn`, `const`, `type`, identifier, `self`, `super`, `crate`, `::` (continuing with other files)
+⚠️  Parse error in tests//cli_end_to_end_integration.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in src/services/mod.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in tests//end_to_end_workflow_validation.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in src/utils/mod.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in tests//system_integration_final_wiring.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in src/models.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in tests//task_23_performance_validation.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in src/module_{}.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in tests//task_23_simple_validation.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in src/services.rs: cannot parse string into token stream (continuing with other files)
+⚠️  Parse error in src/lib.rs: cannot parse string into token stream (continuing with other files)
+✓ Ingestion complete:
+  Files processed: 98
+  Nodes created: 2177
+  Total nodes in ISG: 2177
+  Total edges in ISG: 3933
+  Time: 130.66ms
+✓ Saved snapshot: 2177 nodes, 3933 edges (1ms)
+✓ Snapshot saved for future queries

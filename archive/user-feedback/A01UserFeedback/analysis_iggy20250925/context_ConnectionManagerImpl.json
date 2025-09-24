@@ -1,0 +1,22 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+{
+  "target": {
+    "hash": 4870422095693066769,
+    "kind": "Struct",
+    "name": "ConnectionManagerImpl",
+    "signature": "struct ConnectionManagerImpl",
+    "file_path": "src/services/connection.rs",
+    "line": 0
+  },
+  "dependencies": [
+    {
+      "hash": 2103600234547048221,
+      "kind": "Trait",
+      "name": "ConnectionManager",
+      "signature": "trait ConnectionManager",
+      "file_path": "src/services/connection.rs",
+      "line": 0
+    }
+  ],
+  "callers": []
+}

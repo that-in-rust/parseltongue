@@ -1,0 +1,5964 @@
+{
+  "nodes": [
+    {
+      "hash": 1028706682788645131,
+      "kind": "Struct",
+      "name": "BoxedIntoRoute",
+      "signature": "struct BoxedIntoRoute",
+      "file_path": "axum/src/boxed.rs",
+      "line": 0
+    },
+    {
+      "hash": 6519486110158713010,
+      "kind": "Trait",
+      "name": "ErasedIntoRoute",
+      "signature": "trait ErasedIntoRoute",
+      "file_path": "axum/src/boxed.rs",
+      "line": 0
+    },
+    {
+      "hash": 14816544570205917273,
+      "kind": "Struct",
+      "name": "MakeErasedHandler",
+      "signature": "struct MakeErasedHandler",
+      "file_path": "axum/src/boxed.rs",
+      "line": 0
+    },
+    {
+      "hash": 17194334837373893281,
+      "kind": "Struct",
+      "name": "MakeErasedRouter",
+      "signature": "struct MakeErasedRouter",
+      "file_path": "axum/src/boxed.rs",
+      "line": 0
+    },
+    {
+      "hash": 15325509863538210574,
+      "kind": "Struct",
+      "name": "Map",
+      "signature": "struct Map",
+      "file_path": "axum/src/boxed.rs",
+      "line": 0
+    },
+    {
+      "hash": 5753161857561131423,
+      "kind": "Trait",
+      "name": "LayerFn",
+      "signature": "trait LayerFn",
+      "file_path": "axum/src/boxed.rs",
+      "line": 0
+    },
+    {
+      "hash": 1618947104449103567,
+      "kind": "Struct",
+      "name": "Extension",
+      "signature": "struct Extension",
+      "file_path": "axum/src/extension.rs",
+      "line": 0
+    },
+    {
+      "hash": 13474676623453654585,
+      "kind": "Struct",
+      "name": "AddExtension",
+      "signature": "struct AddExtension",
+      "file_path": "axum/src/extension.rs",
+      "line": 0
+    },
+    {
+      "hash": 14333110068248311322,
+      "kind": "Struct",
+      "name": "Form",
+      "signature": "struct Form",
+      "file_path": "axum-extra/src/extract/form.rs",
+      "line": 0
+    },
+    {
+      "hash": 17620310292109984994,
+      "kind": "Struct",
+      "name": "Json",
+      "signature": "struct Json",
+      "file_path": "examples/customize-extractor-error/src/derive_from_request.rs",
+      "line": 0
+    },
+    {
+      "hash": 6173824864793518458,
+      "kind": "Function",
+      "name": "json_content_type",
+      "signature": "fn fn json_content_type (headers : & HeaderMap) -> bool",
+      "file_path": "axum-extra/src/extract/json_deserializer.rs",
+      "line": 0
+    },
+    {
+      "hash": 2076135684412031467,
+      "kind": "Trait",
+      "name": "ServiceExt",
+      "signature": "trait ServiceExt",
+      "file_path": "axum/src/service_ext.rs",
+      "line": 0
+    },
+    {
+      "hash": 14567431224159835419,
+      "kind": "Struct",
+      "name": "PercentDecodedStr",
+      "signature": "struct PercentDecodedStr",
+      "file_path": "axum/src/util.rs",
+      "line": 0
+    },
+    {
+      "hash": 10190453221456457147,
+      "kind": "Struct",
+      "name": "MapIntoResponse",
+      "signature": "struct MapIntoResponse",
+      "file_path": "axum/src/util.rs",
+      "line": 0
+    },
+    {
+      "hash": 15465546252103231568,
+      "kind": "Function",
+      "name": "try_downcast",
+      "signature": "fn fn try_downcast < T , K > (k : K) -> Result < T , K > where T : 'static , K : Send + 'static ,",
+      "file_path": "axum-core/src/body.rs",
+      "line": 0
+    },
+    {
+      "hash": 18013027741052056819,
+      "kind": "Function",
+      "name": "test_try_downcast",
+      "signature": "fn fn test_try_downcast ()",
+      "file_path": "axum-core/src/body.rs",
+      "line": 0
+    },
+    {
+      "hash": 8888086649171152713,
+      "kind": "Function",
+      "name": "to_bytes",
+      "signature": "fn async fn to_bytes (body : Body , limit : usize) -> Result < Bytes , axum_core :: Error >",
+      "file_path": "axum/src/body/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 633966376158975100,
+      "kind": "Struct",
+      "name": "HandleErrorLayer",
+      "signature": "struct HandleErrorLayer",
+      "file_path": "axum/src/error_handling/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 13675027656347377303,
+      "kind": "Struct",
+      "name": "HandleError",
+      "signature": "struct HandleError",
+      "file_path": "axum/src/error_handling/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 17233813073327134553,
+      "kind": "Function",
+      "name": "traits",
+      "signature": "fn fn traits ()",
+      "file_path": "axum/src/routing/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 10875726239257611361,
+      "kind": "Struct",
+      "name": "IntoMakeServiceWithConnectInfo",
+      "signature": "struct IntoMakeServiceWithConnectInfo",
+      "file_path": "axum/src/extract/connect_info.rs",
+      "line": 0
+    },
+    {
+      "hash": 3148054343183334631,
+      "kind": "Trait",
+      "name": "Connected",
+      "signature": "trait Connected",
+      "file_path": "axum/src/extract/connect_info.rs",
+      "line": 0
+    },
+    {
+      "hash": 7138878150984045187,
+      "kind": "Struct",
+      "name": "ConnectInfo",
+      "signature": "struct ConnectInfo",
+      "file_path": "axum/src/extract/connect_info.rs",
+      "line": 0
+    },
+    {
+      "hash": 5533339966465375985,
+      "kind": "Struct",
+      "name": "MockConnectInfo",
+      "signature": "struct MockConnectInfo",
+      "file_path": "axum/src/extract/connect_info.rs",
+      "line": 0
+    },
+    {
+      "hash": 17456607413025470358,
+      "kind": "Struct",
+      "name": "MatchedPath",
+      "signature": "struct MatchedPath",
+      "file_path": "axum/src/extract/matched_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 9078590011170827325,
+      "kind": "Struct",
+      "name": "MatchedNestedPath",
+      "signature": "struct MatchedNestedPath",
+      "file_path": "axum/src/extract/matched_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 10975781565432235022,
+      "kind": "Function",
+      "name": "set_matched_path_for_request",
+      "signature": "fn fn set_matched_path_for_request (id : RouteId , route_id_to_path : & HashMap < RouteId , Arc < str > > , extensions : & mut http :: Extensions ,)",
+      "file_path": "axum/src/extract/matched_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 4988589638912852123,
+      "kind": "Function",
+      "name": "append_nested_matched_path",
+      "signature": "fn fn append_nested_matched_path (matched_path : & Arc < str > , extensions : & http :: Extensions) -> Arc < str >",
+      "file_path": "axum/src/extract/matched_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 15237928148326473596,
+      "kind": "Function",
+      "name": "has_content_type",
+      "signature": "fn fn has_content_type (headers : & HeaderMap , expected_content_type : & mime :: Mime) -> bool",
+      "file_path": "axum/src/extract/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 7998554083181557231,
+      "kind": "Struct",
+      "name": "Multipart",
+      "signature": "struct Multipart",
+      "file_path": "axum-extra/src/extract/multipart.rs",
+      "line": 0
+    },
+    {
+      "hash": 5974957914627449379,
+      "kind": "Struct",
+      "name": "Field",
+      "signature": "struct Field",
+      "file_path": "axum-extra/src/extract/multipart.rs",
+      "line": 0
+    },
+    {
+      "hash": 10192015151678638923,
+      "kind": "Struct",
+      "name": "MultipartError",
+      "signature": "struct MultipartError",
+      "file_path": "axum-extra/src/extract/multipart.rs",
+      "line": 0
+    },
+    {
+      "hash": 2600188220467048507,
+      "kind": "Function",
+      "name": "status_code_from_multer_error",
+      "signature": "fn fn status_code_from_multer_error (err : & multer :: Error) -> StatusCode",
+      "file_path": "axum-extra/src/extract/multipart.rs",
+      "line": 0
+    },
+    {
+      "hash": 14853080156669460783,
+      "kind": "Function",
+      "name": "content_type_str",
+      "signature": "fn fn content_type_str (headers : & HeaderMap) -> Option < & str >",
+      "file_path": "axum/src/extract/multipart.rs",
+      "line": 0
+    },
+    {
+      "hash": 14427989018167274925,
+      "kind": "Struct",
+      "name": "NestedPath",
+      "signature": "struct NestedPath",
+      "file_path": "axum/src/extract/nested_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 16992260920210312911,
+      "kind": "Struct",
+      "name": "SetNestedPath",
+      "signature": "struct SetNestedPath",
+      "file_path": "axum/src/extract/nested_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 13596481712516223254,
+      "kind": "Struct",
+      "name": "OriginalUri",
+      "signature": "struct OriginalUri",
+      "file_path": "axum/src/extract/original_uri.rs",
+      "line": 0
+    },
+    {
+      "hash": 3466860431624095309,
+      "kind": "Struct",
+      "name": "Query",
+      "signature": "struct Query",
+      "file_path": "axum-extra/src/extract/query.rs",
+      "line": 0
+    },
+    {
+      "hash": 16460657788809892609,
+      "kind": "Struct",
+      "name": "RawForm",
+      "signature": "struct RawForm",
+      "file_path": "axum/src/extract/raw_form.rs",
+      "line": 0
+    },
+    {
+      "hash": 8553031862552086834,
+      "kind": "Struct",
+      "name": "RawQuery",
+      "signature": "struct RawQuery",
+      "file_path": "axum/src/extract/raw_query.rs",
+      "line": 0
+    },
+    {
+      "hash": 4732865856052426954,
+      "kind": "Struct",
+      "name": "State",
+      "signature": "struct State",
+      "file_path": "axum-macros/tests/from_request/pass/tuple_via_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 2059501267808100189,
+      "kind": "Struct",
+      "name": "WebSocketUpgrade",
+      "signature": "struct WebSocketUpgrade",
+      "file_path": "axum/src/extract/ws.rs",
+      "line": 0
+    },
+    {
+      "hash": 879948514714889434,
+      "kind": "Trait",
+      "name": "OnFailedUpgrade",
+      "signature": "trait OnFailedUpgrade",
+      "file_path": "axum/src/extract/ws.rs",
+      "line": 0
+    },
+    {
+      "hash": 2199868524115190652,
+      "kind": "Struct",
+      "name": "DefaultOnFailedUpgrade",
+      "signature": "struct DefaultOnFailedUpgrade",
+      "file_path": "axum/src/extract/ws.rs",
+      "line": 0
+    },
+    {
+      "hash": 14716551895006563003,
+      "kind": "Function",
+      "name": "header_eq",
+      "signature": "fn fn header_eq (headers : & HeaderMap , key : & HeaderName , value : & 'static str) -> bool",
+      "file_path": "axum/src/extract/ws.rs",
+      "line": 0
+    },
+    {
+      "hash": 10879178221958611988,
+      "kind": "Function",
+      "name": "header_contains",
+      "signature": "fn fn header_contains (headers : & HeaderMap , key : & HeaderName , value : & 'static str) -> bool",
+      "file_path": "axum/src/extract/ws.rs",
+      "line": 0
+    },
+    {
+      "hash": 5928703403023992369,
+      "kind": "Struct",
+      "name": "WebSocket",
+      "signature": "struct WebSocket",
+      "file_path": "axum/src/extract/ws.rs",
+      "line": 0
+    },
+    {
+      "hash": 11509444783501622238,
+      "kind": "Struct",
+      "name": "Utf8Bytes",
+      "signature": "struct Utf8Bytes",
+      "file_path": "axum/src/extract/ws.rs",
+      "line": 0
+    },
+    {
+      "hash": 12161065698038508687,
+      "kind": "Struct",
+      "name": "CloseFrame",
+      "signature": "struct CloseFrame",
+      "file_path": "axum/src/extract/ws.rs",
+      "line": 0
+    },
+    {
+      "hash": 18198839967000949735,
+      "kind": "Function",
+      "name": "sign",
+      "signature": "fn fn sign (key : & [u8]) -> HeaderValue",
+      "file_path": "axum/src/extract/ws.rs",
+      "line": 0
+    },
+    {
+      "hash": 6462163428587352673,
+      "kind": "Struct",
+      "name": "PathDeserializer",
+      "signature": "struct PathDeserializer",
+      "file_path": "axum/src/extract/path/de.rs",
+      "line": 0
+    },
+    {
+      "hash": 7835696808157982174,
+      "kind": "Struct",
+      "name": "MapDeserializer",
+      "signature": "struct MapDeserializer",
+      "file_path": "axum/src/extract/path/de.rs",
+      "line": 0
+    },
+    {
+      "hash": 11198604713832184527,
+      "kind": "Struct",
+      "name": "KeyDeserializer",
+      "signature": "struct KeyDeserializer",
+      "file_path": "axum/src/extract/path/de.rs",
+      "line": 0
+    },
+    {
+      "hash": 5437772591695715918,
+      "kind": "Struct",
+      "name": "ValueDeserializer",
+      "signature": "struct ValueDeserializer",
+      "file_path": "axum/src/extract/path/de.rs",
+      "line": 0
+    },
+    {
+      "hash": 10689481876316258973,
+      "kind": "Struct",
+      "name": "EnumDeserializer",
+      "signature": "struct EnumDeserializer",
+      "file_path": "axum/src/extract/path/de.rs",
+      "line": 0
+    },
+    {
+      "hash": 16940739130251890626,
+      "kind": "Struct",
+      "name": "UnitVariant",
+      "signature": "struct UnitVariant",
+      "file_path": "axum/src/extract/path/de.rs",
+      "line": 0
+    },
+    {
+      "hash": 17096781405755676441,
+      "kind": "Struct",
+      "name": "SeqDeserializer",
+      "signature": "struct SeqDeserializer",
+      "file_path": "axum/src/extract/path/de.rs",
+      "line": 0
+    },
+    {
+      "hash": 16001336033742973781,
+      "kind": "Struct",
+      "name": "Path",
+      "signature": "struct Path",
+      "file_path": "examples/customize-path-rejection/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 5558787791718558272,
+      "kind": "Struct",
+      "name": "PathDeserializationError",
+      "signature": "struct PathDeserializationError",
+      "file_path": "axum/src/extract/path/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 11445961915112065655,
+      "kind": "Struct",
+      "name": "WrongNumberOfParameters",
+      "signature": "struct WrongNumberOfParameters",
+      "file_path": "axum/src/extract/path/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 4629560568502103057,
+      "kind": "Struct",
+      "name": "FailedToDeserializePathParams",
+      "signature": "struct FailedToDeserializePathParams",
+      "file_path": "axum/src/extract/path/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 13022616365565566072,
+      "kind": "Struct",
+      "name": "RawPathParams",
+      "signature": "struct RawPathParams",
+      "file_path": "axum/src/extract/path/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 8896008916070496756,
+      "kind": "Struct",
+      "name": "RawPathParamsIter",
+      "signature": "struct RawPathParamsIter",
+      "file_path": "axum/src/extract/path/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 11023357756650141689,
+      "kind": "Struct",
+      "name": "InvalidUtf8InPathParam",
+      "signature": "struct InvalidUtf8InPathParam",
+      "file_path": "axum/src/extract/path/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 3914979699043238193,
+      "kind": "Trait",
+      "name": "Handler",
+      "signature": "trait Handler",
+      "file_path": "axum/src/handler/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 1430888808458938574,
+      "kind": "Struct",
+      "name": "Layered",
+      "signature": "struct Layered",
+      "file_path": "axum/src/handler/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 9161554135430326170,
+      "kind": "Trait",
+      "name": "HandlerWithoutStateExt",
+      "signature": "trait HandlerWithoutStateExt",
+      "file_path": "axum/src/handler/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 11478390434767337574,
+      "kind": "Struct",
+      "name": "HandlerService",
+      "signature": "struct HandlerService",
+      "file_path": "axum/src/handler/service.rs",
+      "line": 0
+    },
+    {
+      "hash": 13173448618637095534,
+      "kind": "Function",
+      "name": "from_extractor",
+      "signature": "fn fn from_extractor < E > () -> FromExtractorLayer < E , () >",
+      "file_path": "axum/src/middleware/from_extractor.rs",
+      "line": 0
+    },
+    {
+      "hash": 5409894311292871447,
+      "kind": "Function",
+      "name": "from_extractor_with_state",
+      "signature": "fn fn from_extractor_with_state < E , S > (state : S) -> FromExtractorLayer < E , S >",
+      "file_path": "axum/src/middleware/from_extractor.rs",
+      "line": 0
+    },
+    {
+      "hash": 387252520875752083,
+      "kind": "Struct",
+      "name": "FromExtractorLayer",
+      "signature": "struct FromExtractorLayer",
+      "file_path": "axum/src/middleware/from_extractor.rs",
+      "line": 0
+    },
+    {
+      "hash": 12061174338957919528,
+      "kind": "Struct",
+      "name": "FromExtractor",
+      "signature": "struct FromExtractor",
+      "file_path": "axum/src/middleware/from_extractor.rs",
+      "line": 0
+    },
+    {
+      "hash": 14117357406007475059,
+      "kind": "Function",
+      "name": "from_fn",
+      "signature": "fn fn from_fn < F , T > (f : F) -> FromFnLayer < F , () , T >",
+      "file_path": "axum/src/middleware/from_fn.rs",
+      "line": 0
+    },
+    {
+      "hash": 7557496737304044764,
+      "kind": "Function",
+      "name": "from_fn_with_state",
+      "signature": "fn fn from_fn_with_state < F , S , T > (state : S , f : F) -> FromFnLayer < F , S , T >",
+      "file_path": "axum/src/middleware/from_fn.rs",
+      "line": 0
+    },
+    {
+      "hash": 7497631412406050816,
+      "kind": "Struct",
+      "name": "FromFnLayer",
+      "signature": "struct FromFnLayer",
+      "file_path": "axum/src/middleware/from_fn.rs",
+      "line": 0
+    },
+    {
+      "hash": 15211735250850507333,
+      "kind": "Struct",
+      "name": "FromFn",
+      "signature": "struct FromFn",
+      "file_path": "axum/src/middleware/from_fn.rs",
+      "line": 0
+    },
+    {
+      "hash": 16516506656332126817,
+      "kind": "Struct",
+      "name": "Next",
+      "signature": "struct Next",
+      "file_path": "axum/src/middleware/from_fn.rs",
+      "line": 0
+    },
+    {
+      "hash": 16305818734760670187,
+      "kind": "Struct",
+      "name": "ResponseFuture",
+      "signature": "struct ResponseFuture",
+      "file_path": "axum/src/middleware/map_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 4700919598399098183,
+      "kind": "Function",
+      "name": "map_request",
+      "signature": "fn fn map_request < F , T > (f : F) -> MapRequestLayer < F , () , T >",
+      "file_path": "axum/src/middleware/map_request.rs",
+      "line": 0
+    },
+    {
+      "hash": 14137152776383157558,
+      "kind": "Function",
+      "name": "map_request_with_state",
+      "signature": "fn fn map_request_with_state < F , S , T > (state : S , f : F) -> MapRequestLayer < F , S , T >",
+      "file_path": "axum/src/middleware/map_request.rs",
+      "line": 0
+    },
+    {
+      "hash": 13400968390999383951,
+      "kind": "Struct",
+      "name": "MapRequestLayer",
+      "signature": "struct MapRequestLayer",
+      "file_path": "axum/src/middleware/map_request.rs",
+      "line": 0
+    },
+    {
+      "hash": 17653277336722089607,
+      "kind": "Struct",
+      "name": "MapRequest",
+      "signature": "struct MapRequest",
+      "file_path": "axum/src/middleware/map_request.rs",
+      "line": 0
+    },
+    {
+      "hash": 2188626358458657248,
+      "kind": "Trait",
+      "name": "IntoMapRequestResult",
+      "signature": "trait IntoMapRequestResult",
+      "file_path": "axum/src/middleware/map_request.rs",
+      "line": 0
+    },
+    {
+      "hash": 9354458551501418439,
+      "kind": "Function",
+      "name": "map_response",
+      "signature": "fn fn map_response < F , T > (f : F) -> MapResponseLayer < F , () , T >",
+      "file_path": "axum/src/middleware/map_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 9952614076488380766,
+      "kind": "Function",
+      "name": "map_response_with_state",
+      "signature": "fn fn map_response_with_state < F , S , T > (state : S , f : F) -> MapResponseLayer < F , S , T >",
+      "file_path": "axum/src/middleware/map_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 6990403832166096646,
+      "kind": "Struct",
+      "name": "MapResponseLayer",
+      "signature": "struct MapResponseLayer",
+      "file_path": "axum/src/middleware/map_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 7721825744826131245,
+      "kind": "Struct",
+      "name": "MapResponse",
+      "signature": "struct MapResponse",
+      "file_path": "axum/src/middleware/map_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 307921868359734880,
+      "kind": "Struct",
+      "name": "ResponseAxumBodyLayer",
+      "signature": "struct ResponseAxumBodyLayer",
+      "file_path": "axum/src/middleware/response_axum_body.rs",
+      "line": 0
+    },
+    {
+      "hash": 12018056713888438539,
+      "kind": "Struct",
+      "name": "ResponseAxumBody",
+      "signature": "struct ResponseAxumBody",
+      "file_path": "axum/src/middleware/response_axum_body.rs",
+      "line": 0
+    },
+    {
+      "hash": 15158353616542847131,
+      "kind": "Struct",
+      "name": "Html",
+      "signature": "struct Html",
+      "file_path": "axum/src/response/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 4500364504935956884,
+      "kind": "Struct",
+      "name": "NoContent",
+      "signature": "struct NoContent",
+      "file_path": "axum/src/response/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 17090312223778234535,
+      "kind": "Struct",
+      "name": "Redirect",
+      "signature": "struct Redirect",
+      "file_path": "axum/src/response/redirect.rs",
+      "line": 0
+    },
+    {
+      "hash": 14695968745101834286,
+      "kind": "Struct",
+      "name": "Sse",
+      "signature": "struct Sse",
+      "file_path": "axum/src/response/sse.rs",
+      "line": 0
+    },
+    {
+      "hash": 1310811640223668823,
+      "kind": "Struct",
+      "name": "Event",
+      "signature": "struct Event",
+      "file_path": "axum/src/response/sse.rs",
+      "line": 0
+    },
+    {
+      "hash": 6396110624151743645,
+      "kind": "Struct",
+      "name": "EventDataWriter",
+      "signature": "struct EventDataWriter",
+      "file_path": "axum/src/response/sse.rs",
+      "line": 0
+    },
+    {
+      "hash": 6358565074484660896,
+      "kind": "Struct",
+      "name": "EventFlags",
+      "signature": "struct EventFlags",
+      "file_path": "axum/src/response/sse.rs",
+      "line": 0
+    },
+    {
+      "hash": 11987498125224708862,
+      "kind": "Struct",
+      "name": "KeepAlive",
+      "signature": "struct KeepAlive",
+      "file_path": "axum/src/response/sse.rs",
+      "line": 0
+    },
+    {
+      "hash": 13331895854951736966,
+      "kind": "Struct",
+      "name": "IntoMakeService",
+      "signature": "struct IntoMakeService",
+      "file_path": "axum/src/routing/into_make_service.rs",
+      "line": 0
+    },
+    {
+      "hash": 15226928874476205939,
+      "kind": "Struct",
+      "name": "MethodFilter",
+      "signature": "struct MethodFilter",
+      "file_path": "axum/src/routing/method_filter.rs",
+      "line": 0
+    },
+    {
+      "hash": 4258025408513095053,
+      "kind": "Struct",
+      "name": "NoMatchingMethodFilter",
+      "signature": "struct NoMatchingMethodFilter",
+      "file_path": "axum/src/routing/method_filter.rs",
+      "line": 0
+    },
+    {
+      "hash": 18233749943511738692,
+      "kind": "Function",
+      "name": "on_service",
+      "signature": "fn fn on_service < T , S > (filter : MethodFilter , svc : T) -> MethodRouter < S , T :: Error > where T : Service < Request > + Clone + Send + Sync + 'static , T :: Response : IntoResponse + 'static , T :: Future : Send + 'static , S : Clone ,",
+      "file_path": "axum/src/routing/method_routing.rs",
+      "line": 0
+    },
+    {
+      "hash": 3865486916789344451,
+      "kind": "Function",
+      "name": "any_service",
+      "signature": "fn fn any_service < T , S > (svc : T) -> MethodRouter < S , T :: Error > where T : Service < Request > + Clone + Send + Sync + 'static , T :: Response : IntoResponse + 'static , T :: Future : Send + 'static , S : Clone ,",
+      "file_path": "axum/src/routing/method_routing.rs",
+      "line": 0
+    },
+    {
+      "hash": 10092762329268788956,
+      "kind": "Function",
+      "name": "on",
+      "signature": "fn fn on < H , T , S > (filter : MethodFilter , handler : H) -> MethodRouter < S , Infallible > where H : Handler < T , S > , T : 'static , S : Clone + Send + Sync + 'static ,",
+      "file_path": "axum/src/routing/method_routing.rs",
+      "line": 0
+    },
+    {
+      "hash": 3366350526228020420,
+      "kind": "Function",
+      "name": "any",
+      "signature": "fn fn any < H , T , S > (handler : H) -> MethodRouter < S , Infallible > where H : Handler < T , S > , T : 'static , S : Clone + Send + Sync + 'static ,",
+      "file_path": "axum/src/routing/method_routing.rs",
+      "line": 0
+    },
+    {
+      "hash": 10125314315695317221,
+      "kind": "Struct",
+      "name": "MethodRouter",
+      "signature": "struct MethodRouter",
+      "file_path": "axum/src/routing/method_routing.rs",
+      "line": 0
+    },
+    {
+      "hash": 8712288939632637268,
+      "kind": "Function",
+      "name": "append_allow_header",
+      "signature": "fn fn append_allow_header (allow_header : & mut AllowHeader , method : & 'static str)",
+      "file_path": "axum/src/routing/method_routing.rs",
+      "line": 0
+    },
+    {
+      "hash": 6152220387205905740,
+      "kind": "Struct",
+      "name": "RouteId",
+      "signature": "struct RouteId",
+      "file_path": "axum/src/routing/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 1189347124820320192,
+      "kind": "Struct",
+      "name": "Router",
+      "signature": "struct Router",
+      "file_path": "axum/src/routing/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 10600731773848187904,
+      "kind": "Struct",
+      "name": "RouterInner",
+      "signature": "struct RouterInner",
+      "file_path": "axum/src/routing/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 14649667302604493329,
+      "kind": "Struct",
+      "name": "RouterAsService",
+      "signature": "struct RouterAsService",
+      "file_path": "axum/src/routing/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 8383162766266786224,
+      "kind": "Struct",
+      "name": "RouterIntoService",
+      "signature": "struct RouterIntoService",
+      "file_path": "axum/src/routing/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 15011626121956489611,
+      "kind": "Struct",
+      "name": "NotFound",
+      "signature": "struct NotFound",
+      "file_path": "axum/src/routing/not_found.rs",
+      "line": 0
+    },
+    {
+      "hash": 5118639164417754871,
+      "kind": "Struct",
+      "name": "PathRouter",
+      "signature": "struct PathRouter",
+      "file_path": "axum/src/routing/path_router.rs",
+      "line": 0
+    },
+    {
+      "hash": 6564994488243219696,
+      "kind": "Function",
+      "name": "validate_path",
+      "signature": "fn fn validate_path (v7_checks : bool , path : & str) -> Result < () , & 'static str >",
+      "file_path": "axum/src/routing/path_router.rs",
+      "line": 0
+    },
+    {
+      "hash": 13066538028230146329,
+      "kind": "Function",
+      "name": "validate_v07_paths",
+      "signature": "fn fn validate_v07_paths (path : & str) -> Result < () , & 'static str >",
+      "file_path": "axum/src/routing/path_router.rs",
+      "line": 0
+    },
+    {
+      "hash": 10484764714644896530,
+      "kind": "Struct",
+      "name": "Node",
+      "signature": "struct Node",
+      "file_path": "axum/src/routing/path_router.rs",
+      "line": 0
+    },
+    {
+      "hash": 2847979635964013760,
+      "kind": "Function",
+      "name": "validate_nest_path",
+      "signature": "fn fn validate_nest_path (v7_checks : bool , path : & str) -> & str",
+      "file_path": "axum/src/routing/path_router.rs",
+      "line": 0
+    },
+    {
+      "hash": 14368023606705293145,
+      "kind": "Function",
+      "name": "path_for_nested_route",
+      "signature": "fn fn path_for_nested_route < 'a > (prefix : & 'a str , path : & 'a str) -> Cow < 'a , str >",
+      "file_path": "axum/src/routing/path_router.rs",
+      "line": 0
+    },
+    {
+      "hash": 2768597239899009596,
+      "kind": "Struct",
+      "name": "Route",
+      "signature": "struct Route",
+      "file_path": "axum/src/routing/route.rs",
+      "line": 0
+    },
+    {
+      "hash": 17635306489088480305,
+      "kind": "Function",
+      "name": "set_allow_header",
+      "signature": "fn fn set_allow_header (headers : & mut HeaderMap , allow_header : & mut Option < Bytes >)",
+      "file_path": "axum/src/routing/route.rs",
+      "line": 0
+    },
+    {
+      "hash": 6685637703364659384,
+      "kind": "Function",
+      "name": "set_content_length",
+      "signature": "fn fn set_content_length (size_hint : & http_body :: SizeHint , headers : & mut HeaderMap)",
+      "file_path": "axum/src/routing/route.rs",
+      "line": 0
+    },
+    {
+      "hash": 11496250344205118754,
+      "kind": "Struct",
+      "name": "StripPrefix",
+      "signature": "struct StripPrefix",
+      "file_path": "axum/src/routing/strip_prefix.rs",
+      "line": 0
+    },
+    {
+      "hash": 5831911648048126800,
+      "kind": "Function",
+      "name": "strip_prefix",
+      "signature": "fn fn strip_prefix (uri : & Uri , prefix : & str) -> Option < Uri >",
+      "file_path": "axum/src/routing/strip_prefix.rs",
+      "line": 0
+    },
+    {
+      "hash": 2423051727366615892,
+      "kind": "Function",
+      "name": "segments",
+      "signature": "fn fn segments (s : & str) -> impl Iterator < Item = & str >",
+      "file_path": "axum/src/routing/strip_prefix.rs",
+      "line": 0
+    },
+    {
+      "hash": 10020043217132649008,
+      "kind": "Function",
+      "name": "zip_longest",
+      "signature": "fn fn zip_longest < I , I2 > (a : I , b : I2) -> impl Iterator < Item = Item < I :: Item > > where I : Iterator , I2 : Iterator < Item = I :: Item > ,",
+      "file_path": "axum/src/routing/strip_prefix.rs",
+      "line": 0
+    },
+    {
+      "hash": 10645100957763502706,
+      "kind": "Function",
+      "name": "is_capture",
+      "signature": "fn fn is_capture (segment : & str) -> bool",
+      "file_path": "axum/src/routing/strip_prefix.rs",
+      "line": 0
+    },
+    {
+      "hash": 6007680600196111485,
+      "kind": "Function",
+      "name": "insert_url_params",
+      "signature": "fn fn insert_url_params (extensions : & mut Extensions , params : & Params < '_ , '_ >)",
+      "file_path": "axum/src/routing/url_params.rs",
+      "line": 0
+    },
+    {
+      "hash": 10193178080684253562,
+      "kind": "Function",
+      "name": "basic",
+      "signature": "fn async fn basic ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 2608531343932415991,
+      "kind": "Function",
+      "name": "nest",
+      "signature": "fn async fn nest ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 1756901383399385871,
+      "kind": "Function",
+      "name": "two",
+      "signature": "fn async fn two ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 1292820283165409761,
+      "kind": "Function",
+      "name": "or",
+      "signature": "fn async fn or ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 15490364178436882751,
+      "kind": "Function",
+      "name": "fallback_accessing_state",
+      "signature": "fn async fn fallback_accessing_state ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 16578916725461116686,
+      "kind": "Function",
+      "name": "inner_fallback",
+      "signature": "fn async fn inner_fallback () -> impl IntoResponse",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 8451106635468130273,
+      "kind": "Function",
+      "name": "outer_fallback",
+      "signature": "fn async fn outer_fallback () -> impl IntoResponse",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 9829216846982580920,
+      "kind": "Function",
+      "name": "nested_router_inherits_fallback",
+      "signature": "fn async fn nested_router_inherits_fallback ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 4177094841554847226,
+      "kind": "Function",
+      "name": "doesnt_inherit_fallback_if_overridden",
+      "signature": "fn async fn doesnt_inherit_fallback_if_overridden ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 4539396652766686929,
+      "kind": "Function",
+      "name": "deeply_nested_inherit_from_top",
+      "signature": "fn async fn deeply_nested_inherit_from_top ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 739787704469005759,
+      "kind": "Function",
+      "name": "deeply_nested_inherit_from_middle",
+      "signature": "fn async fn deeply_nested_inherit_from_middle ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 5097695191780267214,
+      "kind": "Function",
+      "name": "with_middleware_on_inner_fallback",
+      "signature": "fn async fn with_middleware_on_inner_fallback ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 7962141810945423669,
+      "kind": "Function",
+      "name": "also_inherits_default_layered_fallback",
+      "signature": "fn async fn also_inherits_default_layered_fallback ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 2134274673139096867,
+      "kind": "Function",
+      "name": "nest_fallback_on_inner",
+      "signature": "fn async fn nest_fallback_on_inner ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 9939422325788761042,
+      "kind": "Function",
+      "name": "doesnt_panic_if_used_with_nested_router",
+      "signature": "fn async fn doesnt_panic_if_used_with_nested_router ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 11306546181233244700,
+      "kind": "Function",
+      "name": "issue_2072",
+      "signature": "fn async fn issue_2072 ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 12529152404020455354,
+      "kind": "Function",
+      "name": "issue_2072_outer_fallback_before_merge",
+      "signature": "fn async fn issue_2072_outer_fallback_before_merge ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 8820193039612686661,
+      "kind": "Function",
+      "name": "issue_2072_outer_fallback_after_merge",
+      "signature": "fn async fn issue_2072_outer_fallback_after_merge ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 9722898955397497310,
+      "kind": "Function",
+      "name": "merge_router_with_fallback_into_nested_router_with_fallback",
+      "signature": "fn async fn merge_router_with_fallback_into_nested_router_with_fallback ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 17303537789592658449,
+      "kind": "Function",
+      "name": "merging_nested_router_with_fallback_into_router_with_fallback",
+      "signature": "fn async fn merging_nested_router_with_fallback_into_router_with_fallback ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 8169714336536746801,
+      "kind": "Function",
+      "name": "merge_empty_into_router_with_fallback",
+      "signature": "fn async fn merge_empty_into_router_with_fallback ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 6575703222477758396,
+      "kind": "Function",
+      "name": "merge_router_with_fallback_into_empty",
+      "signature": "fn async fn merge_router_with_fallback_into_empty ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 950422676087292557,
+      "kind": "Function",
+      "name": "mna_fallback_not_405",
+      "signature": "fn async fn mna_fallback_not_405 ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 9469748626945945910,
+      "kind": "Function",
+      "name": "mna_fallback_with_existing_fallback",
+      "signature": "fn async fn mna_fallback_with_existing_fallback ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 4494160987042959675,
+      "kind": "Function",
+      "name": "mna_fallback_with_state",
+      "signature": "fn async fn mna_fallback_with_state ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 579775214859205385,
+      "kind": "Function",
+      "name": "mna_fallback_with_unused_state",
+      "signature": "fn async fn mna_fallback_with_unused_state ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 17330734224554739506,
+      "kind": "Function",
+      "name": "state_isnt_cloned_too_much_with_fallback",
+      "signature": "fn async fn state_isnt_cloned_too_much_with_fallback ()",
+      "file_path": "axum/src/routing/tests/fallback.rs",
+      "line": 0
+    },
+    {
+      "hash": 7432332848612833989,
+      "kind": "Function",
+      "name": "unit",
+      "signature": "fn async fn unit ()",
+      "file_path": "axum/src/routing/tests/handle_error.rs",
+      "line": 0
+    },
+    {
+      "hash": 16261431649185692255,
+      "kind": "Function",
+      "name": "forever",
+      "signature": "fn async fn forever ()",
+      "file_path": "axum/src/routing/tests/handle_error.rs",
+      "line": 0
+    },
+    {
+      "hash": 9468217387258831241,
+      "kind": "Function",
+      "name": "timeout",
+      "signature": "fn fn timeout () -> TimeoutLayer",
+      "file_path": "axum/src/routing/tests/handle_error.rs",
+      "line": 0
+    },
+    {
+      "hash": 9959915758871756862,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler ()",
+      "file_path": "axum-macros/tests/debug_handler/fail/not_send.rs",
+      "line": 0
+    },
+    {
+      "hash": 3690489170780362228,
+      "kind": "Function",
+      "name": "handler_multiple_methods_first",
+      "signature": "fn async fn handler_multiple_methods_first ()",
+      "file_path": "axum/src/routing/tests/handle_error.rs",
+      "line": 0
+    },
+    {
+      "hash": 14337894972335515325,
+      "kind": "Function",
+      "name": "handler_multiple_methods_middle",
+      "signature": "fn async fn handler_multiple_methods_middle ()",
+      "file_path": "axum/src/routing/tests/handle_error.rs",
+      "line": 0
+    },
+    {
+      "hash": 12697497206723236182,
+      "kind": "Function",
+      "name": "handler_multiple_methods_last",
+      "signature": "fn async fn handler_multiple_methods_last ()",
+      "file_path": "axum/src/routing/tests/handle_error.rs",
+      "line": 0
+    },
+    {
+      "hash": 1668467797606552830,
+      "kind": "Function",
+      "name": "handler_service_ext",
+      "signature": "fn async fn handler_service_ext ()",
+      "file_path": "axum/src/routing/tests/handle_error.rs",
+      "line": 0
+    },
+    {
+      "hash": 14651520707865889143,
+      "kind": "Function",
+      "name": "multiple_ors_balanced_differently",
+      "signature": "fn async fn multiple_ors_balanced_differently ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 17159891943995133191,
+      "kind": "Function",
+      "name": "nested_or",
+      "signature": "fn async fn nested_or ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 5247001416683440051,
+      "kind": "Function",
+      "name": "or_with_route_following",
+      "signature": "fn async fn or_with_route_following ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 9173920849104500614,
+      "kind": "Function",
+      "name": "layer",
+      "signature": "fn async fn layer ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 10320988707090767161,
+      "kind": "Function",
+      "name": "layer_and_handle_error",
+      "signature": "fn async fn layer_and_handle_error ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 2523433780450394905,
+      "kind": "Function",
+      "name": "nesting",
+      "signature": "fn async fn nesting ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 9070357242480867935,
+      "kind": "Function",
+      "name": "boxed",
+      "signature": "fn async fn boxed ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 14685769029973979493,
+      "kind": "Function",
+      "name": "many_ors",
+      "signature": "fn async fn many_ors ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 13764097623248809521,
+      "kind": "Function",
+      "name": "services",
+      "signature": "fn async fn services ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 7177416211918858033,
+      "kind": "Function",
+      "name": "all_the_uris",
+      "signature": "fn async fn all_the_uris (uri : Uri , OriginalUri (original_uri) : OriginalUri , req : Request ,) -> impl IntoResponse",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 9038048543122389322,
+      "kind": "Function",
+      "name": "nesting_and_seeing_the_right_uri",
+      "signature": "fn async fn nesting_and_seeing_the_right_uri ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 4281300089416773868,
+      "kind": "Function",
+      "name": "nesting_and_seeing_the_right_uri_at_more_levels_of_nesting",
+      "signature": "fn async fn nesting_and_seeing_the_right_uri_at_more_levels_of_nesting ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 460060901991076752,
+      "kind": "Function",
+      "name": "nesting_and_seeing_the_right_uri_ors_with_nesting",
+      "signature": "fn async fn nesting_and_seeing_the_right_uri_ors_with_nesting ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 18301937075917226346,
+      "kind": "Function",
+      "name": "nesting_and_seeing_the_right_uri_ors_with_multi_segment_uris",
+      "signature": "fn async fn nesting_and_seeing_the_right_uri_ors_with_multi_segment_uris ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 179506282650578451,
+      "kind": "Function",
+      "name": "middleware_that_return_early",
+      "signature": "fn async fn middleware_that_return_early ()",
+      "file_path": "axum/src/routing/tests/merge.rs",
+      "line": 0
+    },
+    {
+      "hash": 14246881053585850468,
+      "kind": "Function",
+      "name": "hello_world",
+      "signature": "fn async fn hello_world ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 3631777824492570889,
+      "kind": "Function",
+      "name": "routing",
+      "signature": "fn async fn routing ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 10579574230965575505,
+      "kind": "Function",
+      "name": "router_type_doesnt_change",
+      "signature": "fn async fn router_type_doesnt_change ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 4216168078005887053,
+      "kind": "Function",
+      "name": "routing_between_services",
+      "signature": "fn async fn routing_between_services ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 7109818960049153976,
+      "kind": "Function",
+      "name": "middleware_on_single_route",
+      "signature": "fn async fn middleware_on_single_route ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 1341853381281181690,
+      "kind": "Function",
+      "name": "service_in_bottom",
+      "signature": "fn async fn service_in_bottom ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 8588631938378445299,
+      "kind": "Function",
+      "name": "wrong_method_handler",
+      "signature": "fn async fn wrong_method_handler ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 12937230223937250925,
+      "kind": "Function",
+      "name": "wrong_method_service",
+      "signature": "fn async fn wrong_method_service ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 3389222784083985663,
+      "kind": "Function",
+      "name": "multiple_methods_for_one_handler",
+      "signature": "fn async fn multiple_methods_for_one_handler ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 11876320405342997417,
+      "kind": "Function",
+      "name": "wildcard_sees_whole_url",
+      "signature": "fn async fn wildcard_sees_whole_url ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 10984540916493128376,
+      "kind": "Function",
+      "name": "middleware_applies_to_routes_above",
+      "signature": "fn async fn middleware_applies_to_routes_above ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 6914780726398251992,
+      "kind": "Function",
+      "name": "not_found_for_extra_trailing_slash",
+      "signature": "fn async fn not_found_for_extra_trailing_slash ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 5035267129304031934,
+      "kind": "Function",
+      "name": "not_found_for_missing_trailing_slash",
+      "signature": "fn async fn not_found_for_missing_trailing_slash ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 1458982926972400929,
+      "kind": "Function",
+      "name": "with_and_without_trailing_slash",
+      "signature": "fn async fn with_and_without_trailing_slash ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 5400515598113403121,
+      "kind": "Function",
+      "name": "wildcard_doesnt_match_just_trailing_slash",
+      "signature": "fn async fn wildcard_doesnt_match_just_trailing_slash ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 1879012362627783203,
+      "kind": "Function",
+      "name": "what_matches_wildcard",
+      "signature": "fn async fn what_matches_wildcard ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 15346665277008047697,
+      "kind": "Function",
+      "name": "colliding_fallback_with_wildcard",
+      "signature": "fn fn colliding_fallback_with_wildcard ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 6184736314182605461,
+      "kind": "Function",
+      "name": "colliding_wildcard_with_fallback",
+      "signature": "fn async fn colliding_wildcard_with_fallback ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 4518645660037925325,
+      "kind": "Function",
+      "name": "colliding_fallback_with_fallback",
+      "signature": "fn async fn colliding_fallback_with_fallback ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 4886408544091382586,
+      "kind": "Function",
+      "name": "colliding_root_with_fallback",
+      "signature": "fn async fn colliding_root_with_fallback ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 11267647504538296610,
+      "kind": "Function",
+      "name": "colliding_fallback_with_root",
+      "signature": "fn async fn colliding_fallback_with_root ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 4251047671146577018,
+      "kind": "Function",
+      "name": "static_and_dynamic_paths",
+      "signature": "fn async fn static_and_dynamic_paths ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 4164945528540589893,
+      "kind": "Function",
+      "name": "empty_route",
+      "signature": "fn async fn empty_route ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 1549638389611451487,
+      "kind": "Function",
+      "name": "middleware_still_run_for_unmatched_requests",
+      "signature": "fn async fn middleware_still_run_for_unmatched_requests ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 8881310150489294545,
+      "kind": "Function",
+      "name": "routing_to_router_panics",
+      "signature": "fn async fn routing_to_router_panics ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 8728537127926957368,
+      "kind": "Function",
+      "name": "route_layer",
+      "signature": "fn async fn route_layer ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 13654417699764975968,
+      "kind": "Function",
+      "name": "different_methods_added_in_different_routes",
+      "signature": "fn async fn different_methods_added_in_different_routes ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 14816385288299426466,
+      "kind": "Function",
+      "name": "merging_routers_with_fallbacks_panics",
+      "signature": "fn async fn merging_routers_with_fallbacks_panics ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 12741955430251263550,
+      "kind": "Function",
+      "name": "routes_with_overlapping_method_routes",
+      "signature": "fn fn routes_with_overlapping_method_routes ()",
+      "file_path": "axum/tests/panic_location.rs",
+      "line": 0
+    },
+    {
+      "hash": 12015692642464383263,
+      "kind": "Function",
+      "name": "merging_with_overlapping_method_routes",
+      "signature": "fn fn merging_with_overlapping_method_routes ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 5229668686629461428,
+      "kind": "Function",
+      "name": "merging_routers_with_same_paths_but_different_methods",
+      "signature": "fn async fn merging_routers_with_same_paths_but_different_methods ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 9243340266031760758,
+      "kind": "Function",
+      "name": "head_content_length_through_hyper_server",
+      "signature": "fn async fn head_content_length_through_hyper_server ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 435991612427603460,
+      "kind": "Function",
+      "name": "head_content_length_through_hyper_server_that_hits_fallback",
+      "signature": "fn async fn head_content_length_through_hyper_server_that_hits_fallback ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 9064975041509650768,
+      "kind": "Function",
+      "name": "head_with_middleware_applied",
+      "signature": "fn async fn head_with_middleware_applied ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 2294664855776584986,
+      "kind": "Function",
+      "name": "routes_must_start_with_slash",
+      "signature": "fn async fn routes_must_start_with_slash ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 16381172571731923445,
+      "kind": "Function",
+      "name": "body_limited_by_default",
+      "signature": "fn async fn body_limited_by_default ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 4222280513533482663,
+      "kind": "Function",
+      "name": "disabling_the_default_limit",
+      "signature": "fn async fn disabling_the_default_limit ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 5098647360034273022,
+      "kind": "Function",
+      "name": "limited_body_with_content_length",
+      "signature": "fn async fn limited_body_with_content_length ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 5463060677653362905,
+      "kind": "Function",
+      "name": "changing_the_default_limit",
+      "signature": "fn async fn changing_the_default_limit ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 4805981749750299215,
+      "kind": "Function",
+      "name": "changing_the_default_limit_differently_on_different_routes",
+      "signature": "fn async fn changing_the_default_limit_differently_on_different_routes ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 9433457032439337980,
+      "kind": "Function",
+      "name": "limited_body_with_streaming_body",
+      "signature": "fn async fn limited_body_with_streaming_body ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 5801813427014187895,
+      "kind": "Function",
+      "name": "extract_state",
+      "signature": "fn async fn extract_state ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 12247715196969375653,
+      "kind": "Function",
+      "name": "explicitly_set_state",
+      "signature": "fn async fn explicitly_set_state ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 6188176081928278191,
+      "kind": "Function",
+      "name": "layer_response_into_response",
+      "signature": "fn async fn layer_response_into_response ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 7610581207974719338,
+      "kind": "Function",
+      "name": "method_router_fallback_with_state",
+      "signature": "fn fn method_router_fallback_with_state ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 13007612670738401099,
+      "kind": "Function",
+      "name": "test_path_for_nested_route",
+      "signature": "fn fn test_path_for_nested_route ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 14687672559386749873,
+      "kind": "Function",
+      "name": "state_isnt_cloned_too_much",
+      "signature": "fn async fn state_isnt_cloned_too_much ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 3085110217394066025,
+      "kind": "Function",
+      "name": "state_isnt_cloned_too_much_in_layer",
+      "signature": "fn async fn state_isnt_cloned_too_much_in_layer ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 1015797999659241020,
+      "kind": "Function",
+      "name": "logging_rejections",
+      "signature": "fn async fn logging_rejections ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 2159911132965965330,
+      "kind": "Function",
+      "name": "connect_going_to_custom_fallback",
+      "signature": "fn async fn connect_going_to_custom_fallback ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 16807298323058765571,
+      "kind": "Function",
+      "name": "connect_going_to_default_fallback",
+      "signature": "fn async fn connect_going_to_default_fallback ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 18265279022994086301,
+      "kind": "Function",
+      "name": "impl_handler_for_into_response",
+      "signature": "fn async fn impl_handler_for_into_response ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 14462805130172229695,
+      "kind": "Function",
+      "name": "colon_in_route",
+      "signature": "fn async fn colon_in_route ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 9617447104621747969,
+      "kind": "Function",
+      "name": "asterisk_in_route",
+      "signature": "fn async fn asterisk_in_route ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 694227535413416325,
+      "kind": "Function",
+      "name": "middleware_adding_body",
+      "signature": "fn async fn middleware_adding_body ()",
+      "file_path": "axum/src/routing/tests/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 7075663881712666658,
+      "kind": "Function",
+      "name": "nesting_apps",
+      "signature": "fn async fn nesting_apps ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 8979979175579168495,
+      "kind": "Function",
+      "name": "wrong_method_nest",
+      "signature": "fn async fn wrong_method_nest ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 2059911492347405663,
+      "kind": "Function",
+      "name": "nest_router_at_root",
+      "signature": "fn fn nest_router_at_root ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 1793249227082683526,
+      "kind": "Function",
+      "name": "nest_router_at_empty_path",
+      "signature": "fn fn nest_router_at_empty_path ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 6777715358882562700,
+      "kind": "Function",
+      "name": "nest_service_at_root",
+      "signature": "fn fn nest_service_at_root ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 14373270749255189205,
+      "kind": "Function",
+      "name": "nest_service_at_empty_path",
+      "signature": "fn fn nest_service_at_empty_path ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 17704925102069223521,
+      "kind": "Function",
+      "name": "nested_url_extractor",
+      "signature": "fn async fn nested_url_extractor ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 7016607456765606514,
+      "kind": "Function",
+      "name": "nested_url_original_extractor",
+      "signature": "fn async fn nested_url_original_extractor ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 5398249758538547191,
+      "kind": "Function",
+      "name": "nested_service_sees_stripped_uri",
+      "signature": "fn async fn nested_service_sees_stripped_uri ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 18322079230575326462,
+      "kind": "Function",
+      "name": "nest_static_file_server",
+      "signature": "fn async fn nest_static_file_server ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 17845975558323986589,
+      "kind": "Function",
+      "name": "nested_multiple_routes",
+      "signature": "fn async fn nested_multiple_routes ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 262519162591079182,
+      "kind": "Function",
+      "name": "multiple_top_level_nests",
+      "signature": "fn async fn multiple_top_level_nests ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 9353403680294887554,
+      "kind": "Function",
+      "name": "nest_cannot_contain_wildcards",
+      "signature": "fn async fn nest_cannot_contain_wildcards ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 258312819740348903,
+      "kind": "Function",
+      "name": "outer_middleware_still_see_whole_url",
+      "signature": "fn async fn outer_middleware_still_see_whole_url ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 4850001619797068763,
+      "kind": "Function",
+      "name": "nest_at_capture",
+      "signature": "fn async fn nest_at_capture ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 14510817142854636601,
+      "kind": "Function",
+      "name": "nest_with_and_without_trailing",
+      "signature": "fn async fn nest_with_and_without_trailing ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 14586045616539787961,
+      "kind": "Function",
+      "name": "nesting_with_root_inner_router",
+      "signature": "fn async fn nesting_with_root_inner_router ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 14985562360461799533,
+      "kind": "Function",
+      "name": "nesting_router_with_fallback",
+      "signature": "fn async fn nesting_router_with_fallback ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 17898992210755987902,
+      "kind": "Function",
+      "name": "defining_missing_routes_in_nested_router",
+      "signature": "fn async fn defining_missing_routes_in_nested_router ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 10707087928280416648,
+      "kind": "Function",
+      "name": "overriding_by_nested_router",
+      "signature": "fn fn overriding_by_nested_router ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 11274006011310773840,
+      "kind": "Function",
+      "name": "overriding_nested_router_",
+      "signature": "fn fn overriding_nested_router_ ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 3780161557956183190,
+      "kind": "Function",
+      "name": "overriding_nested_service_router",
+      "signature": "fn async fn overriding_nested_service_router ()",
+      "file_path": "axum/src/routing/tests/nest.rs",
+      "line": 0
+    },
+    {
+      "hash": 18234956118423095191,
+      "kind": "Trait",
+      "name": "Listener",
+      "signature": "trait Listener",
+      "file_path": "axum/src/serve/listener.rs",
+      "line": 0
+    },
+    {
+      "hash": 13926725411209117587,
+      "kind": "Trait",
+      "name": "ListenerExt",
+      "signature": "trait ListenerExt",
+      "file_path": "axum/src/serve/listener.rs",
+      "line": 0
+    },
+    {
+      "hash": 7476726647071407284,
+      "kind": "Struct",
+      "name": "TapIo",
+      "signature": "struct TapIo",
+      "file_path": "axum/src/serve/listener.rs",
+      "line": 0
+    },
+    {
+      "hash": 10937110301746567753,
+      "kind": "Function",
+      "name": "handle_accept_error",
+      "signature": "fn async fn handle_accept_error (e : io :: Error)",
+      "file_path": "axum/src/serve/listener.rs",
+      "line": 0
+    },
+    {
+      "hash": 13312920316057104723,
+      "kind": "Function",
+      "name": "is_connection_error",
+      "signature": "fn fn is_connection_error (e : & io :: Error) -> bool",
+      "file_path": "axum/src/serve/listener.rs",
+      "line": 0
+    },
+    {
+      "hash": 15047906970002843480,
+      "kind": "Function",
+      "name": "serve",
+      "signature": "fn fn serve < L , M , S , B > (listener : L , make_service : M) -> Serve < L , M , S , B > where L : Listener , M : for < 'a > Service < IncomingStream < 'a , L > , Error = Infallible , Response = S > , S : Service < Request , Response = Response < B > , Error = Infallible > + Clone + Send + 'static , S :: Future : Send , B : HttpBody + Send + 'static , B :: Data : Send , B :: Error : Into < Box < dyn StdError + Send + Sync > > ,",
+      "file_path": "axum/src/serve/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 2402072814869759302,
+      "kind": "Struct",
+      "name": "Serve",
+      "signature": "struct Serve",
+      "file_path": "axum/src/serve/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 13958521305976469164,
+      "kind": "Struct",
+      "name": "WithGracefulShutdown",
+      "signature": "struct WithGracefulShutdown",
+      "file_path": "axum/src/serve/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 14355667358343386952,
+      "kind": "Function",
+      "name": "handle_connection",
+      "signature": "fn async fn handle_connection < L , M , S , B > (make_service : & mut M , signal_tx : & watch :: Sender < () > , close_rx : & watch :: Receiver < () > , io : < L as Listener > :: Io , remote_addr : < L as Listener > :: Addr ,) where L : Listener , L :: Addr : Debug , M : for < 'a > Service < IncomingStream < 'a , L > , Error = Infallible , Response = S > + Send + 'static , for < 'a > < M as Service < IncomingStream < 'a , L > > > :: Future : Send , S : Service < Request , Response = Response < B > , Error = Infallible > + Clone + Send + 'static , S :: Future : Send , B : HttpBody + Send + 'static , B :: Data : Send , B :: Error : Into < Box < dyn StdError + Send + Sync > > ,",
+      "file_path": "axum/src/serve/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 16324667577578167637,
+      "kind": "Struct",
+      "name": "IncomingStream",
+      "signature": "struct IncomingStream",
+      "file_path": "axum/src/serve/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 1702599959499618494,
+      "kind": "Struct",
+      "name": "CountingCloneableState",
+      "signature": "struct CountingCloneableState",
+      "file_path": "axum/src/test_helpers/counting_cloneable_state.rs",
+      "line": 0
+    },
+    {
+      "hash": 4552157438282588981,
+      "kind": "Struct",
+      "name": "InnerState",
+      "signature": "struct InnerState",
+      "file_path": "axum-macros/tests/from_request/pass/state_via_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 4381336980373375238,
+      "kind": "Function",
+      "name": "assert_send",
+      "signature": "fn fn assert_send < T : Send > ()",
+      "file_path": "axum/src/test_helpers/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 6387254348013857232,
+      "kind": "Function",
+      "name": "assert_sync",
+      "signature": "fn fn assert_sync < T : Sync > ()",
+      "file_path": "axum/src/test_helpers/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 17144069782953698107,
+      "kind": "Struct",
+      "name": "NotSendSync",
+      "signature": "struct NotSendSync",
+      "file_path": "axum/src/test_helpers/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 14663751273616669100,
+      "kind": "Function",
+      "name": "spawn_service",
+      "signature": "fn fn spawn_service < S > (svc : S) -> SocketAddr where S : Service < Request , Response = Response , Error = Infallible > + Clone + Send + 'static , S :: Future : Send ,",
+      "file_path": "axum/src/test_helpers/test_client.rs",
+      "line": 0
+    },
+    {
+      "hash": 13990073652648138780,
+      "kind": "Struct",
+      "name": "TestClient",
+      "signature": "struct TestClient",
+      "file_path": "axum/src/test_helpers/test_client.rs",
+      "line": 0
+    },
+    {
+      "hash": 12934336822725528505,
+      "kind": "Struct",
+      "name": "RequestBuilder",
+      "signature": "struct RequestBuilder",
+      "file_path": "axum/src/test_helpers/test_client.rs",
+      "line": 0
+    },
+    {
+      "hash": 5343328195567424768,
+      "kind": "Struct",
+      "name": "TestResponse",
+      "signature": "struct TestResponse",
+      "file_path": "axum/src/test_helpers/test_client.rs",
+      "line": 0
+    },
+    {
+      "hash": 8345560086398061397,
+      "kind": "Struct",
+      "name": "TracingEvent",
+      "signature": "struct TracingEvent",
+      "file_path": "axum/src/test_helpers/tracing_helpers.rs",
+      "line": 0
+    },
+    {
+      "hash": 7798683466182134121,
+      "kind": "Function",
+      "name": "capture_tracing",
+      "signature": "fn fn capture_tracing < T , F > (f : F) -> CaptureTracing < T , F > where T : DeserializeOwned ,",
+      "file_path": "axum/src/test_helpers/tracing_helpers.rs",
+      "line": 0
+    },
+    {
+      "hash": 12764259493027877274,
+      "kind": "Struct",
+      "name": "CaptureTracing",
+      "signature": "struct CaptureTracing",
+      "file_path": "axum/src/test_helpers/tracing_helpers.rs",
+      "line": 0
+    },
+    {
+      "hash": 2308478955734976629,
+      "kind": "Struct",
+      "name": "TestMakeWriter",
+      "signature": "struct TestMakeWriter",
+      "file_path": "axum/src/test_helpers/tracing_helpers.rs",
+      "line": 0
+    },
+    {
+      "hash": 8037550483577415155,
+      "kind": "Struct",
+      "name": "Writer",
+      "signature": "struct Writer",
+      "file_path": "axum/src/test_helpers/tracing_helpers.rs",
+      "line": 0
+    },
+    {
+      "hash": 9414961859488016845,
+      "kind": "Struct",
+      "name": "Handle",
+      "signature": "struct Handle",
+      "file_path": "axum/src/test_helpers/tracing_helpers.rs",
+      "line": 0
+    },
+    {
+      "hash": 16636302196845035680,
+      "kind": "Function",
+      "name": "boxed",
+      "signature": "fn fn boxed < B > (body : B) -> BoxBody where B : http_body :: Body < Data = Bytes > + Send + 'static , B :: Error : Into < BoxError > ,",
+      "file_path": "axum-core/src/body.rs",
+      "line": 0
+    },
+    {
+      "hash": 5876041598109077416,
+      "kind": "Struct",
+      "name": "Body",
+      "signature": "struct Body",
+      "file_path": "axum-core/src/body.rs",
+      "line": 0
+    },
+    {
+      "hash": 13053883192966555559,
+      "kind": "Struct",
+      "name": "BodyDataStream",
+      "signature": "struct BodyDataStream",
+      "file_path": "axum-core/src/body.rs",
+      "line": 0
+    },
+    {
+      "hash": 5873623981022757307,
+      "kind": "Struct",
+      "name": "Error",
+      "signature": "struct Error",
+      "file_path": "axum-core/src/error.rs",
+      "line": 0
+    },
+    {
+      "hash": 9684580052613930819,
+      "kind": "Trait",
+      "name": "RequestExt",
+      "signature": "trait RequestExt",
+      "file_path": "axum-core/src/ext_traits/request.rs",
+      "line": 0
+    },
+    {
+      "hash": 7487965122788548763,
+      "kind": "Trait",
+      "name": "RequestPartsExt",
+      "signature": "trait RequestPartsExt",
+      "file_path": "axum-core/src/ext_traits/request_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 5865586272614885647,
+      "kind": "Struct",
+      "name": "DefaultBodyLimit",
+      "signature": "struct DefaultBodyLimit",
+      "file_path": "axum-core/src/extract/default_body_limit.rs",
+      "line": 0
+    },
+    {
+      "hash": 15307892481456002426,
+      "kind": "Trait",
+      "name": "FromRef",
+      "signature": "trait FromRef",
+      "file_path": "axum-core/src/extract/from_ref.rs",
+      "line": 0
+    },
+    {
+      "hash": 7486505750819676974,
+      "kind": "Trait",
+      "name": "FromRequestParts",
+      "signature": "trait FromRequestParts",
+      "file_path": "axum-core/src/extract/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 15625624232692439594,
+      "kind": "Trait",
+      "name": "FromRequest",
+      "signature": "trait FromRequest",
+      "file_path": "axum-core/src/extract/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 5838648501570416531,
+      "kind": "Trait",
+      "name": "OptionalFromRequestParts",
+      "signature": "trait OptionalFromRequestParts",
+      "file_path": "axum-core/src/extract/option.rs",
+      "line": 0
+    },
+    {
+      "hash": 8553433180944135216,
+      "kind": "Trait",
+      "name": "OptionalFromRequest",
+      "signature": "trait OptionalFromRequest",
+      "file_path": "axum-core/src/extract/option.rs",
+      "line": 0
+    },
+    {
+      "hash": 8072510091296931582,
+      "kind": "Function",
+      "name": "body_to_bytes_mut",
+      "signature": "fn async fn body_to_bytes_mut (body : & mut Body , bytes : & mut BytesMut) -> Result < () , BytesRejection >",
+      "file_path": "axum-core/src/extract/request_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 11019284130917250412,
+      "kind": "Struct",
+      "name": "AppendHeaders",
+      "signature": "struct AppendHeaders",
+      "file_path": "axum-core/src/response/append_headers.rs",
+      "line": 0
+    },
+    {
+      "hash": 14596918901130489526,
+      "kind": "Trait",
+      "name": "IntoResponse",
+      "signature": "trait IntoResponse",
+      "file_path": "axum-core/src/response/into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 14712436524415327242,
+      "kind": "Struct",
+      "name": "BytesChainBody",
+      "signature": "struct BytesChainBody",
+      "file_path": "axum-core/src/response/into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 10531996566833615119,
+      "kind": "Trait",
+      "name": "IntoResponseParts",
+      "signature": "trait IntoResponseParts",
+      "file_path": "axum-core/src/response/into_response_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 4594643799384534629,
+      "kind": "Struct",
+      "name": "ResponseParts",
+      "signature": "struct ResponseParts",
+      "file_path": "axum-core/src/response/into_response_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 3959753035568057665,
+      "kind": "Struct",
+      "name": "TryIntoHeaderError",
+      "signature": "struct TryIntoHeaderError",
+      "file_path": "axum-core/src/response/into_response_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 17011652675798591932,
+      "kind": "Struct",
+      "name": "ErrorResponse",
+      "signature": "struct ErrorResponse",
+      "file_path": "axum-core/src/response/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 17800288254407505942,
+      "kind": "Struct",
+      "name": "AsExtractor",
+      "signature": "struct AsExtractor",
+      "file_path": "axum-extra/src/json_lines.rs",
+      "line": 0
+    },
+    {
+      "hash": 15094389088452104013,
+      "kind": "Struct",
+      "name": "AsResponse",
+      "signature": "struct AsResponse",
+      "file_path": "axum-extra/src/json_lines.rs",
+      "line": 0
+    },
+    {
+      "hash": 6467178192271676550,
+      "kind": "Function",
+      "name": "option_layer",
+      "signature": "fn fn option_layer < L > (layer : Option < L >) -> Either < (ResponseAxumBodyLayer , L) , Identity >",
+      "file_path": "axum-extra/src/middleware.rs",
+      "line": 0
+    },
+    {
+      "hash": 16768373872661283110,
+      "kind": "Struct",
+      "name": "Protobuf",
+      "signature": "struct Protobuf",
+      "file_path": "axum-extra/src/protobuf.rs",
+      "line": 0
+    },
+    {
+      "hash": 17559088461431917784,
+      "kind": "Struct",
+      "name": "TypedHeader",
+      "signature": "struct TypedHeader",
+      "file_path": "axum-extra/src/typed_header.rs",
+      "line": 0
+    },
+    {
+      "hash": 4850029501702504465,
+      "kind": "Struct",
+      "name": "TypedHeaderRejection",
+      "signature": "struct TypedHeaderRejection",
+      "file_path": "axum-extra/src/typed_header.rs",
+      "line": 0
+    },
+    {
+      "hash": 8649386205297507561,
+      "kind": "Struct",
+      "name": "Cached",
+      "signature": "struct Cached",
+      "file_path": "axum-extra/src/extract/cached.rs",
+      "line": 0
+    },
+    {
+      "hash": 12436817217104996185,
+      "kind": "Struct",
+      "name": "CachedEntry",
+      "signature": "struct CachedEntry",
+      "file_path": "axum-extra/src/extract/cached.rs",
+      "line": 0
+    },
+    {
+      "hash": 13591294118995566774,
+      "kind": "Struct",
+      "name": "Host",
+      "signature": "struct Host",
+      "file_path": "axum-extra/src/extract/host.rs",
+      "line": 0
+    },
+    {
+      "hash": 2420640417880423170,
+      "kind": "Function",
+      "name": "parse_forwarded",
+      "signature": "fn fn parse_forwarded (headers : & HeaderMap) -> Option < & str >",
+      "file_path": "axum-extra/src/extract/scheme.rs",
+      "line": 0
+    },
+    {
+      "hash": 17258422413117200792,
+      "kind": "Function",
+      "name": "parse_authority",
+      "signature": "fn fn parse_authority (auth : & Authority) -> & str",
+      "file_path": "axum-extra/src/extract/host.rs",
+      "line": 0
+    },
+    {
+      "hash": 17625664556978640869,
+      "kind": "Struct",
+      "name": "JsonDeserializer",
+      "signature": "struct JsonDeserializer",
+      "file_path": "axum-extra/src/extract/json_deserializer.rs",
+      "line": 0
+    },
+    {
+      "hash": 13985564090246029231,
+      "kind": "Function",
+      "name": "parse_boundary",
+      "signature": "fn fn parse_boundary (headers : & HeaderMap) -> Option < String >",
+      "file_path": "axum-extra/src/extract/multipart.rs",
+      "line": 0
+    },
+    {
+      "hash": 14923467128875449080,
+      "kind": "Struct",
+      "name": "OptionalPath",
+      "signature": "struct OptionalPath",
+      "file_path": "axum-extra/src/extract/optional_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 495644445242907579,
+      "kind": "Struct",
+      "name": "OptionalQuery",
+      "signature": "struct OptionalQuery",
+      "file_path": "axum-extra/src/extract/query.rs",
+      "line": 0
+    },
+    {
+      "hash": 926608107151426888,
+      "kind": "Struct",
+      "name": "Scheme",
+      "signature": "struct Scheme",
+      "file_path": "axum-extra/src/extract/scheme.rs",
+      "line": 0
+    },
+    {
+      "hash": 4582764453274605838,
+      "kind": "Struct",
+      "name": "WithRejection",
+      "signature": "struct WithRejection",
+      "file_path": "axum-extra/src/extract/with_rejection.rs",
+      "line": 0
+    },
+    {
+      "hash": 14441231331574850828,
+      "kind": "Struct",
+      "name": "CookieJar",
+      "signature": "struct CookieJar",
+      "file_path": "axum-extra/src/extract/cookie/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 871766962939793761,
+      "kind": "Function",
+      "name": "cookies_from_request",
+      "signature": "fn fn cookies_from_request (headers : & HeaderMap) -> impl Iterator < Item = Cookie < 'static > > + '_",
+      "file_path": "axum-extra/src/extract/cookie/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 10068774826193381390,
+      "kind": "Function",
+      "name": "set_cookies",
+      "signature": "fn fn set_cookies (jar : & cookie :: CookieJar , headers : & mut HeaderMap)",
+      "file_path": "axum-extra/src/extract/cookie/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 11326025883214282960,
+      "kind": "Struct",
+      "name": "PrivateCookieJar",
+      "signature": "struct PrivateCookieJar",
+      "file_path": "axum-extra/src/extract/cookie/private.rs",
+      "line": 0
+    },
+    {
+      "hash": 17649738804207548222,
+      "kind": "Struct",
+      "name": "PrivateCookieJarIter",
+      "signature": "struct PrivateCookieJarIter",
+      "file_path": "axum-extra/src/extract/cookie/private.rs",
+      "line": 0
+    },
+    {
+      "hash": 2182120707291392333,
+      "kind": "Struct",
+      "name": "SignedCookieJar",
+      "signature": "struct SignedCookieJar",
+      "file_path": "axum-extra/src/extract/cookie/signed.rs",
+      "line": 0
+    },
+    {
+      "hash": 5844338861155330612,
+      "kind": "Struct",
+      "name": "SignedCookieJarIter",
+      "signature": "struct SignedCookieJarIter",
+      "file_path": "axum-extra/src/extract/cookie/signed.rs",
+      "line": 0
+    },
+    {
+      "hash": 15390164100311357964,
+      "kind": "Trait",
+      "name": "HandlerCallWithExtractors",
+      "signature": "trait HandlerCallWithExtractors",
+      "file_path": "axum-extra/src/handler/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 12327709499821281596,
+      "kind": "Struct",
+      "name": "IntoHandler",
+      "signature": "struct IntoHandler",
+      "file_path": "axum-extra/src/handler/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 17962358539045916326,
+      "kind": "Struct",
+      "name": "Or",
+      "signature": "struct Or",
+      "file_path": "axum-extra/src/handler/or.rs",
+      "line": 0
+    },
+    {
+      "hash": 2880713271497991760,
+      "kind": "Struct",
+      "name": "Attachment",
+      "signature": "struct Attachment",
+      "file_path": "axum-extra/src/response/attachment.rs",
+      "line": 0
+    },
+    {
+      "hash": 9612286772536032275,
+      "kind": "Struct",
+      "name": "ErasedJson",
+      "signature": "struct ErasedJson",
+      "file_path": "axum-extra/src/response/erased_json.rs",
+      "line": 0
+    },
+    {
+      "hash": 17198254414546675494,
+      "kind": "Struct",
+      "name": "InternalServerError",
+      "signature": "struct InternalServerError",
+      "file_path": "axum-extra/src/response/error_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 630503433078257479,
+      "kind": "Struct",
+      "name": "FileStream",
+      "signature": "struct FileStream",
+      "file_path": "axum-extra/src/response/file_stream.rs",
+      "line": 0
+    },
+    {
+      "hash": 8360166950842802531,
+      "kind": "Struct",
+      "name": "MultipartForm",
+      "signature": "struct MultipartForm",
+      "file_path": "axum-extra/src/response/multiple.rs",
+      "line": 0
+    },
+    {
+      "hash": 17448408882745394235,
+      "kind": "Struct",
+      "name": "Part",
+      "signature": "struct Part",
+      "file_path": "axum-extra/src/response/multiple.rs",
+      "line": 0
+    },
+    {
+      "hash": 14766660350062462252,
+      "kind": "Function",
+      "name": "generate_boundary",
+      "signature": "fn fn generate_boundary () -> String",
+      "file_path": "axum-extra/src/response/multiple.rs",
+      "line": 0
+    },
+    {
+      "hash": 11964205374797760759,
+      "kind": "Function",
+      "name": "__private_validate_static_path",
+      "signature": "fn const fn __private_validate_static_path (path : & 'static str) -> & 'static str",
+      "file_path": "axum-extra/src/routing/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 6336611079745508446,
+      "kind": "Trait",
+      "name": "RouterExt",
+      "signature": "trait RouterExt",
+      "file_path": "axum-extra/src/routing/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 3504315917928941170,
+      "kind": "Function",
+      "name": "validate_tsr_path",
+      "signature": "fn fn validate_tsr_path (path : & str)",
+      "file_path": "axum-extra/src/routing/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 5478421070259757207,
+      "kind": "Function",
+      "name": "add_tsr_redirect_route",
+      "signature": "fn fn add_tsr_redirect_route < S > (router : Router < S > , path : & str) -> Router < S > where S : Clone + Send + Sync + 'static ,",
+      "file_path": "axum-extra/src/routing/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 6483947077485547761,
+      "kind": "Function",
+      "name": "map_path",
+      "signature": "fn fn map_path < F > (original_uri : Uri , f : F) -> Option < Uri > where F : FnOnce (& str) -> Cow < '_ , str > ,",
+      "file_path": "axum-extra/src/routing/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 6352705159290196760,
+      "kind": "Struct",
+      "name": "Resource",
+      "signature": "struct Resource",
+      "file_path": "axum-extra/src/routing/resource.rs",
+      "line": 0
+    },
+    {
+      "hash": 13276984371745301641,
+      "kind": "Trait",
+      "name": "TypedPath",
+      "signature": "trait TypedPath",
+      "file_path": "axum-extra/src/routing/typed.rs",
+      "line": 0
+    },
+    {
+      "hash": 1744238881367154692,
+      "kind": "Struct",
+      "name": "WithQueryParams",
+      "signature": "struct WithQueryParams",
+      "file_path": "axum-extra/src/routing/typed.rs",
+      "line": 0
+    },
+    {
+      "hash": 14510064933267156457,
+      "kind": "Trait",
+      "name": "SecondElementIs",
+      "signature": "trait SecondElementIs",
+      "file_path": "axum-extra/src/routing/typed.rs",
+      "line": 0
+    },
+    {
+      "hash": 5682992058469521149,
+      "kind": "Function",
+      "name": "parse_parenthesized_attribute",
+      "signature": "fn fn parse_parenthesized_attribute < K , T > (input : ParseStream < '_ > , out : & mut Option < (K , T) > ,) -> syn :: Result < () > where K : Parse + ToTokens , T : Parse ,",
+      "file_path": "axum-macros/src/attr_parsing.rs",
+      "line": 0
+    },
+    {
+      "hash": 14613624783289635275,
+      "kind": "Function",
+      "name": "parse_assignment_attribute",
+      "signature": "fn fn parse_assignment_attribute < K , T > (input : ParseStream < '_ > , out : & mut Option < (K , T) > ,) -> syn :: Result < () > where K : Parse + ToTokens , T : Parse ,",
+      "file_path": "axum-macros/src/attr_parsing.rs",
+      "line": 0
+    },
+    {
+      "hash": 18346789729477681867,
+      "kind": "Trait",
+      "name": "Combine",
+      "signature": "trait Combine",
+      "file_path": "axum-macros/src/attr_parsing.rs",
+      "line": 0
+    },
+    {
+      "hash": 12845666202037740231,
+      "kind": "Function",
+      "name": "parse_attrs",
+      "signature": "fn fn parse_attrs < T > (ident : & str , attrs : & [syn :: Attribute]) -> syn :: Result < T > where T : Combine + Default + Parse ,",
+      "file_path": "axum-macros/src/attr_parsing.rs",
+      "line": 0
+    },
+    {
+      "hash": 8624117792360071618,
+      "kind": "Function",
+      "name": "combine_attribute",
+      "signature": "fn fn combine_attribute < K , T > (a : & mut Option < (K , T) > , b : Option < (K , T) >) -> syn :: Result < () > where K : ToTokens ,",
+      "file_path": "axum-macros/src/attr_parsing.rs",
+      "line": 0
+    },
+    {
+      "hash": 6387988345735053242,
+      "kind": "Function",
+      "name": "combine_unary_attribute",
+      "signature": "fn fn combine_unary_attribute < K > (a : & mut Option < K > , b : Option < K >) -> syn :: Result < () > where K : ToTokens ,",
+      "file_path": "axum-macros/src/attr_parsing.rs",
+      "line": 0
+    },
+    {
+      "hash": 237105253872394555,
+      "kind": "Function",
+      "name": "second",
+      "signature": "fn fn second < T , K > (tuple : (T , K)) -> K",
+      "file_path": "axum-macros/src/attr_parsing.rs",
+      "line": 0
+    },
+    {
+      "hash": 6632257459956153135,
+      "kind": "Function",
+      "name": "expand",
+      "signature": "fn fn expand (_attr : Attrs , mut item_fn : ItemFn) -> TokenStream",
+      "file_path": "axum-macros/src/axum_test.rs",
+      "line": 0
+    },
+    {
+      "hash": 9641470272864715918,
+      "kind": "Struct",
+      "name": "Attrs",
+      "signature": "struct Attrs",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 14660093938329561097,
+      "kind": "Function",
+      "name": "replace_nest_with_nest_service",
+      "signature": "fn fn replace_nest_with_nest_service (mut item_fn : ItemFn) -> Option < ItemFn >",
+      "file_path": "axum-macros/src/axum_test.rs",
+      "line": 0
+    },
+    {
+      "hash": 3255398276596105333,
+      "kind": "Struct",
+      "name": "NestToNestService",
+      "signature": "struct NestToNestService",
+      "file_path": "axum-macros/src/axum_test.rs",
+      "line": 0
+    },
+    {
+      "hash": 13947232377833058343,
+      "kind": "Function",
+      "name": "expand",
+      "signature": "fn fn expand (attr : Attrs , item_fn : & ItemFn , kind : FunctionKind) -> TokenStream",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 1322036613505419617,
+      "kind": "Function",
+      "name": "check_extractor_count",
+      "signature": "fn fn check_extractor_count (item_fn : & ItemFn , kind : FunctionKind) -> Option < TokenStream >",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 14364454820702352689,
+      "kind": "Function",
+      "name": "extractor_idents",
+      "signature": "fn fn extractor_idents (item_fn : & ItemFn , kind : FunctionKind ,) -> impl Iterator < Item = (usize , & syn :: FnArg , & syn :: Ident) >",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 8930887605072389539,
+      "kind": "Function",
+      "name": "check_path_extractor",
+      "signature": "fn fn check_path_extractor (item_fn : & ItemFn , kind : FunctionKind) -> TokenStream",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 6623258032081839713,
+      "kind": "Function",
+      "name": "is_self_pat_type",
+      "signature": "fn fn is_self_pat_type (typed : & syn :: PatType) -> bool",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 13967568666258270251,
+      "kind": "Function",
+      "name": "check_inputs_impls_from_request",
+      "signature": "fn fn check_inputs_impls_from_request (item_fn : & ItemFn , state_ty : & Type , kind : FunctionKind ,) -> TokenStream",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 8284182745551680561,
+      "kind": "Function",
+      "name": "check_output_tuples",
+      "signature": "fn fn check_output_tuples (item_fn : & ItemFn) -> TokenStream",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 3538656746241366480,
+      "kind": "Function",
+      "name": "check_into_response",
+      "signature": "fn fn check_into_response (handler : & Ident , ty : & Type) -> TokenStream",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 15057798630158541739,
+      "kind": "Function",
+      "name": "check_is_response_parts",
+      "signature": "fn fn check_is_response_parts (ty : & Type , ident : & Ident , index : usize) -> TokenStream",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 6119155123660925598,
+      "kind": "Function",
+      "name": "check_into_response_parts",
+      "signature": "fn fn check_into_response_parts (ty : & Type , ident : & Ident , index : usize) -> TokenStream",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 3363448917910468161,
+      "kind": "Function",
+      "name": "check_input_order",
+      "signature": "fn fn check_input_order (item_fn : & ItemFn , kind : FunctionKind) -> Option < TokenStream >",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 3880192668184805221,
+      "kind": "Function",
+      "name": "extract_clean_typename",
+      "signature": "fn fn extract_clean_typename (ty : & Type) -> Option < String >",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 13941310592390780103,
+      "kind": "Function",
+      "name": "request_consuming_type_name",
+      "signature": "fn fn request_consuming_type_name (ty : & Type) -> Option < & 'static str >",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 7926262171225588662,
+      "kind": "Function",
+      "name": "well_known_last_response_type",
+      "signature": "fn fn well_known_last_response_type (ty : & Type) -> Option < & 'static str >",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 15016329983922446961,
+      "kind": "Function",
+      "name": "check_output_impls_into_response",
+      "signature": "fn fn check_output_impls_into_response (item_fn : & ItemFn) -> TokenStream",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 4336421836011664304,
+      "kind": "Function",
+      "name": "check_future_send",
+      "signature": "fn fn check_future_send (item_fn : & ItemFn , kind : FunctionKind) -> TokenStream",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 5359871075385217064,
+      "kind": "Function",
+      "name": "self_receiver",
+      "signature": "fn fn self_receiver (item_fn : & ItemFn) -> Option < TokenStream >",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 14260669441090619917,
+      "kind": "Function",
+      "name": "state_types_from_args",
+      "signature": "fn fn state_types_from_args (item_fn : & ItemFn) -> HashSet < Type >",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 1746261143934619643,
+      "kind": "Function",
+      "name": "next_is_last_input",
+      "signature": "fn fn next_is_last_input (item_fn : & ItemFn) -> TokenStream",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 12156052521570686924,
+      "kind": "Function",
+      "name": "skip_next_arg",
+      "signature": "fn fn skip_next_arg (arg : & FnArg , kind : FunctionKind) -> bool",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 10698685705208738370,
+      "kind": "Function",
+      "name": "ui_debug_handler",
+      "signature": "fn fn ui_debug_handler ()",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 12994024273044578065,
+      "kind": "Function",
+      "name": "ui_debug_middleware",
+      "signature": "fn fn ui_debug_middleware ()",
+      "file_path": "axum-macros/src/debug_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 1673340394311352390,
+      "kind": "Function",
+      "name": "expand",
+      "signature": "fn fn expand (item : ItemStruct) -> syn :: Result < TokenStream >",
+      "file_path": "axum-macros/src/from_ref.rs",
+      "line": 0
+    },
+    {
+      "hash": 7711231456819606095,
+      "kind": "Function",
+      "name": "expand_field",
+      "signature": "fn fn expand_field (state : & Ident , idx : usize , field : & Field) -> TokenStream",
+      "file_path": "axum-macros/src/from_ref.rs",
+      "line": 0
+    },
+    {
+      "hash": 5353469164499721126,
+      "kind": "Struct",
+      "name": "FieldAttrs",
+      "signature": "struct FieldAttrs",
+      "file_path": "axum-macros/src/from_ref.rs",
+      "line": 0
+    },
+    {
+      "hash": 746336970727324135,
+      "kind": "Function",
+      "name": "ui",
+      "signature": "fn fn ui ()",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 13392091545743562892,
+      "kind": "Function",
+      "name": "derive_from_request",
+      "signature": "fn fn derive_from_request (item : TokenStream) -> TokenStream",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 8893860886824121698,
+      "kind": "Function",
+      "name": "derive_from_request_parts",
+      "signature": "fn fn derive_from_request_parts (item : TokenStream) -> TokenStream",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 16357426044460983060,
+      "kind": "Function",
+      "name": "debug_handler",
+      "signature": "fn fn debug_handler (_attr : TokenStream , input : TokenStream) -> TokenStream",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 8873615112136212202,
+      "kind": "Function",
+      "name": "debug_middleware",
+      "signature": "fn fn debug_middleware (_attr : TokenStream , input : TokenStream) -> TokenStream",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 9839875228461437606,
+      "kind": "Function",
+      "name": "__private_axum_test",
+      "signature": "fn fn __private_axum_test (_attr : TokenStream , input : TokenStream) -> TokenStream",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 16410968538736782361,
+      "kind": "Function",
+      "name": "derive_typed_path",
+      "signature": "fn fn derive_typed_path (input : TokenStream) -> TokenStream",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 3881852510892327701,
+      "kind": "Function",
+      "name": "derive_from_ref",
+      "signature": "fn fn derive_from_ref (item : TokenStream) -> TokenStream",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 7457501368531896011,
+      "kind": "Function",
+      "name": "expand_with",
+      "signature": "fn fn expand_with < F , I , K > (input : TokenStream , f : F) -> TokenStream where F : FnOnce (I) -> syn :: Result < K > , I : Parse , K : ToTokens ,",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 6640322027382411574,
+      "kind": "Function",
+      "name": "expand_attr_with",
+      "signature": "fn fn expand_attr_with < F , A , I , K > (attr : TokenStream , input : TokenStream , f : F) -> TokenStream where F : FnOnce (A , I) -> K , A : Parse , I : Parse , K : ToTokens ,",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 7280155013385115985,
+      "kind": "Function",
+      "name": "expand",
+      "signature": "fn fn expand < T > (result : syn :: Result < T >) -> TokenStream where T : ToTokens ,",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 7927651219186364211,
+      "kind": "Function",
+      "name": "infer_state_types",
+      "signature": "fn fn infer_state_types < 'a , I > (types : I) -> impl Iterator < Item = Type > + 'a where I : Iterator < Item = & 'a Type > + 'a ,",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 9632415620329864797,
+      "kind": "Function",
+      "name": "run_ui_tests",
+      "signature": "fn fn run_ui_tests (directory : & str)",
+      "file_path": "axum-macros/src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 15526736295160568163,
+      "kind": "Function",
+      "name": "expand",
+      "signature": "fn fn expand (item_struct : & ItemStruct) -> syn :: Result < TokenStream >",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 9369541325078206843,
+      "kind": "Function",
+      "name": "expand_named_fields",
+      "signature": "fn fn expand_named_fields (ident : & syn :: Ident , path : & LitStr , segments : & [Segment] , rejection : Option < & syn :: Path > ,) -> TokenStream",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 11686214368573057406,
+      "kind": "Function",
+      "name": "expand_unnamed_fields",
+      "signature": "fn fn expand_unnamed_fields (fields : & syn :: FieldsUnnamed , ident : & syn :: Ident , path : & LitStr , segments : & [Segment] , rejection : Option < & syn :: Path > ,) -> syn :: Result < TokenStream >",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 3203634081735607149,
+      "kind": "Function",
+      "name": "simple_pluralize",
+      "signature": "fn fn simple_pluralize (count : usize , word : & str) -> String",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 17384534565141138401,
+      "kind": "Function",
+      "name": "expand_unit_fields",
+      "signature": "fn fn expand_unit_fields (ident : & syn :: Ident , path : & LitStr , rejection : Option < & syn :: Path > ,) -> syn :: Result < TokenStream >",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 1634951105257074405,
+      "kind": "Function",
+      "name": "format_str_from_path",
+      "signature": "fn fn format_str_from_path (segments : & [Segment]) -> String",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 10906142265448394160,
+      "kind": "Function",
+      "name": "captures_from_path",
+      "signature": "fn fn captures_from_path (segments : & [Segment]) -> Vec < syn :: Ident >",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 8032292681145875351,
+      "kind": "Function",
+      "name": "parse_path",
+      "signature": "fn fn parse_path (path : & LitStr) -> syn :: Result < Vec < Segment > >",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 5784752560663357843,
+      "kind": "Function",
+      "name": "path_rejection",
+      "signature": "fn fn path_rejection () -> TokenStream",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 382034487296478570,
+      "kind": "Function",
+      "name": "rejection_assoc_type",
+      "signature": "fn fn rejection_assoc_type (rejection : Option < & syn :: Path >) -> TokenStream",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 8836263415403783988,
+      "kind": "Function",
+      "name": "map_err_rejection",
+      "signature": "fn fn map_err_rejection (rejection : Option < & syn :: Path >) -> TokenStream",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line": 0
+    },
+    {
+      "hash": 14249176309087148639,
+      "kind": "Struct",
+      "name": "WithPosition",
+      "signature": "struct WithPosition",
+      "file_path": "axum-macros/src/with_position.rs",
+      "line": 0
+    },
+    {
+      "hash": 4683571760252149977,
+      "kind": "Struct",
+      "name": "FromRequestContainerAttrs",
+      "signature": "struct FromRequestContainerAttrs",
+      "file_path": "axum-macros/src/from_request/attr.rs",
+      "line": 0
+    },
+    {
+      "hash": 18313782142397387334,
+      "kind": "Struct",
+      "name": "FromRequestFieldAttrs",
+      "signature": "struct FromRequestFieldAttrs",
+      "file_path": "axum-macros/src/from_request/attr.rs",
+      "line": 0
+    },
+    {
+      "hash": 14951411908758737785,
+      "kind": "Function",
+      "name": "expand",
+      "signature": "fn fn expand (item : syn :: Item , tr : Trait) -> syn :: Result < TokenStream >",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 983278169867963520,
+      "kind": "Function",
+      "name": "parse_single_generic_type_on_struct",
+      "signature": "fn fn parse_single_generic_type_on_struct (generics : syn :: Generics , fields : & syn :: Fields , tr : Trait ,) -> syn :: Result < Option < Ident > >",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 3348288655566891557,
+      "kind": "Function",
+      "name": "error_on_generic_ident",
+      "signature": "fn fn error_on_generic_ident (generic_ident : Option < Ident > , tr : Trait) -> syn :: Result < () >",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 3265448942436495963,
+      "kind": "Function",
+      "name": "impl_struct_by_extracting_each_field",
+      "signature": "fn fn impl_struct_by_extracting_each_field (ident : & syn :: Ident , fields : & syn :: Fields , rejection : Option < syn :: Path > , state : & State , tr : Trait ,) -> syn :: Result < TokenStream >",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 8811896845362206375,
+      "kind": "Function",
+      "name": "has_no_fields",
+      "signature": "fn fn has_no_fields (fields : & syn :: Fields) -> bool",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 4983294133729001481,
+      "kind": "Function",
+      "name": "extract_fields",
+      "signature": "fn fn extract_fields (fields : & syn :: Fields , rejection : Option < & syn :: Path > , tr : Trait ,) -> syn :: Result < Vec < TokenStream > >",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 8252528768606590400,
+      "kind": "Function",
+      "name": "peel_option",
+      "signature": "fn fn peel_option (ty : & syn :: Type) -> Option < & syn :: Type >",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 10779197254302238624,
+      "kind": "Function",
+      "name": "peel_result_ok",
+      "signature": "fn fn peel_result_ok (ty : & syn :: Type) -> Option < & syn :: Type >",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 5160389583945003141,
+      "kind": "Function",
+      "name": "impl_struct_by_extracting_all_at_once",
+      "signature": "fn fn impl_struct_by_extracting_all_at_once (ident : & syn :: Ident , fields : syn :: Fields , via_path : & syn :: Path , rejection : Option < & syn :: Path > , generic_ident : Option < & Ident > , state : & State , tr : Trait ,) -> syn :: Result < TokenStream >",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 2589301479563450058,
+      "kind": "Function",
+      "name": "impl_enum_by_extracting_all_at_once",
+      "signature": "fn fn impl_enum_by_extracting_all_at_once (ident : & syn :: Ident , variants : Punctuated < syn :: Variant , Token ! [,] > , path : & syn :: Path , rejection : Option < & syn :: Path > , state : & State , tr : Trait ,) -> syn :: Result < TokenStream >",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 12222097391447577545,
+      "kind": "Function",
+      "name": "infer_state_type_from_field_types",
+      "signature": "fn fn infer_state_type_from_field_types (fields : & Fields) -> impl Iterator < Item = Type > + '_",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 11971933697089978868,
+      "kind": "Function",
+      "name": "infer_state_type_from_field_attributes",
+      "signature": "fn fn infer_state_type_from_field_attributes (fields : & Fields) -> impl Iterator < Item = Type > + '_",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 3371762978514786768,
+      "kind": "Function",
+      "name": "path_ident_is_state",
+      "signature": "fn fn path_ident_is_state (path : & Path) -> bool",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 5986380939388238161,
+      "kind": "Function",
+      "name": "state_from_via",
+      "signature": "fn fn state_from_via (ident : & Ident , via : & Path) -> Option < Type >",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 2320848479966539061,
+      "kind": "Function",
+      "name": "test_field_doesnt_impl_from_request",
+      "signature": "fn fn test_field_doesnt_impl_from_request ()",
+      "file_path": "axum-macros/src/from_request/mod.rs",
+      "line": 0
+    },
+    {
+      "hash": 9902044153969550876,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_foo : bool)",
+      "file_path": "axum-macros/tests/debug_handler/fail/argument_not_extractor.rs",
+      "line": 0
+    },
+    {
+      "hash": 9643773623731330854,
+      "kind": "Function",
+      "name": "main",
+      "signature": "fn fn main ()",
+      "file_path": "examples/unix-domain-socket/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 3230658770516350897,
+      "kind": "Struct",
+      "name": "NonCloneType",
+      "signature": "struct NonCloneType",
+      "file_path": "axum-macros/tests/debug_handler/fail/extension_not_clone.rs",
+      "line": 0
+    },
+    {
+      "hash": 3256544148664571537,
+      "kind": "Function",
+      "name": "test_extension_non_clone",
+      "signature": "fn async fn test_extension_non_clone (_ : Extension < NonCloneType >)",
+      "file_path": "axum-macros/tests/debug_handler/fail/extension_not_clone.rs",
+      "line": 0
+    },
+    {
+      "hash": 3727494915184014473,
+      "kind": "Struct",
+      "name": "A",
+      "signature": "struct A",
+      "file_path": "axum-macros/tests/debug_handler/pass/set_state.rs",
+      "line": 0
+    },
+    {
+      "hash": 9938167915106043757,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler < T > (_extract : T)",
+      "file_path": "axum-macros/tests/debug_handler/fail/generics.rs",
+      "line": 0
+    },
+    {
+      "hash": 201044163345934632,
+      "kind": "Struct",
+      "name": "Struct",
+      "signature": "struct Struct",
+      "file_path": "axum-macros/tests/debug_handler/fail/json_not_deserialize.rs",
+      "line": 0
+    },
+    {
+      "hash": 9715393485147028521,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_foo : Json < Struct >)",
+      "file_path": "axum-macros/tests/debug_handler/fail/json_not_deserialize.rs",
+      "line": 0
+    },
+    {
+      "hash": 2052310988436217267,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_ : Path < String > , _ : Path < String >)",
+      "file_path": "axum-macros/tests/debug_handler/fail/multiple_paths.rs",
+      "line": 0
+    },
+    {
+      "hash": 9482839949772348129,
+      "kind": "Function",
+      "name": "one",
+      "signature": "fn async fn one (_ : Json < () > , _ : String , _ : Uri)",
+      "file_path": "axum-macros/tests/debug_handler/fail/multiple_request_consumers.rs",
+      "line": 0
+    },
+    {
+      "hash": 10783161591768147604,
+      "kind": "Function",
+      "name": "two",
+      "signature": "fn async fn two (_ : Json < () > , _ : Method , _ : Bytes , _ : Uri , _ : String)",
+      "file_path": "axum-macros/tests/debug_handler/fail/multiple_request_consumers.rs",
+      "line": 0
+    },
+    {
+      "hash": 17162514774533184587,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn fn handler ()",
+      "file_path": "axum-macros/tests/debug_handler/fail/not_async.rs",
+      "line": 0
+    },
+    {
+      "hash": 16875830237361176916,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler () -> (axum :: http :: StatusCode , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > , axum :: http :: StatusCode ,)",
+      "file_path": "axum-macros/tests/debug_handler/fail/output_tuple_too_many.rs",
+      "line": 0
+    },
+    {
+      "hash": 12007559012998362888,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler () -> (axum :: http :: request :: Parts , axum :: http :: StatusCode ,)",
+      "file_path": "axum-macros/tests/debug_handler/fail/returning_request_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 2904090644716153108,
+      "kind": "Struct",
+      "name": "NotIntoResponse",
+      "signature": "struct NotIntoResponse",
+      "file_path": "axum-macros/tests/debug_handler/fail/single_wrong_return_tuple.rs",
+      "line": 0
+    },
+    {
+      "hash": 10500830728699544967,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler () -> (NotIntoResponse)",
+      "file_path": "axum-macros/tests/debug_handler/fail/single_wrong_return_tuple.rs",
+      "line": 0
+    },
+    {
+      "hash": 6840907424632259995,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_e1 : Uri , _e2 : Uri , _e3 : Uri , _e4 : Uri , _e5 : Uri , _e6 : Uri , _e7 : Uri , _e8 : Uri , _e9 : Uri , _e10 : Uri , _e11 : Uri , _e12 : Uri , _e13 : Uri , _e14 : Uri , _e15 : Uri , _e16 : Uri , _e17 : Uri ,)",
+      "file_path": "axum-macros/tests/debug_handler/fail/too_many_extractors.rs",
+      "line": 0
+    },
+    {
+      "hash": 16017216765588947198,
+      "kind": "Function",
+      "name": "one",
+      "signature": "fn async fn one (_ : Json < () > , _ : Uri)",
+      "file_path": "axum-macros/tests/debug_handler/fail/wrong_order.rs",
+      "line": 0
+    },
+    {
+      "hash": 13145170460101152321,
+      "kind": "Function",
+      "name": "two",
+      "signature": "fn async fn two (_ : String , _ : Uri)",
+      "file_path": "axum-macros/tests/debug_handler/fail/wrong_order.rs",
+      "line": 0
+    },
+    {
+      "hash": 9985359222206567744,
+      "kind": "Function",
+      "name": "named_type",
+      "signature": "fn async fn named_type () -> (axum :: http :: StatusCode , axum :: Json < & 'static str > , axum :: response :: AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > ,)",
+      "file_path": "axum-macros/tests/debug_handler/fail/wrong_return_tuple.rs",
+      "line": 0
+    },
+    {
+      "hash": 1594476197830919661,
+      "kind": "Struct",
+      "name": "CustomIntoResponse",
+      "signature": "struct CustomIntoResponse",
+      "file_path": "axum-macros/tests/debug_handler/fail/wrong_return_tuple.rs",
+      "line": 0
+    },
+    {
+      "hash": 4079515224094637975,
+      "kind": "Function",
+      "name": "custom_type",
+      "signature": "fn async fn custom_type () -> (axum :: http :: StatusCode , CustomIntoResponse , axum :: response :: AppendHeaders < [(axum :: http :: HeaderName , & 'static str) ; 1] > ,)",
+      "file_path": "axum-macros/tests/debug_handler/fail/wrong_return_tuple.rs",
+      "line": 0
+    },
+    {
+      "hash": 16527468138492658646,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler () -> bool",
+      "file_path": "axum-macros/tests/debug_handler/fail/wrong_return_type.rs",
+      "line": 0
+    },
+    {
+      "hash": 18211762111934479869,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (Path (_) : Path < String >)",
+      "file_path": "axum-macros/tests/debug_handler/pass/deny_unreachable_code.rs",
+      "line": 0
+    },
+    {
+      "hash": 15495673356106256269,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn fn handler () -> impl Future < Output = () >",
+      "file_path": "axum-macros/tests/debug_handler/pass/impl_future.rs",
+      "line": 0
+    },
+    {
+      "hash": 1091720182763726898,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler () -> impl IntoResponse",
+      "file_path": "axum-macros/tests/debug_handler/pass/impl_into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 6733369811653270750,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_ : State < AppState >)",
+      "file_path": "axum-macros/tests/debug_handler/pass/infer_state.rs",
+      "line": 0
+    },
+    {
+      "hash": 12872577110900927373,
+      "kind": "Function",
+      "name": "handler_2",
+      "signature": "fn async fn handler_2 (_ : axum :: extract :: State < AppState >)",
+      "file_path": "axum-macros/tests/debug_handler/pass/infer_state.rs",
+      "line": 0
+    },
+    {
+      "hash": 16344008014704676206,
+      "kind": "Function",
+      "name": "handler_3",
+      "signature": "fn async fn handler_3 (_ : axum :: extract :: State < AppState > , _ : axum :: extract :: State < AppState >)",
+      "file_path": "axum-macros/tests/debug_handler/pass/infer_state.rs",
+      "line": 0
+    },
+    {
+      "hash": 6268644347851519786,
+      "kind": "Function",
+      "name": "handler_4",
+      "signature": "fn async fn handler_4 (_ : State < AppState > , _ : State < AppState >)",
+      "file_path": "axum-macros/tests/debug_handler/pass/infer_state.rs",
+      "line": 0
+    },
+    {
+      "hash": 14223338534934172734,
+      "kind": "Function",
+      "name": "handler_5",
+      "signature": "fn async fn handler_5 (_ : axum :: extract :: State < AppState > , _ : State < AppState >)",
+      "file_path": "axum-macros/tests/debug_handler/pass/infer_state.rs",
+      "line": 0
+    },
+    {
+      "hash": 12596452813781256408,
+      "kind": "Struct",
+      "name": "AppState",
+      "signature": "struct AppState",
+      "file_path": "examples/templates-minijinja/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 5632595443041433268,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_one : Method , _two : Uri , _three : String)",
+      "file_path": "axum-macros/tests/debug_handler/pass/multiple_extractors.rs",
+      "line": 0
+    },
+    {
+      "hash": 5545515079193384716,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (mut foo : String) -> String",
+      "file_path": "axum-macros/tests/debug_handler/pass/mut_extractor.rs",
+      "line": 0
+    },
+    {
+      "hash": 158273823626813293,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn fn handler () -> Ready < () >",
+      "file_path": "axum-macros/tests/debug_handler/pass/ready.rs",
+      "line": 0
+    },
+    {
+      "hash": 3412454027765201552,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_ : Extension < String > , _ : Request)",
+      "file_path": "axum-macros/tests/debug_handler/pass/request_last.rs",
+      "line": 0
+    },
+    {
+      "hash": 5722005604539001924,
+      "kind": "Function",
+      "name": "concrete_future",
+      "signature": "fn fn concrete_future () -> std :: future :: Ready < Result < impl IntoResponse , () > >",
+      "file_path": "axum-macros/tests/debug_handler/pass/result_impl_into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 11447643319126899390,
+      "kind": "Function",
+      "name": "impl_future",
+      "signature": "fn fn impl_future () -> impl std :: future :: Future < Output = Result < impl IntoResponse , () > >",
+      "file_path": "axum-macros/tests/debug_handler/pass/result_impl_into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 6735606296914105646,
+      "kind": "Function",
+      "name": "handler_no_arg_one",
+      "signature": "fn async fn handler_no_arg_one () -> Result < impl IntoResponse , () >",
+      "file_path": "axum-macros/tests/debug_handler/pass/result_impl_into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 1397928904805127741,
+      "kind": "Function",
+      "name": "handler_no_arg_two",
+      "signature": "fn async fn handler_no_arg_two () -> Result < () , impl IntoResponse >",
+      "file_path": "axum-macros/tests/debug_handler/pass/result_impl_into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 11254682138308797440,
+      "kind": "Function",
+      "name": "handler_no_arg_three",
+      "signature": "fn async fn handler_no_arg_three () -> Result < impl IntoResponse , impl IntoResponse >",
+      "file_path": "axum-macros/tests/debug_handler/pass/result_impl_into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 11364305121280790356,
+      "kind": "Function",
+      "name": "handler_no_arg_four",
+      "signature": "fn async fn handler_no_arg_four () -> Result < impl IntoResponse , impl IntoResponse >",
+      "file_path": "axum-macros/tests/debug_handler/pass/result_impl_into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 1257008146456243725,
+      "kind": "Function",
+      "name": "handler_one",
+      "signature": "fn async fn handler_one (foo : String) -> Result < impl IntoResponse , () >",
+      "file_path": "axum-macros/tests/debug_handler/pass/result_impl_into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 14274276420544270445,
+      "kind": "Function",
+      "name": "handler_two",
+      "signature": "fn async fn handler_two (foo : String) -> Result < () , impl IntoResponse >",
+      "file_path": "axum-macros/tests/debug_handler/pass/result_impl_into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 12228171009969148482,
+      "kind": "Function",
+      "name": "handler_three",
+      "signature": "fn async fn handler_three (foo : String) -> Result < impl IntoResponse , impl IntoResponse >",
+      "file_path": "axum-macros/tests/debug_handler/pass/result_impl_into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 8412543166324237302,
+      "kind": "Function",
+      "name": "handler_four",
+      "signature": "fn async fn handler_four (foo : String) -> Result < impl IntoResponse , impl IntoResponse >",
+      "file_path": "axum-macros/tests/debug_handler/pass/result_impl_into_response.rs",
+      "line": 0
+    },
+    {
+      "hash": 17841197682875454041,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_ : A)",
+      "file_path": "axum-macros/tests/debug_handler/pass/set_state.rs",
+      "line": 0
+    },
+    {
+      "hash": 11576407068819512861,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_ : State < AppState > , _ : Request)",
+      "file_path": "axum-macros/tests/debug_handler/pass/state_and_body.rs",
+      "line": 0
+    },
+    {
+      "hash": 13419918968677331158,
+      "kind": "Function",
+      "name": "my_middleware",
+      "signature": "fn async fn my_middleware (request : Request) -> Response",
+      "file_path": "axum-macros/tests/debug_middleware/fail/doesnt_take_next.rs",
+      "line": 0
+    },
+    {
+      "hash": 5292217800580033672,
+      "kind": "Function",
+      "name": "my_middleware",
+      "signature": "fn async fn my_middleware (next : Next , request : Request) -> Response",
+      "file_path": "axum-macros/tests/debug_middleware/fail/next_not_last.rs",
+      "line": 0
+    },
+    {
+      "hash": 12698269782744887280,
+      "kind": "Function",
+      "name": "my_middleware",
+      "signature": "fn async fn my_middleware (request : Request , next : Next , next2 : Next) -> Response",
+      "file_path": "axum-macros/tests/debug_middleware/fail/takes_next_twice.rs",
+      "line": 0
+    },
+    {
+      "hash": 12377024539080082434,
+      "kind": "Function",
+      "name": "my_middleware",
+      "signature": "fn async fn my_middleware (request : Request , next : Next) -> Response",
+      "file_path": "axum-macros/tests/debug_middleware/pass/basic.rs",
+      "line": 0
+    },
+    {
+      "hash": 9423760895958951751,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_ : State < String >)",
+      "file_path": "axum-macros/tests/from_ref/pass/basic.rs",
+      "line": 0
+    },
+    {
+      "hash": 6168357750628353055,
+      "kind": "Struct",
+      "name": "Extractor",
+      "signature": "struct Extractor",
+      "file_path": "axum-macros/tests/from_request/pass/unit_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 4174457962245778704,
+      "kind": "Function",
+      "name": "foo",
+      "signature": "fn async fn foo (_ : Extractor < () >)",
+      "file_path": "axum-macros/tests/from_request/fail/generic_without_via_rejection.rs",
+      "line": 0
+    },
+    {
+      "hash": 1132640329495965866,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_ : MyExtractor)",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_with_via_on_enum_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 399550470790676671,
+      "kind": "Function",
+      "name": "handler_result",
+      "signature": "fn async fn handler_result (_ : Result < MyExtractor , MyRejection >)",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_with_via_on_enum_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 17245105260436744669,
+      "kind": "Struct",
+      "name": "MyRejection",
+      "signature": "struct MyRejection",
+      "file_path": "axum-macros/tests/typed_path/pass/customize_rejection.rs",
+      "line": 0
+    },
+    {
+      "hash": 17549557065896202560,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : FromRequestParts < () , Rejection = Response > ,",
+      "file_path": "axum-macros/tests/from_request/pass/named_via_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 17572689974716351622,
+      "kind": "Struct",
+      "name": "OtherState",
+      "signature": "struct OtherState",
+      "file_path": "axum-macros/tests/from_request/fail/state_infer_multiple_different_types.rs",
+      "line": 0
+    },
+    {
+      "hash": 9881100771640612158,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : axum :: extract :: FromRequest < AppState , Rejection = axum :: response :: Response > ,",
+      "file_path": "axum-macros/tests/from_request/pass/state_infer_multiple.rs",
+      "line": 0
+    },
+    {
+      "hash": 6851121124875805280,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : FromRequest < () , Rejection = JsonRejection > ,",
+      "file_path": "axum-macros/tests/from_request/pass/container.rs",
+      "line": 0
+    },
+    {
+      "hash": 2313149598336889188,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : FromRequestParts < () , Rejection = ExtensionRejection > ,",
+      "file_path": "axum-macros/tests/from_request/pass/container_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 10686584127561702290,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : axum :: extract :: FromRequest < () , Rejection = std :: convert :: Infallible > ,",
+      "file_path": "axum-macros/tests/from_request/pass/unit.rs",
+      "line": 0
+    },
+    {
+      "hash": 2568250138009146780,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : axum :: extract :: FromRequestParts < () , Rejection = std :: convert :: Infallible > ,",
+      "file_path": "axum-macros/tests/from_request/pass/unit_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 14490713171339018073,
+      "kind": "Function",
+      "name": "foo",
+      "signature": "fn async fn foo (_ : Extractor)",
+      "file_path": "axum-macros/tests/from_request/pass/enum_via_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 11568629063020946126,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : FromRequest < () , Rejection = Response > ,",
+      "file_path": "axum-macros/tests/from_request/pass/named_via.rs",
+      "line": 0
+    },
+    {
+      "hash": 13754673962507970649,
+      "kind": "Struct",
+      "name": "MyExtractor",
+      "signature": "struct MyExtractor",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 16307273459418826989,
+      "kind": "Struct",
+      "name": "OtherExtractor",
+      "signature": "struct OtherExtractor",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 4663009316566010278,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_ : MyJson)",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_non_generic.rs",
+      "line": 0
+    },
+    {
+      "hash": 17553093598276989493,
+      "kind": "Function",
+      "name": "handler_result",
+      "signature": "fn async fn handler_result (_ : Result < MyJson , MyJsonRejection >)",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_non_generic.rs",
+      "line": 0
+    },
+    {
+      "hash": 1016520434020460988,
+      "kind": "Struct",
+      "name": "MyJson",
+      "signature": "struct MyJson",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_with_via_on_struct.rs",
+      "line": 0
+    },
+    {
+      "hash": 15338635391859960940,
+      "kind": "Struct",
+      "name": "MyJsonRejection",
+      "signature": "struct MyJsonRejection",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_with_via_on_struct.rs",
+      "line": 0
+    },
+    {
+      "hash": 7134099037850749877,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_ : MyQuery)",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_non_generic_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 5598580553891395961,
+      "kind": "Function",
+      "name": "handler_result",
+      "signature": "fn async fn handler_result (_ : Result < MyQuery , MyQueryRejection >)",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_non_generic_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 14599929454599934169,
+      "kind": "Struct",
+      "name": "MyQuery",
+      "signature": "struct MyQuery",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_with_via_on_struct_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 15125477734043279973,
+      "kind": "Struct",
+      "name": "MyQueryRejection",
+      "signature": "struct MyQueryRejection",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_with_via_on_struct_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 6504422797996939482,
+      "kind": "Struct",
+      "name": "Payload",
+      "signature": "struct Payload",
+      "file_path": "examples/parse-body-based-on-content-type/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 10818703172314099725,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_ : MyJson < Payload >)",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_with_via_on_struct.rs",
+      "line": 0
+    },
+    {
+      "hash": 1595410577873488897,
+      "kind": "Function",
+      "name": "handler_result",
+      "signature": "fn async fn handler_result (_ : Result < MyJson < Payload > , MyJsonRejection >)",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_with_via_on_struct.rs",
+      "line": 0
+    },
+    {
+      "hash": 12336819424178655111,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (_ : MyQuery < Payload >)",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_with_via_on_struct_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 1128169719841478846,
+      "kind": "Function",
+      "name": "handler_result",
+      "signature": "fn async fn handler_result (_ : Result < MyQuery < Payload > , MyQueryRejection >)",
+      "file_path": "axum-macros/tests/from_request/pass/override_rejection_with_via_on_struct_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 14131156756559134207,
+      "kind": "Struct",
+      "name": "One",
+      "signature": "struct One",
+      "file_path": "axum-macros/tests/from_request/pass/state_explicit.rs",
+      "line": 0
+    },
+    {
+      "hash": 6203564182537064466,
+      "kind": "Struct",
+      "name": "Two",
+      "signature": "struct Two",
+      "file_path": "axum-macros/tests/from_request/pass/state_explicit.rs",
+      "line": 0
+    },
+    {
+      "hash": 14854124693425472284,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : axum :: extract :: FromRequestParts < AppState , Rejection = axum :: response :: Response > ,",
+      "file_path": "axum-macros/tests/from_request/pass/state_infer_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 3625100853876827804,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : axum :: extract :: FromRequest < () > ,",
+      "file_path": "axum-macros/tests/from_request/pass/tuple_via.rs",
+      "line": 0
+    },
+    {
+      "hash": 9361661797821304103,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : axum :: extract :: FromRequestParts < () > ,",
+      "file_path": "axum-macros/tests/from_request/pass/tuple_via_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 15222047842215011780,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : axum :: extract :: FromRequest < () , Rejection = Response > ,",
+      "file_path": "axum-macros/tests/from_request/pass/tuple_same_type_twice_via.rs",
+      "line": 0
+    },
+    {
+      "hash": 15282365472506448266,
+      "kind": "Function",
+      "name": "assert_from_request",
+      "signature": "fn fn assert_from_request () where Extractor : axum :: extract :: FromRequestParts < () , Rejection = Response > ,",
+      "file_path": "axum-macros/tests/from_request/pass/tuple_same_type_twice_via_parts.rs",
+      "line": 0
+    },
+    {
+      "hash": 18120476620708678847,
+      "kind": "Struct",
+      "name": "MyPath",
+      "signature": "struct MyPath",
+      "file_path": "axum-macros/tests/typed_path/pass/wildcards.rs",
+      "line": 0
+    },
+    {
+      "hash": 15747487580206972691,
+      "kind": "Struct",
+      "name": "MyPathNamed",
+      "signature": "struct MyPathNamed",
+      "file_path": "axum-macros/tests/typed_path/pass/customize_rejection.rs",
+      "line": 0
+    },
+    {
+      "hash": 8386534534015114759,
+      "kind": "Struct",
+      "name": "MyPathUnit",
+      "signature": "struct MyPathUnit",
+      "file_path": "axum-macros/tests/typed_path/pass/customize_rejection.rs",
+      "line": 0
+    },
+    {
+      "hash": 12403420788853817955,
+      "kind": "Struct",
+      "name": "MyPathUnnamed",
+      "signature": "struct MyPathUnnamed",
+      "file_path": "axum-macros/tests/typed_path/pass/customize_rejection.rs",
+      "line": 0
+    },
+    {
+      "hash": 4256239374968701627,
+      "kind": "Struct",
+      "name": "Named",
+      "signature": "struct Named",
+      "file_path": "axum-macros/tests/typed_path/pass/url_encoding.rs",
+      "line": 0
+    },
+    {
+      "hash": 17081978168595363677,
+      "kind": "Struct",
+      "name": "Unnamed",
+      "signature": "struct Unnamed",
+      "file_path": "axum-macros/tests/typed_path/pass/url_encoding.rs",
+      "line": 0
+    },
+    {
+      "hash": 8710705674132251718,
+      "kind": "Struct",
+      "name": "Unit",
+      "signature": "struct Unit",
+      "file_path": "axum-macros/tests/typed_path/pass/into_uri.rs",
+      "line": 0
+    },
+    {
+      "hash": 2647011693589361640,
+      "kind": "Struct",
+      "name": "UsersShow",
+      "signature": "struct UsersShow",
+      "file_path": "axum-macros/tests/typed_path/pass/result_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 18297041109258119986,
+      "kind": "Function",
+      "name": "result_handler",
+      "signature": "fn async fn result_handler (_ : Result < UsersShow , PathRejection >)",
+      "file_path": "axum-macros/tests/typed_path/pass/result_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 5311861751588500083,
+      "kind": "Struct",
+      "name": "UsersIndex",
+      "signature": "struct UsersIndex",
+      "file_path": "axum-macros/tests/typed_path/pass/result_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 1022598074294296118,
+      "kind": "Function",
+      "name": "result_handler_unit_struct",
+      "signature": "fn async fn result_handler_unit_struct (_ : Result < UsersIndex , StatusCode >)",
+      "file_path": "axum-macros/tests/typed_path/pass/result_handler.rs",
+      "line": 0
+    },
+    {
+      "hash": 954083472523941947,
+      "kind": "Function",
+      "name": "main",
+      "signature": "fn async fn main ()",
+      "file_path": "examples/websockets/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7208887020471203219,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler () -> Result < () , AppError >",
+      "file_path": "examples/anyhow-error-response/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 2681709843330616014,
+      "kind": "Function",
+      "name": "try_thing",
+      "signature": "fn fn try_thing () -> Result < () , anyhow :: Error >",
+      "file_path": "examples/anyhow-error-response/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 13737530221395126261,
+      "kind": "Struct",
+      "name": "AppError",
+      "signature": "struct AppError",
+      "file_path": "examples/oauth/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 4435017773590368773,
+      "kind": "Function",
+      "name": "app",
+      "signature": "fn fn app () -> Router",
+      "file_path": "examples/versioning/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 11660311611732140247,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler () -> Html < & 'static str >",
+      "file_path": "examples/tracing-aka-logging/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 15128151359687740304,
+      "kind": "Function",
+      "name": "websocket_handler",
+      "signature": "fn async fn websocket_handler (ws : WebSocketUpgrade , State (state) : State < Arc < AppState > > ,) -> impl IntoResponse",
+      "file_path": "examples/chat/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7618956921180446375,
+      "kind": "Function",
+      "name": "websocket",
+      "signature": "fn async fn websocket (stream : WebSocket , state : Arc < AppState >)",
+      "file_path": "examples/chat/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 4304458844923860781,
+      "kind": "Function",
+      "name": "check_username",
+      "signature": "fn fn check_username (state : & AppState , string : & mut String , name : & str)",
+      "file_path": "examples/chat/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16345273827690159681,
+      "kind": "Function",
+      "name": "index",
+      "signature": "fn async fn index () -> Html < & 'static str >",
+      "file_path": "examples/simple-router-wasm/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 13278030284007178621,
+      "kind": "Function",
+      "name": "root",
+      "signature": "fn async fn root (Json (value) : Json < Value >) -> Json < Value >",
+      "file_path": "examples/compression/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 13944638024044865108,
+      "kind": "Function",
+      "name": "handle_uncompressed_request_bodies",
+      "signature": "fn async fn handle_uncompressed_request_bodies ()",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 8028258229570393093,
+      "kind": "Function",
+      "name": "decompress_gzip_request_bodies",
+      "signature": "fn async fn decompress_gzip_request_bodies ()",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 11431341580893050114,
+      "kind": "Function",
+      "name": "decompress_br_request_bodies",
+      "signature": "fn async fn decompress_br_request_bodies ()",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 14999653794905668673,
+      "kind": "Function",
+      "name": "decompress_zstd_request_bodies",
+      "signature": "fn async fn decompress_zstd_request_bodies ()",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 3501395904137688790,
+      "kind": "Function",
+      "name": "do_not_compress_response_bodies",
+      "signature": "fn async fn do_not_compress_response_bodies ()",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 6942144556206934699,
+      "kind": "Function",
+      "name": "compress_response_bodies_with_gzip",
+      "signature": "fn async fn compress_response_bodies_with_gzip ()",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 10341956005331572469,
+      "kind": "Function",
+      "name": "compress_response_bodies_with_br",
+      "signature": "fn async fn compress_response_bodies_with_br ()",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 3609226256597782813,
+      "kind": "Function",
+      "name": "compress_response_bodies_with_zstd",
+      "signature": "fn async fn compress_response_bodies_with_zstd ()",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 459366065208795753,
+      "kind": "Function",
+      "name": "json",
+      "signature": "fn fn json () -> Value",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 17045971628651446659,
+      "kind": "Function",
+      "name": "json_body",
+      "signature": "fn fn json_body (input : & Value) -> Body",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 8226284474540693889,
+      "kind": "Function",
+      "name": "json_from_response",
+      "signature": "fn async fn json_from_response (response : Response) -> Value",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 18152216428323759737,
+      "kind": "Function",
+      "name": "byte_from_response",
+      "signature": "fn async fn byte_from_response (response : Response) -> Bytes",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 18388557913120847184,
+      "kind": "Function",
+      "name": "body_as_json",
+      "signature": "fn fn body_as_json (body : Bytes) -> Value",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 13519740494613201856,
+      "kind": "Function",
+      "name": "compress_gzip",
+      "signature": "fn fn compress_gzip (json : & Value) -> Vec < u8 >",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 3278963847748965280,
+      "kind": "Function",
+      "name": "compress_br",
+      "signature": "fn fn compress_br (json : & Value) -> Vec < u8 >",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 14302412761469467804,
+      "kind": "Function",
+      "name": "compress_zstd",
+      "signature": "fn fn compress_zstd (json : & Value) -> Vec < u8 >",
+      "file_path": "examples/compression/src/tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 16336139182901196882,
+      "kind": "Function",
+      "name": "print_request_body",
+      "signature": "fn async fn print_request_body (request : Request , next : Next) -> Result < impl IntoResponse , Response >",
+      "file_path": "examples/consume-body-in-extractor-or-middleware/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 1446465841920829978,
+      "kind": "Function",
+      "name": "buffer_request_body",
+      "signature": "fn async fn buffer_request_body (request : Request) -> Result < Request , Response >",
+      "file_path": "examples/consume-body-in-extractor-or-middleware/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 3109093559713336381,
+      "kind": "Function",
+      "name": "do_thing_with_request_body",
+      "signature": "fn fn do_thing_with_request_body (bytes : Bytes)",
+      "file_path": "examples/consume-body-in-extractor-or-middleware/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16759376605728547114,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (BufferRequestBody (body) : BufferRequestBody)",
+      "file_path": "examples/consume-body-in-extractor-or-middleware/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7073467551600922246,
+      "kind": "Struct",
+      "name": "BufferRequestBody",
+      "signature": "struct BufferRequestBody",
+      "file_path": "examples/consume-body-in-extractor-or-middleware/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 779271479262926250,
+      "kind": "Function",
+      "name": "serve",
+      "signature": "fn async fn serve (app : Router , port : u16)",
+      "file_path": "examples/static-file-server/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7583248611117805062,
+      "kind": "Function",
+      "name": "html",
+      "signature": "fn async fn html () -> impl IntoResponse",
+      "file_path": "examples/cors/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 6838048354688960887,
+      "kind": "Function",
+      "name": "json",
+      "signature": "fn async fn json () -> impl IntoResponse",
+      "file_path": "examples/cors/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16427138199762948647,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (Json (value) : Json < Value >) -> impl IntoResponse",
+      "file_path": "examples/customize-extractor-error/src/derive_from_request.rs",
+      "line": 0
+    },
+    {
+      "hash": 5742091445268119025,
+      "kind": "Struct",
+      "name": "ApiError",
+      "signature": "struct ApiError",
+      "file_path": "examples/customize-extractor-error/src/derive_from_request.rs",
+      "line": 0
+    },
+    {
+      "hash": 17942375652250142405,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (WithRejection (Json (value) , _) : WithRejection < Json < Value > , ApiError > ,) -> impl IntoResponse",
+      "file_path": "examples/customize-extractor-error/src/with_rejection.rs",
+      "line": 0
+    },
+    {
+      "hash": 12262109199430265797,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (Path (params) : Path < Params >) -> impl IntoResponse",
+      "file_path": "examples/customize-path-rejection/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 4265025519152065227,
+      "kind": "Struct",
+      "name": "Params",
+      "signature": "struct Params",
+      "file_path": "examples/query-params-with-empty-strings/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 1539061734826180498,
+      "kind": "Struct",
+      "name": "PathError",
+      "signature": "struct PathError",
+      "file_path": "examples/customize-path-rejection/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 3411958291464072190,
+      "kind": "Struct",
+      "name": "AppStateDyn",
+      "signature": "struct AppStateDyn",
+      "file_path": "examples/dependency-injection/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 5005091819732191863,
+      "kind": "Struct",
+      "name": "AppStateGeneric",
+      "signature": "struct AppStateGeneric",
+      "file_path": "examples/dependency-injection/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 1754303143792833593,
+      "kind": "Struct",
+      "name": "User",
+      "signature": "struct User",
+      "file_path": "examples/readme/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 1418614353198957890,
+      "kind": "Struct",
+      "name": "UserParams",
+      "signature": "struct UserParams",
+      "file_path": "examples/error-handling/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 2308350855319296923,
+      "kind": "Function",
+      "name": "create_user_dyn",
+      "signature": "fn async fn create_user_dyn (State (state) : State < AppStateDyn > , Json (params) : Json < UserParams > ,) -> Json < User >",
+      "file_path": "examples/dependency-injection/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16221004247274323832,
+      "kind": "Function",
+      "name": "get_user_dyn",
+      "signature": "fn async fn get_user_dyn (State (state) : State < AppStateDyn > , Path (id) : Path < Uuid > ,) -> Result < Json < User > , StatusCode >",
+      "file_path": "examples/dependency-injection/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 5319697319603746497,
+      "kind": "Function",
+      "name": "create_user_generic",
+      "signature": "fn async fn create_user_generic < T > (State (state) : State < AppStateGeneric < T > > , Json (params) : Json < UserParams > ,) -> Json < User > where T : UserRepo ,",
+      "file_path": "examples/dependency-injection/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 1886968182618820256,
+      "kind": "Function",
+      "name": "get_user_generic",
+      "signature": "fn async fn get_user_generic < T > (State (state) : State < AppStateGeneric < T > > , Path (id) : Path < Uuid > ,) -> Result < Json < User > , StatusCode > where T : UserRepo ,",
+      "file_path": "examples/dependency-injection/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 2841780265328645051,
+      "kind": "Trait",
+      "name": "UserRepo",
+      "signature": "trait UserRepo",
+      "file_path": "examples/dependency-injection/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 14783223065157220322,
+      "kind": "Struct",
+      "name": "InMemoryUserRepo",
+      "signature": "struct InMemoryUserRepo",
+      "file_path": "examples/dependency-injection/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12780302518262926606,
+      "kind": "Struct",
+      "name": "NewUser",
+      "signature": "struct NewUser",
+      "file_path": "examples/diesel-postgres/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 5114201654867380796,
+      "kind": "Function",
+      "name": "create_user",
+      "signature": "fn async fn create_user (State (pool) : State < Pool > , Json (new_user) : Json < NewUser > ,) -> Result < Json < User > , (StatusCode , String) >",
+      "file_path": "examples/diesel-async-postgres/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 3604554557237007736,
+      "kind": "Struct",
+      "name": "DatabaseConnection",
+      "signature": "struct DatabaseConnection",
+      "file_path": "examples/tokio-redis/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12311614619625378987,
+      "kind": "Function",
+      "name": "list_users",
+      "signature": "fn async fn list_users (DatabaseConnection (mut conn) : DatabaseConnection ,) -> Result < Json < Vec < User > > , (StatusCode , String) >",
+      "file_path": "examples/diesel-async-postgres/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 6268848223413040246,
+      "kind": "Function",
+      "name": "internal_error",
+      "signature": "fn fn internal_error < E > (err : E) -> (StatusCode , String) where E : std :: error :: Error ,",
+      "file_path": "examples/tokio-redis/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 4677003557881210972,
+      "kind": "Function",
+      "name": "create_user",
+      "signature": "fn async fn create_user (State (pool) : State < deadpool_diesel :: postgres :: Pool > , Json (new_user) : Json < NewUser > ,) -> Result < Json < User > , (StatusCode , String) >",
+      "file_path": "examples/diesel-postgres/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 13639881793002247264,
+      "kind": "Function",
+      "name": "list_users",
+      "signature": "fn async fn list_users (State (pool) : State < deadpool_diesel :: postgres :: Pool > ,) -> Result < Json < Vec < User > > , (StatusCode , String) >",
+      "file_path": "examples/diesel-postgres/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 1653531613325385017,
+      "kind": "Function",
+      "name": "users_create",
+      "signature": "fn async fn users_create (State (state) : State < AppState > , AppJson (params) : AppJson < UserParams > ,) -> Result < AppJson < User > , AppError >",
+      "file_path": "examples/error-handling/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 14237246275337199072,
+      "kind": "Struct",
+      "name": "AppJson",
+      "signature": "struct AppJson",
+      "file_path": "examples/error-handling/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 15977654946808755465,
+      "kind": "Function",
+      "name": "show_form",
+      "signature": "fn async fn show_form () -> Html < & 'static str >",
+      "file_path": "examples/stream-to-file/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 5975504023735980350,
+      "kind": "Struct",
+      "name": "Input",
+      "signature": "struct Input",
+      "file_path": "examples/form/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 15085046685802771289,
+      "kind": "Function",
+      "name": "accept_form",
+      "signature": "fn async fn accept_form (Form (input) : Form < Input >) -> Html < String >",
+      "file_path": "examples/form/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 14526562363894044582,
+      "kind": "Function",
+      "name": "handler_404",
+      "signature": "fn async fn handler_404 () -> impl IntoResponse",
+      "file_path": "examples/global-404-handler/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 15441951200398161136,
+      "kind": "Function",
+      "name": "shutdown_signal",
+      "signature": "fn async fn shutdown_signal ()",
+      "file_path": "examples/graceful-shutdown/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 13139066459302572798,
+      "kind": "Function",
+      "name": "get_head_handler",
+      "signature": "fn async fn get_head_handler (method : http :: Method) -> Response",
+      "file_path": "examples/handle-head-request/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 4214735517399727517,
+      "kind": "Function",
+      "name": "do_some_computing_task",
+      "signature": "fn fn do_some_computing_task ()",
+      "file_path": "examples/handle-head-request/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16378824329852365518,
+      "kind": "Function",
+      "name": "proxy",
+      "signature": "fn async fn proxy (req : Request) -> Result < Response , hyper :: Error >",
+      "file_path": "examples/http-proxy/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 13162976300741092610,
+      "kind": "Function",
+      "name": "tunnel",
+      "signature": "fn async fn tunnel (upgraded : Upgraded , addr : String) -> std :: io :: Result < () >",
+      "file_path": "examples/http-proxy/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 9378396001801409237,
+      "kind": "Function",
+      "name": "protected",
+      "signature": "fn async fn protected (claims : Claims) -> Result < String , AuthError >",
+      "file_path": "examples/jwt/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7235973658026947662,
+      "kind": "Function",
+      "name": "authorize",
+      "signature": "fn async fn authorize (Json (payload) : Json < AuthPayload >) -> Result < Json < AuthBody > , AuthError >",
+      "file_path": "examples/jwt/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 15632747147496667582,
+      "kind": "Struct",
+      "name": "Keys",
+      "signature": "struct Keys",
+      "file_path": "examples/jwt/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 8490206290702282950,
+      "kind": "Struct",
+      "name": "Claims",
+      "signature": "struct Claims",
+      "file_path": "examples/jwt/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 585693661221793217,
+      "kind": "Struct",
+      "name": "AuthBody",
+      "signature": "struct AuthBody",
+      "file_path": "examples/jwt/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7608658141544543550,
+      "kind": "Struct",
+      "name": "AuthPayload",
+      "signature": "struct AuthPayload",
+      "file_path": "examples/jwt/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16665930674465521527,
+      "kind": "Function",
+      "name": "kv_get",
+      "signature": "fn async fn kv_get (Path (key) : Path < String > , State (state) : State < SharedState > ,) -> Result < Bytes , StatusCode >",
+      "file_path": "examples/key-value-store/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16717230640420171290,
+      "kind": "Function",
+      "name": "kv_set",
+      "signature": "fn async fn kv_set (Path (key) : Path < String > , State (state) : State < SharedState > , bytes : Bytes)",
+      "file_path": "examples/key-value-store/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7260232830801644538,
+      "kind": "Function",
+      "name": "list_keys",
+      "signature": "fn async fn list_keys (State (state) : State < SharedState >) -> String",
+      "file_path": "examples/key-value-store/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12366314904554999747,
+      "kind": "Function",
+      "name": "admin_routes",
+      "signature": "fn fn admin_routes () -> Router < SharedState >",
+      "file_path": "examples/key-value-store/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 6462877989004650653,
+      "kind": "Function",
+      "name": "handle_error",
+      "signature": "fn async fn handle_error (error : BoxError) -> impl IntoResponse",
+      "file_path": "examples/key-value-store/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12668478735283055190,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler () -> & 'static str",
+      "file_path": "examples/tls-rustls/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 8014399718736495663,
+      "kind": "Function",
+      "name": "native_tls_acceptor",
+      "signature": "fn fn native_tls_acceptor (key_file : PathBuf , cert_file : PathBuf) -> NativeTlsAcceptor",
+      "file_path": "examples/low-level-native-tls/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 13899910666049476359,
+      "kind": "Function",
+      "name": "rustls_server_config",
+      "signature": "fn fn rustls_server_config (key : impl AsRef < Path > , cert : impl AsRef < Path >) -> Arc < ServerConfig >",
+      "file_path": "examples/low-level-rustls/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12399691020914486866,
+      "kind": "Function",
+      "name": "app",
+      "signature": "fn fn app (client : Client) -> Router",
+      "file_path": "examples/mongodb/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12246934168596471656,
+      "kind": "Function",
+      "name": "create_member",
+      "signature": "fn async fn create_member (State (db) : State < Collection < Member > > , Json (input) : Json < Member > ,) -> Result < Json < InsertOneResult > , (StatusCode , String) >",
+      "file_path": "examples/mongodb/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16964918071071764786,
+      "kind": "Function",
+      "name": "read_member",
+      "signature": "fn async fn read_member (State (db) : State < Collection < Member > > , Path (id) : Path < u32 > ,) -> Result < Json < Option < Member > > , (StatusCode , String) >",
+      "file_path": "examples/mongodb/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16126101618032533671,
+      "kind": "Function",
+      "name": "update_member",
+      "signature": "fn async fn update_member (State (db) : State < Collection < Member > > , Json (input) : Json < Member > ,) -> Result < Json < UpdateResult > , (StatusCode , String) >",
+      "file_path": "examples/mongodb/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16221525765035829584,
+      "kind": "Function",
+      "name": "delete_member",
+      "signature": "fn async fn delete_member (State (db) : State < Collection < Member > > , Path (id) : Path < u32 > ,) -> Result < Json < DeleteResult > , (StatusCode , String) >",
+      "file_path": "examples/mongodb/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 1426809811234950154,
+      "kind": "Struct",
+      "name": "Member",
+      "signature": "struct Member",
+      "file_path": "examples/mongodb/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 14781089210828796836,
+      "kind": "Function",
+      "name": "accept_form",
+      "signature": "fn async fn accept_form (mut multipart : Multipart)",
+      "file_path": "examples/multipart-form/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 9420555834256745064,
+      "kind": "Function",
+      "name": "oauth_client",
+      "signature": "fn fn oauth_client () -> Result < BasicClient , AppError >",
+      "file_path": "examples/oauth/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 17622310514110014041,
+      "kind": "Function",
+      "name": "index",
+      "signature": "fn async fn index (user : Option < User >) -> impl IntoResponse",
+      "file_path": "examples/oauth/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 8126028294033490633,
+      "kind": "Function",
+      "name": "discord_auth",
+      "signature": "fn async fn discord_auth (State (client) : State < BasicClient > , State (store) : State < MemoryStore > ,) -> Result < impl IntoResponse , AppError >",
+      "file_path": "examples/oauth/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 9520571911662831902,
+      "kind": "Function",
+      "name": "protected",
+      "signature": "fn async fn protected (user : User) -> impl IntoResponse",
+      "file_path": "examples/oauth/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 3859876362701282915,
+      "kind": "Function",
+      "name": "logout",
+      "signature": "fn async fn logout (State (store) : State < MemoryStore > , TypedHeader (cookies) : TypedHeader < headers :: Cookie > ,) -> Result < impl IntoResponse , AppError >",
+      "file_path": "examples/oauth/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 14671837251504716680,
+      "kind": "Struct",
+      "name": "AuthRequest",
+      "signature": "struct AuthRequest",
+      "file_path": "examples/oauth/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 1995829600957123887,
+      "kind": "Function",
+      "name": "csrf_token_validation_workflow",
+      "signature": "fn async fn csrf_token_validation_workflow (auth_request : & AuthRequest , cookies : & headers :: Cookie , store : & MemoryStore ,) -> Result < () , AppError >",
+      "file_path": "examples/oauth/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7679728056251043664,
+      "kind": "Function",
+      "name": "login_authorized",
+      "signature": "fn async fn login_authorized (Query (query) : Query < AuthRequest > , State (store) : State < MemoryStore > , State (oauth_client) : State < BasicClient > , TypedHeader (cookies) : TypedHeader < headers :: Cookie > ,) -> Result < impl IntoResponse , AppError >",
+      "file_path": "examples/oauth/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 1383256072932878260,
+      "kind": "Struct",
+      "name": "AuthRedirect",
+      "signature": "struct AuthRedirect",
+      "file_path": "examples/oauth/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 4411126305529711793,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (JsonOrForm (payload) : JsonOrForm < Payload >)",
+      "file_path": "examples/parse-body-based-on-content-type/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 13737459219938593233,
+      "kind": "Struct",
+      "name": "JsonOrForm",
+      "signature": "struct JsonOrForm",
+      "file_path": "examples/parse-body-based-on-content-type/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 6359040226775854407,
+      "kind": "Function",
+      "name": "print_request_response",
+      "signature": "fn async fn print_request_response (req : Request , next : Next ,) -> Result < impl IntoResponse , (StatusCode , String) >",
+      "file_path": "examples/print-request-response/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7008097597440181141,
+      "kind": "Function",
+      "name": "buffer_and_print",
+      "signature": "fn async fn buffer_and_print < B > (direction : & str , body : B) -> Result < Bytes , (StatusCode , String) > where B : axum :: body :: HttpBody < Data = Bytes > , B :: Error : std :: fmt :: Display ,",
+      "file_path": "examples/print-request-response/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 11906132077867201153,
+      "kind": "Function",
+      "name": "metrics_app",
+      "signature": "fn fn metrics_app () -> Router",
+      "file_path": "examples/prometheus-metrics/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 2343090650577020403,
+      "kind": "Function",
+      "name": "main_app",
+      "signature": "fn fn main_app () -> Router",
+      "file_path": "examples/prometheus-metrics/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16718487607130311031,
+      "kind": "Function",
+      "name": "start_main_server",
+      "signature": "fn async fn start_main_server ()",
+      "file_path": "examples/prometheus-metrics/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 15904073845522742499,
+      "kind": "Function",
+      "name": "start_metrics_server",
+      "signature": "fn async fn start_metrics_server ()",
+      "file_path": "examples/prometheus-metrics/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 17827586806889940427,
+      "kind": "Function",
+      "name": "setup_metrics_recorder",
+      "signature": "fn fn setup_metrics_recorder () -> PrometheusHandle",
+      "file_path": "examples/prometheus-metrics/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 510284461952814870,
+      "kind": "Function",
+      "name": "track_metrics",
+      "signature": "fn async fn track_metrics (req : Request , next : Next) -> impl IntoResponse",
+      "file_path": "examples/prometheus-metrics/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 828316004871110126,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (Query (params) : Query < Params >) -> String",
+      "file_path": "examples/query-params-with-empty-strings/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 15441472772664457825,
+      "kind": "Function",
+      "name": "empty_string_as_none",
+      "signature": "fn fn empty_string_as_none < 'de , D , T > (de : D) -> Result < Option < T > , D :: Error > where D : Deserializer < 'de > , T : FromStr , T :: Err : fmt :: Display ,",
+      "file_path": "examples/query-params-with-empty-strings/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 9424531241242800603,
+      "kind": "Function",
+      "name": "root",
+      "signature": "fn async fn root () -> & 'static str",
+      "file_path": "examples/readme/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7769752209722869531,
+      "kind": "Function",
+      "name": "create_user",
+      "signature": "fn async fn create_user (Json (payload) : Json < CreateUser > ,) -> impl IntoResponse",
+      "file_path": "examples/readme/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 17686504101575242343,
+      "kind": "Struct",
+      "name": "CreateUser",
+      "signature": "struct CreateUser",
+      "file_path": "examples/readme/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 14481745004836040913,
+      "kind": "Function",
+      "name": "stream_reqwest_response",
+      "signature": "fn async fn stream_reqwest_response (State (client) : State < Client >) -> Response",
+      "file_path": "examples/reqwest-response/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 14948636856104769635,
+      "kind": "Function",
+      "name": "stream_some_data",
+      "signature": "fn async fn stream_some_data () -> Body",
+      "file_path": "examples/reqwest-response/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 11978484143435486167,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (State (client) : State < Client > , mut req : Request) -> Result < Response , StatusCode >",
+      "file_path": "examples/reverse-proxy/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 13315795099971496222,
+      "kind": "Function",
+      "name": "server",
+      "signature": "fn async fn server ()",
+      "file_path": "examples/reverse-proxy/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 8130680341047212020,
+      "kind": "Function",
+      "name": "root",
+      "signature": "fn fn root () -> Router",
+      "file_path": "examples/routes-and-handlers-close-together/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 18396877247966101011,
+      "kind": "Function",
+      "name": "get_foo",
+      "signature": "fn fn get_foo () -> Router",
+      "file_path": "examples/routes-and-handlers-close-together/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12464228796892128889,
+      "kind": "Function",
+      "name": "post_foo",
+      "signature": "fn fn post_foo () -> Router",
+      "file_path": "examples/routes-and-handlers-close-together/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12289549708240196045,
+      "kind": "Function",
+      "name": "route",
+      "signature": "fn fn route (path : & str , method_router : MethodRouter < () >) -> Router",
+      "file_path": "examples/routes-and-handlers-close-together/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 15602818174950262,
+      "kind": "Function",
+      "name": "serve_plain",
+      "signature": "fn async fn serve_plain ()",
+      "file_path": "examples/serve-with-hyper/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 18401832215524864085,
+      "kind": "Function",
+      "name": "serve_with_connect_info",
+      "signature": "fn async fn serve_with_connect_info ()",
+      "file_path": "examples/serve-with-hyper/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 880514420096542472,
+      "kind": "Function",
+      "name": "unwrap_infallible",
+      "signature": "fn fn unwrap_infallible < T > (result : Result < T , Infallible >) -> T",
+      "file_path": "examples/serve-with-hyper/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 17007222979154557180,
+      "kind": "Function",
+      "name": "app",
+      "signature": "fn async fn app (request : Request < String >) -> Response",
+      "file_path": "examples/simple-router-wasm/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 1309085775576495838,
+      "kind": "Function",
+      "name": "using_connection_pool_extractor",
+      "signature": "fn async fn using_connection_pool_extractor (State (pool) : State < PgPool > ,) -> Result < String , (StatusCode , String) >",
+      "file_path": "examples/sqlx-postgres/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 6334050869005301083,
+      "kind": "Function",
+      "name": "using_connection_extractor",
+      "signature": "fn async fn using_connection_extractor (DatabaseConnection (mut conn) : DatabaseConnection ,) -> Result < String , (StatusCode , String) >",
+      "file_path": "examples/tokio-redis/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 10275999916893988798,
+      "kind": "Function",
+      "name": "sse_handler",
+      "signature": "fn async fn sse_handler (TypedHeader (user_agent) : TypedHeader < headers :: UserAgent > ,) -> Sse < impl Stream < Item = Result < Event , Infallible > > >",
+      "file_path": "examples/sse/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 11105714656820876056,
+      "kind": "Function",
+      "name": "using_serve_dir",
+      "signature": "fn fn using_serve_dir () -> Router",
+      "file_path": "examples/static-file-server/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 4990841584706215570,
+      "kind": "Function",
+      "name": "using_serve_dir_with_assets_fallback",
+      "signature": "fn fn using_serve_dir_with_assets_fallback () -> Router",
+      "file_path": "examples/static-file-server/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 14766401053588577349,
+      "kind": "Function",
+      "name": "using_serve_dir_only_from_root_via_fallback",
+      "signature": "fn fn using_serve_dir_only_from_root_via_fallback () -> Router",
+      "file_path": "examples/static-file-server/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 740516015054268120,
+      "kind": "Function",
+      "name": "using_serve_dir_with_handler_as_service",
+      "signature": "fn fn using_serve_dir_with_handler_as_service () -> Router",
+      "file_path": "examples/static-file-server/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 1732343767622171735,
+      "kind": "Function",
+      "name": "two_serve_dirs",
+      "signature": "fn fn two_serve_dirs () -> Router",
+      "file_path": "examples/static-file-server/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 4221533582439337871,
+      "kind": "Function",
+      "name": "calling_serve_dir_from_a_handler",
+      "signature": "fn fn calling_serve_dir_from_a_handler () -> Router",
+      "file_path": "examples/static-file-server/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 4974731686847638897,
+      "kind": "Function",
+      "name": "using_serve_file_from_a_route",
+      "signature": "fn fn using_serve_file_from_a_route () -> Router",
+      "file_path": "examples/static-file-server/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 6659970117469172714,
+      "kind": "Function",
+      "name": "save_request_body",
+      "signature": "fn async fn save_request_body (Path (file_name) : Path < String > , request : Request ,) -> Result < () , (StatusCode , String) >",
+      "file_path": "examples/stream-to-file/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12062000950430727714,
+      "kind": "Function",
+      "name": "accept_form",
+      "signature": "fn async fn accept_form (mut multipart : Multipart) -> Result < Redirect , (StatusCode , String) >",
+      "file_path": "examples/stream-to-file/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16354027412335102551,
+      "kind": "Function",
+      "name": "stream_to_file",
+      "signature": "fn async fn stream_to_file < S , E > (path : & str , stream : S) -> Result < () , (StatusCode , String) > where S : Stream < Item = Result < Bytes , E > > , E : Into < BoxError > ,",
+      "file_path": "examples/stream-to-file/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 2737738801373413096,
+      "kind": "Function",
+      "name": "path_is_valid",
+      "signature": "fn fn path_is_valid (path : & str) -> bool",
+      "file_path": "examples/stream-to-file/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 11422473825143035534,
+      "kind": "Function",
+      "name": "greet",
+      "signature": "fn async fn greet (extract :: Path (name) : extract :: Path < String >) -> impl IntoResponse",
+      "file_path": "examples/templates/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 11815944670902794701,
+      "kind": "Struct",
+      "name": "HelloTemplate",
+      "signature": "struct HelloTemplate",
+      "file_path": "examples/templates/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 247729474533075947,
+      "kind": "Struct",
+      "name": "HtmlTemplate",
+      "signature": "struct HtmlTemplate",
+      "file_path": "examples/templates/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7648376157622708877,
+      "kind": "Function",
+      "name": "handler_home",
+      "signature": "fn async fn handler_home (State (state) : State < Arc < AppState > >) -> Result < Html < String > , StatusCode >",
+      "file_path": "examples/templates-minijinja/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 10423716811084771242,
+      "kind": "Function",
+      "name": "handler_content",
+      "signature": "fn async fn handler_content (State (state) : State < Arc < AppState > >) -> Result < Html < String > , StatusCode >",
+      "file_path": "examples/templates-minijinja/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 9055387272748178107,
+      "kind": "Function",
+      "name": "handler_about",
+      "signature": "fn async fn handler_about (State (state) : State < Arc < AppState > >) -> Result < Html < String > , StatusCode >",
+      "file_path": "examples/templates-minijinja/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 14337276113967514164,
+      "kind": "Function",
+      "name": "integration_testable_handler",
+      "signature": "fn async fn integration_testable_handler (ws : WebSocketUpgrade) -> Response",
+      "file_path": "examples/testing-websockets/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 6928568270393427294,
+      "kind": "Function",
+      "name": "integration_testable_handle_socket",
+      "signature": "fn async fn integration_testable_handle_socket (mut socket : WebSocket)",
+      "file_path": "examples/testing-websockets/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 11614034805392899938,
+      "kind": "Function",
+      "name": "unit_testable_handler",
+      "signature": "fn async fn unit_testable_handler (ws : WebSocketUpgrade) -> Response",
+      "file_path": "examples/testing-websockets/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 13952731194771210407,
+      "kind": "Function",
+      "name": "unit_testable_handle_socket",
+      "signature": "fn async fn unit_testable_handle_socket < W , R > (mut write : W , mut read : R) where W : Sink < Message > + Unpin , R : Stream < Item = Result < Message , axum :: Error > > + Unpin ,",
+      "file_path": "examples/testing-websockets/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 5414833869128991874,
+      "kind": "Struct",
+      "name": "Ports",
+      "signature": "struct Ports",
+      "file_path": "examples/tls-rustls/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7791113023139683226,
+      "kind": "Function",
+      "name": "shutdown_signal",
+      "signature": "fn async fn shutdown_signal (handle : axum_server :: Handle)",
+      "file_path": "examples/tls-graceful-shutdown/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 4637757703794100396,
+      "kind": "Function",
+      "name": "redirect_http_to_https",
+      "signature": "fn async fn redirect_http_to_https < F > (ports : Ports , signal : F) where F : Future < Output = () > + Send + 'static ,",
+      "file_path": "examples/tls-graceful-shutdown/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12635737804279290814,
+      "kind": "Function",
+      "name": "redirect_http_to_https",
+      "signature": "fn async fn redirect_http_to_https (ports : Ports)",
+      "file_path": "examples/tls-rustls/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12188907324758141929,
+      "kind": "Struct",
+      "name": "Pagination",
+      "signature": "struct Pagination",
+      "file_path": "examples/todos/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 11546290690764116431,
+      "kind": "Function",
+      "name": "todos_index",
+      "signature": "fn async fn todos_index (pagination : Query < Pagination > , State (db) : State < Db >) -> impl IntoResponse",
+      "file_path": "examples/todos/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 15252303532612343220,
+      "kind": "Struct",
+      "name": "CreateTodo",
+      "signature": "struct CreateTodo",
+      "file_path": "examples/todos/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7856518981399687368,
+      "kind": "Function",
+      "name": "todos_create",
+      "signature": "fn async fn todos_create (State (db) : State < Db > , Json (input) : Json < CreateTodo >) -> impl IntoResponse",
+      "file_path": "examples/todos/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 657521069630354068,
+      "kind": "Struct",
+      "name": "UpdateTodo",
+      "signature": "struct UpdateTodo",
+      "file_path": "examples/todos/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 12550252602125320494,
+      "kind": "Function",
+      "name": "todos_update",
+      "signature": "fn async fn todos_update (Path (id) : Path < Uuid > , State (db) : State < Db > , Json (input) : Json < UpdateTodo > ,) -> Result < impl IntoResponse , StatusCode >",
+      "file_path": "examples/todos/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 3685695443726108725,
+      "kind": "Function",
+      "name": "todos_delete",
+      "signature": "fn async fn todos_delete (Path (id) : Path < Uuid > , State (db) : State < Db >) -> impl IntoResponse",
+      "file_path": "examples/todos/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 8661221073706532103,
+      "kind": "Struct",
+      "name": "Todo",
+      "signature": "struct Todo",
+      "file_path": "examples/todos/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 11694190035962910097,
+      "kind": "Function",
+      "name": "using_connection_pool_extractor",
+      "signature": "fn async fn using_connection_pool_extractor (State (pool) : State < ConnectionPool > ,) -> Result < String , (StatusCode , String) >",
+      "file_path": "examples/tokio-redis/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 10470264045472605945,
+      "kind": "Function",
+      "name": "using_connection_extractor",
+      "signature": "fn async fn using_connection_extractor (DatabaseConnection (conn) : DatabaseConnection ,) -> Result < String , (StatusCode , String) >",
+      "file_path": "examples/tokio-postgres/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 16777480641507171262,
+      "kind": "Struct",
+      "name": "NameInput",
+      "signature": "struct NameInput",
+      "file_path": "examples/validator/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 10310576467849897150,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (ValidatedForm (input) : ValidatedForm < NameInput >) -> Html < String >",
+      "file_path": "examples/validator/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 9894289731264086303,
+      "kind": "Struct",
+      "name": "ValidatedForm",
+      "signature": "struct ValidatedForm",
+      "file_path": "examples/validator/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 433772546023594569,
+      "kind": "Function",
+      "name": "handler",
+      "signature": "fn async fn handler (version : Version) -> Html < String >",
+      "file_path": "examples/versioning/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7537627663406967718,
+      "kind": "Function",
+      "name": "spawn_client",
+      "signature": "fn async fn spawn_client (who : usize)",
+      "file_path": "examples/websockets/src/client.rs",
+      "line": 0
+    },
+    {
+      "hash": 7769872025862737143,
+      "kind": "Function",
+      "name": "process_message",
+      "signature": "fn fn process_message (msg : Message , who : usize) -> ControlFlow < () , () >",
+      "file_path": "examples/websockets/src/client.rs",
+      "line": 0
+    },
+    {
+      "hash": 6699924646429210480,
+      "kind": "Function",
+      "name": "ws_handler",
+      "signature": "fn async fn ws_handler (ws : WebSocketUpgrade , user_agent : Option < TypedHeader < headers :: UserAgent > > , ConnectInfo (addr) : ConnectInfo < SocketAddr > ,) -> impl IntoResponse",
+      "file_path": "examples/websockets/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7852643289772540572,
+      "kind": "Function",
+      "name": "handle_socket",
+      "signature": "fn async fn handle_socket (mut socket : WebSocket , who : SocketAddr)",
+      "file_path": "examples/websockets/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 11180944252445482870,
+      "kind": "Function",
+      "name": "process_message",
+      "signature": "fn fn process_message (msg : Message , who : SocketAddr) -> ControlFlow < () , () >",
+      "file_path": "examples/websockets/src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7695283698954006417,
+      "kind": "Function",
+      "name": "test",
+      "signature": "fn fn test ()",
+      "file_path": "test.rs",
+      "line": 0
+    }
+  ],
+  "edges": [
+    {
+      "from": 14816544570205917273,
+      "to": 6519486110158713010,
+      "kind": "Implements"
+    },
+    {
+      "from": 17194334837373893281,
+      "to": 6519486110158713010,
+      "kind": "Implements"
+    },
+    {
+      "from": 15325509863538210574,
+      "to": 6519486110158713010,
+      "kind": "Implements"
+    },
+    {
+      "from": 2199868524115190652,
+      "to": 879948514714889434,
+      "kind": "Implements"
+    },
+    {
+      "from": 1430888808458938574,
+      "to": 3914979699043238193,
+      "kind": "Implements"
+    },
+    {
+      "from": 10125314315695317221,
+      "to": 3914979699043238193,
+      "kind": "Implements"
+    },
+    {
+      "from": 7476726647071407284,
+      "to": 18234956118423095191,
+      "kind": "Implements"
+    },
+    {
+      "from": 5876041598109077416,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    },
+    {
+      "from": 5876041598109077416,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 3959753035568057665,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 16768373872661283110,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    },
+    {
+      "from": 16768373872661283110,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 17559088461431917784,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 17559088461431917784,
+      "to": 5838648501570416531,
+      "kind": "Implements"
+    },
+    {
+      "from": 17559088461431917784,
+      "to": 10531996566833615119,
+      "kind": "Implements"
+    },
+    {
+      "from": 17559088461431917784,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 4850029501702504465,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 8649386205297507561,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 14333110068248311322,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    },
+    {
+      "from": 13591294118995566774,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 13591294118995566774,
+      "to": 5838648501570416531,
+      "kind": "Implements"
+    },
+    {
+      "from": 17625664556978640869,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    },
+    {
+      "from": 7998554083181557231,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    },
+    {
+      "from": 10192015151678638923,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 14923467128875449080,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 3466860431624095309,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 495644445242907579,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 926608107151426888,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 4582764453274605838,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    },
+    {
+      "from": 4582764453274605838,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 14441231331574850828,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 14441231331574850828,
+      "to": 10531996566833615119,
+      "kind": "Implements"
+    },
+    {
+      "from": 14441231331574850828,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 11326025883214282960,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 11326025883214282960,
+      "to": 10531996566833615119,
+      "kind": "Implements"
+    },
+    {
+      "from": 11326025883214282960,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 2182120707291392333,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 2182120707291392333,
+      "to": 10531996566833615119,
+      "kind": "Implements"
+    },
+    {
+      "from": 2182120707291392333,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 12327709499821281596,
+      "to": 3914979699043238193,
+      "kind": "Implements"
+    },
+    {
+      "from": 17962358539045916326,
+      "to": 15390164100311357964,
+      "kind": "Implements"
+    },
+    {
+      "from": 17962358539045916326,
+      "to": 3914979699043238193,
+      "kind": "Implements"
+    },
+    {
+      "from": 2880713271497991760,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 9612286772536032275,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 17198254414546675494,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 630503433078257479,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 8360166950842802531,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 1189347124820320192,
+      "to": 6336611079745508446,
+      "kind": "Implements"
+    },
+    {
+      "from": 1744238881367154692,
+      "to": 13276984371745301641,
+      "kind": "Implements"
+    },
+    {
+      "from": 5353469164499721126,
+      "to": 18346789729477681867,
+      "kind": "Implements"
+    },
+    {
+      "from": 9641470272864715918,
+      "to": 18346789729477681867,
+      "kind": "Implements"
+    },
+    {
+      "from": 4683571760252149977,
+      "to": 18346789729477681867,
+      "kind": "Implements"
+    },
+    {
+      "from": 18313782142397387334,
+      "to": 18346789729477681867,
+      "kind": "Implements"
+    },
+    {
+      "from": 3727494915184014473,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    },
+    {
+      "from": 1594476197830919661,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 3727494915184014473,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 3727494915184014473,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 17245105260436744669,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 16307273459418826989,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    },
+    {
+      "from": 15338635391859960940,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 15125477734043279973,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 16307273459418826989,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 4552157438282588981,
+      "to": 15307892481456002426,
+      "kind": "Implements"
+    },
+    {
+      "from": 14131156756559134207,
+      "to": 15307892481456002426,
+      "kind": "Implements"
+    },
+    {
+      "from": 6203564182537064466,
+      "to": 15307892481456002426,
+      "kind": "Implements"
+    },
+    {
+      "from": 13737530221395126261,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 7073467551600922246,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    },
+    {
+      "from": 17620310292109984994,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    },
+    {
+      "from": 17620310292109984994,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 5742091445268119025,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 16001336033742973781,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 14783223065157220322,
+      "to": 2841780265328645051,
+      "kind": "Implements"
+    },
+    {
+      "from": 3604554557237007736,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 14237246275337199072,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 1383256072932878260,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 1754303143792833593,
+      "to": 7486505750819676974,
+      "kind": "Implements"
+    },
+    {
+      "from": 1754303143792833593,
+      "to": 5838648501570416531,
+      "kind": "Implements"
+    },
+    {
+      "from": 13737459219938593233,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    },
+    {
+      "from": 247729474533075947,
+      "to": 14596918901130489526,
+      "kind": "Implements"
+    },
+    {
+      "from": 9894289731264086303,
+      "to": 15625624232692439594,
+      "kind": "Implements"
+    }
+  ],
+  "metadata": {
+    "version": 1,
+    "timestamp": 1758431486,
+    "node_count": 694,
+    "edge_count": 80
+  }
+}

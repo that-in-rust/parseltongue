@@ -1,0 +1,11 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+Entity: AuthService (Struct)
+Signature: struct AuthService
+File: src/services/auth.rs:0
+
+Dependencies (1):
+  - AuthServiceTrait (src/services/auth.rs): trait AuthServiceTrait
+
+Callers (1):
+  - create_test_user_with_session (tests/user_journey_tests.rs): fn create_test_user_with_session
+Context generated in 1μs

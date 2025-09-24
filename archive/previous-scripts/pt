@@ -1,0 +1,380 @@
+#!/bin/bash
+
+# Parseltongue Workflow Orchestration Shell Script
+# 
+# Provides command-line interface for complete JTBD user workflows:
+# - onboard: Understand new codebase structure and entry points
+# - feature-start: Analyze impact and scope for feature development  
+# - debug: Trace callers and usage for debugging
+# - refactor-check: Assess risks and get safety checklist for refactoring
+
+set -e  # Exit on any error
+
+# Script configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PARSELTONGUE_BIN="$SCRIPT_DIR/target/release/parseltongue"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Help functions
+show_help() {
+    cat << EOF
+Parseltongue Workflow Orchestration Tool
+
+USAGE:
+    pt <SUBCOMMAND> [OPTIONS]
+
+SUBCOMMANDS:
+    onboard         Understand new codebase structure and entry points (15min)
+    feature-start   Analyze impact and scope for feature development (5min)  
+    debug           Trace callers and usage for debugging (2min)
+    refactor-check  Assess risks and get safety checklist (3min)
+
+OPTIONS:
+    -h, --help      Show this help message
+    -v, --version   Show version information
+
+EXAMPLES:
+    pt onboard ./my-project
+    pt feature-start UserService::create_user
+    pt debug problematic_function
+    pt refactor-check legacy_component
+
+For more information on a specific command, use:
+    pt <SUBCOMMAND> --help
+EOF
+}
+
+show_onboard_help() {
+    cat << EOF
+pt onboard - Understand new codebase structure and entry points
+
+USAGE:
+    pt onboard <DIRECTORY>
+
+ARGUMENTS:
+    <DIRECTORY>     Target directory to analyze (required)
+
+OPTIONS:
+    -h, --help      Show this help message
+    --format        Output format: human (default) or json
+    --cache         Use cached results if available
+    --no-cache      Force fresh analysis
+
+DESCRIPTION:
+    Provides comprehensive onboarding overview for new codebases including:
+    - Architecture patterns and key modules
+    - Entry points and their purposes  
+    - Important contexts for understanding
+    - Actionable next steps for developers
+
+    Performance target: Completes within 15 minutes for typical codebases.
+
+EXAMPLES:
+    pt onboard ./my-rust-project
+    pt onboard /path/to/codebase --format json
+EOF
+}
+
+show_feature_start_help() {
+    cat << EOF
+pt feature-start - Analyze impact and scope for feature development
+
+USAGE:
+    pt feature-start <ENTITY>
+
+ARGUMENTS:
+    <ENTITY>        Target entity name to modify (required)
+
+OPTIONS:
+    -h, --help      Show this help message
+    --format        Output format: human (default) or json
+    --scope         Scope analysis depth: shallow, medium (default), deep
+
+DESCRIPTION:
+    Provides comprehensive feature planning guidance including:
+    - Impact analysis on direct and indirect dependencies
+    - Risk assessment and complexity estimation
+    - Scope boundaries and file modification guidance
+    - Test recommendations and integration points
+
+    Performance target: Completes within 5 minutes.
+
+EXAMPLES:
+    pt feature-start UserService::authenticate
+    pt feature-start handle_request --scope deep
+EOF
+}
+
+show_debug_help() {
+    cat << EOF
+pt debug - Trace callers and usage for debugging
+
+USAGE:
+    pt debug <ENTITY>
+
+ARGUMENTS:
+    <ENTITY>        Target entity name to debug (required)
+
+OPTIONS:
+    -h, --help      Show this help message
+    --format        Output format: human (default) or json
+    --depth         Trace depth: 1-10 (default: 5)
+
+DESCRIPTION:
+    Provides comprehensive debugging information including:
+    - Caller traces with call context and frequency
+    - Usage sites and their contexts
+    - Minimal change scope recommendations
+    - Rollback strategies and side effect analysis
+
+    Performance target: Completes within 2 minutes.
+
+EXAMPLES:
+    pt debug problematic_function
+    pt debug DataProcessor::transform --depth 3
+EOF
+}
+
+show_refactor_check_help() {
+    cat << EOF
+pt refactor-check - Assess risks and get safety checklist
+
+USAGE:
+    pt refactor-check <ENTITY>
+
+ARGUMENTS:
+    <ENTITY>        Target entity name to refactor (required)
+
+OPTIONS:
+    -h, --help      Show this help message
+    --format        Output format: human (default) or json
+    --risk-level    Risk tolerance: low, medium (default), high
+
+DESCRIPTION:
+    Provides comprehensive refactoring safety guidance including:
+    - Risk assessment with specific risk factors
+    - Prioritized change checklist with mitigation strategies
+    - Reviewer guidance and approval criteria
+    - Testing recommendations and focus areas
+
+    Performance target: Completes within 3 minutes.
+
+EXAMPLES:
+    pt refactor-check LegacyService::process
+    pt refactor-check core_algorithm --risk-level low
+EOF
+}
+
+# Build parseltongue if needed
+ensure_parseltongue_built() {
+    if [[ ! -f "$PARSELTONGUE_BIN" ]]; then
+        log_info "Building parseltongue binary..."
+        cd "$SCRIPT_DIR"
+        cargo build --release
+        if [[ $? -ne 0 ]]; then
+            log_error "Failed to build parseltongue binary"
+            exit 1
+        fi
+        log_success "Parseltongue binary built successfully"
+    fi
+}
+
+# Workflow execution functions
+execute_onboard_workflow() {
+    local target_dir="$1"
+    local format="${2:-human}"
+    
+    log_info "Starting onboarding workflow for: $target_dir"
+    log_info "Performance target: <15 minutes"
+    
+    # TODO: Implement actual workflow orchestration in GREEN phase
+    # For now, this is a STUB that will be replaced
+    
+    log_warning "Onboarding workflow not yet implemented (RED phase)"
+    log_info "This will be implemented in GREEN phase with:"
+    log_info "  - Codebase structure analysis"
+    log_info "  - Entry point identification"
+    log_info "  - Key context extraction"
+    log_info "  - Actionable next steps"
+    
+    return 1
+}
+
+execute_feature_start_workflow() {
+    local entity_name="$1"
+    local format="${2:-human}"
+    local scope="${3:-medium}"
+    
+    log_info "Starting feature planning workflow for: $entity_name"
+    log_info "Performance target: <5 minutes"
+    
+    # TODO: Implement actual workflow orchestration in GREEN phase
+    log_warning "Feature planning workflow not yet implemented (RED phase)"
+    log_info "This will be implemented in GREEN phase with:"
+    log_info "  - Impact analysis (direct/indirect)"
+    log_info "  - Risk and complexity assessment"
+    log_info "  - Scope boundary guidance"
+    log_info "  - Test recommendations"
+    
+    return 1
+}
+
+execute_debug_workflow() {
+    local entity_name="$1"
+    local format="${2:-human}"
+    local depth="${3:-5}"
+    
+    log_info "Starting debug workflow for: $entity_name"
+    log_info "Performance target: <2 minutes"
+    
+    # TODO: Implement actual workflow orchestration in GREEN phase
+    log_warning "Debug workflow not yet implemented (RED phase)"
+    log_info "This will be implemented in GREEN phase with:"
+    log_info "  - Caller trace analysis"
+    log_info "  - Usage site identification"
+    log_info "  - Minimal change scope"
+    log_info "  - Rollback strategies"
+    
+    return 1
+}
+
+execute_refactor_check_workflow() {
+    local entity_name="$1"
+    local format="${2:-human}"
+    local risk_level="${3:-medium}"
+    
+    log_info "Starting refactor safety check for: $entity_name"
+    log_info "Performance target: <3 minutes"
+    
+    # TODO: Implement actual workflow orchestration in GREEN phase
+    log_warning "Refactor check workflow not yet implemented (RED phase)"
+    log_info "This will be implemented in GREEN phase with:"
+    log_info "  - Risk assessment and factors"
+    log_info "  - Prioritized change checklist"
+    log_info "  - Reviewer guidance"
+    log_info "  - Testing recommendations"
+    
+    return 1
+}
+
+# Main command processing
+main() {
+    if [[ $# -eq 0 ]]; then
+        show_help
+        exit 1
+    fi
+    
+    case "$1" in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -v|--version)
+            echo "pt (Parseltongue Workflow Orchestrator) 1.0.0"
+            exit 0
+            ;;
+        onboard)
+            shift
+            case "$1" in
+                -h|--help)
+                    show_onboard_help
+                    exit 0
+                    ;;
+                "")
+                    log_error "Missing required argument: <DIRECTORY>"
+                    echo "Use 'pt onboard --help' for more information."
+                    exit 1
+                    ;;
+                *)
+                    ensure_parseltongue_built
+                    execute_onboard_workflow "$@"
+                    ;;
+            esac
+            ;;
+        feature-start)
+            shift
+            case "$1" in
+                -h|--help)
+                    show_feature_start_help
+                    exit 0
+                    ;;
+                "")
+                    log_error "Missing required argument: <ENTITY>"
+                    echo "Use 'pt feature-start --help' for more information."
+                    exit 1
+                    ;;
+                *)
+                    ensure_parseltongue_built
+                    execute_feature_start_workflow "$@"
+                    ;;
+            esac
+            ;;
+        debug)
+            shift
+            case "$1" in
+                -h|--help)
+                    show_debug_help
+                    exit 0
+                    ;;
+                "")
+                    log_error "Missing required argument: <ENTITY>"
+                    echo "Use 'pt debug --help' for more information."
+                    exit 1
+                    ;;
+                *)
+                    ensure_parseltongue_built
+                    execute_debug_workflow "$@"
+                    ;;
+            esac
+            ;;
+        refactor-check)
+            shift
+            case "$1" in
+                -h|--help)
+                    show_refactor_check_help
+                    exit 0
+                    ;;
+                "")
+                    log_error "Missing required argument: <ENTITY>"
+                    echo "Use 'pt refactor-check --help' for more information."
+                    exit 1
+                    ;;
+                *)
+                    ensure_parseltongue_built
+                    execute_refactor_check_workflow "$@"
+                    ;;
+            esac
+            ;;
+        *)
+            log_error "Unknown subcommand: $1"
+            echo "Use 'pt --help' for available commands."
+            exit 1
+            ;;
+    esac
+}
+
+# Execute main function with all arguments
+main "$@"

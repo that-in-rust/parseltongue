@@ -1,0 +1,7 @@
+✓ Loaded snapshot: 2177 nodes, 3933 edges (2ms)
+Entity 'DiscoveryEngine' is defined at:
+  File: src//discovery/engine.rs
+  Line: 0
+  Editor link: src//discovery/engine.rs:0
+
+Lookup completed in 389.00μs

@@ -1,0 +1,22 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+{
+  "target": {
+    "hash": 11874413230934203590,
+    "kind": "Struct",
+    "name": "PushNotificationServiceImpl",
+    "signature": "struct PushNotificationServiceImpl",
+    "file_path": "src/services/push.rs",
+    "line": 0
+  },
+  "dependencies": [
+    {
+      "hash": 3827554623503744896,
+      "kind": "Trait",
+      "name": "PushNotificationService",
+      "signature": "trait PushNotificationService",
+      "file_path": "src/services/push.rs",
+      "line": 0
+    }
+  ],
+  "callers": []
+}

@@ -1,0 +1,10 @@
+✓ Loaded snapshot: 2177 nodes, 3933 edges (2ms)
+Entities in file 'src/main.rs': 4
+
+Function (4):
+  • main (line 0)
+  • helper (line 0)
+  • main (line 0)
+  • add_numbers (line 0)
+
+Discovery completed in 386.00μs

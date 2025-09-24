@@ -1,0 +1,219 @@
+✓ Loaded snapshot: 2177 nodes, 3272 edges (1ms)
+{
+  "command": "list-entities",
+  "count": 30,
+  "execution_time_ms": 0.744209,
+  "results": [
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "axum-macros/tests/debug_handler/pass/set_state.rs",
+      "line_number": 0,
+      "name": "A"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "./src/relationship_accuracy_tests.rs",
+      "line_number": 0,
+      "name": "AccuracyMetrics"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "./src/accuracy_validation_report.rs",
+      "line_number": 0,
+      "name": "AccuracyReport"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "axum/src/extension.rs",
+      "line_number": 0,
+      "name": "AddExtension"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "src/handlers/post_handlers.rs",
+      "line_number": 0,
+      "name": "AddTagRequest"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "./tests/workspace_minimal_test.rs",
+      "line_number": 0,
+      "name": "AnalysisSession"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "./src/discovery/workspace_manager.rs",
+      "line_number": 0,
+      "name": "AnalysisSession"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "examples/customize-extractor-error/src/derive_from_request.rs",
+      "line_number": 0,
+      "name": "ApiError"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "src/handlers/mod.rs",
+      "line_number": 0,
+      "name": "ApiResponse"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "src/lib.rs",
+      "line_number": 0,
+      "name": "AppConfig"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "examples/oauth/src/main.rs",
+      "line_number": 0,
+      "name": "AppError"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "examples/error-handling/src/main.rs",
+      "line_number": 0,
+      "name": "AppJson"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "axum-extra/src/extract/cookie/mod.rs",
+      "line_number": 0,
+      "name": "AppState"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "examples/templates-minijinja/src/main.rs",
+      "line_number": 0,
+      "name": "AppState"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "examples/dependency-injection/src/main.rs",
+      "line_number": 0,
+      "name": "AppStateDyn"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "examples/dependency-injection/src/main.rs",
+      "line_number": 0,
+      "name": "AppStateGeneric"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "axum-core/src/response/append_headers.rs",
+      "line_number": 0,
+      "name": "AppendHeaders"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "axum-extra/src/json_lines.rs",
+      "line_number": 0,
+      "name": "AsExtractor"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "axum-extra/src/json_lines.rs",
+      "line_number": 0,
+      "name": "AsResponse"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "axum-extra/src/response/attachment.rs",
+      "line_number": 0,
+      "name": "Attachment"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "axum-macros/src/typed_path.rs",
+      "line_number": 0,
+      "name": "Attrs"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "examples/jwt/src/main.rs",
+      "line_number": 0,
+      "name": "AuthBody"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "examples/jwt/src/main.rs",
+      "line_number": 0,
+      "name": "AuthPayload"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "examples/oauth/src/main.rs",
+      "line_number": 0,
+      "name": "AuthRedirect"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "examples/oauth/src/main.rs",
+      "line_number": 0,
+      "name": "AuthRequest"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "axum-extra/src/extract/json_deserializer.rs",
+      "line_number": 0,
+      "name": "Bar"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "./src/discovery/blast_radius_analyzer.rs",
+      "line_number": 0,
+      "name": "BlastRadiusAnalysis"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "./src/discovery/blast_radius_analyzer.rs",
+      "line_number": 0,
+      "name": "BlastRadiusAnalyzer"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "axum-core/src/body.rs",
+      "line_number": 0,
+      "name": "Body"
+    },
+    {
+      "column": null,
+      "entity_type": "Struct",
+      "file_path": "axum-core/src/body.rs",
+      "line_number": 0,
+      "name": "BodyDataStream"
+    }
+  ],
+  "timestamp": "2025-09-24T19:10:17.631508+00:00"
+}

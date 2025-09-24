@@ -1,0 +1,22 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+{
+  "target": {
+    "hash": 1796932410525280380,
+    "kind": "Struct",
+    "name": "SearchService",
+    "signature": "struct SearchService",
+    "file_path": "src/services/search.rs",
+    "line": 0
+  },
+  "dependencies": [
+    {
+      "hash": 6478324478522054211,
+      "kind": "Trait",
+      "name": "SearchServiceTrait",
+      "signature": "trait SearchServiceTrait",
+      "file_path": "src/services/search.rs",
+      "line": 0
+    }
+  ],
+  "callers": []
+}

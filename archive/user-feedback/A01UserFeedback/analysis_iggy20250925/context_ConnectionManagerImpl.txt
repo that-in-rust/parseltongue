@@ -1,0 +1,11 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+Entity: ConnectionManagerImpl (Struct)
+Signature: struct ConnectionManagerImpl
+File: src/services/connection.rs:0
+
+Dependencies (1):
+  - ConnectionManager (src/services/connection.rs): trait ConnectionManager
+
+Callers (0):
+
+Context generated in 0μs

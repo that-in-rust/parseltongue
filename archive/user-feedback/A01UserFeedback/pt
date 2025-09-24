@@ -1,0 +1,290 @@
+#!/usr/bin/env bash
+# Parseltongue toolkit entrypoint for this repo
+# Usage: scripts/pt <subcommand> [args]
+# Subcommands:
+#   ingest [--force] [--extra "EntityA,EntityB,..."]  Build dump, ingest, generate viz/contexts under ./parseltongue_workspace/
+#   latest                                              Print latest analysis directory path
+#   open [--open]                                       Print path to latest architecture.html (or open via xdg-open)
+#   overview                                            Print quick pointers (routes file, handlers, services)
+#   query uses <Entity>                                 Show usage sites
+#   query calls <Function>                              Show callers
+#   query grep <regex>                                  Grep entity graph names (from latest)
+#   context <Entity> [--json] [--out]                   Generate human (and optional JSON) context for Entity
+#   impact [--entities "A,B"] [--functions "f,g"]      Print uses/calls counts and simple risk flags
+#   routes [--format table|plain]                       Extract route inventory from src/main.rs (best-effort)
+#
+# All outputs are scoped to ./parseltongue_workspace. Existing analysis outside this folder is preserved.
+
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WS="$REPO_ROOT/parseltongue_workspace"
+PT_BIN=""
+mkdir -p "$WS" "$WS/dumps"
+
+detect_pt() {
+  if [[ -x "$WS/parseltongue" ]]; then
+    PT_BIN="$WS/parseltongue"
+  elif [[ -x "$REPO_ROOT/parseltongue" ]]; then
+    PT_BIN="$REPO_ROOT/parseltongue"
+  else
+    echo "error: parseltongue binary not found. Expected at $WS/parseltongue or $REPO_ROOT/parseltongue" >&2
+    exit 1
+  fi
+}
+
+ts() { date +%Y%m%d%H%M%S; }
+
+ensure_latest_link() {
+  local newdir="$1"
+  ln -sfn "$(basename "$newdir")" "$WS/latest"
+}
+
+sub_ingest() {
+  detect_pt
+  local force="no"
+  local extra_entities=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --force) force="yes"; shift;;
+      --extra) extra_entities="${2:-}"; shift 2;;
+      *) echo "unknown arg: $1" >&2; exit 2;;
+    esac
+  done
+
+  local TS="$(ts)"
+  local DUMP="$WS/dumps/campfire_${TS}.dump"
+  local OUTDIR="$WS/analysis_${TS}"
+  mkdir -p "$OUTDIR"
+
+  # Build FILE:-header dump (src + tests if present)
+  {
+    shopt -s nullglob
+    for f in $(find "$REPO_ROOT/src" -type f -name '*.rs' | sort); do
+      local_rel="${f#$REPO_ROOT/}"
+      echo "FILE: $local_rel"
+      cat "$f"
+      echo
+    done
+    if [[ -d "$REPO_ROOT/tests" ]]; then
+      for f in $(find "$REPO_ROOT/tests" -type f -name '*.rs' | sort); do
+        local_rel="${f#$REPO_ROOT/}"
+        echo "FILE: $local_rel"
+        cat "$f"
+        echo
+      done
+    fi
+  } > "$DUMP"
+
+  # Ingest
+  (cd "$REPO_ROOT" && "$PT_BIN" ingest "$DUMP")
+
+  # Graph + viz
+  (cd "$REPO_ROOT" && "$PT_BIN" debug --graph > "$OUTDIR/all_entities.txt" || true)
+  (cd "$REPO_ROOT" && "$PT_BIN" visualize --output "$OUTDIR/architecture.html" || true)
+
+  # Core contexts (plus any extras)
+  local core=(AppState AuthService RoomService MessageService SearchService PushNotificationServiceImpl BotServiceImpl ConnectionManagerImpl)
+  IFS=',' read -r -a extras <<< "$extra_entities" || true
+  local targets=("${core[@]}")
+  for e in "${extras[@]}"; do
+    e_trim="$(echo "$e" | sed 's/^ *//;s/ *$//')"
+    [[ -n "$e_trim" ]] && targets+=("$e_trim")
+  done
+
+  for t in "${targets[@]}"; do
+    (cd "$REPO_ROOT" && "$PT_BIN" generate-context "$t" --format human > "$OUTDIR/context_${t}.txt" 2>/dev/null) || true
+    (cd "$REPO_ROOT" && "$PT_BIN" generate-context "$t" --format json > "$OUTDIR/context_${t}.json" 2>/dev/null) || true
+  done
+
+  ensure_latest_link "$OUTDIR"
+  echo "TS=$TS"
+  echo "Dump: $DUMP"
+  echo "Outputs in: $OUTDIR"
+  echo "Viz: $OUTDIR/architecture.html"
+}
+
+latest_dir() {
+  if [[ -L "$WS/latest" ]]; then
+    echo "$WS/$(readlink "$WS/latest")"
+  else
+    # Fallback: pick most recent analysis_*
+    local cand
+    cand="$(ls -1dt "$WS"/analysis_* 2>/dev/null | head -n1 || true)"
+    if [[ -n "${cand:-}" ]]; then
+      echo "$cand"
+    else
+      echo ""
+    fi
+  fi
+}
+
+sub_latest() {
+  local d; d="$(latest_dir)"
+  if [[ -z "$d" ]]; then
+    echo "No analysis found in $WS" >&2
+    exit 1
+  fi
+  echo "$d"
+}
+
+sub_open() {
+  local d; d="$(latest_dir)"
+  if [[ -z "$d" ]]; then
+    echo "No analysis found in $WS" >&2
+    exit 1
+  fi
+  local html="$d/architecture.html"
+  if [[ ! -f "$html" ]]; then
+    echo "Visualization not found: $html" >&2
+    exit 2
+  fi
+  if [[ "${1:-}" == "--open" ]]; then
+    if command -v xdg-open >/dev/null 2>&1; then
+      xdg-open "$html" >/dev/null 2>&1 || true
+    fi
+  fi
+  echo "$html"
+}
+
+sub_overview() {
+  cat <<EOF
+Repo overview:
+- Routes: src/main.rs
+- Handlers: src/handlers/*.rs
+- Services: src/services/*.rs
+- Middleware: src/middleware/*.rs
+- Visualization (latest): $(latest_dir)/architecture.html
+- Entities list (latest): $(latest_dir)/all_entities.txt
+Workspace: $WS
+EOF
+}
+
+sub_query() {
+  detect_pt
+  local mode="${1:-}"; shift || true
+  case "$mode" in
+    uses)
+      local target="${1:-}"; [[ -z "$target" ]] && { echo "usage: query uses <Entity>" >&2; exit 2; }
+      (cd "$REPO_ROOT" && "$PT_BIN" query uses "$target") || true
+      ;;
+    calls)
+      local fn="${1:-}"; [[ -z "$fn" ]] && { echo "usage: query calls <Function>" >&2; exit 2; }
+      (cd "$REPO_ROOT" && "$PT_BIN" query calls "$fn") || true
+      ;;
+    grep)
+      local regex="${1:-}"; [[ -z "$regex" ]] && { echo "usage: query grep <regex>" >&2; exit 2; }
+      local d; d="$(latest_dir)"; [[ -z "$d" ]] && { echo "No analysis found" >&2; exit 1; }
+      rg -n "$regex" "$d/all_entities.txt" || grep -nE "$regex" "$d/all_entities.txt" || true
+      ;;
+    *)
+      echo "usage: query {uses|calls|grep} ..." >&2; exit 2;;
+  esac
+}
+
+sub_context() {
+  detect_pt
+  local ent="${1:-}"; shift || true
+  [[ -z "$ent" ]] && { echo "usage: context <Entity> [--json] [--out]" >&2; exit 2; }
+  local as_json="no"; local write_out="no"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --json) as_json="yes"; shift;;
+      --out) write_out="yes"; shift;;
+      *) echo "unknown arg: $1" >&2; exit 2;;
+    esac
+  done
+  local d; d="$(latest_dir)"
+  if [[ "$as_json" == "yes" ]]; then
+    if [[ "$write_out" == "yes" ]]; then
+      (cd "$REPO_ROOT" && "$PT_BIN" generate-context "$ent" --format json > "$d/context_${ent}.json") || true
+      echo "$d/context_${ent}.json"
+    else
+      (cd "$REPO_ROOT" && "$PT_BIN" generate-context "$ent" --format json) || true
+    fi
+  else
+    if [[ "$write_out" == "yes" ]]; then
+      (cd "$REPO_ROOT" && "$PT_BIN" generate-context "$ent" --format human > "$d/context_${ent}.txt") || true
+      echo "$d/context_${ent}.txt"
+    else
+      (cd "$REPO_ROOT" && "$PT_BIN" generate-context "$ent" --format human) || true
+    fi
+  fi
+}
+
+sub_impact() {
+  detect_pt
+  local entities="AppState,AuthService,RoomService,MessageService,SearchService,PushNotificationServiceImpl,BotServiceImpl,ConnectionManagerImpl"
+  local functions="create_message_with_deduplication,authenticate,validate_session,create_room,add_member,get_room_messages,search_messages"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --entities) entities="${2:-}"; shift 2;;
+      --functions) functions="${2:-}"; shift 2;;
+      *) echo "unknown arg: $1" >&2; exit 2;;
+    esac
+  done
+  IFS=',' read -r -a ents <<< "$entities"
+  IFS=',' read -r -a funs <<< "$functions"
+  printf "%-34s %-10s %-10s\n" "SYMBOL" "USES" "CALLERS"
+  for s in "${ents[@]}"; do
+    s="$(echo "$s" | sed 's/^ *//;s/ *$//')"
+    [[ -z "$s" ]] && continue
+    local u; u=$((cd "$REPO_ROOT" && "$PT_BIN" query uses "$s" | wc -l) 2>/dev/null || echo 0)
+    printf "%-34s %-10s %-10s\n" "$s" "$u" "-"
+  done
+  for f in "${funs[@]}"; do
+    f="$(echo "$f" | sed 's/^ *//;s/ *$//')"
+    [[ -z "$f" ]] && continue
+    local c; c=$((cd "$REPO_ROOT" && "$PT_BIN" query calls "$f" | wc -l) 2>/dev/null || echo 0)
+    printf "%-34s %-10s %-10s\n" "$f" "-" "$c"
+  done
+}
+
+sub_routes() {
+  local format="plain"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --format) format="${2:-plain}"; shift 2;;
+      *) echo "unknown arg: $1" >&2; exit 2;;
+    esac
+  done
+  local main="$REPO_ROOT/src/main.rs"
+  [[ -f "$main" ]] || { echo "not found: $main" >&2; exit 1; }
+  # Extract lines with .route(...) and identify method (get|post|delete|put)
+  awk -v fmt="$format" '
+    /[.]route\(/ {
+      rec=$0
+      path=""; method=""; handler=""
+      if (match(rec, /[.]route\(\s*"([^"]+)"/, m)) { path=m[1] }
+      if (match(rec, /(get|post|delete|put)\s*\(/, m2)) { method=toupper(m2[1]) }
+      if (match(rec, /(get|post|delete|put)\s*\(\s*([^)]+)\)/, h)) { handler=h[2] }
+      gsub(/axum::routing::/, "", handler)
+      if (path != "" && method != "") {
+        if (fmt=="table") {
+          printf("| %-6s | %-40s | %s |\n", method, path, handler)
+        } else {
+          printf("%-6s %s -> %s\n", method, path, handler)
+        }
+      }
+    }
+  ' "$main"
+}
+
+usage() {
+  sed -n '1,60p' "$0" | sed -n '1,60p'
+  exit 1
+}
+
+cmd="${1:-}"; shift || true
+case "$cmd" in
+  ingest) sub_ingest "$@";;
+  latest) sub_latest "$@";;
+  open) sub_open "$@";;
+  overview) sub_overview "$@";;
+  query) sub_query "$@";;
+  context) sub_context "$@";;
+  impact) sub_impact "$@";;
+  routes) sub_routes "$@";;
+  ""|help|-h|--help) usage;;
+  *) echo "unknown subcommand: $cmd" >&2; usage;;
+esac

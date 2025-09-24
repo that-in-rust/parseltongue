@@ -1,0 +1,11 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+Entity: BotServiceImpl (Struct)
+Signature: struct BotServiceImpl
+File: src/services/bot.rs:0
+
+Dependencies (1):
+  - BotService (src/services/bot.rs): trait BotService
+
+Callers (1):
+  - create_test_bot_service (tests/bot_service_test.rs): fn create_test_bot_service
+Context generated in 1μs

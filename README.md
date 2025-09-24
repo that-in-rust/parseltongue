@@ -1,7 +1,26 @@
-# Parseltongue v2 🐍 
+# Parseltongue v0.1.0 🐍 
 ## *Discovery-First Architectural Intelligence for Rust*
 
-**Transform entity discovery from 5+ minutes to 30 seconds.** The breakthrough that makes Rust codebase analysis accessible to every developer.
+**Transform entity discovery from 5+ minutes to 30 seconds.** A lightweight, distribution-ready tool that makes Rust codebase analysis accessible to every developer.
+
+## 🚀 **Quick Start**
+
+### **Ready-to-Use Distribution**
+```bash
+# Use the pre-built binary (no installation required)
+./distribution/binaries/parseltongue --version
+./distribution/binaries/parseltongue onboard .
+```
+
+### **For Kiro Steering Integration**
+See `distribution/steering-integration/` for templates and examples.
+
+### **Repository Structure**
+- `distribution/` - Ready-to-use binaries and integration guides
+- `src/` - Core Rust source code  
+- `tests/` - Comprehensive test suite
+- `docs/` - Architecture and implementation documentation
+- `archive/` - Development history and artifacts
 
 ---
 

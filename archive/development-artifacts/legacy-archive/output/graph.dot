@@ -1,0 +1,11 @@
+digraph ISG {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  "Display" [label="Display\n(Trait)" fillcolor=lightyellow style=filled];
+  "User" [label="User\n(Struct)" fillcolor=lightgreen style=filled];
+  "create_user" [label="create_user\n(Function)" fillcolor=lightblue style=filled];
+  "main" [label="main\n(Function)" fillcolor=lightblue style=filled];
+
+  "User" -> "Display" [label="Implements" style=dashed];
+}

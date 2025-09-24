@@ -1,0 +1,200 @@
+FILE: ./test_workspace_standalone.rs
+// Standalone test for workspace manager functionality
+// Run with: rustc --edition 2021 test_workspace_standalone.rs && ./test_workspace_standalone
+
+use std::path::PathBuf;
+use std::collections::HashMap;
+
+// Mock implementations for testing
+#[derive(Debug, Clone)]
+pub struct AnalysisSession {
+    pub timestamp: String,
+    pub session_id: String,
+    pub analysis_path: PathBuf,
+    pub entities_discovered: usize,
+    pub last_updated: String,
+}
+
+#[derive(Debug)]
+pub struct WorkspaceManager {
+    workspace_root: PathBuf,
+    current_analysis: Option<AnalysisSession>,
+
+FILE: ./tests/workspace_manager_tests.rs
+use std::path::PathBuf;
+use chrono::{DateTime, Utc};
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use thiserror::Error;
+use tokio::fs;
+use std::collections::HashMap;
+use tempfile::TempDir;
+
+/// Persistent analysis workspace for iterative discovery
+#[derive(Debug)]
+pub struct WorkspaceManager {
+    workspace_root: PathBuf,
+    current_analysis: Option<AnalysisSession>,
+}
+
+/// Analysis session tracking with timestamps and metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnalysisSession {
+    pub timestamp: DateTime<Utc>,
+    pub session_id: String,
+
+FILE: ./tests/end_to_end_workflow_validation.rs
+//! End-to-End Workflow Validation Tests
+//! 
+//! Tests the complete ingest → query → visualize → context workflow
+//! Validates Sarah's core workflow with realistic Rust codebase scenarios
+//! 
+//! Requirements: Complete end-to-end workflow validation task
+
+use parseltongue::{ParseltongueAIM, OptimizedISG, SigHash, NodeData, NodeKind, EdgeKind, ISGError};
+use std::fs;
+use std::path::Path;
+use std::time::Instant;
+use tempfile::TempDir;
+
+/// Comprehensive end-to-end workflow test suite
+struct EndToEndWorkflowSuite {
+    temp_dir: TempDir,
+    daemon: ParseltongueAIM,
+}
+
+impl EndToEndWorkflowSuite {
+
+FILE: ./tests/integration_workspace_manager.rs
+
+FILE: ./tests/output_formatter_tdd_tests.rs
+//! TDD Tests for Output Formatting System
+//! 
+//! Following STUB → RED → GREEN → REFACTOR cycle for output integration
+//! and formatting system with human, JSON, PR summary, and CI output formats.
+
+use std::time::Duration;
+use chrono::Utc;
+
+// Import the types we'll need (these will fail until we implement them)
+// This is the RED phase - tests should fail initially
+use parseltongue::discovery::{
+    OnboardingResult, FeaturePlanResult, DebugResult, RefactorResult,
+    CodebaseOverview, EntryPoint, KeyContext, ImpactAnalysis, ScopeGuidance,
+    TestRecommendation, CallerTrace, UsageSite, ChangeScope, RiskAssessment,
+    ChecklistItem, ReviewerGuidance, ModuleInfo, WorkflowRiskLevel as RiskLevel, 
+    ComplexityLevel, ConfidenceLevel, Priority, FileLocation
+};
+
+// The OutputFormatter trait we need to implement
+// This will fail in RED phase until we create it
+
+FILE: ./tests/workspace_minimal_test.rs
+//! Minimal test for workspace manager functionality
+//! Tests only the core workspace management without dependencies on other modules
+
+use std::path::PathBuf;
+use tempfile::TempDir;
+use tokio::fs;
+use chrono::Utc;
+use serde_json;
+use std::collections::HashMap;
+
+// Directly include the workspace manager code for testing
+mod workspace_manager {
+    use std::path::PathBuf;
+    use chrono::{DateTime, Utc};
+    use serde::{Serialize, Deserialize, de::DeserializeOwned};
+    use thiserror::Error;
+    use tokio::fs;
+
+    /// Persistent analysis workspace for iterative discovery
+    #[derive(Debug)]
+
+FILE: ./tests/cli_end_to_end_integration.rs
+//! CLI End-to-End Integration Tests
+//! 
+//! Tests the complete workflow through the CLI interface
+//! Validates the full ingest → query → visualize → context pipeline
+
+use std::fs;
+use std::path::Path;
+use std::process::Command;
+use tempfile::TempDir;
+
+/// Test complete CLI workflow integration
+#[test]
+fn test_cli_complete_workflow_integration() {
+    println!("🚀 Testing complete CLI workflow integration");
+    
+    let temp_dir = TempDir::new().expect("Failed to create temp directory");
+    let dump_path = temp_dir.path().join("test_codebase.dump");
+    
+    // Create realistic test codebase
+    let test_code = r#"
+
+FILE: ./tests/cross_platform_integration.rs
+//! Cross-platform integration tests for Parseltongue Architect v2.0
+//! 
+//! Validates identical results on different platforms (Linux, macOS, Windows)
+//! Tests SigHash consistency and graph structure determinism
+//! 
+//! Requirements: REQ-V2-003.0 (Deterministic Identification System)
+
+use parseltongue::{OptimizedISG, SigHash, NodeData, NodeKind, EdgeKind};
+use std::sync::Arc;
+use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
+
+/// Cross-platform test data structure for serialization
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+struct CrossPlatformTestData {
+    platform: String,
+    rust_version: String,
+    test_signatures: Vec<String>,
+    expected_hashes: Vec<u64>,
+    graph_structure: GraphStructure,
+
+FILE: ./tests/standalone_workspace_test.rs
+// Standalone workspace manager test - no dependencies on main lib
+use std::path::PathBuf;
+use chrono::{DateTime, Utc};
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use thiserror::Error;
+use tokio::fs;
+use std::collections::HashMap;
+use tempfile::TempDir;
+
+/// Persistent analysis workspace for iterative discovery
+#[derive(Debug)]
+pub struct WorkspaceManager {
+    workspace_root: PathBuf,
+    current_analysis: Option<AnalysisSession>,
+}
+
+/// Analysis session tracking with timestamps and metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnalysisSession {
+    pub timestamp: DateTime<Utc>,
+
+FILE: ./tests/platform_reference_data.rs
+//! Platform reference data generation and validation
+//! 
+//! Generates and validates reference data for cross-platform consistency testing
+//! This module creates "golden" reference data that should be identical across platforms
+
+use parseltongue::{OptimizedISG, SigHash, NodeData, NodeKind, EdgeKind};
+use std::sync::Arc;
+use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
+
+/// Reference data for cross-platform validation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlatformReferenceData {
+    pub version: String,
+    pub generated_on: String,
+    pub reference_hashes: HashMap<String, u64>,
+    pub reference_graph: ReferenceGraph,
+    pub test_cases: Vec<TestCase>,
+}
+
+

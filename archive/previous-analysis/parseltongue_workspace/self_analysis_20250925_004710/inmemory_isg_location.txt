@@ -1,0 +1,5 @@
+✓ Loaded snapshot: 2177 nodes, 3933 edges (2ms)
+Entity 'InMemoryIsg' not found.
+💡 Try 'parseltongue list-entities' to see available entities
+
+Lookup completed in 377.00μs

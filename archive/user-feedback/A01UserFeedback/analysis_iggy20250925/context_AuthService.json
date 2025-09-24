@@ -1,0 +1,31 @@
+✓ Loaded snapshot: 541 nodes, 894 edges (0ms)
+{
+  "target": {
+    "hash": 18096849745645309336,
+    "kind": "Struct",
+    "name": "AuthService",
+    "signature": "struct AuthService",
+    "file_path": "src/services/auth.rs",
+    "line": 0
+  },
+  "dependencies": [
+    {
+      "hash": 5495452798197743398,
+      "kind": "Trait",
+      "name": "AuthServiceTrait",
+      "signature": "trait AuthServiceTrait",
+      "file_path": "src/services/auth.rs",
+      "line": 0
+    }
+  ],
+  "callers": [
+    {
+      "hash": 1129886021128580514,
+      "kind": "Function",
+      "name": "create_test_user_with_session",
+      "signature": "fn create_test_user_with_session",
+      "file_path": "tests/user_journey_tests.rs",
+      "line": 0
+    }
+  ]
+}

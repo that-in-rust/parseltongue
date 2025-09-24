@@ -1,0 +1,149 @@
+✓ Loaded snapshot: 2177 nodes, 3272 edges (1ms)
+{
+  "command": "list-entities",
+  "count": 20,
+  "execution_time_ms": 0.9953329999999999,
+  "results": [
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "axum-macros/src/lib.rs",
+      "line_number": 0,
+      "name": "__private_axum_test"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "axum-extra/src/routing/mod.rs",
+      "line_number": 0,
+      "name": "__private_validate_static_path"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "axum-extra/src/extract/cached.rs",
+      "line_number": 0,
+      "name": "_last_handler_argument"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "axum-extra/src/extract/multipart.rs",
+      "line_number": 0,
+      "name": "_multipart_from_request_limited"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "axum/src/serve/listener.rs",
+      "line_number": 0,
+      "name": "accept"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "axum/src/serve/mod.rs",
+      "line_number": 0,
+      "name": "accept"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "examples/stream-to-file/src/main.rs",
+      "line_number": 0,
+      "name": "accept_form"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "axum/src/extract/ws.rs",
+      "line_number": 0,
+      "name": "accept_unmasked_frames"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "axum/src/routing/method_routing.rs",
+      "line_number": 0,
+      "name": "accessing_state"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "axum-extra/src/extract/cookie/signed.rs",
+      "line_number": 0,
+      "name": "add"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "./src/discovery/error.rs",
+      "line_number": 0,
+      "name": "add_discovery_context"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "./src/discovery/performance_regression_tests.rs",
+      "line_number": 0,
+      "name": "add_failure"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "src/main.rs",
+      "line_number": 0,
+      "name": "add_numbers"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "./src/discovery/performance_regression_tests.rs",
+      "line_number": 0,
+      "name": "add_success"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "src/models/post.rs",
+      "line_number": 0,
+      "name": "add_tag"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "src/handlers/post_handlers.rs",
+      "line_number": 0,
+      "name": "add_tag_to_post"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "./src/accuracy_validation_report.rs",
+      "line_number": 0,
+      "name": "add_test_result"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "axum-extra/src/routing/mod.rs",
+      "line_number": 0,
+      "name": "add_tsr_redirect_route"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "examples/key-value-store/src/main.rs",
+      "line_number": 0,
+      "name": "admin_routes"
+    },
+    {
+      "column": null,
+      "entity_type": "Function",
+      "file_path": "./src/discovery/concurrent_discovery_engine.rs",
+      "line_number": 0,
+      "name": "all_file_paths"
+    }
+  ],
+  "timestamp": "2025-09-24T19:10:02.870250+00:00"
+}

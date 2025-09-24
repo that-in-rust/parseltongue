@@ -1,0 +1,18 @@
+FILE: test.rs
+pub fn hello() -> String {
+    "Hello".to_string()
+}
+
+pub struct User {
+    name: String,
+}
+
+pub trait Display {
+    fn show(&self) -> String;
+}
+
+impl Display for User {
+    fn show(&self) -> String {
+        self.name.clone()
+    }
+}
