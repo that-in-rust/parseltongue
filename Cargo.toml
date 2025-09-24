@@ -2,6 +2,11 @@
 name = "parseltongue"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "A discovery-first architectural intelligence tool for Rust codebases"
+repository = "https://github.com/your-org/parseltongue"
+keywords = ["rust", "analysis", "discovery", "architecture", "codebase"]
+categories = ["development-tools", "command-line-utilities"]
 
 [[bin]]
 name = "parseltongue_20250924231324"
