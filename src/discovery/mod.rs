@@ -21,6 +21,7 @@ mod integration_test;
 
 pub mod file_navigation_tests;
 pub mod blast_radius_analyzer;
+pub mod indexes;
 
 // Re-export core types for convenience
 pub use string_interning::{FileId, FileInterner};
@@ -32,3 +33,4 @@ pub use simple_discovery_engine::SimpleDiscoveryEngine;
 pub use file_navigation_provider::ISGFileNavigationProvider;
 pub use file_navigation_tests::{FileNavigationProvider, FileStats, MockFileNavigationProvider};
 pub use blast_radius_analyzer::{BlastRadiusAnalyzer, BlastRadiusAnalysis, ImpactGroup, ImpactedEntity, RiskLevel};
+pub use indexes::{DiscoveryIndexes, CompactEntityInfo, MemoryStats, IndexError};
