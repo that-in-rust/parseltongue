@@ -127,78 +127,105 @@ impl OutputFormatter for HumanFormatter {
     fn format_onboarding(&self, result: &OnboardingResult) -> Result<String, FormattingError> {
         let start = std::time::Instant::now();
         
-        let emoji_prefix = if self.use_emojis { "🚀 " } else { "" };
+        // Avengers-themed emojis for onboarding (Captain America - leadership & guidance)
+        let emoji_prefix = if self.use_emojis { "🛡️  " } else { "" };
         let mut output = String::new();
         
-        // Header
-        output.push_str(&format!("{}Codebase Onboarding Complete\n", emoji_prefix));
-        output.push_str("================================\n\n");
+        // Header with Avengers theme
+        output.push_str(&format!("{}PARSELTONGUE ONBOARDING PROTOCOL ACTIVATED\n", emoji_prefix));
+        output.push_str("═══════════════════════════════════════════════\n\n");
+        output.push_str("🎯 Mission: Codebase Intelligence Gathering Complete\n\n");
         
-        // Overview section
-        let overview_emoji = if self.use_emojis { "📊 " } else { "" };
-        output.push_str(&format!("{}Codebase Overview:\n", overview_emoji));
-        output.push_str(&format!("  • Total files: {}\n", result.overview.total_files));
-        output.push_str(&format!("  • Total entities: {}\n", result.overview.total_entities));
+        // Overview section (Iron Man - tech analysis)
+        let overview_emoji = if self.use_emojis { "🤖 " } else { "" };
+        output.push_str(&format!("{}JARVIS Analysis Report:\n", overview_emoji));
+        output.push_str(&format!("  ⚡ Total files scanned: {}\n", result.overview.total_files));
+        output.push_str(&format!("  ⚡ Total entities discovered: {}\n", result.overview.total_entities));
         output.push('\n');
         
-        // Entities by type
+        // Entities by type (Thor - power classification)
         if !result.overview.entities_by_type.is_empty() {
-            let entities_emoji = if self.use_emojis { "📈 " } else { "" };
-            output.push_str(&format!("{}Entities by Type:\n", entities_emoji));
+            let entities_emoji = if self.use_emojis { "⚡ " } else { "" };
+            output.push_str(&format!("{}Power Classification by Type:\n", entities_emoji));
             for (entity_type, count) in &result.overview.entities_by_type {
-                output.push_str(&format!("  • {}: {}\n", entity_type, count));
+                let type_emoji = match entity_type.as_str() {
+                    "Function" => "🔨", // Thor's hammer for functions
+                    "Struct" => "🛡️", // Captain America's shield for structs
+                    "Trait" => "💎", // Infinity stones for traits
+                    "Impl" => "🔧", // Iron Man's tech for implementations
+                    _ => "⚡"
+                };
+                output.push_str(&format!("  {} {}: {}\n", type_emoji, entity_type, count));
             }
             output.push('\n');
         }
         
-        // Key modules
+        // Key modules (Nick Fury - strategic overview)
         if !result.overview.key_modules.is_empty() {
-            let modules_emoji = if self.use_emojis { "🏗️  " } else { "" };
-            output.push_str(&format!("{}Key Modules:\n", modules_emoji));
+            let modules_emoji = if self.use_emojis { "👁️  " } else { "" };
+            output.push_str(&format!("{}S.H.I.E.L.D. Strategic Modules:\n", modules_emoji));
             for module in &result.overview.key_modules {
-                output.push_str(&format!("  • {}: {}\n", module.name, module.purpose));
+                output.push_str(&format!("  🎯 {}: {}\n", module.name, module.purpose));
             }
             output.push('\n');
         }
         
-        // Entry points
+        // Entry points (Captain America - entry strategy)
         if !result.entry_points.is_empty() {
             let entry_emoji = if self.use_emojis { "🚪 " } else { "" };
-            output.push_str(&format!("{}Entry Points:\n", entry_emoji));
+            output.push_str(&format!("{}Mission Entry Points:\n", entry_emoji));
             for entry in &result.entry_points {
-                output.push_str(&format!("  • {} ({}): {}\n", entry.name, entry.entry_type, entry.description));
-                output.push_str(&format!("    Location: {}\n", entry.location.format_for_editor()));
+                let entry_type_emoji = match entry.entry_type.as_str() {
+                    "main" => "🚀", // Launch point
+                    "library" => "📚", // Knowledge base
+                    _ => "🎯"
+                };
+                output.push_str(&format!("  {} {} ({}): {}\n", entry_type_emoji, entry.name, entry.entry_type, entry.description));
+                output.push_str(&format!("    📍 Location: {}\n", entry.location.format_for_editor()));
             }
             output.push('\n');
         }
         
-        // Key contexts
+        // Key contexts (Doctor Strange - mystical knowledge)
         if !result.key_contexts.is_empty() {
-            let context_emoji = if self.use_emojis { "🔑 " } else { "" };
-            output.push_str(&format!("{}Key Contexts to Understand:\n", context_emoji));
+            let context_emoji = if self.use_emojis { "🔮 " } else { "" };
+            output.push_str(&format!("{}Sanctum Sanctorum - Key Knowledge:\n", context_emoji));
             for context in &result.key_contexts {
-                output.push_str(&format!("  • {} ({}): {}\n", context.name, context.context_type, context.importance));
-                output.push_str(&format!("    Location: {}\n", context.location.format_for_editor()));
+                let context_type_emoji = match context.context_type.as_str() {
+                    "trait" => "💎", // Infinity stone
+                    "service" => "⚙️", // Machinery
+                    "controller" => "🎮", // Control
+                    _ => "🔮"
+                };
+                output.push_str(&format!("  {} {} ({}): {}\n", context_type_emoji, context.name, context.context_type, context.importance));
+                output.push_str(&format!("    📍 Location: {}\n", context.location.format_for_editor()));
             }
             output.push('\n');
         }
         
-        // Next steps
+        // Next steps (Captain America - mission briefing)
         if !result.next_steps.is_empty() {
             let steps_emoji = if self.use_emojis { "📋 " } else { "" };
-            output.push_str(&format!("{}Recommended Next Steps:\n", steps_emoji));
+            output.push_str(&format!("{}Mission Briefing - Next Objectives:\n", steps_emoji));
             for (i, step) in result.next_steps.iter().enumerate() {
-                output.push_str(&format!("  {}. {}\n", i + 1, step));
+                output.push_str(&format!("  {}. 🎯 {}\n", i + 1, step));
             }
             output.push('\n');
         }
         
-        // Timing information
+        // Timing information (Quicksilver - speed)
         if self.include_timing {
-            let timing_emoji = if self.use_emojis { "⏱️  " } else { "" };
-            output.push_str(&format!("{}Workflow completed in {:.2}s (target: <15 minutes)\n", 
-                                   timing_emoji, result.execution_time.as_secs_f64()));
+            let timing_emoji = if self.use_emojis { "💨 " } else { "" };
+            let time_status = if result.execution_time.as_secs() < 15 * 60 {
+                "✅ MISSION ACCOMPLISHED"
+            } else {
+                "⚠️  MISSION EXTENDED"
+            };
+            output.push_str(&format!("{}Speed Analysis: {:.2}s {} (target: <15 minutes)\n", 
+                                   timing_emoji, result.execution_time.as_secs_f64(), time_status));
         }
+        
+        output.push_str("\n🛡️  Parseltongue Protocol Complete - Ready for Action! 🛡️\n");
         
         let elapsed = start.elapsed();
         if elapsed > Duration::from_millis(100) {
@@ -214,64 +241,91 @@ impl OutputFormatter for HumanFormatter {
     fn format_feature_plan(&self, result: &FeaturePlanResult) -> Result<String, FormattingError> {
         let start = std::time::Instant::now();
         
-        let emoji_prefix = if self.use_emojis { "🎯 " } else { "" };
+        // Iron Man theme - tech planning and analysis
+        let emoji_prefix = if self.use_emojis { "🤖 " } else { "" };
         let mut output = String::new();
         
-        // Header
-        output.push_str(&format!("{}Feature Planning Complete\n", emoji_prefix));
-        output.push_str("============================\n\n");
+        // Header with Iron Man tech theme
+        output.push_str(&format!("{}STARK INDUSTRIES FEATURE DEVELOPMENT PROTOCOL\n", emoji_prefix));
+        output.push_str("═══════════════════════════════════════════════════\n\n");
+        output.push_str(&format!("🎯 Target System: {}\n\n", result.target_entity));
         
-        output.push_str(&format!("🎯 Target Entity: {}\n\n", result.target_entity));
+        // Impact analysis (FRIDAY AI analysis)
+        let analysis_emoji = if self.use_emojis { "🔬 " } else { "" };
+        output.push_str(&format!("{}FRIDAY Impact Analysis:\n", analysis_emoji));
         
-        // Impact analysis
-        let analysis_emoji = if self.use_emojis { "📊 " } else { "" };
-        output.push_str(&format!("{}Impact Analysis:\n", analysis_emoji));
-        output.push_str(&format!("  • Risk Level: {:?}\n", result.impact_analysis.risk_level));
-        output.push_str(&format!("  • Complexity: {:?}\n", result.impact_analysis.complexity_estimate));
-        output.push_str(&format!("  • Direct Impact: {} entities\n", result.impact_analysis.direct_impact.len()));
-        output.push_str(&format!("  • Indirect Impact: {} entities\n", result.impact_analysis.indirect_impact.len()));
+        let risk_emoji = match result.impact_analysis.risk_level {
+            RiskLevel::Low => "🟢",
+            RiskLevel::Medium => "🟡", 
+            RiskLevel::High => "🟠",
+            RiskLevel::Critical => "🔴"
+        };
+        output.push_str(&format!("  {} Risk Level: {:?}\n", risk_emoji, result.impact_analysis.risk_level));
+        
+        let complexity_emoji = match result.impact_analysis.complexity_estimate {
+            ComplexityLevel::Simple => "⚡",
+            ComplexityLevel::Moderate => "🔧",
+            ComplexityLevel::Complex => "⚙️",
+            ComplexityLevel::VeryComplex => "🛠️"
+        };
+        output.push_str(&format!("  {} Complexity: {:?}\n", complexity_emoji, result.impact_analysis.complexity_estimate));
+        output.push_str(&format!("  💥 Direct Impact: {} entities\n", result.impact_analysis.direct_impact.len()));
+        output.push_str(&format!("  🌊 Ripple Effect: {} entities\n", result.impact_analysis.indirect_impact.len()));
         output.push('\n');
         
-        // Scope guidance
+        // Scope guidance (Tactical planning)
         let scope_emoji = if self.use_emojis { "🎯 " } else { "" };
-        output.push_str(&format!("{}Scope Guidance:\n", scope_emoji));
+        output.push_str(&format!("{}Tactical Deployment Scope:\n", scope_emoji));
         if !result.scope_guidance.boundaries.is_empty() {
-            output.push_str("  Boundaries:\n");
+            output.push_str("  🛡️  Security Perimeter:\n");
             for boundary in &result.scope_guidance.boundaries {
-                output.push_str(&format!("    • {}\n", boundary));
+                output.push_str(&format!("    🔒 {}\n", boundary));
             }
         }
         if !result.scope_guidance.files_to_modify.is_empty() {
-            output.push_str("  Files to modify:\n");
+            output.push_str("  🔧 Systems to Upgrade:\n");
             for file in &result.scope_guidance.files_to_modify {
-                output.push_str(&format!("    • {}\n", file));
+                output.push_str(&format!("    ⚡ {}\n", file));
             }
         }
         if !result.scope_guidance.files_to_avoid.is_empty() {
-            output.push_str("  Files to avoid:\n");
+            output.push_str("  ⚠️  Critical Systems (Do Not Touch):\n");
             for file in &result.scope_guidance.files_to_avoid {
-                output.push_str(&format!("    • {}\n", file));
+                output.push_str(&format!("    🚫 {}\n", file));
             }
         }
         output.push('\n');
         
-        // Test recommendations
+        // Test recommendations (Quality assurance protocols)
         if !result.test_recommendations.is_empty() {
             let test_emoji = if self.use_emojis { "🧪 " } else { "" };
-            output.push_str(&format!("{}Test Recommendations:\n", test_emoji));
+            output.push_str(&format!("{}Quality Assurance Protocols:\n", test_emoji));
             for test in &result.test_recommendations {
-                output.push_str(&format!("  • {} ({}): {}\n", test.test_target, test.test_type, test.rationale));
-                output.push_str(&format!("    Suggested location: {}\n", test.suggested_location));
+                let test_type_emoji = match test.test_type.as_str() {
+                    "unit" => "🔬",
+                    "integration" => "🔗",
+                    "performance" => "⚡",
+                    _ => "🧪"
+                };
+                output.push_str(&format!("  {} {} ({}): {}\n", test_type_emoji, test.test_target, test.test_type, test.rationale));
+                output.push_str(&format!("    📍 Deploy at: {}\n", test.suggested_location));
             }
             output.push('\n');
         }
         
-        // Timing information
+        // Timing information (Efficiency metrics)
         if self.include_timing {
-            let timing_emoji = if self.use_emojis { "⏱️  " } else { "" };
-            output.push_str(&format!("{}Workflow completed in {:.2}s (target: <5 minutes)\n", 
-                                   timing_emoji, result.execution_time.as_secs_f64()));
+            let timing_emoji = if self.use_emojis { "💨 " } else { "" };
+            let time_status = if result.execution_time.as_secs() < 5 * 60 {
+                "✅ OPTIMAL EFFICIENCY"
+            } else {
+                "⚠️  PERFORMANCE REVIEW NEEDED"
+            };
+            output.push_str(&format!("{}Stark Tech Efficiency: {:.2}s {} (target: <5 minutes)\n", 
+                                   timing_emoji, result.execution_time.as_secs_f64(), time_status));
         }
+        
+        output.push_str("\n🤖 Feature Development Protocol Ready for Deployment! 🤖\n");
         
         let elapsed = start.elapsed();
         if elapsed > Duration::from_millis(100) {
@@ -287,71 +341,89 @@ impl OutputFormatter for HumanFormatter {
     fn format_debug(&self, result: &DebugResult) -> Result<String, FormattingError> {
         let start = std::time::Instant::now();
         
-        let emoji_prefix = if self.use_emojis { "🐛 " } else { "" };
+        // Spider-Man theme - web tracing and debugging
+        let emoji_prefix = if self.use_emojis { "🕷️  " } else { "" };
         let mut output = String::new();
         
-        // Header
-        output.push_str(&format!("{}Debug Analysis Complete\n", emoji_prefix));
-        output.push_str("==========================\n\n");
+        // Header with Spider-Man web theme
+        output.push_str(&format!("{}SPIDER-SENSE DEBUG PROTOCOL ACTIVATED\n", emoji_prefix));
+        output.push_str("═══════════════════════════════════════════\n\n");
+        output.push_str(&format!("🎯 Web Target: {}\n\n", result.target_entity));
         
-        output.push_str(&format!("🎯 Target Entity: {}\n\n", result.target_entity));
-        
-        // Caller traces
+        // Caller traces (Web tracing)
         if !result.caller_traces.is_empty() {
-            let caller_emoji = if self.use_emojis { "📞 " } else { "" };
-            output.push_str(&format!("{}Caller Traces:\n", caller_emoji));
+            let caller_emoji = if self.use_emojis { "🕸️  " } else { "" };
+            output.push_str(&format!("{}Web Trace Analysis:\n", caller_emoji));
             for trace in &result.caller_traces {
-                output.push_str(&format!("  • {} (depth: {}, context: {})\n", 
-                                       trace.caller.name, trace.depth, trace.call_context));
-                output.push_str(&format!("    Location: {}\n", trace.caller.file_path));
+                let depth_emoji = match trace.depth {
+                    1 => "🔗", // Direct connection
+                    2..=3 => "🕸️", // Web connection
+                    _ => "🌐" // Deep web
+                };
+                output.push_str(&format!("  {} {} (depth: {}, context: {})\n", 
+                                       depth_emoji, trace.caller.name, trace.depth, trace.call_context));
+                output.push_str(&format!("    📍 Web Node: {}\n", trace.caller.file_path));
                 if let Some(freq) = &trace.frequency {
-                    output.push_str(&format!("    Frequency: {}\n", freq));
+                    output.push_str(&format!("    🔄 Frequency: {}\n", freq));
                 }
             }
             output.push('\n');
         }
         
-        // Usage sites
+        // Usage sites (Spider-sense detection)
         if !result.usage_sites.is_empty() {
-            let usage_emoji = if self.use_emojis { "🔍 " } else { "" };
-            output.push_str(&format!("{}Usage Sites:\n", usage_emoji));
+            let usage_emoji = if self.use_emojis { "🕷️  " } else { "" };
+            output.push_str(&format!("{}Spider-Sense Detection:\n", usage_emoji));
             for usage in &result.usage_sites {
-                output.push_str(&format!("  • {} ({}): {}\n", usage.user.name, usage.usage_type, usage.context));
-                output.push_str(&format!("    Location: {}\n", usage.location.format_for_editor()));
+                let usage_type_emoji = match usage.usage_type.as_str() {
+                    "call" => "📞",
+                    "reference" => "👁️",
+                    "dependency" => "🔗",
+                    _ => "🎯"
+                };
+                output.push_str(&format!("  {} {} ({}): {}\n", usage_type_emoji, usage.user.name, usage.usage_type, usage.context));
+                output.push_str(&format!("    📍 Location: {}\n", usage.location.format_for_editor()));
             }
             output.push('\n');
         }
         
-        // Minimal change scope
+        // Minimal change scope (Precision targeting)
         let scope_emoji = if self.use_emojis { "🎯 " } else { "" };
-        output.push_str(&format!("{}Minimal Change Scope:\n", scope_emoji));
+        output.push_str(&format!("{}Precision Strike Zone:\n", scope_emoji));
         if !result.minimal_scope.minimal_files.is_empty() {
-            output.push_str("  Files to change:\n");
+            output.push_str("  🎯 Primary Targets:\n");
             for file in &result.minimal_scope.minimal_files {
-                output.push_str(&format!("    • {}\n", file));
+                output.push_str(&format!("    🔧 {}\n", file));
             }
         }
         if !result.minimal_scope.safe_boundaries.is_empty() {
-            output.push_str("  Safe boundaries:\n");
+            output.push_str("  🛡️  Safe Zones:\n");
             for boundary in &result.minimal_scope.safe_boundaries {
-                output.push_str(&format!("    • {}\n", boundary));
+                output.push_str(&format!("    ✅ {}\n", boundary));
             }
         }
         if !result.minimal_scope.side_effects.is_empty() {
-            output.push_str("  Watch for side effects:\n");
+            output.push_str("  ⚠️  Spider-Sense Warnings:\n");
             for effect in &result.minimal_scope.side_effects {
-                output.push_str(&format!("    • {}\n", effect));
+                output.push_str(&format!("    🚨 {}\n", effect));
             }
         }
-        output.push_str(&format!("  Rollback strategy: {}\n", result.minimal_scope.rollback_strategy));
+        output.push_str(&format!("  🔄 Web Restoration Plan: {}\n", result.minimal_scope.rollback_strategy));
         output.push('\n');
         
-        // Timing information
+        // Timing information (Web-slinger speed)
         if self.include_timing {
-            let timing_emoji = if self.use_emojis { "⏱️  " } else { "" };
-            output.push_str(&format!("{}Workflow completed in {:.2}s (target: <2 minutes)\n", 
-                                   timing_emoji, result.execution_time.as_secs_f64()));
+            let timing_emoji = if self.use_emojis { "💨 " } else { "" };
+            let time_status = if result.execution_time.as_secs() < 2 * 60 {
+                "✅ WEB-SLINGER SPEED"
+            } else {
+                "⚠️  NEED MORE SPIDER-POWER"
+            };
+            output.push_str(&format!("{}Web-Swing Speed: {:.2}s {} (target: <2 minutes)\n", 
+                                   timing_emoji, result.execution_time.as_secs_f64(), time_status));
         }
+        
+        output.push_str("\n🕷️  Debug Web Complete - Your Friendly Neighborhood Debugger! 🕷️\n");
         
         let elapsed = start.elapsed();
         if elapsed > Duration::from_millis(100) {

@@ -4,9 +4,9 @@
 
 set -e
 
-# Find the latest parseltongue binary automatically
+# Find the latest parseltongue binary automatically (exclude .d debug files)
 if [ -z "$PARSELTONGUE_BIN" ]; then
-    PARSELTONGUE_BIN=$(ls -t ./target/release/parseltongue* 2>/dev/null | head -1)
+    PARSELTONGUE_BIN=$(ls -t ./target/release/parseltongue* 2>/dev/null | grep -v '\.d$' | head -1)
     if [ -z "$PARSELTONGUE_BIN" ]; then
         echo "❌ Error: No parseltongue binary found in ./target/release/"
         echo "Build with: cargo build --release"

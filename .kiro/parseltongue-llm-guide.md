@@ -8,18 +8,21 @@ This document provides comprehensive guidance for LLMs working with the Parselto
 
 ### Core Commands
 ```bash
+# Scripts automatically detect the latest parseltongue binary
+# Or set PARSELTONGUE_BIN environment variable to specify a specific binary
+
 # Ingest codebase for analysis
-./target/release/parseltongue_YYYYMMDDHHSS ingest codebase.dump
+parseltongue ingest codebase.dump
 
 # Discovery operations (primary use cases)
-./target/release/parseltongue_YYYYMMDDHHSS list-entities --limit 100
-./target/release/parseltongue_YYYYMMDDHHSS list-entities --type functions --limit 50
-./target/release/parseltongue_YYYYMMDDHHSS entities-in-file src/main.rs
-./target/release/parseltongue_YYYYMMDDHHSS where-defined EntityName
+parseltongue list-entities --limit 100
+parseltongue list-entities --type functions --limit 50
+parseltongue entities-in-file src/main.rs
+parseltongue where-defined EntityName
 
 # Analysis operations
-./target/release/parseltongue_YYYYMMDDHHSS blast-radius EntityName
-./target/release/parseltongue_YYYYMMDDHHSS caller-trace FunctionName
+parseltongue blast-radius EntityName
+parseltongue caller-trace FunctionName
 ```
 
 ### Workflow Scripts
@@ -147,6 +150,31 @@ map.entry(key).or_default().push(value);
 // Remove redundant field names
 EntityInfo { name, file_path, entity_type } // Instead of name: name
 ```
+
+## Binary Detection and Management
+
+### Automatic Binary Detection
+All scripts now automatically detect the latest parseltongue binary:
+```bash
+# Finds the most recent parseltongue binary (excludes .d debug files)
+PARSELTONGUE_BIN=$(ls -t ./target/release/parseltongue* 2>/dev/null | grep -v '\.d$' | head -1)
+```
+
+### Manual Binary Selection
+You can override the automatic detection:
+```bash
+# Set specific binary
+export PARSELTONGUE_BIN="./target/release/parseltongue_20250924231324"
+
+# Or pass as parameter to scripts
+PARSELTONGUE_BIN="./custom/path/parseltongue" ./parseltongue_dungeon/scripts/onboard_codebase.sh
+```
+
+### Binary Naming Convention
+- Format: `parseltongue_YYYYMMDDHHMMSS` (timestamp-based versioning)
+- Location: `./target/release/`
+- Detection: Automatically finds latest by modification time
+- Exclusions: Skips `.d` debug info files
 
 ## Best Practices for LLM Integration
 
