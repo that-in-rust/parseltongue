@@ -167,9 +167,11 @@
   - Ensure all documentation uses low-drama, technical language focused on practical value
   - _Requirements: All requirements validation, user onboarding, workflow demonstration_
 
-- [x] 23. Validate end-to-end system integration and performance contracts
+- [-] 23. Validate end-to-end system integration and performance contracts
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
-  - Run comprehensive end-to-end tests with realistic codebases (Iggy: 983 files, Axum: 295 files)
+  - Run comprehensive end-to-end tests with realistic codebases - - Create Demo 1: Axum codebase exploration journey using existing test data (zzzzArchive/_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt)
+  - Create Demo 2: Self-exploration journey documenting Parseltongue's own codebase analysis
+  - Document each workflow step with actual command outputs and timing measurements
   - Validate all performance contracts: discovery <30s, queries <100ms, existing queries <50μs
   - Test all JTBD workflows meet timing requirements: onboard <15min, feature-start <5min, debug <2min, refactor-check <3min
   - Verify memory usage increase <20% from baseline ISG implementation
