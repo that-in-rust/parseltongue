@@ -89,7 +89,7 @@
 
 
 
-- [ ] 14. Build comprehensive integration and end-to-end tests
+- [x] 14. Build comprehensive integration and end-to-end tests
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Create test scenarios covering discovery-to-analysis workflows
   - Implement property-based tests for discovery query invariants
