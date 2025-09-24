@@ -167,6 +167,830 @@
       "signature": "fn main",
       "file_path": "src/main.rs",
       "line": 0
+    },
+    {
+      "hash": 4646009156725558576,
+      "kind": "Function",
+      "name": "hello_world",
+      "signature": "fn hello_world",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 2251308322593242456,
+      "kind": "Function",
+      "name": "test_function_0",
+      "signature": "fn test_function_0",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 9251190927646660129,
+      "kind": "Struct",
+      "name": "TestStruct0",
+      "signature": "struct TestStruct0",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 17497157093187825766,
+      "kind": "Function",
+      "name": "test_function_1",
+      "signature": "fn test_function_1",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 9022534757809066099,
+      "kind": "Struct",
+      "name": "TestStruct1",
+      "signature": "struct TestStruct1",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 13828853136185199988,
+      "kind": "Function",
+      "name": "test_function_2",
+      "signature": "fn test_function_2",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 2381991667529066045,
+      "kind": "Struct",
+      "name": "TestStruct2",
+      "signature": "struct TestStruct2",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 8185728299458791565,
+      "kind": "Function",
+      "name": "test_function_3",
+      "signature": "fn test_function_3",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 5582886970644034351,
+      "kind": "Struct",
+      "name": "TestStruct3",
+      "signature": "struct TestStruct3",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 4517424342456165787,
+      "kind": "Function",
+      "name": "test_function_4",
+      "signature": "fn test_function_4",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 11049898293621925988,
+      "kind": "Struct",
+      "name": "TestStruct4",
+      "signature": "struct TestStruct4",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 849120385453540009,
+      "kind": "Function",
+      "name": "test_function_5",
+      "signature": "fn test_function_5",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 2143239183479002603,
+      "kind": "Struct",
+      "name": "TestStruct5",
+      "signature": "struct TestStruct5",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 1077776555291134039,
+      "kind": "Function",
+      "name": "test_function_6",
+      "signature": "fn test_function_6",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 4180699033504331904,
+      "kind": "Struct",
+      "name": "TestStruct6",
+      "signature": "struct TestStruct6",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 15856216671998059877,
+      "kind": "Function",
+      "name": "test_function_7",
+      "signature": "fn test_function_7",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 7849002990506957682,
+      "kind": "Struct",
+      "name": "TestStruct7",
+      "signature": "struct TestStruct7",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 13203677537512042546,
+      "kind": "Function",
+      "name": "test_function_8",
+      "signature": "fn test_function_8",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 741051246339300156,
+      "kind": "Struct",
+      "name": "TestStruct8",
+      "signature": "struct TestStruct8",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 7560552700785634123,
+      "kind": "Function",
+      "name": "test_function_9",
+      "signature": "fn test_function_9",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 3941946549454268462,
+      "kind": "Struct",
+      "name": "TestStruct9",
+      "signature": "struct TestStruct9",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 10333247880800002658,
+      "kind": "Function",
+      "name": "test_function_10",
+      "signature": "fn test_function_10",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 10063789892277354141,
+      "kind": "Struct",
+      "name": "TestStruct10",
+      "signature": "struct TestStruct10",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 10104591710962408628,
+      "kind": "Function",
+      "name": "test_function_11",
+      "signature": "fn test_function_11",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 10292446062114948171,
+      "kind": "Struct",
+      "name": "TestStruct11",
+      "signature": "struct TestStruct11",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 16039011687827957737,
+      "kind": "Function",
+      "name": "test_function_12",
+      "signature": "fn test_function_12",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 6624142105112322393,
+      "kind": "Struct",
+      "name": "TestStruct12",
+      "signature": "struct TestStruct12",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 793162917233374427,
+      "kind": "Function",
+      "name": "test_function_13",
+      "signature": "fn test_function_13",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 3423246801997354087,
+      "kind": "Struct",
+      "name": "TestStruct13",
+      "signature": "struct TestStruct13",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 12131955246775268517,
+      "kind": "Function",
+      "name": "test_function_14",
+      "signature": "fn test_function_14",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 18201686918704279925,
+      "kind": "Struct",
+      "name": "TestStruct14",
+      "signature": "struct TestStruct14",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 15800259203777894295,
+      "kind": "Function",
+      "name": "test_function_15",
+      "signature": "fn test_function_15",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 12091153428090214030,
+      "kind": "Struct",
+      "name": "TestStruct15",
+      "signature": "struct TestStruct15",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 8692307459610236769,
+      "kind": "Function",
+      "name": "test_function_16",
+      "signature": "fn test_function_16",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 8890258124975245724,
+      "kind": "Struct",
+      "name": "TestStruct16",
+      "signature": "struct TestStruct16",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 8931059943660300211,
+      "kind": "Function",
+      "name": "test_function_17",
+      "signature": "fn test_function_17",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 5221954167972619946,
+      "kind": "Struct",
+      "name": "TestStruct17",
+      "signature": "struct TestStruct17",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 14398071266638191848,
+      "kind": "Function",
+      "name": "test_function_18",
+      "signature": "fn test_function_18",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 5998966506439164951,
+      "kind": "Struct",
+      "name": "TestStruct18",
+      "signature": "struct TestStruct18",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 17598966569753160154,
+      "kind": "Function",
+      "name": "test_function_19",
+      "signature": "fn test_function_19",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 2798071203324196645,
+      "kind": "Struct",
+      "name": "TestStruct19",
+      "signature": "struct TestStruct19",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 4282378290644150012,
+      "kind": "Function",
+      "name": "test_function_20",
+      "signature": "fn test_function_20",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 16066728933672750702,
+      "kind": "Struct",
+      "name": "TestStruct20",
+      "signature": "struct TestStruct20",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 7483273593759118318,
+      "kind": "Function",
+      "name": "test_function_21",
+      "signature": "fn test_function_21",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 12398424976670124924,
+      "kind": "Struct",
+      "name": "TestStruct21",
+      "signature": "struct TestStruct21",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 7722026077809181760,
+      "kind": "Function",
+      "name": "test_function_22",
+      "signature": "fn test_function_22",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 6931413653692233287,
+      "kind": "Struct",
+      "name": "TestStruct22",
+      "signature": "struct TestStruct22",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 16794702387488152519,
+      "kind": "Function",
+      "name": "test_function_23",
+      "signature": "fn test_function_23",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 15838072763835156672,
+      "kind": "Struct",
+      "name": "TestStruct23",
+      "signature": "struct TestStruct23",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 6081085656619415871,
+      "kind": "Function",
+      "name": "test_function_24",
+      "signature": "fn test_function_24",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 13800612913809827371,
+      "kind": "Struct",
+      "name": "TestStruct24",
+      "signature": "struct TestStruct24",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 15621170620186044102,
+      "kind": "Function",
+      "name": "test_function_25",
+      "signature": "fn test_function_25",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 10599717610694859065,
+      "kind": "Struct",
+      "name": "TestStruct25",
+      "signature": "struct TestStruct25",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 375321849591460792,
+      "kind": "Function",
+      "name": "test_function_26",
+      "signature": "fn test_function_26",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 17240260700974859119,
+      "kind": "Struct",
+      "name": "TestStruct26",
+      "signature": "struct TestStruct26",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 614074333641524234,
+      "kind": "Function",
+      "name": "test_function_27",
+      "signature": "fn test_function_27",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 14039365397859890813,
+      "kind": "Struct",
+      "name": "TestStruct27",
+      "signature": "struct TestStruct27",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 217554904805960822,
+      "kind": "Function",
+      "name": "test_function_28",
+      "signature": "fn test_function_28",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 7556589252365390729,
+      "kind": "Struct",
+      "name": "TestStruct28",
+      "signature": "struct TestStruct28",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 18435642808677918408,
+      "kind": "Function",
+      "name": "test_function_29",
+      "signature": "fn test_function_29",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 7317836768315327287,
+      "kind": "Struct",
+      "name": "TestStruct29",
+      "signature": "struct TestStruct29",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 2689323323618539164,
+      "kind": "Function",
+      "name": "test_function_30",
+      "signature": "fn test_function_30",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 11959950298662518878,
+      "kind": "Struct",
+      "name": "TestStruct30",
+      "signature": "struct TestStruct30",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 17467763440325465002,
+      "kind": "Function",
+      "name": "test_function_31",
+      "signature": "fn test_function_31",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 11721197814612455436,
+      "kind": "Struct",
+      "name": "TestStruct31",
+      "signature": "struct TestStruct31",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 12000752117347573365,
+      "kind": "Function",
+      "name": "test_function_32",
+      "signature": "fn test_function_32",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 8520302511497487130,
+      "kind": "Struct",
+      "name": "TestStruct32",
+      "signature": "struct TestStruct32",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 5890218626733507470,
+      "kind": "Function",
+      "name": "test_function_33",
+      "signature": "fn test_function_33",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 17426961621640410515,
+      "kind": "Struct",
+      "name": "TestStruct33",
+      "signature": "struct TestStruct33",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 423207303755615833,
+      "kind": "Function",
+      "name": "test_function_34",
+      "signature": "fn test_function_34",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 9693834278799595547,
+      "kind": "Struct",
+      "name": "TestStruct34",
+      "signature": "struct TestStruct34",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 15669056074350199143,
+      "kind": "Function",
+      "name": "test_function_35",
+      "signature": "fn test_function_35",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 6492938975684627241,
+      "kind": "Struct",
+      "name": "TestStruct35",
+      "signature": "struct TestStruct35",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 3862855090920647581,
+      "kind": "Function",
+      "name": "test_function_36",
+      "signature": "fn test_function_36",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 382405485070561346,
+      "kind": "Struct",
+      "name": "TestStruct36",
+      "signature": "struct TestStruct36",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 4091511260758241611,
+      "kind": "Function",
+      "name": "test_function_37",
+      "signature": "fn test_function_37",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 15628254255665144656,
+      "kind": "Struct",
+      "name": "TestStruct37",
+      "signature": "struct TestStruct37",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 16055479188973293143,
+      "kind": "Function",
+      "name": "test_function_38",
+      "signature": "fn test_function_38",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 7895126912824329688,
+      "kind": "Struct",
+      "name": "TestStruct38",
+      "signature": "struct TestStruct38",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 6515394225406664912,
+      "kind": "Function",
+      "name": "test_function_39",
+      "signature": "fn test_function_39",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 16801786022967253073,
+      "kind": "Struct",
+      "name": "TestStruct39",
+      "signature": "struct TestStruct39",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 4074355731172248393,
+      "kind": "Function",
+      "name": "test_function_40",
+      "signature": "fn test_function_40",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 14294585383055289661,
+      "kind": "Struct",
+      "name": "TestStruct40",
+      "signature": "struct TestStruct40",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 16877974968155391586,
+      "kind": "Function",
+      "name": "test_function_41",
+      "signature": "fn test_function_41",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 17495480686170257967,
+      "kind": "Struct",
+      "name": "TestStruct41",
+      "signature": "struct TestStruct41",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 13209671011152765808,
+      "kind": "Function",
+      "name": "test_function_42",
+      "signature": "fn test_function_42",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 2717040569463332129,
+      "kind": "Struct",
+      "name": "TestStruct42",
+      "signature": "struct TestStruct42",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 10008775708037797502,
+      "kind": "Function",
+      "name": "test_function_43",
+      "signature": "fn test_function_43",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 2488384399625738099,
+      "kind": "Struct",
+      "name": "TestStruct43",
+      "signature": "struct TestStruct43",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 9770023223987734060,
+      "kind": "Function",
+      "name": "test_function_44",
+      "signature": "fn test_function_44",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 16093292749030555520,
+      "kind": "Struct",
+      "name": "TestStruct44",
+      "signature": "struct TestStruct44",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 6101719266985108282,
+      "kind": "Function",
+      "name": "test_function_45",
+      "signature": "fn test_function_45",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 1314852632323629682,
+      "kind": "Struct",
+      "name": "TestStruct45",
+      "signature": "struct TestStruct45",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 15475787031015689139,
+      "kind": "Function",
+      "name": "test_function_46",
+      "signature": "fn test_function_46",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 4515747935438597988,
+      "kind": "Struct",
+      "name": "TestStruct46",
+      "signature": "struct TestStruct46",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 15237034546965625697,
+      "kind": "Function",
+      "name": "test_function_47",
+      "signature": "fn test_function_47",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 14055832899005226219,
+      "kind": "Struct",
+      "name": "TestStruct47",
+      "signature": "struct TestStruct47",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 11568730589962999919,
+      "kind": "Function",
+      "name": "test_function_48",
+      "signature": "fn test_function_48",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 4357980990653098018,
+      "kind": "Struct",
+      "name": "TestStruct48",
+      "signature": "struct TestStruct48",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 8367835286848031613,
+      "kind": "Function",
+      "name": "test_function_49",
+      "signature": "fn test_function_49",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 4129324820815503988,
+      "kind": "Struct",
+      "name": "TestStruct49",
+      "signature": "struct TestStruct49",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 3831946820581721192,
+      "kind": "Function",
+      "name": "json_test",
+      "signature": "fn json_test",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 9109440577003285393,
+      "kind": "Function",
+      "name": "target_function",
+      "signature": "fn target_function",
+      "file_path": "src/lib.rs",
+      "line": 0
     }
   ],
   "edges": [
@@ -193,8 +1017,8 @@
   ],
   "metadata": {
     "version": 1,
-    "timestamp": 1758691940,
-    "node_count": 21,
+    "timestamp": 1758696822,
+    "node_count": 124,
     "edge_count": 4
   }
 }

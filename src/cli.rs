@@ -4,6 +4,7 @@
 
 use crate::daemon::ParseltongueAIM;
 use crate::isg::ISGError;
+use crate::discovery::{SimpleDiscoveryEngine, DiscoveryEngine, EntityInfo, FileLocation};
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 use std::time::Instant;
@@ -69,6 +70,37 @@ pub enum Commands {
         #[arg(long, default_value = "parseltongue_visualization.html")]
         output: PathBuf,
     },
+    /// List all entities in the codebase
+    ListEntities {
+        /// Filter by entity type
+        #[arg(long, value_enum)]
+        r#type: Option<DiscoveryEntityType>,
+        /// Maximum number of results to return
+        #[arg(long, default_value = "100")]
+        limit: usize,
+        /// Output format
+        #[arg(long, default_value = "human")]
+        format: OutputFormat,
+    },
+    /// List entities defined in a specific file
+    EntitiesInFile {
+        /// File path to search
+        file: String,
+        /// Filter by entity type
+        #[arg(long, value_enum)]
+        r#type: Option<DiscoveryEntityType>,
+        /// Output format
+        #[arg(long, default_value = "human")]
+        format: OutputFormat,
+    },
+    /// Find where an entity is defined
+    WhereDefined {
+        /// Entity name to find
+        entity: String,
+        /// Output format
+        #[arg(long, default_value = "human")]
+        format: OutputFormat,
+    },
 }
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -91,6 +123,41 @@ pub enum OutputFormat {
     Human,
     /// JSON output for LLM consumption
     Json,
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum DiscoveryEntityType {
+    /// Function entities
+    Function,
+    /// Struct entities
+    Struct,
+    /// Trait entities
+    Trait,
+    /// Implementation blocks
+    Impl,
+    /// Module entities
+    Module,
+    /// Constant entities
+    Constant,
+    /// Static entities
+    Static,
+    /// Macro entities
+    Macro,
+}
+
+impl From<DiscoveryEntityType> for crate::discovery::types::EntityType {
+    fn from(cli_type: DiscoveryEntityType) -> Self {
+        match cli_type {
+            DiscoveryEntityType::Function => Self::Function,
+            DiscoveryEntityType::Struct => Self::Struct,
+            DiscoveryEntityType::Trait => Self::Trait,
+            DiscoveryEntityType::Impl => Self::Impl,
+            DiscoveryEntityType::Module => Self::Module,
+            DiscoveryEntityType::Constant => Self::Constant,
+            DiscoveryEntityType::Static => Self::Static,
+            DiscoveryEntityType::Macro => Self::Macro,
+        }
+    }
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -123,7 +190,7 @@ impl LlmContext {
     }
 }
 
-pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     let mut daemon = ParseltongueAIM::new();
     
     // Try to load existing snapshot for persistence between commands
@@ -303,6 +370,18 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 eprintln!("⚠️  HTML generation took {}ms (>500ms constraint violated)", elapsed.as_millis());
             }
         }
+        
+        Commands::ListEntities { r#type, limit, format } => {
+            handle_list_entities_command(&daemon, r#type, limit, format.clone()).await?;
+        }
+        
+        Commands::EntitiesInFile { file, r#type, format } => {
+            handle_entities_in_file_command(&daemon, &file, r#type, format.clone()).await?;
+        }
+        
+        Commands::WhereDefined { entity, format } => {
+            handle_where_defined_command(&daemon, &entity, format.clone()).await?;
+        }
     }
     
     Ok(())
@@ -337,6 +416,274 @@ pub fn generate_context(daemon: &ParseltongueAIM, entity_name: &str, format: Out
     };
     
     Ok(result)
+}
+
+/// Handle the list-entities command
+async fn handle_list_entities_command(
+    daemon: &ParseltongueAIM,
+    entity_type: Option<DiscoveryEntityType>,
+    limit: usize,
+    format: OutputFormat,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let start = Instant::now();
+    
+    // Create discovery engine
+    let discovery_engine = SimpleDiscoveryEngine::new(daemon.isg.clone());
+    
+    // Convert CLI entity type to discovery entity type
+    let discovery_type = entity_type.map(|t| t.into());
+    
+    // Execute the query
+    let entities = discovery_engine
+        .list_all_entities(discovery_type, limit)
+        .await
+        .map_err(|e| format!("Discovery error: {}", e))?;
+    
+    let elapsed = start.elapsed();
+    
+    // Format and display results
+    match format {
+        OutputFormat::Human => {
+            format_entities_human(&entities, elapsed, entity_type.is_some());
+        }
+        OutputFormat::Json => {
+            format_entities_json(&entities, elapsed)?;
+        }
+    }
+    
+    // Check performance contract
+    if elapsed.as_millis() > 100 {
+        eprintln!("⚠️  Discovery took {}ms (>100ms contract violated)", elapsed.as_millis());
+    }
+    
+    Ok(())
+}
+
+/// Handle the entities-in-file command
+async fn handle_entities_in_file_command(
+    daemon: &ParseltongueAIM,
+    file_path: &str,
+    entity_type: Option<DiscoveryEntityType>,
+    format: OutputFormat,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let start = Instant::now();
+    
+    // Create discovery engine
+    let discovery_engine = SimpleDiscoveryEngine::new(daemon.isg.clone());
+    
+    // Get entities in file
+    let mut entities = discovery_engine
+        .entities_in_file(file_path)
+        .await
+        .map_err(|e| format!("Discovery error: {}", e))?;
+    
+    // Apply entity type filter if specified
+    if let Some(filter_type) = entity_type {
+        let discovery_type = filter_type.into();
+        entities.retain(|entity| entity.entity_type == discovery_type);
+    }
+    
+    let elapsed = start.elapsed();
+    
+    // Format and display results
+    match format {
+        OutputFormat::Human => {
+            format_file_entities_human(&entities, file_path, elapsed, entity_type.is_some());
+        }
+        OutputFormat::Json => {
+            format_file_entities_json(&entities, file_path, elapsed)?;
+        }
+    }
+    
+    // Check performance contract
+    if elapsed.as_millis() > 100 {
+        eprintln!("⚠️  Discovery took {}ms (>100ms contract violated)", elapsed.as_millis());
+    }
+    
+    Ok(())
+}
+
+/// Handle the where-defined command
+async fn handle_where_defined_command(
+    daemon: &ParseltongueAIM,
+    entity_name: &str,
+    format: OutputFormat,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let start = Instant::now();
+    
+    // Create discovery engine
+    let discovery_engine = SimpleDiscoveryEngine::new(daemon.isg.clone());
+    
+    // Find entity definition
+    let location = discovery_engine
+        .where_defined(entity_name)
+        .await
+        .map_err(|e| format!("Discovery error: {}", e))?;
+    
+    let elapsed = start.elapsed();
+    
+    // Format and display results
+    match format {
+        OutputFormat::Human => {
+            format_location_human(entity_name, &location, elapsed);
+        }
+        OutputFormat::Json => {
+            format_location_json(entity_name, &location, elapsed)?;
+        }
+    }
+    
+    // Check performance contract (stricter for exact lookups)
+    if elapsed.as_micros() > 50_000 {
+        eprintln!("⚠️  Lookup took {}μs (>50ms contract violated)", elapsed.as_micros());
+    }
+    
+    Ok(())
+}
+
+/// Format entities for human-readable output
+fn format_entities_human(entities: &[EntityInfo], elapsed: std::time::Duration, filtered: bool) {
+    if entities.is_empty() {
+        println!("No entities found.");
+        return;
+    }
+    
+    let type_filter_text = if filtered { " (filtered)" } else { "" };
+    println!("Found {} entities{}:", entities.len(), type_filter_text);
+    println!();
+    
+    // Group entities by type for better organization
+    let mut by_type = std::collections::HashMap::new();
+    for entity in entities {
+        by_type.entry(entity.entity_type).or_insert_with(Vec::new).push(entity);
+    }
+    
+    // Sort types for consistent output
+    let mut types: Vec<_> = by_type.keys().collect();
+    types.sort_by_key(|t| format!("{:?}", t));
+    
+    for entity_type in types {
+        let entities_of_type = by_type.get(entity_type).unwrap();
+        println!("{:?} ({}):", entity_type, entities_of_type.len());
+        
+        for entity in entities_of_type {
+            let location = if let Some(line) = entity.line_number {
+                format!("{}:{}", entity.file_path, line)
+            } else {
+                entity.file_path.clone()
+            };
+            println!("  • {} ({})", entity.name, location);
+        }
+        println!();
+    }
+    
+    println!("Discovery completed in {:.2}ms", elapsed.as_secs_f64() * 1000.0);
+}
+
+/// Format entities for JSON output
+fn format_entities_json(entities: &[EntityInfo], elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
+    let output = serde_json::json!({
+        "command": "list-entities",
+        "results": entities,
+        "count": entities.len(),
+        "execution_time_ms": elapsed.as_secs_f64() * 1000.0,
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    });
+    
+    println!("{}", serde_json::to_string_pretty(&output)?);
+    Ok(())
+}
+
+/// Format file entities for human-readable output
+fn format_file_entities_human(entities: &[EntityInfo], file_path: &str, elapsed: std::time::Duration, filtered: bool) {
+    let type_filter_text = if filtered { " (filtered)" } else { "" };
+    println!("Entities in file '{}'{}: {}", file_path, type_filter_text, entities.len());
+    
+    if entities.is_empty() {
+        println!("No entities found in this file.");
+        return;
+    }
+    
+    println!();
+    
+    // Group by type
+    let mut by_type = std::collections::HashMap::new();
+    for entity in entities {
+        by_type.entry(entity.entity_type).or_insert_with(Vec::new).push(entity);
+    }
+    
+    let mut types: Vec<_> = by_type.keys().collect();
+    types.sort_by_key(|t| format!("{:?}", t));
+    
+    for entity_type in types {
+        let entities_of_type = by_type.get(entity_type).unwrap();
+        println!("{:?} ({}):", entity_type, entities_of_type.len());
+        
+        for entity in entities_of_type {
+            if let Some(line) = entity.line_number {
+                println!("  • {} (line {})", entity.name, line);
+            } else {
+                println!("  • {}", entity.name);
+            }
+        }
+        println!();
+    }
+    
+    println!("Discovery completed in {:.2}ms", elapsed.as_secs_f64() * 1000.0);
+}
+
+/// Format file entities for JSON output
+fn format_file_entities_json(entities: &[EntityInfo], file_path: &str, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
+    let output = serde_json::json!({
+        "command": "entities-in-file",
+        "file_path": file_path,
+        "results": entities,
+        "count": entities.len(),
+        "execution_time_ms": elapsed.as_secs_f64() * 1000.0,
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    });
+    
+    println!("{}", serde_json::to_string_pretty(&output)?);
+    Ok(())
+}
+
+/// Format location for human-readable output
+fn format_location_human(entity_name: &str, location: &Option<FileLocation>, elapsed: std::time::Duration) {
+    match location {
+        Some(loc) => {
+            println!("Entity '{}' is defined at:", entity_name);
+            println!("  File: {}", loc.file_path);
+            if let Some(line) = loc.line_number {
+                if let Some(col) = loc.column {
+                    println!("  Position: line {}, column {}", line, col);
+                } else {
+                    println!("  Line: {}", line);
+                }
+            }
+            println!("  Editor link: {}", loc.format_for_editor());
+        }
+        None => {
+            println!("Entity '{}' not found.", entity_name);
+            println!("💡 Try 'parseltongue list-entities' to see available entities");
+        }
+    }
+    
+    println!();
+    println!("Lookup completed in {:.2}μs", elapsed.as_micros() as f64);
+}
+
+/// Format location for JSON output
+fn format_location_json(entity_name: &str, location: &Option<FileLocation>, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
+    let output = serde_json::json!({
+        "command": "where-defined",
+        "entity_name": entity_name,
+        "found": location.is_some(),
+        "location": location,
+        "execution_time_us": elapsed.as_micros(),
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    });
+    
+    println!("{}", serde_json::to_string_pretty(&output)?);
+    Ok(())
 }
 
 #[cfg(test)]
@@ -410,16 +757,16 @@ mod tests {
     }
 
     // TDD Cycle 15: Query command execution (RED phase)
-    #[test]
-    fn test_query_command_execution() {
-        // This test will fail until we implement query execution
+    #[tokio::test]
+    async fn test_query_command_execution() {
+        // Query commands should work now
         let args = vec!["parseltongue", "query", "what-implements", "TestTrait"];
         let cli = Cli::try_parse_from(args).unwrap();
         
-        let result = run(cli);
+        let result = run(cli).await;
         
-        // Should fail in RED phase
-        assert!(result.is_err());
+        // Should succeed now that query execution is implemented
+        assert!(result.is_ok());
     }
 
     #[test]
@@ -452,28 +799,28 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_calls_query_execution() {
+    #[tokio::test]
+    async fn test_calls_query_execution() {
         // This test will fail until we implement calls query execution
         let args = vec!["parseltongue", "query", "calls", "test_function"];
         let cli = Cli::try_parse_from(args).unwrap();
         
-        let result = run(cli);
+        let result = run(cli).await;
         
         // Should fail in RED phase because find_callers doesn't exist yet
         assert!(result.is_err());
     }
 
-    #[test]
-    fn test_uses_query_execution() {
-        // This test will fail until we implement uses query execution
+    #[tokio::test]
+    async fn test_uses_query_execution() {
+        // Uses query commands should work now
         let args = vec!["parseltongue", "query", "uses", "TestStruct"];
         let cli = Cli::try_parse_from(args).unwrap();
         
-        let result = run(cli);
+        let result = run(cli).await;
         
-        // Should fail in RED phase because find_users doesn't exist yet
-        assert!(result.is_err());
+        // Should succeed now that query execution is implemented
+        assert!(result.is_ok());
     }
 
     #[test]
@@ -486,8 +833,8 @@ mod tests {
     }
 
     // TDD Cycle 16: Ingest and daemon commands (RED phase)
-    #[test]
-    fn test_ingest_command() {
+    #[tokio::test]
+    async fn test_ingest_command() {
         let temp_dir = TempDir::new().unwrap();
         let dump_path = temp_dir.path().join("test.dump");
         
@@ -496,7 +843,7 @@ mod tests {
         let args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
         let cli = Cli::try_parse_from(args).unwrap();
         
-        let result = run(cli);
+        let result = run(cli).await;
         
         // Should succeed in GREEN phase
         assert!(result.is_ok());
@@ -540,12 +887,12 @@ mod tests {
         assert!(result.is_err());
     }
 
-    #[test]
-    fn test_generate_context_command() {
+    #[tokio::test]
+    async fn test_generate_context_command() {
         let args = vec!["parseltongue", "generate-context", "TestFunction", "--format", "json"];
         let cli = Cli::try_parse_from(args).unwrap();
         
-        let result = run(cli);
+        let result = run(cli).await;
         
         // Should fail in RED phase
         assert!(result.is_err());
@@ -610,8 +957,8 @@ mod tests {
     }
 
     // TDD Cycle 19: End-to-end workflow (RED phase)
-    #[test]
-    fn test_end_to_end_workflow() {
+    #[tokio::test]
+    async fn test_end_to_end_workflow() {
         let temp_dir = TempDir::new().unwrap();
         let dump_path = temp_dir.path().join("test.dump");
         
@@ -644,7 +991,7 @@ impl Greeter for Person {
         // 1. Ingest
         let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
         let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
-        let ingest_result = run(ingest_cli);
+        let ingest_result = run(ingest_cli).await;
         
         // Should succeed in GREEN phase
         assert!(ingest_result.is_ok());
@@ -695,15 +1042,15 @@ impl Greeter for Person {
         }
     }
 
-    #[test]
-    fn test_visualize_command_execution() {
+    #[tokio::test]
+    async fn test_visualize_command_execution() {
         let temp_dir = TempDir::new().unwrap();
         let output_path = temp_dir.path().join("test_visualization.html");
         
         let args = vec!["parseltongue", "visualize", "--output", output_path.to_str().unwrap()];
         let cli = Cli::try_parse_from(args).unwrap();
         
-        let result = run(cli);
+        let result = run(cli).await;
         
         // Should succeed and create HTML file
         assert!(result.is_ok());
@@ -723,7 +1070,8 @@ impl Greeter for Person {
         let args = vec!["parseltongue", "visualize", "TestFunction", "--output", output_path.to_str().unwrap()];
         let cli = Cli::try_parse_from(args).unwrap();
         
-        let result = run(cli);
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let result = rt.block_on(run(cli));
         
         // Should succeed even if entity doesn't exist (graceful handling)
         assert!(result.is_ok());
@@ -731,5 +1079,391 @@ impl Greeter for Person {
         
         let html_content = fs::read_to_string(&output_path).unwrap();
         assert!(html_content.contains("TestFunction"));
+    }
+
+    // Discovery command parsing tests
+    #[test]
+    fn test_list_entities_command_parsing() {
+        // Test basic list-entities command
+        let args = vec!["parseltongue", "list-entities"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        match cli.command {
+            Commands::ListEntities { r#type, limit, format } => {
+                assert!(r#type.is_none());
+                assert_eq!(limit, 100); // default
+                assert!(matches!(format, OutputFormat::Human)); // default
+            }
+            _ => panic!("Expected ListEntities command"),
+        }
+        
+        // Test with type filter
+        let args = vec!["parseltongue", "list-entities", "--type", "function", "--limit", "50"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        match cli.command {
+            Commands::ListEntities { r#type, limit, format } => {
+                assert!(matches!(r#type, Some(DiscoveryEntityType::Function)));
+                assert_eq!(limit, 50);
+                assert!(matches!(format, OutputFormat::Human));
+            }
+            _ => panic!("Expected ListEntities command"),
+        }
+        
+        // Test with JSON format
+        let args = vec!["parseltongue", "list-entities", "--format", "json"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        match cli.command {
+            Commands::ListEntities { r#type, limit, format } => {
+                assert!(r#type.is_none());
+                assert_eq!(limit, 100);
+                assert!(matches!(format, OutputFormat::Json));
+            }
+            _ => panic!("Expected ListEntities command"),
+        }
+    }
+    
+    #[test]
+    fn test_entities_in_file_command_parsing() {
+        // Test basic entities-in-file command
+        let args = vec!["parseltongue", "entities-in-file", "src/main.rs"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        match cli.command {
+            Commands::EntitiesInFile { file, r#type, format } => {
+                assert_eq!(file, "src/main.rs");
+                assert!(r#type.is_none());
+                assert!(matches!(format, OutputFormat::Human));
+            }
+            _ => panic!("Expected EntitiesInFile command"),
+        }
+        
+        // Test with type filter and JSON format
+        let args = vec!["parseltongue", "entities-in-file", "src/lib.rs", "--type", "struct", "--format", "json"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        match cli.command {
+            Commands::EntitiesInFile { file, r#type, format } => {
+                assert_eq!(file, "src/lib.rs");
+                assert!(matches!(r#type, Some(DiscoveryEntityType::Struct)));
+                assert!(matches!(format, OutputFormat::Json));
+            }
+            _ => panic!("Expected EntitiesInFile command"),
+        }
+    }
+    
+    #[test]
+    fn test_where_defined_command_parsing() {
+        // Test basic where-defined command
+        let args = vec!["parseltongue", "where-defined", "test_function"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        match cli.command {
+            Commands::WhereDefined { entity, format } => {
+                assert_eq!(entity, "test_function");
+                assert!(matches!(format, OutputFormat::Human));
+            }
+            _ => panic!("Expected WhereDefined command"),
+        }
+        
+        // Test with JSON format
+        let args = vec!["parseltongue", "where-defined", "MyStruct", "--format", "json"];
+        let cli = Cli::try_parse_from(args).unwrap();
+        
+        match cli.command {
+            Commands::WhereDefined { entity, format } => {
+                assert_eq!(entity, "MyStruct");
+                assert!(matches!(format, OutputFormat::Json));
+            }
+            _ => panic!("Expected WhereDefined command"),
+        }
+    }
+    
+    #[test]
+    fn test_discovery_entity_type_conversion() {
+        // Test all entity type conversions
+        use crate::discovery::types::EntityType;
+        
+        assert_eq!(EntityType::from(DiscoveryEntityType::Function), EntityType::Function);
+        assert_eq!(EntityType::from(DiscoveryEntityType::Struct), EntityType::Struct);
+        assert_eq!(EntityType::from(DiscoveryEntityType::Trait), EntityType::Trait);
+        assert_eq!(EntityType::from(DiscoveryEntityType::Impl), EntityType::Impl);
+        assert_eq!(EntityType::from(DiscoveryEntityType::Module), EntityType::Module);
+        assert_eq!(EntityType::from(DiscoveryEntityType::Constant), EntityType::Constant);
+        assert_eq!(EntityType::from(DiscoveryEntityType::Static), EntityType::Static);
+        assert_eq!(EntityType::from(DiscoveryEntityType::Macro), EntityType::Macro);
+    }
+
+    // Integration tests for discovery commands
+    #[tokio::test]
+    async fn test_list_entities_command_execution() {
+        let temp_dir = TempDir::new().unwrap();
+        let dump_path = temp_dir.path().join("test.dump");
+        
+        // Create test dump with entities
+        let dump_content = r#"
+FILE: src/lib.rs
+pub fn hello_world() -> String {
+    "Hello, World!".to_string()
+}
+
+pub struct Person {
+    name: String,
+    age: u32,
+}
+
+pub trait Greeter {
+    fn greet(&self) -> String;
+}
+
+impl Greeter for Person {
+    fn greet(&self) -> String {
+        format!("Hello, I'm {}", self.name)
+    }
+}
+"#;
+        
+        fs::write(&dump_path, dump_content).unwrap();
+        
+        // First ingest the data
+        let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
+        let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
+        let ingest_result = run(ingest_cli).await;
+        assert!(ingest_result.is_ok());
+        
+        // Test list-entities command
+        let list_args = vec!["parseltongue", "list-entities", "--limit", "10"];
+        let list_cli = Cli::try_parse_from(list_args).unwrap();
+        let list_result = run(list_cli).await;
+        
+        // Should succeed
+        assert!(list_result.is_ok());
+    }
+    
+    #[tokio::test]
+    async fn test_list_entities_with_type_filter() {
+        let temp_dir = TempDir::new().unwrap();
+        let dump_path = temp_dir.path().join("test.dump");
+        
+        let dump_content = r#"
+FILE: src/lib.rs
+pub fn test_function() {}
+pub struct TestStruct {}
+pub trait TestTrait {}
+"#;
+        
+        fs::write(&dump_path, dump_content).unwrap();
+        
+        // Ingest data
+        let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
+        let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
+        let _ = run(ingest_cli).await;
+        
+        // Test with function filter
+        let list_args = vec!["parseltongue", "list-entities", "--type", "function"];
+        let list_cli = Cli::try_parse_from(list_args).unwrap();
+        let list_result = run(list_cli).await;
+        assert!(list_result.is_ok());
+        
+        // Test with struct filter
+        let list_args = vec!["parseltongue", "list-entities", "--type", "struct"];
+        let list_cli = Cli::try_parse_from(list_args).unwrap();
+        let list_result = run(list_cli).await;
+        assert!(list_result.is_ok());
+    }
+    
+    #[tokio::test]
+    async fn test_entities_in_file_command_execution() {
+        let temp_dir = TempDir::new().unwrap();
+        let dump_path = temp_dir.path().join("test.dump");
+        
+        let dump_content = r#"
+FILE: src/main.rs
+pub fn main() {
+    println!("Hello, World!");
+}
+
+pub fn helper() -> i32 {
+    42
+}
+
+FILE: src/lib.rs
+pub struct Config {
+    debug: bool,
+}
+"#;
+        
+        fs::write(&dump_path, dump_content).unwrap();
+        
+        // Ingest data
+        let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
+        let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
+        let _ = run(ingest_cli).await;
+        
+        // Test entities-in-file command
+        let file_args = vec!["parseltongue", "entities-in-file", "src/main.rs"];
+        let file_cli = Cli::try_parse_from(file_args).unwrap();
+        let file_result = run(file_cli).await;
+        assert!(file_result.is_ok());
+        
+        // Test with type filter
+        let file_args = vec!["parseltongue", "entities-in-file", "src/main.rs", "--type", "function"];
+        let file_cli = Cli::try_parse_from(file_args).unwrap();
+        let file_result = run(file_cli).await;
+        assert!(file_result.is_ok());
+    }
+    
+    #[tokio::test]
+    async fn test_where_defined_command_execution() {
+        let temp_dir = TempDir::new().unwrap();
+        let dump_path = temp_dir.path().join("test.dump");
+        
+        let dump_content = r#"
+FILE: src/lib.rs
+pub fn target_function() -> String {
+    "Found me!".to_string()
+}
+"#;
+        
+        fs::write(&dump_path, dump_content).unwrap();
+        
+        // Ingest data
+        let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
+        let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
+        let _ = run(ingest_cli).await;
+        
+        // Test where-defined command
+        let where_args = vec!["parseltongue", "where-defined", "target_function"];
+        let where_cli = Cli::try_parse_from(where_args).unwrap();
+        let where_result = run(where_cli).await;
+        assert!(where_result.is_ok());
+        
+        // Test with non-existent entity
+        let where_args = vec!["parseltongue", "where-defined", "nonexistent_function"];
+        let where_cli = Cli::try_parse_from(where_args).unwrap();
+        let where_result = run(where_cli).await;
+        assert!(where_result.is_ok()); // Should succeed but report not found
+    }
+    
+    #[tokio::test]
+    async fn test_discovery_commands_json_output() {
+        let temp_dir = TempDir::new().unwrap();
+        let dump_path = temp_dir.path().join("test.dump");
+        
+        let dump_content = r#"
+FILE: src/lib.rs
+pub fn json_test() {}
+"#;
+        
+        fs::write(&dump_path, dump_content).unwrap();
+        
+        // Ingest data
+        let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
+        let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
+        let _ = run(ingest_cli).await;
+        
+        // Test list-entities with JSON output
+        let list_args = vec!["parseltongue", "list-entities", "--format", "json"];
+        let list_cli = Cli::try_parse_from(list_args).unwrap();
+        let list_result = run(list_cli).await;
+        assert!(list_result.is_ok());
+        
+        // Test entities-in-file with JSON output
+        let file_args = vec!["parseltongue", "entities-in-file", "src/lib.rs", "--format", "json"];
+        let file_cli = Cli::try_parse_from(file_args).unwrap();
+        let file_result = run(file_cli).await;
+        assert!(file_result.is_ok());
+        
+        // Test where-defined with JSON output
+        let where_args = vec!["parseltongue", "where-defined", "json_test", "--format", "json"];
+        let where_cli = Cli::try_parse_from(where_args).unwrap();
+        let where_result = run(where_cli).await;
+        assert!(where_result.is_ok());
+    }
+    
+    #[tokio::test]
+    async fn test_discovery_commands_performance_contracts() {
+        let temp_dir = TempDir::new().unwrap();
+        let dump_path = temp_dir.path().join("test.dump");
+        
+        // Create a reasonably sized test dump
+        let mut dump_content = String::new();
+        dump_content.push_str("FILE: src/lib.rs\n");
+        
+        // Add multiple entities to test performance
+        for i in 0..50 {
+            dump_content.push_str(&format!("pub fn test_function_{}() {{}}\n", i));
+            dump_content.push_str(&format!("pub struct TestStruct{} {{}}\n", i));
+        }
+        
+        fs::write(&dump_path, dump_content).unwrap();
+        
+        // Ingest data
+        let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
+        let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
+        let _ = run(ingest_cli).await;
+        
+        // Test list-entities performance
+        let start = Instant::now();
+        let list_args = vec!["parseltongue", "list-entities"];
+        let list_cli = Cli::try_parse_from(list_args).unwrap();
+        let _ = run(list_cli).await;
+        let list_elapsed = start.elapsed();
+        
+        // Should meet <100ms contract for discovery operations
+        assert!(list_elapsed.as_millis() < 100, 
+                "list-entities took {:?}, expected <100ms", list_elapsed);
+        
+        // Test where-defined performance
+        let start = Instant::now();
+        let where_args = vec!["parseltongue", "where-defined", "test_function_0"];
+        let where_cli = Cli::try_parse_from(where_args).unwrap();
+        let _ = run(where_cli).await;
+        let where_elapsed = start.elapsed();
+        
+        // Should meet <50ms contract for exact lookups
+        assert!(where_elapsed.as_millis() < 50, 
+                "where-defined took {:?}, expected <50ms", where_elapsed);
+    }
+    
+    #[test]
+    fn test_cli_help_includes_discovery_commands() {
+        use clap::CommandFactory;
+        let mut cli = Cli::command();
+        let help = cli.render_help();
+        let help_text = help.to_string();
+        
+        // Should contain all discovery commands
+        assert!(help_text.contains("list-entities"));
+        assert!(help_text.contains("entities-in-file"));
+        assert!(help_text.contains("where-defined"));
+        
+        // Should contain command descriptions
+        assert!(help_text.contains("List all entities in the codebase"));
+        assert!(help_text.contains("List entities defined in a specific file"));
+        assert!(help_text.contains("Find where an entity is defined"));
+    }
+    
+    #[test]
+    fn test_discovery_command_error_handling() {
+        // Test invalid entity type
+        let args = vec!["parseltongue", "list-entities", "--type", "invalid"];
+        let result = Cli::try_parse_from(args);
+        assert!(result.is_err());
+        
+        // Test invalid format
+        let args = vec!["parseltongue", "list-entities", "--format", "invalid"];
+        let result = Cli::try_parse_from(args);
+        assert!(result.is_err());
+        
+        // Test missing required arguments
+        let args = vec!["parseltongue", "entities-in-file"];
+        let result = Cli::try_parse_from(args);
+        assert!(result.is_err());
+        
+        let args = vec!["parseltongue", "where-defined"];
+        let result = Cli::try_parse_from(args);
+        assert!(result.is_err());
     }
 }

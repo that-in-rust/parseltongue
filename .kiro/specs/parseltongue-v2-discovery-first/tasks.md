@@ -65,35 +65,35 @@
   - Write concurrency tests validating thread safety under concurrent load
   - _Requirements: Performance preservation constraint_
 
-- [ ] 10. Add comprehensive error handling and structured errors
+- [x] 10. Add comprehensive error handling and structured errors
   - Implement DiscoveryError enum with all possible failure conditions
   - Create context-rich error messages for CLI user experience
   - Add performance contract violation detection and reporting
   - Write error handling tests covering all error conditions
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 11. Build CLI command interface for discovery operations
+- [x] 11. Build CLI command interface for discovery operations
   - Implement CLI commands: list-entities, entities-in-file, where-defined
   - Add entity type filtering (--type) and result limiting (--limit) options
   - Create formatted output for discovery results with file locations
   - Write CLI integration tests for all discovery command variations
   - _Requirements: 1.1, 1.2 (MVP focus)_
 
-- [ ] 12. Implement performance monitoring and contract validation
+- [x] 12. Implement performance monitoring and contract validation
   - Create DiscoveryMetrics struct with Histogram and Counter metrics
   - Add automated performance contract validation (<100ms discovery, <50μs existing queries)
   - Implement memory usage monitoring with <20% increase constraint
   - Write performance regression tests for all critical paths
   - _Requirements: Performance preservation constraint, 1.1, 1.2, 1.3_
 
-- [ ] 13. Create backward compatibility layer
+- [x] 13. Create backward compatibility layer
   - Implement LegacyQueryAdapter maintaining v1 API compatibility
   - Ensure existing query interface remains unchanged (zero breaking changes)
   - Add discovery capabilities as additive features only
   - Write compatibility tests ensuring v1 functionality preservation
   - _Requirements: Performance preservation constraint_
 
-- [ ] 14. Build comprehensive integration and end-to-end tests
+- [x] 14. Build comprehensive integration and end-to-end tests
   - Create test scenarios covering discovery-to-analysis workflows
   - Implement property-based tests for discovery query invariants
   - Add stress tests with realistic codebase sizes (Iggy: 983 files, Axum: 295 files)
@@ -107,7 +107,7 @@
   - Write micro-benchmarks for all performance-critical operations
   - _Requirements: Performance preservation constraint, memory efficiency_
 
-- [ ] 16. Add JSON output support for tooling integration
+- [-] 16. Add JSON output support for tooling integration
   - Implement `--json` flag for all discovery commands (list-entities, entities-in-file, where-defined)
   - Create structured JSON schemas with metadata (timestamps, file paths, confidence scores)
   - Add JSON output for blast-radius analysis with machine-readable impact data

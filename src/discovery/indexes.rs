@@ -111,6 +111,66 @@ impl DiscoveryIndexes {
         }
     }
     
+    /// Zero-allocation entity filtering with iterator patterns
+    /// 
+    /// Returns an iterator that filters entities by type without allocating
+    /// intermediate collections. This is critical for performance when dealing
+    /// with large entity sets.
+    pub fn filter_entities_by_type(&self, entity_type: EntityType) -> impl Iterator<Item = &CompactEntityInfo> {
+        self.all_entities.iter().filter(move |entity| entity.entity_type == entity_type)
+    }
+    
+    /// Zero-allocation entity filtering by file with iterator patterns
+    /// 
+    /// Returns an iterator that filters entities by file ID without allocating
+    /// intermediate collections.
+    pub fn filter_entities_by_file(&self, file_id: FileId) -> impl Iterator<Item = &CompactEntityInfo> {
+        self.all_entities.iter().filter(move |entity| entity.file_id == file_id)
+    }
+    
+    /// Zero-allocation combined filtering by type and file
+    /// 
+    /// Chains multiple filters without intermediate allocations.
+    pub fn filter_entities_by_type_and_file(
+        &self, 
+        entity_type: EntityType, 
+        file_id: FileId
+    ) -> impl Iterator<Item = &CompactEntityInfo> {
+        self.all_entities
+            .iter()
+            .filter(move |entity| entity.entity_type == entity_type && entity.file_id == file_id)
+    }
+    
+    /// Zero-allocation pagination with iterator patterns
+    /// 
+    /// Returns an iterator that applies pagination without collecting intermediate results.
+    pub fn paginate_entities<'a>(
+        &'a self,
+        iter: impl Iterator<Item = &'a CompactEntityInfo> + 'a,
+        offset: usize,
+        limit: usize,
+    ) -> impl Iterator<Item = &'a CompactEntityInfo> + 'a {
+        iter.skip(offset).take(limit)
+    }
+    
+    /// Zero-allocation entity search by name prefix
+    /// 
+    /// Returns an iterator that filters entities by name prefix without allocations.
+    pub fn filter_entities_by_name_prefix<'a>(
+        &'a self,
+        prefix: &'a str,
+    ) -> impl Iterator<Item = &'a CompactEntityInfo> + 'a {
+        self.all_entities
+            .iter()
+            .filter(move |entity| {
+                if let Some(name) = self.interner.get_name(entity.name_id) {
+                    name.starts_with(prefix)
+                } else {
+                    false
+                }
+            })
+    }
+    
     /// Rebuild indexes from entity list
     /// 
     /// # Performance Contract

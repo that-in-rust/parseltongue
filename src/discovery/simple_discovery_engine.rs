@@ -9,7 +9,7 @@
 use crate::discovery::{
     engine::DiscoveryEngine,
     types::{EntityInfo, EntityType, FileLocation, DiscoveryQuery, DiscoveryResult},
-    error::{DiscoveryResult as Result},
+    error::{DiscoveryResult as Result, PerformanceMonitor},
 };
 use crate::isg::{OptimizedISG, NodeData};
 use async_trait::async_trait;
@@ -165,6 +165,8 @@ where
     file_navigation: F,
     /// Type index for efficient entity type filtering (built lazily)
     type_index: std::sync::Arc<std::sync::RwLock<TypeIndex>>,
+    /// Performance monitor for contract validation
+    performance_monitor: PerformanceMonitor,
 }
 
 impl SimpleDiscoveryEngine<crate::discovery::ISGFileNavigationProvider> {
@@ -175,6 +177,7 @@ impl SimpleDiscoveryEngine<crate::discovery::ISGFileNavigationProvider> {
             isg,
             file_navigation,
             type_index: std::sync::Arc::new(std::sync::RwLock::new(TypeIndex::new())),
+            performance_monitor: PerformanceMonitor::new(),
         }
     }
 }
@@ -191,6 +194,21 @@ where
             isg,
             file_navigation,
             type_index: std::sync::Arc::new(std::sync::RwLock::new(TypeIndex::new())),
+            performance_monitor: PerformanceMonitor::new(),
+        }
+    }
+    
+    /// Create a new SimpleDiscoveryEngine with custom performance monitor
+    pub fn with_performance_monitor(
+        isg: OptimizedISG, 
+        file_navigation: F, 
+        performance_monitor: PerformanceMonitor
+    ) -> Self {
+        Self {
+            isg,
+            file_navigation,
+            type_index: std::sync::Arc::new(std::sync::RwLock::new(TypeIndex::new())),
+            performance_monitor,
         }
     }
     
@@ -320,24 +338,50 @@ where
         entity_type: Option<EntityType>,
         max_results: usize,
     ) -> Result<Vec<EntityInfo>> {
-        // Use type index for efficient filtering when entity type is specified
-        if let Some(filter_type) = entity_type {
-            return self.entities_by_type_efficient(filter_type, max_results).await;
-        }
+        let start = Instant::now();
         
-        // For all entities, get from ISG and apply pagination
-        let mut entities = self.get_all_entities();
-        entities.truncate(max_results);
+        // Use type index for efficient filtering when entity type is specified
+        let entities = if let Some(filter_type) = entity_type {
+            self.entities_by_type_efficient(filter_type, max_results).await?
+        } else {
+            // For all entities, get from ISG and apply pagination
+            let mut entities = self.get_all_entities();
+            entities.truncate(max_results);
+            entities
+        };
+        
+        let elapsed = start.elapsed();
+        
+        // Check performance contract
+        self.performance_monitor.check_discovery_performance("list_all_entities", elapsed)?;
         
         Ok(entities)
     }
     
     async fn entities_in_file(&self, file_path: &str) -> Result<Vec<EntityInfo>> {
-        self.file_navigation.entities_in_file_with_filter(file_path, None).await
+        let start = Instant::now();
+        
+        let entities = self.file_navigation.entities_in_file_with_filter(file_path, None).await?;
+        
+        let elapsed = start.elapsed();
+        
+        // Check performance contract
+        self.performance_monitor.check_discovery_performance("entities_in_file", elapsed)?;
+        
+        Ok(entities)
     }
     
     async fn where_defined(&self, entity_name: &str) -> Result<Option<FileLocation>> {
-        self.file_navigation.where_defined(entity_name).await
+        let start = Instant::now();
+        
+        let location = self.file_navigation.where_defined(entity_name).await?;
+        
+        let elapsed = start.elapsed();
+        
+        // Check performance contract (stricter limit for exact lookups)
+        self.performance_monitor.check_existing_query_performance("where_defined", elapsed)?;
+        
+        Ok(location)
     }
     
     async fn execute_discovery_query(&self, query: DiscoveryQuery) -> Result<DiscoveryResult> {
@@ -848,5 +892,52 @@ mod tests {
         // All operations should complete quickly with type index
         assert!(elapsed < Duration::from_millis(100), 
                 "Type filtering operations took {:?}, expected <100ms", elapsed);
+    }
+    
+    #[tokio::test]
+    async fn test_performance_contract_violation_detection() {
+        use crate::discovery::error::{PerformanceMonitor, DiscoveryError};
+        
+        let isg = create_test_isg();
+        
+        // Create a performance monitor with very strict limits for testing
+        let strict_monitor = PerformanceMonitor::with_limits(
+            Duration::from_nanos(1), // Impossibly fast discovery limit
+            Duration::from_nanos(1), // Impossibly fast existing query limit
+            5.0, // Very low memory limit
+        );
+        
+        let mock_provider = MockFileNavigationProvider::new();
+        let engine = SimpleDiscoveryEngine::with_performance_monitor(isg, mock_provider, strict_monitor);
+        
+        // Test that performance violations are detected
+        let result = engine.list_all_entities(None, 10).await;
+        assert!(result.is_err(), "Should detect performance violation");
+        
+        if let Err(error) = result {
+            assert!(matches!(error, DiscoveryError::PerformanceViolation { .. }));
+            assert!(error.is_performance_issue());
+            assert!(error.is_recoverable());
+        }
+    }
+    
+    #[tokio::test]
+    async fn test_performance_monitor_integration() {
+        use crate::discovery::error::PerformanceMonitor;
+        
+        let isg = create_test_isg();
+        let monitor = PerformanceMonitor::new();
+        let mock_provider = MockFileNavigationProvider::new();
+        let engine = SimpleDiscoveryEngine::with_performance_monitor(isg, mock_provider, monitor);
+        
+        // Test that normal operations pass performance checks
+        let entities = engine.list_all_entities(Some(EntityType::Function), 5).await.unwrap();
+        assert!(!entities.is_empty());
+        
+        let file_entities = engine.entities_in_file("src/main.rs").await.unwrap();
+        assert_eq!(file_entities.len(), 2); // Mock provider returns 2 entities
+        
+        let location = engine.where_defined("main").await.unwrap();
+        assert!(location.is_some()); // Mock provider returns a location
     }
 }

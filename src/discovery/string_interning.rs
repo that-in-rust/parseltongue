@@ -194,6 +194,165 @@ impl FileInterner {
             total_entries: self.len(),
         }
     }
+    
+    /// Optimize memory layout by compacting the interner
+    /// 
+    /// Rebuilds the internal hash maps with optimal capacity to reduce
+    /// memory overhead from unused hash map capacity.
+    pub fn compact(&mut self) {
+        let current_len = self.len();
+        
+        // Rebuild with exact capacity to minimize memory overhead
+        let mut new_path_to_id = FxHashMap::with_capacity_and_hasher(current_len, Default::default());
+        let mut new_id_to_path = FxHashMap::with_capacity_and_hasher(current_len, Default::default());
+        
+        // Copy all entries to new maps
+        for (path, id) in &self.path_to_id {
+            new_path_to_id.insert(path.clone(), *id);
+        }
+        
+        for (id, path) in &self.id_to_path {
+            new_id_to_path.insert(*id, path.clone());
+        }
+        
+        // Replace with compacted maps
+        self.path_to_id = new_path_to_id;
+        self.id_to_path = new_id_to_path;
+    }
+    
+    /// Bulk intern multiple paths efficiently
+    /// 
+    /// More efficient than individual intern() calls when processing
+    /// many paths at once. Reduces hash map reallocations.
+    pub fn bulk_intern(&mut self, paths: &[&str]) -> Vec<FileId> {
+        // Pre-allocate capacity if needed
+        let new_capacity = self.len() + paths.len();
+        if self.path_to_id.capacity() < new_capacity {
+            self.path_to_id.reserve(paths.len());
+            self.id_to_path.reserve(paths.len());
+        }
+        
+        paths.iter().map(|path| self.intern(path)).collect()
+    }
+}
+
+/// Trigram index for efficient fuzzy string matching
+/// 
+/// Provides fast approximate string matching by indexing 3-character substrings.
+/// Memory-optimized using compact data structures.
+#[derive(Debug, Clone)]
+pub struct TrigramIndex {
+    /// Map from trigram to list of FileIds containing that trigram
+    trigram_to_ids: FxHashMap<[u8; 3], Vec<FileId>>,
+    /// Total number of trigrams indexed
+    total_trigrams: usize,
+}
+
+impl TrigramIndex {
+    /// Create a new empty trigram index
+    pub fn new() -> Self {
+        Self {
+            trigram_to_ids: FxHashMap::default(),
+            total_trigrams: 0,
+        }
+    }
+    
+    /// Build trigram index from file interner
+    /// 
+    /// Extracts all trigrams from interned strings and builds an index
+    /// for fast fuzzy matching.
+    pub fn build_from_interner(&mut self, interner: &FileInterner) {
+        self.trigram_to_ids.clear();
+        self.total_trigrams = 0;
+        
+        for (id, path_arc) in &interner.id_to_path {
+            let path = path_arc.as_ref();
+            let trigrams = extract_trigrams(path);
+            
+            for trigram in trigrams {
+                self.trigram_to_ids
+                    .entry(trigram)
+                    .or_insert_with(Vec::new)
+                    .push(*id);
+                self.total_trigrams += 1;
+            }
+        }
+        
+        // Sort and deduplicate ID lists for better cache performance
+        for ids in self.trigram_to_ids.values_mut() {
+            ids.sort_unstable();
+            ids.dedup();
+        }
+    }
+    
+    /// Find FileIds that match a query string using trigram similarity
+    /// 
+    /// Returns FileIds sorted by similarity score (highest first).
+    pub fn fuzzy_search(&self, query: &str, max_results: usize) -> Vec<(FileId, f32)> {
+        let query_trigrams = extract_trigrams(query);
+        if query_trigrams.is_empty() {
+            return Vec::new();
+        }
+        
+        // Count trigram matches for each FileId
+        let mut match_counts: FxHashMap<FileId, usize> = FxHashMap::default();
+        
+        for trigram in &query_trigrams {
+            if let Some(ids) = self.trigram_to_ids.get(trigram) {
+                for &id in ids {
+                    *match_counts.entry(id).or_insert(0) += 1;
+                }
+            }
+        }
+        
+        // Calculate similarity scores and sort
+        let mut results: Vec<(FileId, f32)> = match_counts
+            .into_iter()
+            .map(|(id, matches)| {
+                let similarity = matches as f32 / query_trigrams.len() as f32;
+                (id, similarity)
+            })
+            .collect();
+        
+        results.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+        results.truncate(max_results);
+        
+        results
+    }
+    
+    /// Get memory usage of the trigram index
+    pub fn memory_usage(&self) -> usize {
+        let map_overhead = self.trigram_to_ids.len() * (std::mem::size_of::<[u8; 3]>() + std::mem::size_of::<Vec<FileId>>());
+        let vector_storage: usize = self.trigram_to_ids.values()
+            .map(|v| v.len() * std::mem::size_of::<FileId>())
+            .sum();
+        
+        map_overhead + vector_storage
+    }
+}
+
+impl Default for TrigramIndex {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Extract trigrams from a string for indexing
+/// 
+/// Returns all 3-character substrings as byte arrays for efficient storage.
+fn extract_trigrams(s: &str) -> Vec<[u8; 3]> {
+    let bytes = s.as_bytes();
+    if bytes.len() < 3 {
+        return Vec::new();
+    }
+    
+    let mut trigrams = Vec::with_capacity(bytes.len() - 2);
+    for i in 0..=bytes.len() - 3 {
+        let trigram = [bytes[i], bytes[i + 1], bytes[i + 2]];
+        trigrams.push(trigram);
+    }
+    
+    trigrams
 }
 
 /// Memory usage statistics for FileInterner

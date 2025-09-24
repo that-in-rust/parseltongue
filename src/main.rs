@@ -4,10 +4,11 @@ use clap::Parser;
 use parseltongue::cli::Cli;
 use std::process;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cli = Cli::parse();
     
-    if let Err(e) = parseltongue::cli::run(cli) {
+    if let Err(e) = parseltongue::cli::run(cli).await {
         eprintln!("Error: {}", e);
         process::exit(1);
     }
