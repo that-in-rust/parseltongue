@@ -187,4 +187,6 @@
 
 - [x] 26. Do amazing documentation using Mermaid diagrams - Use .kiro/trun_c928898c8ef7483eb8257cb7dc52ac9a.json +  .kiro/Bullet-Proof Mermaid Prompts_ Square-Perfect Diagrams from Any LLM.md -- And finally make an approrpirate commit and push to origin
 
-- [ ] 27. Clean up the folders structure - add a TOC for all the reference files - and more importantly 
+- [-] 27. Clean up the folders structure - add a TOC for all the reference files - and more importantly - explictly say which files and folders need to be ported to your new codebase for the LLM to work with it
+
+- [ ] 28. Add a git tag of v0.1 or something - the absolute beginner one as you deem fit for releases to be captured - also choose the most permissive license

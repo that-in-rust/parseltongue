@@ -2,6 +2,8 @@
 
 Test-First Development: I should be writing tests FIRST, following the STUB → RED → GREEN → REFACTOR cycle
 
+Make friends with the parseltongue enabled workflows they will help you search and move faster - refer to .kiro/parseltongue*.md and .kiro/parseltongue*.json - IT WILL HELP YOU BUILD AN ACCURATE MENTAL MODEL OF THE CODEBASE
+
 ## The Essence: Executable Specifications Drive Everything
 
 **Core Truth**: Traditional user stories fail LLMs because they're designed for human conversation. LLMs need executable blueprints, not ambiguous narratives.
@@ -43,4 +45,4 @@ These principles are derived from the Parseltongue AIM Daemon design process and
 
 ## IMPORTANT FOR VISUALS AND DIAGRAMS
 
-ALL DIAGRAMS WILL BE IN MERMAID ONLY TO ENSURE EASE WITH GITHUB - DO NOT SKIP THAT
+ALL DIAGRAMS WILL BE IN MERMAID ONLY TO ENSURE EASE WITH GITHUB - DO NOT SKIP THAT use .kiro/MermaidPrompts
