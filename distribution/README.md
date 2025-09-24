@@ -1,68 +1,65 @@
-# Parseltongue v0.1.0 Distribution
+# 🚀 Parseltongue Distribution
 
-## 🚀 **Ready-to-Use Distribution**
+## Grab and Go - No Installation Required
 
-### **Quick Start**
+### **What You Get**
+- `binaries/parseltongue` - 4.3MB standalone binary
+- `copy-paste-ready/` - Scripts, prompts, and Kiro templates
+- `steering-integration/` - Integration guides
+
+### **30-Second Setup**
 ```bash
-# Make executable (if needed)
+# 1. Make executable
 chmod +x binaries/parseltongue
 
-# Test the binary
+# 2. Test it works  
 ./binaries/parseltongue --version
-./binaries/parseltongue --help
 
-# Start using immediately
+# 3. Analyze your project
 ./binaries/parseltongue onboard .
 ```
 
-### **📦 Contents**
+### **Copy-Paste Integration**
 
-#### **binaries/**
-- `parseltongue` - Optimized release binary (4.3MB)
-- No dependencies required
-- Works on macOS, Linux, Windows
-
-#### **steering-integration/**
-- `README.md` - Complete integration guide
-- `kiro-steering-template.md` - Ready-to-use Kiro steering template
-- Examples and best practices
-
-### **🎯 Integration Approaches**
-
-#### **1. Standalone Usage**
+#### **For Any Project**
 ```bash
-# Copy to your PATH
-cp binaries/parseltongue /usr/local/bin/
-
-# Use anywhere
-parseltongue onboard /path/to/project
+# Copy binary to project root
+cp binaries/parseltongue /your/project/
+cd /your/project
+./parseltongue onboard .
 ```
 
-#### **2. Project-Specific**
+#### **For Kiro Projects**
 ```bash
-# Keep in project root
-./distribution/binaries/parseltongue onboard .
+# Copy complete steering template
+cp copy-paste-ready/kiro-steering-complete.md /your/project/.kiro/steering/parseltongue.md
 ```
 
-#### **3. Kiro Steering Integration**
-Copy `steering-integration/kiro-steering-template.md` to your `.kiro/steering/` folder.
+#### **For LLM Workflows**
+```bash
+# Use the ready-made prompts
+cat copy-paste-ready/llm-prompts.md
+# Copy prompts for Claude, ChatGPT, Cursor, etc.
+```
 
-### **🔧 No Setup Required**
-- ✅ Single binary, no installation
-- ✅ No runtime dependencies  
-- ✅ No configuration files needed
-- ✅ Works immediately after download
+### **What's Inside**
 
-### **📋 Capabilities**
-- **Discovery**: List entities, find definitions, browse codebase
-- **Analysis**: Blast radius, dependencies, caller traces
-- **Workflows**: Onboarding, feature planning, debug assistance
-- **Integration**: JSON output, markdown generation, LLM context
+#### **`binaries/`**
+- `parseltongue` - The main binary (works on macOS, Linux, Windows)
 
-### **⚡ Performance**
-- Entity listing: <100ms
-- Blast radius queries: <500μs
-- File analysis: <2s for large files
-- Complete onboarding: <15 minutes
+#### **`copy-paste-ready/`**
+- `pt-wrapper.sh` - Convenient wrapper script
+- `llm-prompts.md` - Ready-made prompts for AI tools
+- `kiro-steering-complete.md` - Complete Kiro integration
 
-Perfect for steering documentation integration - lightweight, fast, and focused.
+#### **`steering-integration/`**
+- `README.md` - Integration guide
+- `kiro-steering-template.md` - Basic template
+
+### **Zero Dependencies**
+- ✅ No Rust installation needed
+- ✅ No package managers
+- ✅ No configuration files
+- ✅ Just download and run
+
+Perfect for teams who want architectural intelligence without setup complexity.

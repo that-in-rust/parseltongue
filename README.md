@@ -1,26 +1,48 @@
-# Parseltongue v0.1.0 🐍 
-## *Discovery-First Architectural Intelligence for Rust*
+# Parseltongue 🐍 
+## Understand Any Rust Codebase in 30 Seconds
 
-**Transform entity discovery from 5+ minutes to 30 seconds.** A lightweight, distribution-ready tool that makes Rust codebase analysis accessible to every developer.
+**Stop spending 30 minutes figuring out where things are.** Get instant architectural intelligence for any Rust project.
 
-## 🚀 **Quick Start**
-
-### **Ready-to-Use Distribution**
 ```bash
-# Use the pre-built binary (no installation required)
-./distribution/binaries/parseltongue --version
-./distribution/binaries/parseltongue onboard .
+# Download binary (4.3MB) → Run immediately → No installation
+./parseltongue onboard .
+# ✅ Complete codebase map in <15 minutes
+# ✅ Find any entity in <100ms  
+# ✅ Understand blast radius before changes
 ```
 
-### **For Kiro Steering Integration**
-See `distribution/steering-integration/` for templates and examples.
+## 🎯 **What Developers Actually Want**
 
-### **Repository Structure**
-- `distribution/` - Ready-to-use binaries and integration guides
-- `src/` - Core Rust source code  
-- `tests/` - Comprehensive test suite
-- `docs/` - Architecture and implementation documentation
-- `archive/` - Development history and artifacts
+### **Copy-Paste Ready**
+```bash
+# Essential commands (copy these)
+./parseltongue onboard .                    # Map the codebase
+./parseltongue feature-start UserService    # Impact analysis  
+./parseltongue where-defined MyStruct       # Find definitions
+./parseltongue debug handle_request         # Trace usage
+./parseltongue refactor-check auth_module   # Safety check
+```
+
+### **Kiro Steering Integration**
+```bash
+# Copy this file to your .kiro/steering/ folder
+cp distribution/copy-paste-ready/kiro-steering-complete.md .kiro/steering/parseltongue.md
+```
+
+### **LLM Integration**
+```bash
+# Generate rich context for AI tools
+./parseltongue generate-context MyStruct --format markdown
+# Perfect for Claude, ChatGPT, Cursor, GitHub Copilot
+```
+
+## 📦 **Get Started (30 seconds)**
+
+1. **Download**: `distribution/binaries/parseltongue` (4.3MB)
+2. **Run**: `./parseltongue onboard .`
+3. **Integrate**: Copy templates from `distribution/copy-paste-ready/`
+
+**That's it.** No installation, no dependencies, works immediately.
 
 ---
 
