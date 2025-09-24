@@ -6,7 +6,15 @@ set -e
 
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="./parseltongue_workspace/self_analysis_${TIMESTAMP}"
-PARSELTONGUE_BIN="${PARSELTONGUE_BIN:-./target/release/parseltongue_20250924231324}"
+# Find the latest parseltongue binary automatically
+if [ -z "$PARSELTONGUE_BIN" ]; then
+    PARSELTONGUE_BIN=$(ls -t ./target/release/parseltongue* 2>/dev/null | head -1)
+    if [ -z "$PARSELTONGUE_BIN" ]; then
+        echo "❌ Error: No parseltongue binary found in ./target/release/"
+        echo "Build with: cargo build --release"
+        exit 1
+    fi
+fi
 CODEBASE_PATH="$(pwd)"
 
 echo "🔍 Parseltongue Self-Analysis (Simplified)"
