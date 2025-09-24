@@ -23,6 +23,8 @@ pub mod file_navigation_tests;
 pub mod blast_radius_analyzer;
 pub mod indexes;
 pub mod concurrent_discovery_engine;
+pub mod performance_metrics;
+pub mod performance_regression_tests;
 
 // Re-export core types for convenience
 pub use string_interning::{FileId, FileInterner};
@@ -34,5 +36,7 @@ pub use simple_discovery_engine::SimpleDiscoveryEngine;
 pub use file_navigation_provider::ISGFileNavigationProvider;
 pub use file_navigation_tests::{FileNavigationProvider, FileStats, MockFileNavigationProvider};
 pub use blast_radius_analyzer::{BlastRadiusAnalyzer, BlastRadiusAnalysis, ImpactGroup, ImpactedEntity, RiskLevel};
-pub use indexes::{DiscoveryIndexes, CompactEntityInfo, MemoryStats, IndexError};
+pub use indexes::{DiscoveryIndexes, CompactEntityInfo, IndexError};
 pub use concurrent_discovery_engine::ConcurrentDiscoveryEngine;
+pub use performance_metrics::{DiscoveryMetrics, Counter, Histogram, MetricsError, ContractValidation, MemoryStats as MetricsMemoryStats};
+pub use performance_regression_tests::{PerformanceRegressionTester, PerformanceTestResults};

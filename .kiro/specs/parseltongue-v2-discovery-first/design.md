@@ -811,29 +811,6 @@ impl DiscoveryEngine {
 
 ## Migration Strategy
 
-### Backward Compatibility
-
-```rust
-/// Wrapper to maintain v1 API compatibility
-pub struct LegacyQueryAdapter {
-    discovery_engine: Arc<DiscoveryEngine>,
-    legacy_isg: Arc<InMemoryIsg>,
-}
-
-impl LegacyQueryAdapter {
-    /// Existing v1 query interface (unchanged)
-    pub async fn execute_query(&self, query: &str) -> Result<QueryResult, IsgError> {
-        // Route to existing ISG engine - zero changes
-        self.legacy_isg.execute_query(query).await
-    }
-    
-    /// New discovery interface (additive)
-    pub async fn discover_entities(&self, pattern: &str) -> DiscoveryResult<Vec<EntityMatch>> {
-        self.discovery_engine.find_entities_fuzzy(pattern, 50).await
-    }
-}
-```
-
 ### Incremental Rollout Plan
 
 1. **Phase 1**: Add discovery layer without changing existing code

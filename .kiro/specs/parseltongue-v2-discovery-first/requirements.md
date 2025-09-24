@@ -246,9 +246,8 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 **Implementation Requirements**:
 1. WHEN I run any discovery command with `--json` THEN the system SHALL output structured JSON
 2. WHEN generating JSON THEN the system SHALL include metadata (timestamps, confidence scores, file paths)
-3. WHEN JSON output is requested THEN the system SHALL maintain backward compatibility across versions
-4. WHEN integrating with tools THEN JSON SHALL include actionable file paths and line numbers
-5. WHEN workflows complete THEN they SHALL generate summary JSON suitable for PR descriptions
+3. WHEN integrating with tools THEN JSON SHALL include actionable file paths and line numbers
+4. WHEN workflows complete THEN they SHALL generate summary JSON suitable for PR descriptions
 
 #### Requirement 6: Workspace State Management
 **The One Thing**: Maintain persistent analysis state across discovery sessions.

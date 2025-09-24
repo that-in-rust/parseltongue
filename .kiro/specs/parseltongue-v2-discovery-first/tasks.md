@@ -87,13 +87,7 @@
   - Write performance regression tests for all critical paths
   - _Requirements: Performance preservation constraint, 1.1, 1.2, 1.3_
 
-- [ ] 13. Create backward compatibility layer
-  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
-  - Implement LegacyQueryAdapter maintaining v1 API compatibility
-  - Ensure existing query interface remains unchanged (zero breaking changes)
-  - Add discovery capabilities as additive features only
-  - Write compatibility tests ensuring v1 functionality preservation
-  - _Requirements: Performance preservation constraint_
+
 
 - [ ] 14. Build comprehensive integration and end-to-end tests
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
