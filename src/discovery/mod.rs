@@ -13,6 +13,7 @@ pub mod engine;
 pub mod types;
 pub mod error;
 pub mod enhanced_isg_node;
+pub mod simple_discovery_engine;
 
 #[cfg(test)]
 mod integration_test;
@@ -23,3 +24,4 @@ pub use engine::DiscoveryEngine;
 pub use types::{EntityInfo, FileLocation, DiscoveryQuery, DiscoveryResult};
 pub use error::{DiscoveryError, DiscoveryResult as Result};
 pub use enhanced_isg_node::{EnhancedIsgNode, NodeConverter};
+pub use simple_discovery_engine::SimpleDiscoveryEngine;

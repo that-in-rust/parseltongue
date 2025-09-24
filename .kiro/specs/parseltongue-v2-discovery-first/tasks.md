@@ -7,14 +7,14 @@
   - Write unit tests for string interning efficiency and memory usage
   - _Requirements: 1.1, 1.2, 2.1_
 
-- [ ] 2. Enhance ISG node structure with file location attributes
+- [x] 2. Enhance ISG node structure with file location attributes
   - Extend existing ISG node structure to include file_path, line_number, column fields
   - Implement EnhancedIsgNode with embedded file location data (not separate nodes)
   - Create conversion utilities between existing and enhanced node formats
   - Write unit tests validating O(1) file location access performance
   - _Requirements: 2.1, 2.2, 2.3_
 
-- [ ] 3. Implement simple entity listing (core constraint solver)
+- [x] 3. Implement simple entity listing (core constraint solver)
   - Create sorted entity list for simple browsing (all_entities: Vec<EntityInfo>)
   - Implement entity type filtering for focused discovery
   - Build efficient entity listing with pagination support

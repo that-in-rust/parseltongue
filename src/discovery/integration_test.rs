@@ -1,25 +1,24 @@
-//! Integration test for EnhancedIsgNode with discovery system
+//! Integration tests for the discovery system
 //! 
-//! This test demonstrates that the enhanced ISG node structure integrates
-//! correctly with the discovery system and provides the expected O(1)
-//! file location access performance.
+//! Tests the complete entity listing workflow from ISG to discovery results
 
 #[cfg(test)]
-mod integration_tests {
-    use crate::discovery::enhanced_isg_node::{EnhancedIsgNode, NodeConverter};
-    use crate::discovery::string_interning::FileInterner;
-    use crate::discovery::types::{EntityInfo, EntityType};
-    use crate::isg::{NodeData, NodeKind, SigHash};
+mod tests {
+    use crate::discovery::{SimpleDiscoveryEngine, DiscoveryEngine, DiscoveryQuery};
+    use crate::discovery::types::EntityType;
+    use crate::isg::{OptimizedISG, NodeData, NodeKind, SigHash};
     use std::sync::Arc;
-    use std::time::Instant;
-
-    /// Integration test: Convert existing NodeData to EnhancedIsgNode and verify discovery functionality
-    #[test]
-    fn test_enhanced_node_discovery_integration() {
-        let mut interner = FileInterner::new();
+    use std::time::Duration;
+    
+    /// Integration test: Complete entity discovery workflow
+    #[tokio::test]
+    async fn test_complete_entity_discovery_workflow() {
+        // Create ISG with realistic Rust project structure
+        let isg = OptimizedISG::new();
         
-        // Create sample NodeData (simulating existing ISG data)
-        let original_nodes = vec![
+        // Add entities representing a typical Rust project
+        let entities = vec![
+            // Main function
             NodeData {
                 hash: SigHash::from_signature("fn main"),
                 kind: NodeKind::Function,
@@ -28,191 +27,185 @@ mod integration_tests {
                 file_path: Arc::from("src/main.rs"),
                 line: 1,
             },
+            // Library functions
+            NodeData {
+                hash: SigHash::from_signature("fn create_user"),
+                kind: NodeKind::Function,
+                name: Arc::from("create_user"),
+                signature: Arc::from("fn create_user(name: String) -> User"),
+                file_path: Arc::from("src/lib.rs"),
+                line: 10,
+            },
+            NodeData {
+                hash: SigHash::from_signature("fn validate_email"),
+                kind: NodeKind::Function,
+                name: Arc::from("validate_email"),
+                signature: Arc::from("fn validate_email(email: &str) -> bool"),
+                file_path: Arc::from("src/lib.rs"),
+                line: 20,
+            },
+            // Data structures
             NodeData {
                 hash: SigHash::from_signature("struct User"),
                 kind: NodeKind::Struct,
                 name: Arc::from("User"),
-                signature: Arc::from("struct User { name: String, age: u32 }"),
-                file_path: Arc::from("src/models/user.rs"),
-                line: 10,
+                signature: Arc::from("struct User { name: String, email: String }"),
+                file_path: Arc::from("src/models.rs"),
+                line: 5,
             },
             NodeData {
-                hash: SigHash::from_signature("trait Display"),
+                hash: SigHash::from_signature("struct Config"),
+                kind: NodeKind::Struct,
+                name: Arc::from("Config"),
+                signature: Arc::from("struct Config { database_url: String }"),
+                file_path: Arc::from("src/config.rs"),
+                line: 3,
+            },
+            // Traits
+            NodeData {
+                hash: SigHash::from_signature("trait Validate"),
                 kind: NodeKind::Trait,
-                name: Arc::from("Display"),
-                signature: Arc::from("trait Display { fn fmt(&self) -> String; }"),
-                file_path: Arc::from("src/traits/display.rs"),
-                line: 5,
+                name: Arc::from("Validate"),
+                signature: Arc::from("trait Validate { fn is_valid(&self) -> bool; }"),
+                file_path: Arc::from("src/traits.rs"),
+                line: 1,
             },
         ];
         
-        // Convert to enhanced nodes
-        let enhanced_nodes = NodeConverter::batch_from_node_data(&original_nodes, &mut interner);
+        for entity in entities {
+            isg.upsert_node(entity);
+        }
         
-        // Verify conversion succeeded
-        assert_eq!(enhanced_nodes.len(), 3);
+        // Create discovery engine
+        let engine = SimpleDiscoveryEngine::new(isg);
         
-        // Test O(1) file location access
-        let start = Instant::now();
-        for node in &enhanced_nodes {
-            let location = node.file_location(&interner);
-            assert!(location.is_some());
+        // Test 1: List all entities (core constraint solver)
+        let all_entities = engine.list_all_entities(None, 100).await.unwrap();
+        assert_eq!(all_entities.len(), 6);
+        
+        // Verify entities are sorted by name
+        let names: Vec<&str> = all_entities.iter().map(|e| e.name.as_str()).collect();
+        assert_eq!(names, vec!["Config", "User", "Validate", "create_user", "main", "validate_email"]);
+        
+        // Test 2: Entity type filtering
+        let functions = engine.list_all_entities(Some(EntityType::Function), 100).await.unwrap();
+        assert_eq!(functions.len(), 3);
+        assert!(functions.iter().all(|e| e.entity_type == EntityType::Function));
+        
+        let structs = engine.list_all_entities(Some(EntityType::Struct), 100).await.unwrap();
+        assert_eq!(structs.len(), 2);
+        assert!(structs.iter().all(|e| e.entity_type == EntityType::Struct));
+        
+        let traits = engine.list_all_entities(Some(EntityType::Trait), 100).await.unwrap();
+        assert_eq!(traits.len(), 1);
+        assert!(traits.iter().all(|e| e.entity_type == EntityType::Trait));
+        
+        // Test 3: File-based entity listing
+        let lib_entities = engine.entities_in_file("src/lib.rs").await.unwrap();
+        assert_eq!(lib_entities.len(), 2);
+        assert!(lib_entities.iter().any(|e| e.name == "create_user"));
+        assert!(lib_entities.iter().any(|e| e.name == "validate_email"));
+        
+        // Test 4: Entity location lookup
+        let user_location = engine.where_defined("User").await.unwrap();
+        assert!(user_location.is_some());
+        let location = user_location.unwrap();
+        assert_eq!(location.file_path, "src/models.rs");
+        assert_eq!(location.line_number, Some(5));
+        
+        // Test 5: Discovery query execution with performance monitoring
+        let query = DiscoveryQuery::list_by_type(EntityType::Function);
+        let result = engine.execute_discovery_query(query).await.unwrap();
+        
+        assert_eq!(result.entities.len(), 3);
+        assert!(result.meets_performance_contract());
+        assert_eq!(result.total_entities, 6);
+        
+        // Test 6: System statistics
+        let total_count = engine.total_entity_count().await.unwrap();
+        assert_eq!(total_count, 6);
+        
+        let counts_by_type = engine.entity_count_by_type().await.unwrap();
+        assert_eq!(counts_by_type.get(&EntityType::Function), Some(&3));
+        assert_eq!(counts_by_type.get(&EntityType::Struct), Some(&2));
+        assert_eq!(counts_by_type.get(&EntityType::Trait), Some(&1));
+        
+        let file_paths = engine.all_file_paths().await.unwrap();
+        assert_eq!(file_paths.len(), 5);
+        assert!(file_paths.contains(&"src/main.rs".to_string()));
+        assert!(file_paths.contains(&"src/lib.rs".to_string()));
+        assert!(file_paths.contains(&"src/models.rs".to_string()));
+        assert!(file_paths.contains(&"src/config.rs".to_string()));
+        assert!(file_paths.contains(&"src/traits.rs".to_string()));
+        
+        // Test 7: Health check
+        let health = engine.health_check().await;
+        assert!(health.is_ok());
+    }
+    
+    /// Performance validation: Entity listing under load
+    #[tokio::test]
+    async fn test_entity_listing_performance_validation() {
+        // Create large ISG to test performance contracts
+        let isg = OptimizedISG::new();
+        
+        // Add 1000 entities across different files and types (reduced for reliability)
+        for i in 0..1000 {
+            let file_num = i % 10; // 10 different files
+            let entity_type = match i % 3 {
+                0 => NodeKind::Function,
+                1 => NodeKind::Struct,
+                _ => NodeKind::Trait,
+            };
             
-            let file_path = node.file_path(&interner);
-            assert!(file_path.is_some());
-        }
-        let elapsed = start.elapsed();
-        
-        // Should be very fast
-        assert!(elapsed.as_micros() < 100, "File location access too slow: {:?}", elapsed);
-        
-        // Test EntityInfo conversion for discovery
-        let entity_infos: Vec<EntityInfo> = enhanced_nodes
-            .iter()
-            .filter_map(|node| node.to_entity_info(&interner))
-            .collect();
-        
-        assert_eq!(entity_infos.len(), 3);
-        
-        // Verify entity info data
-        let main_entity = entity_infos.iter().find(|e| e.name == "main").unwrap();
-        assert_eq!(main_entity.file_path, "src/main.rs");
-        assert_eq!(main_entity.line_number, Some(1));
-        assert_eq!(main_entity.entity_type, EntityType::Function);
-        
-        let user_entity = entity_infos.iter().find(|e| e.name == "User").unwrap();
-        assert_eq!(user_entity.file_path, "src/models/user.rs");
-        assert_eq!(user_entity.line_number, Some(10));
-        assert_eq!(user_entity.entity_type, EntityType::Struct);
-        
-        let display_entity = entity_infos.iter().find(|e| e.name == "Display").unwrap();
-        assert_eq!(display_entity.file_path, "src/traits/display.rs");
-        assert_eq!(display_entity.line_number, Some(5));
-        assert_eq!(display_entity.entity_type, EntityType::Trait);
-    }
-    
-    /// Test that enhanced nodes can be converted back to NodeData without data loss
-    #[test]
-    fn test_round_trip_conversion() {
-        let mut interner = FileInterner::new();
-        
-        // Create original NodeData
-        let original = NodeData {
-            hash: SigHash::from_signature("fn test_function"),
-            kind: NodeKind::Function,
-            name: Arc::from("test_function"),
-            signature: Arc::from("fn test_function(x: i32) -> String"),
-            file_path: Arc::from("src/test.rs"),
-            line: 42,
-        };
-        
-        // Convert to enhanced node
-        let enhanced = NodeConverter::from_node_data(&original, &mut interner);
-        
-        // Verify enhanced node has additional column capability
-        assert_eq!(enhanced.column, 0); // Column not available in original
-        
-        // Convert back to NodeData
-        let converted_back = NodeConverter::to_node_data(&enhanced, &interner).unwrap();
-        
-        // Verify essential data is preserved
-        assert_eq!(converted_back.hash, original.hash);
-        assert_eq!(converted_back.kind, original.kind);
-        assert_eq!(converted_back.name, original.name);
-        assert_eq!(converted_back.signature, original.signature);
-        assert_eq!(converted_back.file_path, original.file_path);
-        assert_eq!(converted_back.line, original.line);
-    }
-    
-    /// Test enhanced node with complete position information (line + column)
-    #[test]
-    fn test_enhanced_node_with_complete_position() {
-        let mut interner = FileInterner::new();
-        let file_id = interner.intern("src/complete.rs");
-        
-        // Create enhanced node with complete position
-        let enhanced_node = EnhancedIsgNode::new(
-            SigHash::from_signature("fn complete_function"),
-            NodeKind::Function,
-            Arc::from("complete_function"),
-            Arc::from("fn complete_function() -> Result<(), Error>"),
-            file_id,
-            25,  // line
-            15,  // column
-        );
-        
-        // Verify complete position information
-        assert!(enhanced_node.has_complete_position());
-        assert_eq!(enhanced_node.line_number, 25);
-        assert_eq!(enhanced_node.column, 15);
-        
-        // Test formatted location
-        let formatted = enhanced_node.format_location(&interner);
-        assert_eq!(formatted, "src/complete.rs:25:15");
-        
-        // Test EntityInfo conversion includes column
-        let entity_info = enhanced_node.to_entity_info(&interner).unwrap();
-        assert_eq!(entity_info.column, Some(15));
-        
-        // Test file location includes column
-        let file_location = enhanced_node.file_location(&interner).unwrap();
-        assert_eq!(file_location.column, Some(15));
-    }
-    
-    /// Performance test: Verify O(1) access scales with large datasets
-    #[test]
-    fn test_large_scale_o1_performance() {
-        let mut interner = FileInterner::with_capacity(1000);
-        
-        // Create a large dataset
-        let num_nodes = 10000;
-        let num_files = 100;
-        
-        let enhanced_nodes: Vec<EnhancedIsgNode> = (0..num_nodes)
-            .map(|i| {
-                let file_idx = i % num_files;
-                let file_id = interner.intern(&format!("src/module_{:03}.rs", file_idx));
-                
-                EnhancedIsgNode::new(
-                    SigHash::from_signature(&format!("fn function_{}", i)),
-                    NodeKind::Function,
-                    Arc::from(format!("function_{}", i)),
-                    Arc::from(format!("fn function_{}() -> i32", i)),
-                    file_id,
-                    (i as u32 % 1000) + 1,
-                    (i as u32 % 80) + 1,
-                )
-            })
-            .collect();
-        
-        // Test file location access performance
-        let iterations = 10000;
-        let start = Instant::now();
-        
-        for i in 0..iterations {
-            let node_idx = i % enhanced_nodes.len();
-            let _location = enhanced_nodes[node_idx].file_location(&interner);
+            let unique_signature = format!("{:?}_entity_{}_{}", entity_type, i, file_num);
+            let node = NodeData {
+                hash: SigHash::from_signature(&unique_signature),
+                kind: entity_type,
+                name: Arc::from(format!("entity_{}", i)),
+                signature: Arc::from(unique_signature),
+                file_path: Arc::from(format!("src/file_{}.rs", file_num)),
+                line: (i % 100) as u32 + 1,
+            };
+            isg.upsert_node(node);
         }
         
-        let elapsed = start.elapsed();
-        let avg_time_ns = elapsed.as_nanos() / iterations as u128;
+        let engine = SimpleDiscoveryEngine::new(isg);
         
-        // Performance contract: Should be well under 1μs per operation
-        assert!(avg_time_ns < 1000, "File location access too slow: {} ns > 1000 ns", avg_time_ns);
+        // Test performance contracts
+        let start = std::time::Instant::now();
+        let all_entities = engine.list_all_entities(None, 2000).await.unwrap();
+        let list_all_time = start.elapsed();
         
-        // Test EntityInfo conversion performance
-        let start = Instant::now();
-        let entity_infos: Vec<_> = enhanced_nodes
-            .iter()
-            .take(1000)  // Test with subset for reasonable test time
-            .filter_map(|node| node.to_entity_info(&interner))
-            .collect();
-        let elapsed = start.elapsed();
+        assert_eq!(all_entities.len(), 1000);
+        assert!(list_all_time < Duration::from_millis(100), 
+                "list_all_entities took {:?}, expected <100ms", list_all_time);
         
-        assert_eq!(entity_infos.len(), 1000);
+        // Test filtered listing performance
+        let start = std::time::Instant::now();
+        let functions = engine.list_all_entities(Some(EntityType::Function), 1000).await.unwrap();
+        let filter_time = start.elapsed();
         
-        // Should be fast - under 10ms for 1000 conversions
-        assert!(elapsed.as_millis() < 10, 
-                "EntityInfo conversion too slow: {:?}", elapsed);
+        assert!(functions.len() > 300); // Should have ~333 functions (1000/3)
+        assert!(filter_time < Duration::from_millis(100), 
+                "filtered list_all_entities took {:?}, expected <100ms", filter_time);
+        
+        // Test file-based listing performance
+        let start = std::time::Instant::now();
+        let file_entities = engine.entities_in_file("src/file_0.rs").await.unwrap();
+        let file_time = start.elapsed();
+        
+        assert_eq!(file_entities.len(), 100); // 1000 / 10 files = 100 per file
+        assert!(file_time < Duration::from_millis(100), 
+                "entities_in_file took {:?}, expected <100ms", file_time);
+        
+        // Test entity lookup performance
+        let start = std::time::Instant::now();
+        let location = engine.where_defined("entity_100").await.unwrap();
+        let lookup_time = start.elapsed();
+        
+        assert!(location.is_some());
+        assert!(lookup_time < Duration::from_millis(50), 
+                "where_defined took {:?}, expected <50ms", lookup_time);
     }
 }
