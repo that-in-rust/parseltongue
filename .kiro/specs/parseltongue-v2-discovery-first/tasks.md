@@ -178,3 +178,5 @@
 
 
 - [ ] 24. Create a special LLM aligned document to work in .kiro as per your judgement + Use Parseltongue latest build to clean up the warnings in our code itself + when you quote loading time - avoid 0 seconds its confusing whenever it approximates to 0 then tell the milliseconds - ideally post in seconds + milliseconds as often as you can - it is impressive
+
+- [ ] 25. Do amazing documentation using Mermaid diagrams - Use .kiro/trun_c928898c8ef7483eb8257cb7dc52ac9a.json +  .kiro/Bullet-Proof Mermaid Prompts_ Square-Perfect Diagrams from Any LLM.md
