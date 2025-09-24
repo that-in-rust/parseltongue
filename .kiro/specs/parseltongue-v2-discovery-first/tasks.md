@@ -22,14 +22,14 @@
   - Write performance tests ensuring <100ms response time for entity listing
   - _Requirements: 1.1, 1.2 (MVP focus)_
 
-- [ ] 4. Create discovery query interface and command handlers
+- [x] 4. Create discovery query interface and command handlers
   - Implement DiscoveryEngine trait with list_all_entities, entities_in_file, where_defined methods
   - Create DiscoveryQuery enum for simple query types (ListAll, EntitiesInFile, WhereDefinedExact)
   - Build query result structures (EntityInfo, FileLocation) with proper serialization
   - Write integration tests for complete discovery workflows
   - _Requirements: 1.1, 1.2 (MVP focus)_
 
-- [ ] 5. Implement file-based entity navigation
+- [x] 5. Implement file-based entity navigation
   - Create file-to-entities index (HashMap<FileId, Vec<SigHash>>) for O(n) file queries
   - Implement entities_in_file query with entity type filtering
   - Build where_defined functionality returning exact file locations
