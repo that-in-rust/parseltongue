@@ -14,9 +14,13 @@ pub mod types;
 pub mod error;
 pub mod enhanced_isg_node;
 pub mod simple_discovery_engine;
+pub mod file_navigation_provider;
 
 #[cfg(test)]
 mod integration_test;
+
+#[cfg(test)]
+mod file_navigation_tests;
 
 // Re-export core types for convenience
 pub use string_interning::{FileId, FileInterner};
@@ -25,3 +29,5 @@ pub use types::{EntityInfo, FileLocation, DiscoveryQuery, DiscoveryResult};
 pub use error::{DiscoveryError, DiscoveryResult as Result};
 pub use enhanced_isg_node::{EnhancedIsgNode, NodeConverter};
 pub use simple_discovery_engine::SimpleDiscoveryEngine;
+pub use file_navigation_provider::ISGFileNavigationProvider;
+pub use file_navigation_tests::{FileNavigationProvider, FileStats, MockFileNavigationProvider};

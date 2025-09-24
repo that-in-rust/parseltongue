@@ -36,7 +36,7 @@
   - Write unit tests validating file location accuracy and completeness
   - _Requirements: 2.2, 2.4, 2.5_
 
-- [ ] 6. Build entity type filtering and organization
+- [-] 6. Build entity type filtering and organization
   - Implement type_index for efficient entity type filtering
   - Create organized entity listing by type (Functions, Structs, Traits, etc.)
   - Add entity count summaries by type for overview
