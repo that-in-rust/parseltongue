@@ -8,7 +8,15 @@ CODEBASE_PATH="${1:-$(pwd)}"
 ENTITY_FOCUS="${2:-}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 OUTPUT_DIR="./parseltongue_workspace/llm_context_${TIMESTAMP}"
-PARSELTONGUE_BIN="${PARSELTONGUE_BIN:-./target/release/parseltongue_20250924231324}"
+# Find the latest parseltongue binary automatically
+if [ -z "$PARSELTONGUE_BIN" ]; then
+    PARSELTONGUE_BIN=$(ls -t ./target/release/parseltongue* 2>/dev/null | head -1)
+    if [ -z "$PARSELTONGUE_BIN" ]; then
+        echo "❌ Error: No parseltongue binary found in ./target/release/"
+        echo "Build with: cargo build --release"
+        exit 1
+    fi
+fi
 
 echo "🤖 Parseltongue LLM Context Generation"
 echo "Codebase: $CODEBASE_PATH"
