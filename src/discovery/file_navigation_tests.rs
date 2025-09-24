@@ -10,12 +10,10 @@
 use crate::discovery::{
     types::{EntityInfo, EntityType, FileLocation},
     error::{DiscoveryResult as Result},
-    string_interning::{FileId, FileInterner},
 };
 use crate::isg::{OptimizedISG, NodeData, NodeKind, SigHash};
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
 
 /// Contract: File-based navigation trait for testability
 /// 

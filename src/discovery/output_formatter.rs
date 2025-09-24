@@ -7,9 +7,7 @@
 //! - CI: GitHub Actions compatible output with risk levels and gates
 
 use std::time::Duration;
-use serde::{Serialize, Deserialize};
 use thiserror::Error;
-use chrono::Utc;
 
 use crate::discovery::{
     OnboardingResult, FeaturePlanResult, DebugResult, RefactorResult
@@ -719,7 +717,7 @@ impl OutputFormatter for PrSummaryFormatter {
         // Recommended actions
         if !result.next_steps.is_empty() && self.include_checklists {
             output.push_str("## Recommended Actions\n\n");
-            for (i, step) in result.next_steps.iter().enumerate() {
+            for (_i, step) in result.next_steps.iter().enumerate() {
                 output.push_str(&format!("- [ ] {}\n", step));
             }
             output.push('\n');

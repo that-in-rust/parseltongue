@@ -179,10 +179,11 @@
   - _Requirements: Performance preservation constraint, success metrics validation_
 
 
-- [-] 24. Create a special LLM aligned document to work in .kiro as per your judgement + Use Parseltongue latest build to clean up the warnings in our code itself + when you quote loading time - avoid 0 seconds its confusing whenever it approximates to 0 then tell the milliseconds - ideally post in seconds + milliseconds as often as you can - it is impressive 
-    [ ] Document all that you learn here as a use case how you used the tool to improve the tool
+- [ ] 24. Create a special LLM aligned document to work in .kiro as per your judgement + Use Parseltongue latest build to clean up the warnings in our code itself + when you quote loading time - avoid 0 seconds its confusing whenever it approximates to 0 then tell the milliseconds - ideally post in seconds + milliseconds as often as you can - it is impressive  -- do this using parseltongue_dungeon/scripts and then 
+
+- [ ] Document all that you learn in previous task as a use case how you used the tool to improve the tool
 
 
-- [ ] Using the Kiro steering document which uses pt parseltongue best practices, try to make some visually nice changes in the CLI experience putting emojis in the style of avengers theme, the idea is the workflows should replace some of the existing agentic workflows of search - or at least in part be better at helping navigate the codebase
+- [ ] 25. Using the Kiro steering document which uses pt parseltongue best practices, try to make some visually nice changes in the CLI experience putting emojis in the style of avengers theme, the idea is the workflows should replace some of the existing agentic workflows of search - or at least in part be better at helping navigate the codebase
 
 - [ ] 26. Do amazing documentation using Mermaid diagrams - Use .kiro/trun_c928898c8ef7483eb8257cb7dc52ac9a.json +  .kiro/Bullet-Proof Mermaid Prompts_ Square-Perfect Diagrams from Any LLM.md 

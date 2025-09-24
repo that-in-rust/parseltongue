@@ -343,7 +343,7 @@ impl DiscoveryMetrics {
     }
     
     /// Record a discovery operation
-    pub fn record_discovery_operation(&self, operation: &str, duration: Duration) {
+    pub fn record_discovery_operation(&self, _operation: &str, duration: Duration) {
         self.discovery_operations.increment();
         self.discovery_duration.record(duration);
     }
@@ -351,7 +351,7 @@ impl DiscoveryMetrics {
     /// Detect performance regression
     pub fn detect_performance_regression(
         &self,
-        operation: &str,
+        _operation: &str,
         current_duration: Duration,
     ) -> RegressionCheck {
         let stats = self.discovery_duration.statistics();

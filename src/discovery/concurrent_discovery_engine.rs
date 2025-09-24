@@ -170,7 +170,7 @@ where
         
         // Process results as they complete and spawn new tasks
         while let Some(result) = join_set.join_next().await {
-            let query_result = result.map_err(|e| crate::discovery::error::DiscoveryError::QueryTimeout {
+            let query_result = result.map_err(|_e| crate::discovery::error::DiscoveryError::QueryTimeout {
                 query: "batch_query".to_string(),
                 limit: std::time::Duration::from_secs(30),
             })?;

@@ -12,7 +12,7 @@ use crate::discovery::{
     ImpactAnalysis, ScopeGuidance, ChangeScope, RiskAssessment, ReviewerGuidance,
     ComplexityLevel, ConfidenceLevel, EntryPoint, KeyContext, TestRecommendation,
     CallerTrace, UsageSite, ChecklistItem, ModuleInfo, RiskFactor, Priority,
-    FileLocation, EntityInfo, DiscoveryEngine, types::EntityType
+    FileLocation, EntityInfo, DiscoveryEngine
 };
 use crate::discovery::workflow_orchestrator::{RiskLevel};
 use crate::isg::OptimizedISG;
@@ -214,7 +214,7 @@ impl ConcreteWorkflowOrchestrator {
     
     // Helper methods for feature_start workflow
     
-    async fn analyze_feature_impact(&self, entity_name: &str) -> Result<ImpactAnalysis, WorkflowError> {
+    async fn analyze_feature_impact(&self, _entity_name: &str) -> Result<ImpactAnalysis, WorkflowError> {
         // For now, return a basic impact analysis
         // In a full implementation, this would analyze the ISG for dependencies
         
@@ -245,7 +245,7 @@ impl ConcreteWorkflowOrchestrator {
         })
     }
     
-    async fn generate_scope_guidance(&self, entity_name: &str, impact: &ImpactAnalysis) -> ScopeGuidance {
+    async fn generate_scope_guidance(&self, entity_name: &str, _impact: &ImpactAnalysis) -> ScopeGuidance {
         let target_location = self.discovery_engine.where_defined(entity_name).await.ok().flatten();
         
         let files_to_modify = if let Some(location) = target_location {
@@ -262,7 +262,7 @@ impl ConcreteWorkflowOrchestrator {
         }
     }
     
-    async fn generate_test_recommendations(&self, entity_name: &str, impact: &ImpactAnalysis) -> Vec<TestRecommendation> {
+    async fn generate_test_recommendations(&self, entity_name: &str, _impact: &ImpactAnalysis) -> Vec<TestRecommendation> {
         vec![
             TestRecommendation {
                 test_type: "unit".to_string(),
@@ -281,7 +281,7 @@ impl ConcreteWorkflowOrchestrator {
     
     // Helper methods for debug workflow
     
-    async fn generate_caller_traces(&self, entity_name: &str) -> Vec<CallerTrace> {
+    async fn generate_caller_traces(&self, _entity_name: &str) -> Vec<CallerTrace> {
         // TODO: Implement actual caller trace analysis using ISG
         vec![
             CallerTrace {
@@ -299,7 +299,7 @@ impl ConcreteWorkflowOrchestrator {
         ]
     }
     
-    async fn find_usage_sites(&self, entity_name: &str) -> Vec<UsageSite> {
+    async fn find_usage_sites(&self, _entity_name: &str) -> Vec<UsageSite> {
         // TODO: Implement actual usage site analysis using ISG
         vec![
             UsageSite {
@@ -340,7 +340,7 @@ impl ConcreteWorkflowOrchestrator {
     
     // Helper methods for refactor_check workflow
     
-    async fn assess_refactoring_risks(&self, entity_name: &str) -> RiskAssessment {
+    async fn assess_refactoring_risks(&self, _entity_name: &str) -> RiskAssessment {
         // TODO: Implement actual risk assessment using ISG analysis
         
         let risk_factors = vec![
@@ -439,7 +439,7 @@ impl ConcreteWorkflowOrchestrator {
 
 #[async_trait]
 impl WorkflowOrchestrator for ConcreteWorkflowOrchestrator {
-    async fn onboard(&self, target_dir: &str) -> Result<OnboardingResult, WorkflowError> {
+    async fn onboard(&self, _target_dir: &str) -> Result<OnboardingResult, WorkflowError> {
         let start = Instant::now();
         
         // Step 1: Get codebase overview

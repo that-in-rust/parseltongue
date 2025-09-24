@@ -432,7 +432,7 @@ pub fn create_cli_error(
                 .with_related_command("parseltongue list-entities")
                 .with_related_command("parseltongue entities-in-file <file>")
         }
-        DiscoveryError::FileNotFound { path } => {
+        DiscoveryError::FileNotFound { path: _ } => {
             ErrorContext::new(operation)
                 .with_suggestion("Check if the file path is correct")
                 .with_suggestion("Use relative paths from the project root")
