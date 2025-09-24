@@ -122,8 +122,36 @@ impl DiscoveryIndexes {
     /// Returns an iterator that filters entities by type without allocating
     /// intermediate collections. This is critical for performance when dealing
     /// with large entity sets.
+    /// 
+    /// # Performance Contract
+    /// - Zero heap allocations during filtering
+    /// - O(n) time complexity with early termination support
+    /// - Cache-friendly sequential access pattern
     pub fn filter_entities_by_type(&self, entity_type: EntityType) -> impl Iterator<Item = &CompactEntityInfo> {
         self.all_entities.iter().filter(move |entity| entity.entity_type == entity_type)
+    }
+    
+    /// Zero-allocation entity filtering with multiple predicates
+    /// 
+    /// Chains multiple filters without intermediate allocations, allowing
+    /// complex filtering logic to be composed efficiently.
+    pub fn filter_entities_with_predicates<F>(&self, predicate: F) -> impl Iterator<Item = &CompactEntityInfo>
+    where
+        F: Fn(&CompactEntityInfo) -> bool,
+    {
+        self.all_entities.iter().filter(predicate)
+    }
+    
+    /// Zero-allocation entity search with early termination
+    /// 
+    /// Finds the first N entities matching a predicate without allocating
+    /// intermediate collections. Optimized for cases where only a few results
+    /// are needed from a large dataset.
+    pub fn find_entities_limited<F>(&self, predicate: F, limit: usize) -> impl Iterator<Item = &CompactEntityInfo>
+    where
+        F: Fn(&CompactEntityInfo) -> bool,
+    {
+        self.all_entities.iter().filter(predicate).take(limit)
     }
     
     /// Zero-allocation entity filtering by file with iterator patterns

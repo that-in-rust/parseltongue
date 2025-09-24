@@ -105,7 +105,7 @@
   - Write micro-benchmarks for all performance-critical operations
   - _Requirements: Performance preservation constraint, memory efficiency_
 
-- [x] 16. Add JSON output support for tooling integration
+- [ ] 16. Add JSON output support for tooling integration
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Implement `--json` flag for all discovery commands (list-entities, entities-in-file, where-defined)
   - Create structured JSON schemas with metadata (timestamps, file paths, confidence scores)

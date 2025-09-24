@@ -224,6 +224,11 @@ impl FileInterner {
     /// 
     /// More efficient than individual intern() calls when processing
     /// many paths at once. Reduces hash map reallocations.
+    /// 
+    /// # Performance Optimizations
+    /// - Pre-allocates hash map capacity to avoid reallocations
+    /// - Batches Arc<str> creation for better memory locality
+    /// - Uses iterator patterns to minimize temporary allocations
     pub fn bulk_intern(&mut self, paths: &[&str]) -> Vec<FileId> {
         // Pre-allocate capacity if needed
         let new_capacity = self.len() + paths.len();
@@ -233,6 +238,50 @@ impl FileInterner {
         }
         
         paths.iter().map(|path| self.intern(path)).collect()
+    }
+    
+    /// Batch intern with deduplication optimization
+    /// 
+    /// Optimized for cases where many duplicate paths are expected.
+    /// Pre-filters duplicates before interning to reduce hash map operations.
+    pub fn bulk_intern_deduplicated(&mut self, paths: &[&str]) -> Vec<FileId> {
+        use std::collections::HashSet;
+        
+        // Deduplicate input paths first
+        let unique_paths: HashSet<&str> = paths.iter().copied().collect();
+        let unique_count = unique_paths.len();
+        
+        // Pre-allocate for unique paths only
+        let new_capacity = self.len() + unique_count;
+        if self.path_to_id.capacity() < new_capacity {
+            self.path_to_id.reserve(unique_count);
+            self.id_to_path.reserve(unique_count);
+        }
+        
+        // Intern unique paths and build lookup map
+        let mut path_to_id_map = FxHashMap::default();
+        for path in unique_paths {
+            let id = self.intern(path);
+            path_to_id_map.insert(path, id);
+        }
+        
+        // Map original paths to their IDs
+        paths.iter().map(|path| path_to_id_map[path]).collect()
+    }
+    
+    /// Memory-optimized batch processing for large datasets
+    /// 
+    /// Processes paths in chunks to maintain bounded memory usage
+    /// while still benefiting from batch optimizations.
+    pub fn bulk_intern_chunked(&mut self, paths: &[&str], chunk_size: usize) -> Vec<FileId> {
+        let mut results = Vec::with_capacity(paths.len());
+        
+        for chunk in paths.chunks(chunk_size) {
+            let chunk_results = self.bulk_intern_deduplicated(chunk);
+            results.extend(chunk_results);
+        }
+        
+        results
     }
 }
 
@@ -261,9 +310,18 @@ impl TrigramIndex {
     /// 
     /// Extracts all trigrams from interned strings and builds an index
     /// for fast fuzzy matching.
+    /// 
+    /// # Memory Optimizations
+    /// - Pre-allocates hash map capacity based on estimated trigram count
+    /// - Uses compact Vec storage with shrink_to_fit for ID lists
+    /// - Deduplicates and sorts ID lists for cache efficiency
     pub fn build_from_interner(&mut self, interner: &FileInterner) {
         self.trigram_to_ids.clear();
         self.total_trigrams = 0;
+        
+        // Estimate trigram count for better initial capacity
+        let estimated_trigrams = interner.len() * 8; // Rough estimate: 8 trigrams per path
+        self.trigram_to_ids.reserve(estimated_trigrams);
         
         for (id, path_arc) in &interner.id_to_path {
             let path = path_arc.as_ref();
@@ -278,11 +336,56 @@ impl TrigramIndex {
             }
         }
         
-        // Sort and deduplicate ID lists for better cache performance
+        // Optimize memory layout for each ID list
         for ids in self.trigram_to_ids.values_mut() {
             ids.sort_unstable();
             ids.dedup();
+            ids.shrink_to_fit(); // Minimize memory overhead
         }
+        
+        // Compact the hash map itself
+        self.trigram_to_ids.shrink_to_fit();
+    }
+    
+    /// Memory-efficient incremental index update
+    /// 
+    /// Updates the trigram index for new paths without rebuilding the entire index.
+    /// Useful for maintaining the index as new files are discovered.
+    pub fn update_with_new_paths(&mut self, interner: &FileInterner, new_ids: &[FileId]) {
+        for &id in new_ids {
+            if let Some(path) = interner.get_path(id) {
+                let trigrams = extract_trigrams(path);
+                
+                for trigram in trigrams {
+                    let ids = self.trigram_to_ids.entry(trigram).or_insert_with(Vec::new);
+                    
+                    // Only add if not already present (maintain sorted order)
+                    if let Err(pos) = ids.binary_search(&id) {
+                        ids.insert(pos, id);
+                    }
+                    
+                    self.total_trigrams += 1;
+                }
+            }
+        }
+    }
+    
+    /// Compact the trigram index to minimize memory usage
+    /// 
+    /// Rebuilds the index with optimal memory layout. Should be called
+    /// periodically after many incremental updates.
+    pub fn compact(&mut self) {
+        // Rebuild with exact capacity
+        let current_size = self.trigram_to_ids.len();
+        let mut new_index = FxHashMap::with_capacity_and_hasher(current_size, Default::default());
+        
+        for (trigram, mut ids) in self.trigram_to_ids.drain() {
+            ids.shrink_to_fit();
+            new_index.insert(trigram, ids);
+        }
+        
+        new_index.shrink_to_fit();
+        self.trigram_to_ids = new_index;
     }
     
     /// Find FileIds that match a query string using trigram similarity

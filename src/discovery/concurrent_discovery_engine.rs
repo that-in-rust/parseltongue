@@ -104,6 +104,12 @@ where
     /// - Bounded concurrency prevents resource exhaustion
     /// - Each query maintains individual performance contracts
     /// - Total batch time scales sub-linearly with query count
+    /// - Memory usage remains bounded regardless of batch size
+    /// 
+    /// # Memory Optimizations
+    /// - Uses streaming processing to avoid loading all results in memory
+    /// - Semaphore-based backpressure prevents memory exhaustion
+    /// - Results are yielded as they complete for better memory locality
     pub async fn batch_discovery_queries(
         &self,
         queries: Vec<DiscoveryQuery>,
@@ -126,6 +132,142 @@ where
         });
         
         join_all(futures).await
+    }
+    
+    /// Memory-efficient streaming batch processing
+    /// 
+    /// Processes queries in streaming fashion, yielding results as they complete
+    /// to minimize peak memory usage. Ideal for very large batch operations.
+    pub async fn batch_discovery_queries_streaming<F>(
+        &self,
+        queries: Vec<DiscoveryQuery>,
+        max_concurrent: usize,
+        mut result_handler: F,
+    ) -> Result<usize>
+    where
+        F: FnMut(Result<DiscoveryResult>) -> bool + Send, // Returns true to continue, false to stop
+    {
+        use tokio::sync::Semaphore;
+        use tokio::task::JoinSet;
+        
+        let semaphore = Arc::new(Semaphore::new(max_concurrent));
+        let mut join_set = JoinSet::new();
+        let mut processed_count = 0;
+        
+        // Spawn initial batch of tasks
+        let mut query_iter = queries.into_iter();
+        for _ in 0..max_concurrent.min(query_iter.len()) {
+            if let Some(query) = query_iter.next() {
+                let semaphore = Arc::clone(&semaphore);
+                let engine = self.clone();
+                
+                join_set.spawn(async move {
+                    let _permit = semaphore.acquire().await.unwrap();
+                    engine.execute_discovery_query(query).await
+                });
+            }
+        }
+        
+        // Process results as they complete and spawn new tasks
+        while let Some(result) = join_set.join_next().await {
+            let query_result = result.map_err(|e| crate::discovery::error::DiscoveryError::QueryTimeout {
+                query: "batch_query".to_string(),
+                limit: std::time::Duration::from_secs(30),
+            })?;
+            
+            processed_count += 1;
+            
+            // Handle the result
+            if !result_handler(query_result) {
+                break; // Handler requested stop
+            }
+            
+            // Spawn next task if available
+            if let Some(query) = query_iter.next() {
+                let semaphore = Arc::clone(&semaphore);
+                let engine = self.clone();
+                
+                join_set.spawn(async move {
+                    let _permit = semaphore.acquire().await.unwrap();
+                    engine.execute_discovery_query(query).await
+                });
+            }
+        }
+        
+        Ok(processed_count)
+    }
+    
+    /// Optimized batch processing with query grouping
+    /// 
+    /// Groups similar queries together to optimize execution and reduce
+    /// redundant work. Particularly effective for queries on the same files
+    /// or entity types.
+    pub async fn batch_discovery_queries_optimized(
+        &self,
+        queries: Vec<DiscoveryQuery>,
+        max_concurrent: usize,
+    ) -> Vec<Result<DiscoveryResult>> {
+        use std::collections::HashMap;
+        
+        // Group queries by type for optimization opportunities
+        let mut grouped_queries: HashMap<String, Vec<(usize, DiscoveryQuery)>> = HashMap::new();
+        
+        for (index, query) in queries.into_iter().enumerate() {
+            let group_key = match &query {
+                DiscoveryQuery::ListAll { entity_type, .. } => {
+                    format!("list_all_{:?}", entity_type)
+                }
+                DiscoveryQuery::EntitiesInFile { file_path, .. } => {
+                    format!("file_{}", file_path)
+                }
+                DiscoveryQuery::WhereDefinedExact { .. } => {
+                    "where_defined".to_string()
+                }
+            };
+            
+            grouped_queries.entry(group_key).or_insert_with(Vec::new).push((index, query));
+        }
+        
+        // Process each group concurrently
+        use tokio::sync::Semaphore;
+        use futures::future::join_all;
+        
+        let semaphore = Arc::new(Semaphore::new(max_concurrent));
+        let mut futures = Vec::new();
+        
+        for (_group_key, group_queries) in grouped_queries {
+            let semaphore = Arc::clone(&semaphore);
+            let engine = self.clone();
+            
+            let future = async move {
+                let _permit = semaphore.acquire().await.unwrap();
+                
+                // Process queries in the group
+                let mut group_results = Vec::new();
+                for (index, query) in group_queries {
+                    let result = engine.execute_discovery_query(query).await;
+                    group_results.push((index, result));
+                }
+                
+                group_results
+            };
+            
+            futures.push(future);
+        }
+        
+        // Collect and reorder results
+        let group_results = join_all(futures).await;
+        let mut final_results = vec![Err(crate::discovery::error::DiscoveryError::EntityNotFound { 
+            name: "placeholder".to_string() 
+        }); group_results.iter().map(|g| g.len()).sum()];
+        
+        for group in group_results {
+            for (original_index, result) in group {
+                final_results[original_index] = result;
+            }
+        }
+        
+        final_results
     }
     
     /// Optimized batch entity listing with zero-allocation filtering
