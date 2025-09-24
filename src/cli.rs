@@ -5,6 +5,7 @@
 use crate::daemon::ParseltongueAIM;
 use crate::isg::ISGError;
 use crate::discovery::{SimpleDiscoveryEngine, DiscoveryEngine, EntityInfo, FileLocation};
+use crate::workspace_cli::{WorkspaceArgs, handle_workspace_command};
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 use std::time::Instant;
@@ -101,6 +102,8 @@ pub enum Commands {
         #[arg(long, default_value = "human")]
         format: OutputFormat,
     },
+    /// Workspace management commands
+    Workspace(WorkspaceArgs),
 }
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -381,6 +384,11 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         
         Commands::WhereDefined { entity, format } => {
             handle_where_defined_command(&daemon, &entity, format.clone()).await?;
+        }
+        
+        Commands::Workspace(workspace_args) => {
+            handle_workspace_command(workspace_args).await
+                .map_err(|e| format!("Workspace error: {}", e))?;
         }
     }
     

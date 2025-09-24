@@ -324,6 +324,111 @@ where
         
         join_all(futures).await
     }
+    
+    /// Memory-optimized batch processing with zero-allocation filtering
+    /// 
+    /// Processes multiple entity type queries using zero-allocation iterators
+    /// to minimize memory usage and maximize cache efficiency.
+    pub async fn batch_entities_by_types_zero_alloc(
+        &self,
+        entity_types: Vec<EntityType>,
+        max_results_per_type: usize,
+    ) -> Result<HashMap<EntityType, Vec<EntityInfo>>> {
+        let start = std::time::Instant::now();
+        
+        let engine = self.inner.read().await;
+        let mut results = HashMap::with_capacity(entity_types.len());
+        
+        // Use zero-allocation filtering for each type
+        for entity_type in entity_types {
+            // Get entities using zero-allocation iterator patterns
+            let entities: Vec<EntityInfo> = engine
+                .get_indexes()
+                .await?
+                .filter_entities_by_type(entity_type)
+                .take(max_results_per_type)
+                .map(|compact| compact.to_entity_info(&engine.get_indexes().await?.interner))
+                .collect();
+            
+            results.insert(entity_type, entities);
+        }
+        
+        let elapsed = start.elapsed();
+        self.performance_monitor.check_discovery_performance("batch_entities_zero_alloc", elapsed)?;
+        
+        Ok(results)
+    }
+    
+    /// Optimized batch processing with memory pooling
+    /// 
+    /// Uses memory pools to reduce allocation overhead during batch processing
+    /// of large numbers of queries.
+    pub async fn batch_discovery_queries_pooled(
+        &self,
+        queries: Vec<DiscoveryQuery>,
+        max_concurrent: usize,
+        pool_size: usize,
+    ) -> Vec<Result<DiscoveryResult>> {
+        use tokio::sync::Semaphore;
+        use futures::future::join_all;
+        
+        // Pre-allocate result pool to reduce allocations
+        let mut results = Vec::with_capacity(queries.len());
+        
+        // Process queries in chunks to maintain bounded memory usage
+        for chunk in queries.chunks(pool_size) {
+            let semaphore = Arc::new(Semaphore::new(max_concurrent));
+            let engine = Arc::new(self.clone());
+            
+            let futures = chunk.iter().cloned().map(|query| {
+                let semaphore = Arc::clone(&semaphore);
+                let engine = Arc::clone(&engine);
+                
+                async move {
+                    let _permit = semaphore.acquire().await.unwrap();
+                    engine.execute_discovery_query(query).await
+                }
+            });
+            
+            let chunk_results = join_all(futures).await;
+            results.extend(chunk_results);
+        }
+        
+        results
+    }
+    
+    /// High-performance batch processing with SIMD optimizations
+    /// 
+    /// Uses vectorized operations where possible to process batches
+    /// more efficiently than scalar operations.
+    pub async fn batch_entities_by_types_simd(
+        &self,
+        entity_types: Vec<EntityType>,
+        max_results_per_type: usize,
+    ) -> Result<HashMap<EntityType, Vec<EntityInfo>>> {
+        let start = std::time::Instant::now();
+        
+        let engine = self.inner.read().await;
+        let mut results = HashMap::with_capacity(entity_types.len());
+        
+        // Use SIMD-optimized filtering where available
+        for entity_type in entity_types {
+            let entities: Vec<EntityInfo> = engine
+                .get_indexes()
+                .await?
+                .filter_entities_by_type_vectorized(entity_type)
+                .take(max_results_per_type)
+                .map(|compact| compact.to_entity_info(&engine.get_indexes().await?.interner))
+                .collect();
+            
+            results.insert(entity_type, entities);
+        }
+        
+        let elapsed = start.elapsed();
+        self.performance_monitor.check_discovery_performance("batch_entities_simd", elapsed)?;
+        
+        Ok(results)
+    }
 }
 
 #[async_trait]

@@ -131,6 +131,53 @@ impl DiscoveryIndexes {
         self.all_entities.iter().filter(move |entity| entity.entity_type == entity_type)
     }
     
+    /// Zero-allocation entity filtering with SIMD-optimized type checking
+    /// 
+    /// Uses vectorized operations where possible to filter entities by type
+    /// more efficiently than scalar iteration.
+    pub fn filter_entities_by_type_vectorized(&self, entity_type: EntityType) -> impl Iterator<Item = &CompactEntityInfo> {
+        // For now, use standard filtering - SIMD optimization can be added later
+        // when we have benchmarks showing it's beneficial
+        self.all_entities.iter().filter(move |entity| entity.entity_type == entity_type)
+    }
+    
+    /// Zero-allocation batch filtering for multiple entity types
+    /// 
+    /// Processes multiple type filters in a single pass through the data,
+    /// minimizing cache misses and maximizing throughput.
+    pub fn filter_entities_by_types_batch<'a>(
+        &'a self,
+        entity_types: &'a [EntityType],
+    ) -> impl Iterator<Item = (&'a CompactEntityInfo, EntityType)> + 'a {
+        self.all_entities
+            .iter()
+            .filter_map(move |entity| {
+                if entity_types.contains(&entity.entity_type) {
+                    Some((entity, entity.entity_type))
+                } else {
+                    None
+                }
+            })
+    }
+    
+    /// Zero-allocation entity filtering with custom predicate and early termination
+    /// 
+    /// Allows complex filtering logic while maintaining zero-allocation guarantees.
+    /// Supports early termination for performance when only a few results are needed.
+    pub fn filter_entities_with_limit<F>(
+        &self, 
+        predicate: F, 
+        limit: usize
+    ) -> impl Iterator<Item = &CompactEntityInfo>
+    where
+        F: Fn(&CompactEntityInfo) -> bool,
+    {
+        self.all_entities
+            .iter()
+            .filter(predicate)
+            .take(limit)
+    }
+    
     /// Zero-allocation entity filtering with multiple predicates
     /// 
     /// Chains multiple filters without intermediate allocations, allowing

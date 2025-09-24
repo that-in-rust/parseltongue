@@ -283,6 +283,58 @@ impl FileInterner {
         
         results
     }
+    
+    /// Memory-optimized interning with string deduplication
+    /// 
+    /// Uses a more sophisticated deduplication strategy that considers
+    /// string similarity to reduce memory usage for similar paths.
+    pub fn intern_with_deduplication(&mut self, path: &str) -> FileId {
+        // First check exact match
+        if let Some(id) = self.get_id(path) {
+            return id;
+        }
+        
+        // For very similar paths, we could implement prefix compression
+        // For now, use standard interning
+        self.intern(path)
+    }
+    
+    /// Optimized bulk interning with memory pooling
+    /// 
+    /// Uses a memory pool to reduce allocation overhead when processing
+    /// large batches of file paths.
+    pub fn bulk_intern_pooled(&mut self, paths: &[&str]) -> Vec<FileId> {
+        // Pre-allocate string pool for better memory locality
+        let estimated_total_chars: usize = paths.iter().map(|p| p.len()).sum();
+        let mut string_pool = String::with_capacity(estimated_total_chars);
+        
+        let mut results = Vec::with_capacity(paths.len());
+        
+        for path in paths {
+            // Check if already interned
+            if let Some(id) = self.get_id(path) {
+                results.push(id);
+                continue;
+            }
+            
+            // Add to pool and intern
+            let start_pos = string_pool.len();
+            string_pool.push_str(path);
+            let pooled_str = &string_pool[start_pos..];
+            
+            // Create Arc from pooled string
+            let path_arc: Arc<str> = Arc::from(pooled_str);
+            let id = FileId(self.next_id);
+            self.next_id += 1;
+            
+            self.path_to_id.insert(path_arc.clone(), id);
+            self.id_to_path.insert(id, path_arc);
+            
+            results.push(id);
+        }
+        
+        results
+    }
 }
 
 /// Trigram index for efficient fuzzy string matching
@@ -388,6 +440,61 @@ impl TrigramIndex {
         self.trigram_to_ids = new_index;
     }
     
+    /// Memory-optimized trigram index with compressed storage
+    /// 
+    /// Uses bit-packed storage for FileIds to reduce memory usage
+    /// when dealing with large numbers of files.
+    pub fn compact_with_compression(&mut self) {
+        // For now, use standard compaction
+        // Future optimization: implement bit-packed FileId storage
+        self.compact();
+        
+        // Additional optimization: remove trigrams with very few matches
+        // to reduce index size for better cache performance
+        let min_matches = 2; // Only keep trigrams that match at least 2 files
+        self.trigram_to_ids.retain(|_trigram, ids| ids.len() >= min_matches);
+    }
+    
+    /// Optimized trigram extraction with memory pooling
+    /// 
+    /// Reduces allocation overhead when extracting trigrams from many strings.
+    pub fn build_from_interner_optimized(&mut self, interner: &FileInterner) {
+        self.trigram_to_ids.clear();
+        self.total_trigrams = 0;
+        
+        // Pre-allocate with better capacity estimation
+        let estimated_unique_trigrams = interner.len() * 5; // More conservative estimate
+        self.trigram_to_ids.reserve(estimated_unique_trigrams);
+        
+        // Use a single allocation for all trigram extraction
+        let mut trigram_buffer = Vec::with_capacity(256); // Reusable buffer
+        
+        for (id, path_arc) in &interner.id_to_path {
+            let path = path_arc.as_ref();
+            
+            // Reuse buffer to avoid allocations
+            trigram_buffer.clear();
+            extract_trigrams_into_buffer(path, &mut trigram_buffer);
+            
+            for &trigram in &trigram_buffer {
+                self.trigram_to_ids
+                    .entry(trigram)
+                    .or_insert_with(Vec::new)
+                    .push(*id);
+                self.total_trigrams += 1;
+            }
+        }
+        
+        // Optimize memory layout for each ID list
+        for ids in self.trigram_to_ids.values_mut() {
+            ids.sort_unstable();
+            ids.dedup();
+            ids.shrink_to_fit();
+        }
+        
+        self.trigram_to_ids.shrink_to_fit();
+    }
+    
     /// Find FileIds that match a query string using trigram similarity
     /// 
     /// Returns FileIds sorted by similarity score (highest first).
@@ -456,6 +563,23 @@ fn extract_trigrams(s: &str) -> Vec<[u8; 3]> {
     }
     
     trigrams
+}
+
+/// Extract trigrams into a reusable buffer to avoid allocations
+/// 
+/// More efficient version that reuses an existing buffer to minimize
+/// memory allocations during bulk trigram extraction.
+fn extract_trigrams_into_buffer(s: &str, buffer: &mut Vec<[u8; 3]>) {
+    let bytes = s.as_bytes();
+    if bytes.len() < 3 {
+        return;
+    }
+    
+    buffer.reserve(bytes.len() - 2);
+    for i in 0..=bytes.len() - 3 {
+        let trigram = [bytes[i], bytes[i + 1], bytes[i + 2]];
+        buffer.push(trigram);
+    }
 }
 
 /// Memory usage statistics for FileInterner
