@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use clap::{Args, Subcommand};
 use crate::discovery::{WorkspaceManager, WorkspaceError};
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use serde_json;
 
 /// Workspace management commands

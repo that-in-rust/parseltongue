@@ -9,7 +9,7 @@ use crate::discovery::{WorkflowOrchestrator, ConcreteWorkflowOrchestrator};
 use crate::workspace_cli::{WorkspaceArgs, handle_workspace_command};
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
-use std::time::Instant;
+use std::time::{Instant, Duration};
 
 #[derive(Parser)]
 #[command(name = "parseltongue")]
@@ -230,6 +230,24 @@ impl LlmContext {
     }
 }
 
+/// Format duration for display, showing appropriate units
+fn format_duration(duration: Duration) -> String {
+    let total_ms = duration.as_secs_f64() * 1000.0;
+    let total_us = duration.as_micros() as f64;
+    
+    if total_us < 1000.0 {
+        // Less than 1 millisecond: show in microseconds
+        format!("{:.2}μs", total_us)
+    } else if total_ms < 1000.0 {
+        // Less than 1 second: show in milliseconds
+        format!("{:.2}ms", total_ms)
+    } else {
+        // 1 second or more: show both seconds and milliseconds for clarity
+        let secs = duration.as_secs_f64();
+        format!("{:.2}s ({:.0}ms)", secs, total_ms)
+    }
+}
+
 pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     let mut daemon = ParseltongueAIM::new();
     
@@ -254,7 +272,7 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             println!("  Nodes created: {}", stats.nodes_created);
             println!("  Total nodes in ISG: {}", daemon.isg.node_count());
             println!("  Total edges in ISG: {}", daemon.isg.edge_count());
-            println!("  Time: {:.2}s", elapsed.as_secs_f64());
+            println!("  Time: {}", format_duration(elapsed));
             
             // Verify <5s constraint for 2.1MB dumps (Performance Contract)
             if elapsed.as_secs() > 5 {
@@ -406,7 +424,7 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             if let Some(entity) = entity {
                 println!("  Focused on: {}", entity);
             }
-            println!("  Generation time: {}ms", elapsed.as_millis());
+            println!("  Generation time: {}", format_duration(elapsed));
             println!("  Open {} in your browser to view the visualization", output.display());
             
             // Verify <500ms constraint
@@ -657,7 +675,7 @@ fn format_entities_human(entities: &[EntityInfo], elapsed: std::time::Duration, 
         println!();
     }
     
-    println!("Discovery completed in {:.2}ms", elapsed.as_secs_f64() * 1000.0);
+    println!("Discovery completed in {}", format_duration(elapsed));
 }
 
 /// Format entities for JSON output
@@ -709,7 +727,7 @@ fn format_file_entities_human(entities: &[EntityInfo], file_path: &str, elapsed:
         println!();
     }
     
-    println!("Discovery completed in {:.2}ms", elapsed.as_secs_f64() * 1000.0);
+    println!("Discovery completed in {}", format_duration(elapsed));
 }
 
 /// Format file entities for JSON output
@@ -749,7 +767,7 @@ fn format_location_human(entity_name: &str, location: &Option<FileLocation>, ela
     }
     
     println!();
-    println!("Lookup completed in {:.2}μs", elapsed.as_micros() as f64);
+    println!("Lookup completed in {}", format_duration(elapsed));
 }
 
 /// Format location for JSON output

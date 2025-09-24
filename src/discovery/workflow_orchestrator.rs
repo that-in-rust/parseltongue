@@ -6,9 +6,9 @@
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use chrono::{DateTime, Utc};
-use crate::discovery::{DiscoveryEngine, DiscoveryError, EntityInfo, FileLocation};
+use crate::discovery::{DiscoveryError, EntityInfo, FileLocation};
 
 /// Core trait for workflow orchestration
 /// 

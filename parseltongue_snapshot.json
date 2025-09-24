@@ -165,7 +165,7 @@
       "kind": "Function",
       "name": "main",
       "signature": "fn main",
-      "file_path": "examples/websockets/src/main.rs",
+      "file_path": "src/main.rs",
       "line": 0
     },
     {
@@ -33781,7 +33781,7 @@
   ],
   "metadata": {
     "version": 1,
-    "timestamp": 1758739536,
+    "timestamp": 1758740235,
     "node_count": 2177,
     "edge_count": 3272
   }

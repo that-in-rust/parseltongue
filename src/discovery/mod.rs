@@ -19,6 +19,7 @@ pub mod file_navigation_provider;
 #[cfg(test)]
 mod integration_test;
 
+#[cfg(test)]
 pub mod file_navigation_tests;
 pub mod blast_radius_analyzer;
 pub mod indexes;
