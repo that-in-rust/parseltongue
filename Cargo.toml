@@ -3,6 +3,10 @@ name = "parseltongue"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "parseltongue_20250924231324"
+path = "src/main.rs"
+
 [dependencies]
 # Core OptimizedISG dependencies (proven architecture)
 petgraph = "0.6"

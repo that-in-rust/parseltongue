@@ -156,7 +156,7 @@
 
 
 
-- [ ] 22. Create comprehensive user journey documentation and demo materials
+- [x] 22. Create comprehensive user journey documentation and demo materials
   - Make sure the final parseltongue binary has YYYYMMDDHHSS suffix to ensure we always know which version is which
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Create Demo 1: Axum codebase exploration journey using existing test data (zzzzArchive/_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt)
@@ -175,3 +175,6 @@
   - Verify memory usage increase <20% from baseline ISG implementation
   - Document any performance contract violations and optimization recommendations
   - _Requirements: Performance preservation constraint, success metrics validation_
+
+
+- [ ] 24. Create a special LLM aligned document to work in .kiro as per your judgement + Use Parseltongue latest build to clean up the warnings in our code itself + when you quote loading time - avoid 0 seconds its confusing whenever it approximates to 0 then tell the milliseconds - ideally post in seconds + milliseconds as often as you can - it is impressive
