@@ -101,31 +101,34 @@ graph TD
 ### Core Components
 
 ```mermaid
-graph TD
-    %% System layers following L1→L2→L3 pattern
-    subgraph "L3: External Interface Layer"
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e1f5fe', 'primaryTextColor':'#01579b', 'lineColor':'#0277bd', 'fontFamily':'Arial', 'fontSize':'12px'}, 'flowchart': {'nodeSpacing': 70, 'rankSpacing': 80, 'wrappingWidth': 130}}}%%
+flowchart TD
+    %% L3: External Interface Layer
+    subgraph "🌐 L3: External Interface Layer"
         direction TB
-        A[CLI Interface<br/>clap command parsing]
-        B[File Monitor<br/>notify crate events]
-        C[AST Parser<br/>syn crate traversal]
+        A["🖥️ CLI Interface<br/><i>clap command parsing</i><br/>User commands → Actions"]
+        B["👁️ File Monitor<br/><i>notify crate events</i><br/>Real-time file changes"]
+        C["🔍 AST Parser<br/><i>syn crate traversal</i><br/>Rust code → Syntax tree"]
     end
     
-    subgraph "L2: Standard Library Layer"
+    %% L2: Standard Library Layer
+    subgraph "📚 L2: Standard Library Layer"
         direction TB
-        D[Thread Safety<br/>Arc&lt;RwLock&lt;T&gt;&gt;]
-        E[Performance Indices<br/>FxHashMap O(1)]
-        F[Graph Storage<br/>petgraph StableDiGraph]
+        D["🔒 Thread Safety<br/><i>Arc&lt;RwLock&lt;T&gt;&gt;</i><br/>Concurrent access control"]
+        E["⚡ Performance Indices<br/><i>FxHashMap O(1)</i><br/>Fast entity lookups"]
+        F["🕸️ Graph Storage<br/><i>petgraph StableDiGraph</i><br/>Relationship modeling"]
     end
     
-    subgraph "L1: Core Language Layer"
+    %% L1: Core Language Layer
+    subgraph "🔧 L1: Core Language Layer"
         direction TB
-        G[OptimizedISG<br/>RAII patterns]
-        H[SigHash<br/>Newtype safety]
-        I[NodeData<br/>Memory layout]
-        J[EdgeKind<br/>Type safety]
+        G["🏗️ OptimizedISG<br/><i>RAII patterns</i><br/>Memory-safe graph"]
+        H["🔑 SigHash<br/><i>Newtype safety</i><br/>Entity identification"]
+        I["📦 NodeData<br/><i>Memory layout</i><br/>24-byte entities"]
+        J["🔗 EdgeKind<br/><i>Type safety</i><br/>Relationship types"]
     end
     
-    %% Data flow
+    %% Data flow connections
     A --> D
     B --> C
     C --> G
@@ -136,30 +139,65 @@ graph TD
     F --> I
     I --> J
     
-    %% Query engine
-    subgraph "Query Engine (O(1) Performance)"
-        direction LR
-        K[what-implements<br/>Trait implementors]
-        L[blast-radius<br/>Dependency analysis]
-        M[find-cycles<br/>Circular dependencies]
-        N[generate-context<br/>LLM preparation]
+    %% Query Engine (O(1) Performance)
+    subgraph "⚡ Query Engine (O(1) Performance)"
+        direction TB
+        K["🎯 what-implements<br/><i>Trait implementors</i><br/>&lt;50μs response"]
+        L["💥 blast-radius<br/><i>Dependency analysis</i><br/>Impact assessment"]
+        M["🔄 find-cycles<br/><i>Circular dependencies</i><br/>Architecture validation"]
+        N["🤖 generate-context<br/><i>LLM preparation</i><br/>Zero-hallucination facts"]
     end
     
+    %% Query connections
     G --> K
     G --> L
     G --> M
     G --> N
     
-    %% Styling
-    classDef l3 fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef l2 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef l1 fill:#e1f5fe,stroke:#01579b,stroke-width:3px
-    classDef query fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    %% Performance characteristics
+    subgraph "📊 Performance Characteristics"
+        direction LR
+        P1["Ingestion: 1-3s<br/><i>64 Rust files</i>"]
+        P2["Queries: &lt;50μs<br/><i>Simple operations</i>"]
+        P3["Discovery: &lt;100ms<br/><i>Entity listing</i>"]
+        P4["Memory: 12MB<br/><i>127 files</i>"]
+    end
+    
+    %% Connect to performance
+    C -.-> P1
+    K -.-> P2
+    E -.-> P3
+    I -.-> P4
+    
+    %% Architectural principles
+    subgraph "🎯 Architectural Principles"
+        direction TB
+        AP1["L1→L2→L3 Layering<br/><i>Clear separation</i>"]
+        AP2["RAII Resource Mgmt<br/><i>Automatic cleanup</i>"]
+        AP3["Type Safety<br/><i>Compile-time guarantees</i>"]
+        AP4["Performance Contracts<br/><i>Test-validated</i>"]
+    end
+    
+    %% Connect principles to layers
+    G -.-> AP1
+    G -.-> AP2
+    H -.-> AP3
+    K -.-> AP4
+    
+    %% Styling with distinct layers
+    classDef l3 fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+    classDef l2 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
+    classDef l1 fill:#e1f5fe,stroke:#01579b,stroke-width:3px,color:#0d47a1
+    classDef query fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100
+    classDef performance fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#880e4f
+    classDef principles fill:#f1f8e9,stroke:#689f38,stroke-width:2px,color:#33691e
     
     class A,B,C l3
     class D,E,F l2
     class G,H,I,J l1
     class K,L,M,N query
+    class P1,P2,P3,P4 performance
+    class AP1,AP2,AP3,AP4 principles
 ```
 
 ### Data Structures

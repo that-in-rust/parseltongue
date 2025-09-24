@@ -10,8 +10,10 @@ use std::time::Duration;
 use thiserror::Error;
 
 use crate::discovery::{
-    OnboardingResult, FeaturePlanResult, DebugResult, RefactorResult
+    OnboardingResult, FeaturePlanResult, DebugResult, RefactorResult,
+    ComplexityLevel, ConfidenceLevel, Priority
 };
+use crate::discovery::workflow_orchestrator::RiskLevel;
 
 /// Core trait for output formatting
 /// 

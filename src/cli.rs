@@ -230,21 +230,24 @@ impl LlmContext {
     }
 }
 
-/// Format duration for display, showing appropriate units
+/// Format duration for display following parseltongue-llm-guide.md precision requirements
+/// - Always report milliseconds when duration < 1 second
+/// - Use seconds + milliseconds for durations > 1 second  
+/// - Never report "0 seconds" - use milliseconds instead
 fn format_duration(duration: Duration) -> String {
     let total_ms = duration.as_secs_f64() * 1000.0;
     let total_us = duration.as_micros() as f64;
     
     if total_us < 1000.0 {
-        // Less than 1 millisecond: show in microseconds
-        format!("{:.2}μs", total_us)
+        // Less than 1 millisecond: show in microseconds (for very fast operations)
+        format!("{:.0}μs", total_us)
     } else if total_ms < 1000.0 {
-        // Less than 1 second: show in milliseconds
-        format!("{:.2}ms", total_ms)
+        // Less than 1 second: show in milliseconds (following guide requirement)
+        format!("{:.0} milliseconds", total_ms)
     } else {
         // 1 second or more: show both seconds and milliseconds for clarity
         let secs = duration.as_secs_f64();
-        format!("{:.2}s ({:.0}ms)", secs, total_ms)
+        format!("{:.3} seconds ({:.0} milliseconds)", secs, total_ms)
     }
 }
 
@@ -260,32 +263,43 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     match cli.command {
         Commands::Ingest { file } => {
             if !file.exists() {
-                return Err(format!("File not found: {}", file.display()).into());
+                return Err(format!("🚫 File not found: {}", file.display()).into());
             }
+            
+            println!("🤖 STARK INDUSTRIES CODEBASE INGESTION PROTOCOL");
+            println!("═══════════════════════════════════════════════");
+            println!("📁 Target: {}", file.display());
+            println!("⚡ Initializing JARVIS analysis...");
             
             let start = Instant::now();
             let stats = daemon.ingest_code_dump(&file)?;
             let elapsed = start.elapsed();
             
-            println!("✓ Ingestion complete:");
-            println!("  Files processed: {}", stats.files_processed);
-            println!("  Nodes created: {}", stats.nodes_created);
-            println!("  Total nodes in ISG: {}", daemon.isg.node_count());
-            println!("  Total edges in ISG: {}", daemon.isg.edge_count());
-            println!("  Time: {}", format_duration(elapsed));
+            println!();
+            println!("✅ INGESTION PROTOCOL COMPLETE");
+            println!("  📊 Files processed: {}", stats.files_processed);
+            println!("  🔗 Nodes created: {}", stats.nodes_created);
+            println!("  🌐 Total nodes in ISG: {}", daemon.isg.node_count());
+            println!("  🕸️  Total edges in ISG: {}", daemon.isg.edge_count());
+            println!("  ⚡ Processing time: {}", format_duration(elapsed));
             
             // Verify <5s constraint for 2.1MB dumps (Performance Contract)
             if elapsed.as_secs() > 5 {
-                eprintln!("⚠️  Ingestion took {:.2}s (>5s constraint violated)", elapsed.as_secs_f64());
+                eprintln!("⚠️  PERFORMANCE ALERT: Ingestion took {:.2}s (>5s target exceeded)", elapsed.as_secs_f64());
+                eprintln!("💡 Consider optimizing for larger codebases");
+            } else {
+                println!("🎯 Performance target achieved!");
             }
             
             // Save snapshot for persistence between commands
             let snapshot_path = std::path::Path::new("parseltongue_snapshot.json");
             if let Err(e) = daemon.save_snapshot(snapshot_path) {
-                eprintln!("⚠️  Could not save snapshot: {}", e);
+                eprintln!("⚠️  Snapshot save failed: {}", e);
             } else {
-                println!("✓ Snapshot saved for future queries");
+                println!("💾 Snapshot saved for future missions");
             }
+            
+            println!("\n🤖 JARVIS ready for architectural intelligence queries! 🤖");
         }
         
         Commands::Daemon { watch } => {
@@ -337,22 +351,51 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             
             match format {
                 OutputFormat::Human => {
-                    println!("Results for {} query on '{}':", 
-                        match query_type {
-                            QueryType::WhatImplements => "what-implements",
-                            QueryType::BlastRadius => "blast-radius", 
-                            QueryType::FindCycles => "find-cycles",
-                            QueryType::Calls => "calls",
-                            QueryType::Uses => "uses",
-                        }, target);
-                    for item in &result {
-                        println!("  - {}", item);
-                    }
-                    println!("\nQuery completed in {}μs", elapsed.as_micros());
+                    // Avengers-themed query results following discovery-first approach
+                    let query_emoji = match query_type {
+                        QueryType::WhatImplements => "🔍", // Hawkeye's precision
+                        QueryType::BlastRadius => "💥", // Hulk's impact
+                        QueryType::FindCycles => "🌀", // Doctor Strange's loops
+                        QueryType::Calls => "📞", // Communication network
+                        QueryType::Uses => "🕸️", // Spider-Man's web
+                    };
                     
-                    // Verify performance constraints (2x tolerance)
-                    if elapsed.as_micros() > 2000 {
-                        eprintln!("⚠️  Query took {}μs (>2ms constraint)", elapsed.as_micros());
+                    let query_name = match query_type {
+                        QueryType::WhatImplements => "TRAIT IMPLEMENTATION SCAN",
+                        QueryType::BlastRadius => "IMPACT BLAST RADIUS",
+                        QueryType::FindCycles => "CIRCULAR DEPENDENCY DETECTION",
+                        QueryType::Calls => "CALLER NETWORK ANALYSIS",
+                        QueryType::Uses => "USAGE WEB MAPPING",
+                    };
+                    
+                    println!("{} {}", query_emoji, query_name);
+                    println!("═══════════════════════════════════════");
+                    println!("🎯 Target: '{}'", target);
+                    println!("📊 Results found: {}", result.len());
+                    println!();
+                    
+                    if result.is_empty() {
+                        println!("❌ No results found for '{}'", target);
+                        println!("💡 Suggestions:");
+                        println!("  • Check entity name spelling");
+                        println!("  • Try 'parseltongue list-entities' to see available entities");
+                        println!("  • Ensure the codebase has been ingested");
+                    } else {
+                        for (i, item) in result.iter().enumerate() {
+                            println!("  {}. 🎯 {}", i + 1, item);
+                        }
+                    }
+                    
+                    println!();
+                    println!("⚡ Query completed in {}", format_duration(elapsed));
+                    
+                    // Verify performance constraints following guide expectations
+                    let target_us = 500; // 500μs target from guide
+                    if elapsed.as_micros() > target_us {
+                        eprintln!("⚠️  PERFORMANCE ALERT: Query took {} (target: <{}μs)", 
+                                format_duration(elapsed), target_us);
+                    } else {
+                        println!("✅ Performance target achieved!");
                     }
                 }
                 OutputFormat::Json => {
@@ -407,30 +450,40 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         }
         
         Commands::Visualize { entity, output } => {
+            println!("🔮 DOCTOR STRANGE VISUALIZATION PROTOCOL");
+            println!("═══════════════════════════════════════════");
+            println!("✨ Opening the Eye of Agamotto...");
+            
             let start = Instant::now();
             
             let html = daemon.isg.generate_html_visualization(entity.as_deref())?;
             
             // Write HTML to file
             std::fs::write(&output, html)
-                .map_err(|e| format!("Failed to write HTML file: {}", e))?;
+                .map_err(|e| format!("🚫 Mystical arts failed: {}", e))?;
             
             let elapsed = start.elapsed();
             
-            println!("✓ Interactive HTML visualization generated:");
-            println!("  Output file: {}", output.display());
-            println!("  Nodes: {}", daemon.isg.node_count());
-            println!("  Edges: {}", daemon.isg.edge_count());
+            println!();
+            println!("✅ MYSTICAL VISUALIZATION COMPLETE");
+            println!("  📄 Sanctum file: {}", output.display());
+            println!("  🌐 Nodes mapped: {}", daemon.isg.node_count());
+            println!("  🕸️  Connections traced: {}", daemon.isg.edge_count());
             if let Some(entity) = entity {
-                println!("  Focused on: {}", entity);
+                println!("  🎯 Focused entity: {}", entity);
             }
-            println!("  Generation time: {}", format_duration(elapsed));
-            println!("  Open {} in your browser to view the visualization", output.display());
+            println!("  ⚡ Spell casting time: {}", format_duration(elapsed));
             
             // Verify <500ms constraint
             if elapsed.as_millis() > 500 {
-                eprintln!("⚠️  HTML generation took {}ms (>500ms constraint violated)", elapsed.as_millis());
+                eprintln!("⚠️  TEMPORAL ANOMALY: Generation took {}ms (>500ms target)", elapsed.as_millis());
+            } else {
+                println!("🎯 Mystical efficiency achieved!");
             }
+            
+            println!();
+            println!("🔮 Open {} in your browser to witness the architectural dimensions!", output.display());
+            println!("✨ The multiverse of code awaits your exploration! ✨");
         }
         
         Commands::ListEntities { r#type, limit, format } => {
@@ -643,7 +696,14 @@ async fn handle_where_defined_command(
 fn format_entities_human(entities: &[EntityInfo], elapsed: std::time::Duration, filtered: bool) {
     if entities.is_empty() {
         println!("🔍 No entities detected in the codebase.");
-        println!("💡 Try running 'parseltongue ingest <file>' first to populate the ISG.");
+        println!();
+        println!("🤖 DISCOVERY-FIRST TROUBLESHOOTING (parseltongue-llm-guide.md):");
+        println!("  1. 🎯 Ingest codebase: 'parseltongue ingest codebase.dump'");
+        println!("  2. 🔍 Check ISG status: 'parseltongue debug-graph --graph'");
+        println!("  3. 📁 Verify file format: Ensure proper FILE: markers in dump");
+        println!("  4. ⚡ Performance check: Ingestion should complete in 1-3 seconds");
+        println!();
+        println!("💡 Expected baseline: ~2177 nodes, 3933 edges for Parseltongue itself");
         return;
     }
     
@@ -692,8 +752,13 @@ fn format_entities_human(entities: &[EntityInfo], elapsed: std::time::Duration, 
         println!();
     }
     
-    let speed_emoji = if elapsed.as_millis() < 100 { "⚡" } else { "🐌" };
-    println!("{}️ Discovery completed in {} (target: <100ms)", speed_emoji, format_duration(elapsed));
+    // Performance validation following parseltongue-llm-guide.md expectations
+    let target_ms = 100; // <100ms target from guide
+    let speed_emoji = if elapsed.as_millis() < target_ms { "⚡" } else { "🐌" };
+    let status = if elapsed.as_millis() < target_ms { "✅ TARGET ACHIEVED" } else { "⚠️ PERFORMANCE REVIEW NEEDED" };
+    
+    println!("{}️ Discovery completed in {} {} (target: <{} milliseconds)", 
+             speed_emoji, format_duration(elapsed), status, target_ms);
 }
 
 /// Format entities for JSON output
@@ -720,7 +785,16 @@ fn format_file_entities_human(entities: &[EntityInfo], file_path: &str, elapsed:
     
     if entities.is_empty() {
         println!("🕷️  No entities found in this web node.");
-        println!("💡 The file might be empty or contain only comments/imports.");
+        println!();
+        println!("🔍 SPIDER-SENSE ANALYSIS:");
+        println!("  • File might contain only imports/comments");
+        println!("  • File might not be properly ingested");
+        println!("  • File might have parsing errors");
+        println!();
+        println!("💡 Discovery-First Next Steps:");
+        println!("  1. 🎯 Check overall entities: 'parseltongue list-entities --limit 10'");
+        println!("  2. 🔍 Verify file exists in ISG");
+        println!("  3. 📁 Try a known file: 'parseltongue entities-in-file src/main.rs'");
         return;
     }
     
@@ -763,8 +837,13 @@ fn format_file_entities_human(entities: &[EntityInfo], file_path: &str, elapsed:
         println!();
     }
     
-    let speed_emoji = if elapsed.as_millis() < 100 { "⚡" } else { "🐌" };
-    println!("{}️ Web scan completed in {} (target: <100ms)", speed_emoji, format_duration(elapsed));
+    // Performance validation following parseltongue-llm-guide.md expectations  
+    let target_ms = 100; // <100ms target from guide
+    let speed_emoji = if elapsed.as_millis() < target_ms { "⚡" } else { "🐌" };
+    let status = if elapsed.as_millis() < target_ms { "✅ WEB-SLINGER SPEED" } else { "⚠️ NEED MORE SPIDER-POWER" };
+    
+    println!("{}️ Web scan completed in {} {} (target: <{} milliseconds)", 
+             speed_emoji, format_duration(elapsed), status, target_ms);
 }
 
 /// Format file entities for JSON output
@@ -804,18 +883,29 @@ fn format_location_human(entity_name: &str, location: &Option<FileLocation>, ela
             println!("🏹 HAWKEYE TARGET ACQUISITION FAILED");
             println!("═══════════════════════════════════════");
             println!("❌ Entity '{}' not found in the codebase.", entity_name);
-            println!("🔍 Possible reasons:");
-            println!("  • Entity name might be misspelled");
-            println!("  • Entity might not be ingested yet");
-            println!("  • Entity might be private/internal");
             println!();
-            println!("💡 Try 'parseltongue list-entities' to see available targets");
+            println!("🔍 Discovery-First Troubleshooting (following parseltongue-llm-guide.md):");
+            println!("  1. 🎯 Get overview: 'parseltongue list-entities --limit 50'");
+            println!("  2. 🔍 Search by type: 'parseltongue list-entities --type functions'");
+            println!("  3. 📁 Check specific file: 'parseltongue entities-in-file src/main.rs'");
+            println!("  4. 🤖 Ensure ingestion: 'parseltongue ingest codebase.dump'");
+            println!();
+            println!("💡 Common issues:");
+            println!("  • Entity name case sensitivity");
+            println!("  • Missing namespace/module prefix");
+            println!("  • Entity might be private/internal");
+            println!("  • Codebase not yet ingested");
         }
     }
     
     println!();
-    let speed_emoji = if elapsed.as_micros() < 50_000 { "⚡" } else { "🐌" };
-    println!("{}️ Targeting completed in {} (target: <50ms)", speed_emoji, format_duration(elapsed));
+    // Performance validation following parseltongue-llm-guide.md expectations
+    let target_ms = 50; // <50ms target from guide for exact lookups
+    let speed_emoji = if elapsed.as_millis() < target_ms { "⚡" } else { "🐌" };
+    let status = if elapsed.as_millis() < target_ms { "✅ HAWKEYE PRECISION" } else { "⚠️ RECALIBRATING TARGETING SYSTEM" };
+    
+    println!("{}️ Targeting completed in {} {} (target: <{} milliseconds)", 
+             speed_emoji, format_duration(elapsed), status, target_ms);
 }
 
 /// Format location for JSON output
