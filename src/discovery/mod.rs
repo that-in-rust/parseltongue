@@ -33,6 +33,9 @@ pub mod output_formatter;
 #[cfg(test)]
 pub mod workflow_integration_tests;
 
+// #[cfg(test)]
+// pub mod output_formatter_integration_test;
+
 // Re-export core types for convenience
 pub use string_interning::{FileId, FileInterner};
 pub use engine::DiscoveryEngine;

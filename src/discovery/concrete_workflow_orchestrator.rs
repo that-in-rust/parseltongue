@@ -12,7 +12,7 @@ use crate::discovery::{
     ImpactAnalysis, ScopeGuidance, ChangeScope, RiskAssessment, ReviewerGuidance,
     ComplexityLevel, ConfidenceLevel, EntryPoint, KeyContext, TestRecommendation,
     CallerTrace, UsageSite, ChecklistItem, ModuleInfo, RiskFactor, Priority,
-    FileLocation, EntityInfo, DiscoveryEngine
+    FileLocation, EntityInfo, DiscoveryEngine, types::EntityType
 };
 use crate::discovery::workflow_orchestrator::{RiskLevel};
 use crate::isg::OptimizedISG;
@@ -34,6 +34,20 @@ impl ConcreteWorkflowOrchestrator {
     }
     
     // Helper methods for onboard workflow
+    
+    /// Count unique files in the entity list
+    fn count_unique_files(&self, entities: &[EntityInfo]) -> usize {
+        let mut files = std::collections::HashSet::new();
+        for entity in entities {
+            files.insert(&entity.file_path);
+        }
+        files.len()
+    }
+    
+    /// Extract key modules from entities
+
+    
+
     
     async fn identify_entry_points(&self, entities: &[EntityInfo]) -> Vec<EntryPoint> {
         let mut entry_points = Vec::new();
@@ -168,14 +182,6 @@ impl ConcreteWorkflowOrchestrator {
         next_steps.push("Explore the module structure in src/".to_string());
         
         next_steps
-    }
-    
-    fn count_unique_files(&self, entities: &[EntityInfo]) -> usize {
-        let mut files = std::collections::HashSet::new();
-        for entity in entities {
-            files.insert(&entity.file_path);
-        }
-        files.len()
     }
     
     async fn extract_key_modules(&self, entities: &[EntityInfo]) -> Vec<ModuleInfo> {

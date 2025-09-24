@@ -138,7 +138,7 @@
   - Write end-to-end tests for each workflow meeting success criteria timelines
   - _Requirements: JTBD 1, 2, 3, 4 workflows_
 
-- [ ] 20. Build output integration and formatting system
+- [x] 20. Build output integration and formatting system
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Implement OutputFormatter trait with human, JSON, PR summary, and CI output formats
   - Create PR-ready markdown summaries with architectural context and impact analysis
@@ -156,8 +156,22 @@
 
 
 
-- [ ] 22. Take an first example user journey of exploring a codebase such as axum /home/amuldotexe/Desktop/GitHub202410/that-in-rust/parseltongue/zzzzArchive/_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt - run each step and document the journey and results in an MD file for Users to follow along as Demo 1
+- [ ] 22. Create comprehensive user journey documentation and demo materials
+  - Make sure the final parseltongue binary has YYYYMMDDHHSS suffix to ensure we always know which version is which
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
+  - Create Demo 1: Axum codebase exploration journey using existing test data (zzzzArchive/_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt)
+  - Create Demo 2: Self-exploration journey documenting Parseltongue's own codebase analysis
+  - Document each workflow step with actual command outputs and timing measurements
+  - Create parseltongue_dungeon/ folder with ready-to-use scripts and LLM instruction files
+  - Update README.md with Mermaid diagrams using Minto Pyramid Principle (PMF features at top, details layered below)
+  - Ensure all documentation uses low-drama, technical language focused on practical value
+  - _Requirements: All requirements validation, user onboarding, workflow demonstration_
 
-- [ ] 23. Take an first example user journey of exploring a codebase such as the current codebase - run each step and document the journey and results in an MD file for Users to follow along as Demo 2
-
-- [ ] 24. Build a folder which can be placed in your github repo call it parseltongue_dungeon where all the scripts can be readily placed LLM instruction MD files and update the README doc with Mermaid diagrams in the form of minto pyramid principle - essential highest PMF things at the top - and more details layer by layer. Keep the language low drama everywhere
+- [ ] 23. Validate end-to-end system integration and performance contracts
+  - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
+  - Run comprehensive end-to-end tests with realistic codebases (Iggy: 983 files, Axum: 295 files)
+  - Validate all performance contracts: discovery <30s, queries <100ms, existing queries <50μs
+  - Test all JTBD workflows meet timing requirements: onboard <15min, feature-start <5min, debug <2min, refactor-check <3min
+  - Verify memory usage increase <20% from baseline ISG implementation
+  - Document any performance contract violations and optimization recommendations
+  - _Requirements: Performance preservation constraint, success metrics validation_
