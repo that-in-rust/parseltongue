@@ -134,7 +134,7 @@ impl Manager{} {{
         components.len()
     }}
 }}
-"#, i, i, i);
+"#, i, i, i, i, i, i, i, i, i);
             
             code_dump.push_str(&file_content);
         }

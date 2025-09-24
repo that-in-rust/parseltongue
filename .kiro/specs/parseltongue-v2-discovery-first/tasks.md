@@ -167,7 +167,7 @@
   - Ensure all documentation uses low-drama, technical language focused on practical value
   - _Requirements: All requirements validation, user onboarding, workflow demonstration_
 
-- [ ] 23. Validate end-to-end system integration and performance contracts
+- [x] 23. Validate end-to-end system integration and performance contracts
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Run comprehensive end-to-end tests with realistic codebases (Iggy: 983 files, Axum: 295 files)
   - Validate all performance contracts: discovery <30s, queries <100ms, existing queries <50μs
@@ -179,4 +179,4 @@
 
 - [ ] 24. Create a special LLM aligned document to work in .kiro as per your judgement + Use Parseltongue latest build to clean up the warnings in our code itself + when you quote loading time - avoid 0 seconds its confusing whenever it approximates to 0 then tell the milliseconds - ideally post in seconds + milliseconds as often as you can - it is impressive
 
-- [ ] 25. Do amazing documentation using Mermaid diagrams - Use .kiro/trun_c928898c8ef7483eb8257cb7dc52ac9a.json +  .kiro/Bullet-Proof Mermaid Prompts_ Square-Perfect Diagrams from Any LLM.md
+- [ ] 25. Do amazing documentation using Mermaid diagrams - Use .kiro/trun_c928898c8ef7483eb8257cb7dc52ac9a.json +  .kiro/Bullet-Proof Mermaid Prompts_ Square-Perfect Diagrams from Any LLM.md 
