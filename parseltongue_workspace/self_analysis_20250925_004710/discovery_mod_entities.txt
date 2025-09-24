@@ -1,0 +1,3 @@
+✓ Loaded snapshot: 2177 nodes, 3933 edges (2ms)
+Entities in file 'src/discovery/mod.rs': 0
+No entities found in this file.

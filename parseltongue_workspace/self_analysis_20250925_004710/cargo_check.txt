@@ -1,0 +1,44 @@
+    Checking parseltongue v0.1.0 (/Users/neetipatni/Desktop/amuldotexe-github/branchBgithub/parseltongue)
+warning: field `name` is never read
+  --> src/discovery/performance_metrics.rs:37:5
+   |
+35 | pub struct Counter {
+   |            ------- field in this struct
+36 |     value: Arc<AtomicU64>,
+37 |     name: String,
+   |     ^^^^
+   |
+   = note: `Counter` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+
+warning: field `name` is never read
+  --> src/discovery/performance_metrics.rs:44:5
+   |
+42 | pub struct Histogram {
+   |            --------- field in this struct
+43 |     samples: Arc<Mutex<Vec<Duration>>>,
+44 |     name: String,
+   |     ^^^^
+   |
+   = note: `Histogram` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `extract_relationships_from_isg` is never used
+  --> src/relationship_accuracy_tests.rs:86:4
+   |
+86 | fn extract_relationships_from_isg(daemon: &ParseltongueAIM) -> Vec<(String, String, EdgeKind)> {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_simple_program_expected_relationships` is never used
+   --> src/relationship_accuracy_tests.rs:105:4
+    |
+105 | fn create_simple_program_expected_relationships() -> Vec<ExpectedRelationship> {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_axum_expected_relationships` is never used
+   --> src/relationship_accuracy_tests.rs:129:4
+    |
+129 | fn create_axum_expected_relationships() -> Vec<ExpectedRelationship> {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `parseltongue` (lib) generated 5 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.54s

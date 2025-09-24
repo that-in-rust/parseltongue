@@ -1,0 +1,832 @@
+    Checking parseltongue v0.1.0 (/Users/neetipatni/Desktop/amuldotexe-github/branchBgithub/parseltongue)
+warning: constants have by default a `'static` lifetime
+   --> src/isg.rs:159:24
+    |
+159 |         const FIELDS: &'static [&'static str] = &["hash", "kind", "name", "signature", "file_path", "line"];
+    |                       -^^^^^^^--------------- help: consider removing `'static`: `&[&'static str]`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#redundant_static_lifetimes
+    = note: `#[warn(clippy::redundant_static_lifetimes)]` on by default
+
+warning: constants have by default a `'static` lifetime
+   --> src/isg.rs:159:34
+    |
+159 |         const FIELDS: &'static [&'static str] = &["hash", "kind", "name", "signature", "file_path", "line"];
+    |                                 -^^^^^^^---- help: consider removing `'static`: `&str`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#redundant_static_lifetimes
+
+warning: constants have by default a `'static` lifetime
+   --> src/discovery/enhanced_isg_node.rs:163:24
+    |
+163 |         const FIELDS: &'static [&'static str] = &["sig_hash", "kind", "name", "signature", "file_id", "line_number", "column"];
+    |                       -^^^^^^^--------------- help: consider removing `'static`: `&[&'static str]`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#redundant_static_lifetimes
+
+warning: constants have by default a `'static` lifetime
+   --> src/discovery/enhanced_isg_node.rs:163:34
+    |
+163 |         const FIELDS: &'static [&'static str] = &["sig_hash", "kind", "name", "signature", "file_id", "line_number", "column"];
+    |                                 -^^^^^^^---- help: consider removing `'static`: `&str`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#redundant_static_lifetimes
+
+warning: empty lines after doc comment
+   --> src/discovery/simple_discovery_engine.rs:289:5
+    |
+289 | /     /// Uses the type index for O(1) access to entities of a specific type.
+290 | |
+291 | |     
+    | |____^
+...
+296 |       pub async fn available_entity_types(&self) -> Result<Vec<EntityType>> {
+    |       ----------------------------------- the comment documents this function
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#empty_line_after_doc_comments
+    = note: `#[warn(clippy::empty_line_after_doc_comments)]` on by default
+    = help: if the empty lines are unintentional, remove them
+help: if the documentation should include the empty lines include them in the comment
+    |
+290 +     ///
+291 ~     ///
+    |
+
+warning: empty lines after doc comment
+  --> src/discovery/concrete_workflow_orchestrator.rs:47:5
+   |
+47 | /     /// Extract key modules from entities
+...  |
+51 | |     
+   | |____^
+52 |       async fn identify_entry_points(&self, entities: &[EntityInfo]) -> Vec<EntryPoint> {
+   |       ------------------------------ the comment documents this function
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#empty_line_after_doc_comments
+   = help: if the empty lines are unintentional, remove them
+
+warning: redundant field names in struct initialization
+   --> src/discovery/concrete_workflow_orchestrator.rs:484:13
+    |
+484 |             entry_points: entry_points,
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `entry_points`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#redundant_field_names
+    = note: `#[warn(clippy::redundant_field_names)]` on by default
+
+warning: redundant field names in struct initialization
+   --> src/discovery/concrete_workflow_orchestrator.rs:485:13
+    |
+485 |             key_contexts: key_contexts,
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace it with: `key_contexts`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#redundant_field_names
+
+error[E0433]: failed to resolve: use of undeclared type `Instant`
+   --> src/discovery/file_navigation_tests.rs:445:21
+    |
+445 |         let start = Instant::now();
+    |                     ^^^^^^^ use of undeclared type `Instant`
+    |
+    = note: struct `crate::performance_validation::tests::Instant` exists but is inaccessible
+help: consider importing one of these structs
+    |
+284 +     use crate::discovery::file_navigation_tests::file_navigation_contract_tests::tokio::time::Instant;
+    |
+284 +     use std::time::Instant;
+    |
+284 +     use tokio::time::Instant;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Duration`
+   --> src/discovery/file_navigation_tests.rs:449:27
+    |
+449 |         assert!(elapsed < Duration::from_millis(100), 
+    |                           ^^^^^^^^ use of undeclared type `Duration`
+    |
+help: consider importing one of these items
+    |
+284 +     use crate::discovery::file_navigation_tests::file_navigation_contract_tests::tokio::time::Duration;
+    |
+284 +     use std::time::Duration;
+    |
+284 +     use chrono::Duration;
+    |
+284 +     use tokio::time::Duration;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Instant`
+   --> src/discovery/file_navigation_tests.rs:481:21
+    |
+481 |         let start = Instant::now();
+    |                     ^^^^^^^ use of undeclared type `Instant`
+    |
+    = note: struct `crate::performance_validation::tests::Instant` exists but is inaccessible
+help: consider importing one of these structs
+    |
+284 +     use crate::discovery::file_navigation_tests::file_navigation_contract_tests::tokio::time::Instant;
+    |
+284 +     use std::time::Instant;
+    |
+284 +     use tokio::time::Instant;
+    |
+
+error[E0433]: failed to resolve: use of undeclared type `Duration`
+   --> src/discovery/file_navigation_tests.rs:485:27
+    |
+485 |         assert!(elapsed < Duration::from_millis(50), 
+    |                           ^^^^^^^^ use of undeclared type `Duration`
+    |
+help: consider importing one of these items
+    |
+284 +     use crate::discovery::file_navigation_tests::file_navigation_contract_tests::tokio::time::Duration;
+    |
+284 +     use std::time::Duration;
+    |
+284 +     use chrono::Duration;
+    |
+284 +     use tokio::time::Duration;
+    |
+
+warning: unused import: `std::collections::HashMap`
+   --> src/workspace_cli.rs:146:9
+    |
+146 |     use std::collections::HashMap;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `CallerTrace`, `ChangeScope`, `ChecklistItem`, `CodebaseOverview`, `DebugResult`, `EntryPoint`, `FeaturePlanResult`, `ImpactAnalysis`, `KeyContext`, `OnboardingResult`, `RefactorResult`, `ReviewerGuidance`, `RiskAssessment`, `ScopeGuidance`, `TestRecommendation`, `UsageSite`, and `WorkflowError`
+  --> src/discovery/workflow_integration_tests.rs:8:57
+   |
+ 8 |     ConcreteWorkflowOrchestrator, WorkflowOrchestrator, OnboardingResult, FeaturePlanResult,
+   |                                                         ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^
+ 9 |     DebugResult, RefactorResult, WorkflowError, CodebaseOverview, EntryPoint, KeyContext,
+   |     ^^^^^^^^^^^  ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^^^
+10 |     ImpactAnalysis, ScopeGuidance, TestRecommendation, CallerTrace, UsageSite, ChangeScope,
+   |     ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^  ^^^^^^^^^  ^^^^^^^^^^^
+11 |     RiskAssessment, ChecklistItem, ReviewerGuidance, WorkflowRiskLevel, ComplexityLevel,
+   |     ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+
+warning: field `name` is never read
+  --> src/discovery/performance_metrics.rs:37:5
+   |
+35 | pub struct Counter {
+   |            ------- field in this struct
+36 |     value: Arc<AtomicU64>,
+37 |     name: String,
+   |     ^^^^
+   |
+   = note: `Counter` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+
+warning: field `name` is never read
+  --> src/discovery/performance_metrics.rs:44:5
+   |
+42 | pub struct Histogram {
+   |            --------- field in this struct
+43 |     samples: Arc<Mutex<Vec<Duration>>>,
+44 |     name: String,
+   |     ^^^^
+   |
+   = note: `Histogram` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+
+warning: function `extract_relationships_from_isg` is never used
+  --> src/relationship_accuracy_tests.rs:86:4
+   |
+86 | fn extract_relationships_from_isg(daemon: &ParseltongueAIM) -> Vec<(String, String, EdgeKind)> {
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_simple_program_expected_relationships` is never used
+   --> src/relationship_accuracy_tests.rs:105:4
+    |
+105 | fn create_simple_program_expected_relationships() -> Vec<ExpectedRelationship> {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `create_axum_expected_relationships` is never used
+   --> src/relationship_accuracy_tests.rs:129:4
+    |
+129 | fn create_axum_expected_relationships() -> Vec<ExpectedRelationship> {
+    |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: useless use of `format!`
+   --> src/isg.rs:255:26
+    |
+255 |         output.push_str(&format!("=== Interface Signature Graph ===\n"));
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.to_string()`: `"=== Interface Signature Graph ===\n".to_string()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#useless_format
+    = note: `#[warn(clippy::useless_format)]` on by default
+
+warning: you seem to want to iterate on a map's values
+   --> src/isg.rs:261:35
+    |
+261 |         for (_hash, &node_idx) in &state.id_map {
+    |                                   ^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#for_kv_map
+    = note: `#[warn(clippy::for_kv_map)]` on by default
+help: use the corresponding method
+    |
+261 -         for (_hash, &node_idx) in &state.id_map {
+261 +         for &node_idx in state.id_map.values() {
+    |
+
+warning: you seem to want to iterate on a map's values
+   --> src/isg.rs:291:35
+    |
+291 |         for (_hash, &node_idx) in &state.id_map {
+    |                                   ^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#for_kv_map
+help: use the corresponding method
+    |
+291 -         for (_hash, &node_idx) in &state.id_map {
+291 +         for &node_idx in state.id_map.values() {
+    |
+
+warning: calling `push_str()` using a single-character string literal
+   --> src/isg.rs:303:9
+    |
+303 |         output.push_str("\n");
+    |         ^^^^^^^^^^^^^^^^^^^^^ help: consider using `push` with a character literal: `output.push('\n')`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#single_char_add_str
+    = note: `#[warn(clippy::single_char_add_str)]` on by default
+
+warning: use of `or_insert_with` to construct default value
+   --> src/isg.rs:420:22
+    |
+420 |                     .or_insert_with(FxHashSet::default)
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_or_default
+    = note: `#[warn(clippy::unwrap_or_default)]` on by default
+
+warning: use of `or_insert_with` to construct default value
+   --> src/isg.rs:430:18
+    |
+430 |                 .or_insert_with(FxHashSet::default)
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_or_default
+
+warning: unneeded `return` statement
+   --> src/daemon.rs:108:17
+    |
+108 |                 return Some(absolute_hash);
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_return
+    = note: `#[warn(clippy::needless_return)]` on by default
+help: remove `return`
+    |
+108 -                 return Some(absolute_hash);
+108 +                 Some(absolute_hash)
+    |
+
+warning: unneeded `return` statement
+   --> src/daemon.rs:113:17
+    |
+113 |                 return None;
+    |                 ^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_return
+help: remove `return`
+    |
+113 -                 return None;
+113 +                 None
+    |
+
+warning: unneeded `return` statement
+   --> src/daemon.rs:185:9
+    |
+185 |         return Some(absolute_hash);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_return
+help: remove `return`
+    |
+185 -         return Some(absolute_hash);
+185 +         Some(absolute_hash)
+    |
+
+error: this loop never actually loops
+   --> src/daemon.rs:162:17
+    |
+162 | /                 for module in &common_modules {
+163 | |                     let module_signature = format!("struct {}::{}", module, type_name);
+164 | |                     let module_hash = SigHash::from_signature(&module_signature);
+...   |
+167 | |                     return Some(module_hash);
+168 | |                 }
+    | |_________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#never_loop
+    = note: `#[deny(clippy::never_loop)]` on by default
+help: if you need the first element of the iterator, try writing
+    |
+162 -                 for module in &common_modules {
+162 +                 if let Some(module) = common_modules.iter().next() {
+    |
+
+warning: you should consider adding a `Default` implementation for `ParseltongueAIM`
+   --> src/daemon.rs:255:5
+    |
+255 | /     pub fn new() -> Self {
+256 | |         Self {
+257 | |             isg: OptimizedISG::new(),
+258 | |             file_watcher: None,
+...   |
+261 | |     }
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default
+    = note: `#[warn(clippy::new_without_default)]` on by default
+help: try adding this
+    |
+254 + impl Default for ParseltongueAIM {
+255 +     fn default() -> Self {
+256 +         Self::new()
+257 +     }
+258 + }
+    |
+
+warning: stripping a prefix manually
+   --> src/daemon.rs:288:32
+    |
+288 |                 current_file = line[6..].trim().to_string();
+    |                                ^^^^^^^^^
+    |
+note: the prefix was tested here
+   --> src/daemon.rs:280:13
+    |
+280 |             if line.starts_with("FILE: ") {
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#manual_strip
+    = note: `#[warn(clippy::manual_strip)]` on by default
+help: try using the `strip_prefix` method
+    |
+280 ~             if let Some(<stripped>) = line.strip_prefix("FILE: ") {
+281 |                 // Process previous file if it exists and is a Rust file
+...
+287 |                 // Start new file
+288 ~                 current_file = <stripped>.trim().to_string();
+    |
+
+warning: this expression creates a reference which is immediately dereferenced by the compiler
+   --> src/daemon.rs:507:58
+    |
+507 | ...                   extractor.visit_impl_item_fn(&method);
+    |                                                    ^^^^^^^ help: change this to: `method`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#needless_borrow
+    = note: `#[warn(clippy::needless_borrow)]` on by default
+
+warning: redundant closure
+   --> src/workspace_cli.rs:115:26
+    |
+115 |                 .map_err(|e| WorkspaceError::Serialization(e))?;
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace the closure with the function itself: `WorkspaceError::Serialization`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#redundant_closure
+    = note: `#[warn(clippy::redundant_closure)]` on by default
+
+warning: use of `or_insert_with` to construct default value
+   --> src/discovery/string_interning.rs:385:22
+    |
+385 |                     .or_insert_with(Vec::new)
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_or_default
+
+warning: use of `or_insert_with` to construct default value
+   --> src/discovery/string_interning.rs:412:66
+    |
+412 |                     let ids = self.trigram_to_ids.entry(trigram).or_insert_with(Vec::new);
+    |                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_or_default
+
+warning: use of `or_insert_with` to construct default value
+   --> src/discovery/string_interning.rs:482:22
+    |
+482 |                     .or_insert_with(Vec::new)
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_or_default
+
+warning: useless use of `format!`
+   --> src/discovery/error.rs:430:34
+    |
+430 |                 .with_suggestion(format!("Try 'parseltongue list-entities --type functions' to see available functions"))
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.to_string()`: `"Try 'parseltongue list-entities --type functions' to see available functions".to_string()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#useless_format
+
+warning: use of `or_insert_with` to construct default value
+  --> src/discovery/simple_discovery_engine.rs:59:18
+   |
+59 |                 .or_insert_with(Vec::new)
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_or_default
+
+warning: you seem to want to iterate on a map's values
+   --> src/discovery/simple_discovery_engine.rs:232:35
+    |
+232 |         for (_hash, &node_idx) in &state.id_map {
+    |                                   ^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#for_kv_map
+help: use the corresponding method
+    |
+232 -         for (_hash, &node_idx) in &state.id_map {
+232 +         for &node_idx in state.id_map.values() {
+    |
+
+warning: use of `or_insert_with` to construct default value
+  --> src/discovery/file_navigation_provider.rs:63:22
+   |
+63 |                     .or_insert_with(Vec::new)
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_or_default
+
+warning: you should consider adding a `Default` implementation for `MockFileNavigationProvider`
+   --> src/discovery/file_navigation_tests.rs:188:5
+    |
+188 | /     pub fn new() -> Self {
+189 | |         Self {
+190 | |             entities: vec![
+191 | |                 EntityInfo::new(
+...   |
+214 | |     }
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default
+help: try adding this
+    |
+187 + impl Default for MockFileNavigationProvider {
+188 +     fn default() -> Self {
+189 +         Self::new()
+190 +     }
+191 + }
+    |
+
+warning: calling `push_str()` using a single-character string literal
+   --> src/discovery/blast_radius_analyzer.rs:101:9
+    |
+101 |         summary.push_str("\n");
+    |         ^^^^^^^^^^^^^^^^^^^^^^ help: consider using `push` with a character literal: `summary.push('\n')`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#single_char_add_str
+
+warning: calling `push_str()` using a single-character string literal
+   --> src/discovery/blast_radius_analyzer.rs:110:13
+    |
+110 |             summary.push_str("\n");
+    |             ^^^^^^^^^^^^^^^^^^^^^^ help: consider using `push` with a character literal: `summary.push('\n')`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#single_char_add_str
+
+warning: use of `or_insert_with` to construct default value
+   --> src/discovery/blast_radius_analyzer.rs:300:18
+    |
+300 |                 .or_insert_with(Vec::new)
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_or_default
+
+warning: use of `or_insert_with` to construct default value
+   --> src/discovery/indexes.rs:286:44
+    |
+286 |             self.file_index.entry(file_id).or_insert_with(Vec::new).push(index);
+    |                                            ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_or_default
+
+warning: use of `or_insert_with` to construct default value
+   --> src/discovery/indexes.rs:289:55
+    |
+289 |             self.type_index.entry(entity.entity_type).or_insert_with(Vec::new).push(index);
+    |                                                       ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_or_default
+
+warning: use of `or_insert_with` to construct default value
+   --> src/discovery/concurrent_discovery_engine.rs:228:46
+    |
+228 |             grouped_queries.entry(group_key).or_insert_with(Vec::new).push((index, query));
+    |                                              ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `or_default()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unwrap_or_default
+
+warning: manual implementation of `.is_multiple_of()`
+   --> src/discovery/performance_metrics.rs:187:25
+    |
+187 |         let median = if sorted_samples.len() % 2 == 0 {
+    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `sorted_samples.len().is_multiple_of(2)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#manual_is_multiple_of
+    = note: `#[warn(clippy::manual_is_multiple_of)]` on by default
+
+warning: you should consider adding a `Default` implementation for `DiscoveryMetrics`
+   --> src/discovery/performance_metrics.rs:237:5
+    |
+237 | /     pub fn new() -> Self {
+238 | |         Self {
+239 | |             discovery_operations: Counter::new("discovery_operations"),
+240 | |             existing_queries: Counter::new("existing_queries"),
+...   |
+252 | |     }
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default
+help: try adding this
+    |
+235 + impl Default for DiscoveryMetrics {
+236 +     fn default() -> Self {
+237 +         Self::new()
+238 +     }
+239 + }
+    |
+
+warning: you should consider adding a `Default` implementation for `PerformanceRegressionTester`
+  --> src/discovery/performance_regression_tests.rs:22:5
+   |
+22 | /     pub fn new() -> Self {
+23 | |         let isg = OptimizedISG::new();
+24 | |         let discovery_engine = SimpleDiscoveryEngine::new(isg);
+...  |
+30 | |     }
+   | |_____^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default
+help: try adding this
+   |
+20 + impl Default for PerformanceRegressionTester {
+21 +     fn default() -> Self {
+22 +         Self::new()
+23 +     }
+24 + }
+   |
+
+warning: you should consider adding a `Default` implementation for `PerformanceTestResults`
+   --> src/discovery/performance_regression_tests.rs:207:5
+    |
+207 | /     pub fn new() -> Self {
+208 | |         Self {
+209 | |             successes: Vec::new(),
+210 | |             failures: Vec::new(),
+211 | |         }
+212 | |     }
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default
+help: try adding this
+    |
+206 + impl Default for PerformanceTestResults {
+207 +     fn default() -> Self {
+208 +         Self::new()
+209 +     }
+210 + }
+    |
+
+warning: called `Iterator::last` on a `DoubleEndedIterator`; this will needlessly iterate the entire iterator
+   --> src/discovery/concrete_workflow_orchestrator.rs:206:23
+    |
+206 |                 name: path.split('/').last().unwrap_or("root").to_string(),
+    |                       ^^^^^^^^^^^^^^^^------
+    |                                       |
+    |                                       help: try: `next_back()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#double_ended_iterator_last
+    = note: `#[warn(clippy::double_ended_iterator_last)]` on by default
+
+warning: useless use of `format!`
+   --> src/discovery/concrete_workflow_orchestrator.rs:319:26
+    |
+319 |                 context: format!("Called within function context"),
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.to_string()`: `"Called within function context".to_string()`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#useless_format
+
+warning: you seem to use `.enumerate()` and immediately discard the index
+   --> src/discovery/output_formatter.rs:720:31
+    |
+720 |             for (_i, step) in result.next_steps.iter().enumerate() {
+    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#unused_enumerate_index
+    = note: `#[warn(clippy::unused_enumerate_index)]` on by default
+help: remove the `.enumerate()` call
+    |
+720 -             for (_i, step) in result.next_steps.iter().enumerate() {
+720 +             for step in result.next_steps.iter() {
+    |
+
+warning: useless use of `format!`
+    --> src/discovery/output_formatter.rs:1098:38
+     |
+1098 |                     output.push_str(&format!("echo \"ONBOARD_STATUS=SUCCESS\" >> $GITHUB_ENV\n"));
+     |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.to_string()`: `"echo \"ONBOARD_STATUS=SUCCESS\" >> $GITHUB_ENV\n".to_string()`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#useless_format
+
+warning: unused variable: `isg`
+   --> src/discovery/file_navigation_tests.rs:532:13
+    |
+532 |         let isg = TestDataFactory::create_large_test_isg(100, 50); // 5000 total entities
+    |             ^^^ help: if this is intentional, prefix it with an underscore: `_isg`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: useless use of `format!`
+    --> src/discovery/output_formatter.rs:1127:38
+     |
+1127 |                     output.push_str(&format!("export ONBOARD_STATUS=SUCCESS\n"));
+     |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.to_string()`: `"export ONBOARD_STATUS=SUCCESS\n".to_string()`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#useless_format
+
+warning: unused variable: `isg`
+   --> src/discovery/file_navigation_tests.rs:555:13
+    |
+555 |         let isg = TestDataFactory::create_large_test_isg(100, 50); // 5000 total entities
+    |             ^^^ help: if this is intentional, prefix it with an underscore: `_isg`
+
+warning: useless use of `format!`
+    --> src/discovery/output_formatter.rs:1136:34
+     |
+1136 |                 output.push_str(&format!("ONBOARD_STATUS=SUCCESS\n"));
+     |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.to_string()`: `"ONBOARD_STATUS=SUCCESS\n".to_string()`
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#useless_format
+
+warning: you should consider adding a `Default` implementation for `RealisticDataGenerator`
+   --> src/performance_validation.rs:134:5
+    |
+134 | /     pub fn new() -> Self {
+135 | |         Self {
+136 | |             module_names: vec![
+137 | |                 "core", "utils", "models", "services", "handlers", "middleware",
+...   |
+171 | |     }
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default
+help: try adding this
+    |
+133 + impl Default for RealisticDataGenerator {
+134 +     fn default() -> Self {
+135 +         Self::new()
+136 +     }
+137 + }
+    |
+
+warning: unused variable: `analyzer`
+   --> src/discovery/blast_radius_analyzer.rs:403:13
+    |
+403 |         let analyzer = BlastRadiusAnalyzer::new(isg);
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_analyzer`
+
+warning: you should consider adding a `Default` implementation for `PerformanceValidator`
+   --> src/performance_validation.rs:387:5
+    |
+387 | /     pub fn new() -> Self {
+388 | |         Self {
+389 | |             generator: RealisticDataGenerator::new(),
+390 | |         }
+391 | |     }
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default
+help: try adding this
+    |
+386 + impl Default for PerformanceValidator {
+387 +     fn default() -> Self {
+388 +         Self::new()
+389 +     }
+390 + }
+    |
+
+warning: this function has too many arguments (8/7)
+   --> src/performance_monitoring.rs:151:5
+    |
+151 | /     fn check_metric_regression(
+152 | |         &self,
+153 | |         regressions: &mut Vec<PerformanceRegression>,
+154 | |         improvements: &mut Vec<PerformanceImprovement>,
+...   |
+159 | |         tolerance_percent: f64,
+160 | |     ) {
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#too_many_arguments
+    = note: `#[warn(clippy::too_many_arguments)]` on by default
+
+warning: calling `push_str()` using a single-character string literal
+   --> src/performance_monitoring.rs:218:13
+    |
+218 |             report.push_str("\n");
+    |             ^^^^^^^^^^^^^^^^^^^^^ help: consider using `push` with a character literal: `report.push('\n')`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#single_char_add_str
+
+warning: calling `push_str()` using a single-character string literal
+   --> src/performance_monitoring.rs:233:13
+    |
+233 |             report.push_str("\n");
+    |             ^^^^^^^^^^^^^^^^^^^^^ help: consider using `push` with a character literal: `report.push('\n')`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#single_char_add_str
+
+warning: you should consider adding a `Default` implementation for `AccuracyReport`
+   --> src/accuracy_validation_report.rs:110:5
+    |
+110 | /     pub fn new() -> Self {
+111 | |         Self {
+112 | |             test_results: Vec::new(),
+113 | |             overall_metrics: OverallMetrics {
+...   |
+125 | |     }
+    | |_____^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#new_without_default
+help: try adding this
+    |
+109 + impl Default for AccuracyReport {
+110 +     fn default() -> Self {
+111 +         Self::new()
+112 +     }
+113 + }
+    |
+
+warning: manual `RangeInclusive::contains` implementation
+   --> src/accuracy_validation_report.rs:226:12
+    |
+226 |         if relationship_density >= 1.0 && relationship_density <= 3.0 {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `(1.0..=3.0).contains(&relationship_density)`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/master/index.html#manual_range_contains
+    = note: `#[warn(clippy::manual_range_contains)]` on by default
+
+warning: unused variable: `j`
+   --> src/discovery/concurrent_discovery_engine.rs:592:21
+    |
+592 |                 for j in 0..5 {
+    |                     ^ help: if this is intentional, prefix it with an underscore: `_j`
+
+warning: `parseltongue` (lib) generated 57 warnings
+error: could not compile `parseltongue` (lib) due to 1 previous error; 57 warnings emitted
+warning: build failed, waiting for other jobs to finish...
+warning: unused variable: `orchestrator`
+   --> src/discovery/concrete_workflow_orchestrator.rs:628:13
+    |
+628 |         let orchestrator = create_test_orchestrator();
+    |             ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_orchestrator`
+
+warning: unused variable: `onboard_error`
+   --> src/discovery/workflow_integration_tests.rs:419:9
+    |
+419 |     let onboard_error = fixture.orchestrator.onboard("./nonexistent_dir").await;
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_onboard_error`
+
+warning: unused variable: `feature_error`
+   --> src/discovery/workflow_integration_tests.rs:420:9
+    |
+420 |     let feature_error = fixture.orchestrator.feature_start("nonexistent_entity").await;
+    |         ^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_feature_error`
+
+warning: unused variable: `debug_error`
+   --> src/discovery/workflow_integration_tests.rs:421:9
+    |
+421 |     let debug_error = fixture.orchestrator.debug("nonexistent_function").await;
+    |         ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_debug_error`
+
+warning: unused variable: `refactor_error`
+   --> src/discovery/workflow_integration_tests.rs:422:9
+    |
+422 |     let refactor_error = fixture.orchestrator.refactor_check("nonexistent_target").await;
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_refactor_error`
+
+warning: unused variable: `daemon`
+   --> src/relationship_accuracy_tests.rs:792:17
+    |
+792 |         let mut daemon = ParseltongueAIM::new();
+    |                 ^^^^^^ help: if this is intentional, prefix it with an underscore: `_daemon`
+
+warning: variable does not need to be mutable
+   --> src/relationship_accuracy_tests.rs:792:13
+    |
+792 |         let mut daemon = ParseltongueAIM::new();
+    |             ----^^^^^^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+For more information about this error, try `rustc --explain E0433`.
+warning: `parseltongue` (lib test) generated 21 warnings (8 duplicates)
+error: could not compile `parseltongue` (lib test) due to 4 previous errors; 21 warnings emitted

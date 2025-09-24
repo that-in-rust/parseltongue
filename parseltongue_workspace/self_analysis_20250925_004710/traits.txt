@@ -1,0 +1,6 @@
+error: invalid value 'traits' for '--type <TYPE>'
+  [possible values: function, struct, trait, impl, module, constant, static, macro]
+
+  tip: a similar value exists: 'trait'
+
+For more information, try '--help'.
