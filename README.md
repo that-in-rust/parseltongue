@@ -250,6 +250,25 @@ cargo build --release
 # Output: ./parseltongue_workspace/llm_context_TIMESTAMP/
 ```
 
+## 🚀 Porting to New Codebases
+
+**Need to integrate Parseltongue into your own project?** 
+
+📋 **[PARSELTONGUE_PORTING_GUIDE.md](PARSELTONGUE_PORTING_GUIDE.md)** - Complete step-by-step instructions with:
+- **Explicit file lists** for each integration tier
+- **Copy-paste commands** for quick setup  
+- **LLM workflow integration** instructions
+- **Validation checklist** to ensure proper setup
+
+**Quick Integration:**
+```bash
+# Copy essential files (see porting guide for complete list)
+cp src/discovery/engine.rs your_project/src/discovery/
+cp parseltongue_dungeon/scripts/* your_project/scripts/
+chmod +x your_project/scripts/*.sh
+```
+```
+
 ---
 
 ## Validated Performance Contracts

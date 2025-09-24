@@ -96,17 +96,21 @@ ides & Reports**
 
 ## 📊 Task Implementation Reports
 
-### Root Directory Task Reports
-- `TASK_17_IMPLEMENTATION_SUMMARY.md` - Task 17 completion report
-- `TASK_18_TDD_IMPLEMENTATION_SUMMARY.md` - TDD implementation summary
-- `TASK_19_TDD_IMPLEMENTATION_SUMMARY.md` - Task 19 TDD summary
-- `TASK_20_TDD_IMPLEMENTATION_SUMMARY.md` - Task 20 TDD summary
-- `TASK_21_INTEGRATION_SUMMARY.md` - Integration task summary
+### `/docs/task_reports/` - Implementation Task Documentation
+- `TASK_17_IMPLEMENTATION_SUMMARY.md` - Discovery infrastructure setup
+- `TASK_18_TDD_IMPLEMENTATION_SUMMARY.md` - TDD implementation for enhanced ISG nodes
+- `TASK_19_TDD_IMPLEMENTATION_SUMMARY.md` - Entity listing and query interface
+- `TASK_20_TDD_IMPLEMENTATION_SUMMARY.md` - File-based navigation implementation
+- `TASK_21_INTEGRATION_SUMMARY.md` - System integration and wiring
 - `TASK_23_FINAL_VALIDATION_REPORT.md` - Final validation report
 - `TASK_23_FINAL_VALIDATION_REPORT_ACTUAL.md` - Actual validation results
-- `TASK_23_IMPLEMENTATION_SUMMARY.md` - Task 23 implementation
-- `TASK_23_PERFORMANCE_VALIDATION_SUMMARY.md` - Performance validation
-- `TASK_25_AVENGERS_CLI_ENHANCEMENT_SUMMARY.md` - CLI enhancement summary## 🔧 Bu
+- `TASK_23_IMPLEMENTATION_SUMMARY.md` - Task 23 detailed implementation
+- `TASK_23_PERFORMANCE_VALIDATION_SUMMARY.md` - Performance validation results
+- `TASK_25_AVENGERS_CLI_ENHANCEMENT_SUMMARY.md` - CLI enhancement with Avengers theme
+- `TASK_27_CLEANUP_SUMMARY.md` - Folder structure cleanup and organization
+- `COMPREHENSIVE_INTEGRATION_TESTS_SUMMARY.md` - Integration testing summary
+- `PERFORMANCE_MONITORING_IMPLEMENTATION.md` - Performance monitoring setup
+- `WORKSPACE_IMPLEMENTATION_VERIFICATION.md` - Workspace implementation verification## 🔧 Bu
 ild & Development Files
 
 ### Core Build Configuration
@@ -199,43 +203,28 @@ docs/ARCHITECTURE_OVERVIEW.md
 1. Use `pt onboard` for codebase exploration
 2. Use `pt feature-start` for impact analysis
 3. Use `pt debug` for debugging workflows
-4. Reference `.kiro/parseltongue-llm-guide.md` for LLM best practices## 📋 F
-ile Organization Recommendations
+4. Reference `.kiro/parseltongue-llm-guide.md` for LLM best practices
 
-### Suggested Cleanup Actions:
+## 📋 File Organization Status
 
-#### 1. Move Task Reports to `/docs/task_reports/`
-```bash
-mkdir -p docs/task_reports
-mv TASK_*_SUMMARY.md docs/task_reports/
-mv COMPREHENSIVE_INTEGRATION_TESTS_SUMMARY.md docs/task_reports/
-mv PERFORMANCE_MONITORING_IMPLEMENTATION.md docs/task_reports/
-mv WORKSPACE_IMPLEMENTATION_VERIFICATION.md docs/task_reports/
-```
+### ✅ Cleanup Actions Completed:
 
-#### 2. Move Analysis Files to `/analysis/`
-```bash
-mkdir -p analysis
-mv parseltongue_self_analysis.dump analysis/
-mv parseltongue_self_dump.txt analysis/
-mv parseltongue_snapshot.json analysis/
-mv parseltongue_visualization.html analysis/
-mv test_simple.dump analysis/
-```
+#### 1. Task Reports Organized in `/docs/task_reports/`
+All task implementation summaries and reports have been moved to a dedicated directory for better organization and navigation.
 
-#### 3. Move Demo Files to `/demos/`
-```bash
-mkdir -p demos
-mv workspace_demo* demos/
-mv test_workspace_standalone* demos/
-```
+#### 2. Analysis Files Organized in `/analysis/`
+All analysis dumps, snapshots, and generated files have been consolidated into a dedicated analysis directory.
 
-#### 4. Update Root Directory Structure
-After cleanup, root should contain only:
-- Core build files (Cargo.toml, Cargo.lock)
-- Main documentation (README.md, this TOC)
-- Essential executables (pt)
-- Core directories (src/, tests/, docs/, etc.)
+#### 3. Demo Files Organized in `/demos/`
+All demo and standalone example files have been moved to a dedicated demos directory with proper documentation.
+
+#### 4. Current Clean Root Directory Structure
+After cleanup, root contains only essential files:
+- **Core build files**: `Cargo.toml`, `Cargo.lock`
+- **Main documentation**: `README.md`, `PARSELTONGUE_PROJECT_TOC.md`, `LLM_INTEGRATION_GUIDE.md`
+- **Essential executable**: `pt` (workflow orchestrator)
+- **IDE configuration**: `.cursorignore`, `.gitignore`, `.trustedKiroCommands`
+- **Core directories**: `src/`, `tests/`, `docs/`, `parseltongue_dungeon/`, etc.
 
 ---
 
