@@ -186,3 +186,5 @@
 - [x] 25. Using the Kiro steering document which uses pt parseltongue best practices, try to make some visually nice changes in the CLI experience putting emojis in the style of avengers theme, the idea is the workflows should replace some of the existing agentic workflows of search - or at least in part be better at helping navigate the codebase
 
 - [x] 26. Do amazing documentation using Mermaid diagrams - Use .kiro/trun_c928898c8ef7483eb8257cb7dc52ac9a.json +  .kiro/Bullet-Proof Mermaid Prompts_ Square-Perfect Diagrams from Any LLM.md -- And finally make an approrpirate commit and push to origin
+
+- [ ] 27. Clean up the folders structure - add a TOC for all the reference files - and more importantly 
