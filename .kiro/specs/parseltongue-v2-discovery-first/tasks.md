@@ -79,7 +79,7 @@
   - Write CLI integration tests for all discovery command variations
   - _Requirements: 1.1, 1.2 (MVP focus)_
 
-- [ ] 12. Implement performance monitoring and contract validation
+- [x] 12. Implement performance monitoring and contract validation
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Create DiscoveryMetrics struct with Histogram and Counter metrics
   - Add automated performance contract validation (<100ms discovery, <50μs existing queries)
