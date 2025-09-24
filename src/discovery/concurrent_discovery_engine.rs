@@ -63,7 +63,7 @@ impl ConcurrentDiscoveryEngine<crate::discovery::ISGFileNavigationProvider> {
 
 impl<F> ConcurrentDiscoveryEngine<F> 
 where
-    F: FileNavigationProvider + Clone + Send + Sync,
+    F: FileNavigationProvider + Clone + Send + Sync + 'static,
 {
     /// Create a new ConcurrentDiscoveryEngine with custom file navigation provider
     pub fn with_file_navigation(isg: crate::isg::OptimizedISG, file_navigation: F) -> Self {
@@ -138,14 +138,14 @@ where
     /// 
     /// Processes queries in streaming fashion, yielding results as they complete
     /// to minimize peak memory usage. Ideal for very large batch operations.
-    pub async fn batch_discovery_queries_streaming<F>(
+    pub async fn batch_discovery_queries_streaming<H>(
         &self,
         queries: Vec<DiscoveryQuery>,
         max_concurrent: usize,
-        mut result_handler: F,
+        mut result_handler: H,
     ) -> Result<usize>
     where
-        F: FnMut(Result<DiscoveryResult>) -> bool + Send, // Returns true to continue, false to stop
+        H: FnMut(Result<DiscoveryResult>) -> bool + Send, // Returns true to continue, false to stop
     {
         use tokio::sync::Semaphore;
         use tokio::task::JoinSet;
@@ -339,17 +339,10 @@ where
         let engine = self.inner.read().await;
         let mut results = HashMap::with_capacity(entity_types.len());
         
-        // Use zero-allocation filtering for each type
+        // Use efficient type-based filtering for each type
         for entity_type in entity_types {
-            // Get entities using zero-allocation iterator patterns
-            let entities: Vec<EntityInfo> = engine
-                .get_indexes()
-                .await?
-                .filter_entities_by_type(entity_type)
-                .take(max_results_per_type)
-                .map(|compact| compact.to_entity_info(&engine.get_indexes().await?.interner))
-                .collect();
-            
+            // Get entities using the efficient type-based method
+            let entities = engine.entities_by_type_efficient(entity_type, max_results_per_type).await?;
             results.insert(entity_type, entities);
         }
         
@@ -413,13 +406,7 @@ where
         
         // Use SIMD-optimized filtering where available
         for entity_type in entity_types {
-            let entities: Vec<EntityInfo> = engine
-                .get_indexes()
-                .await?
-                .filter_entities_by_type_vectorized(entity_type)
-                .take(max_results_per_type)
-                .map(|compact| compact.to_entity_info(&engine.get_indexes().await?.interner))
-                .collect();
+            let entities = engine.entities_by_type_efficient(entity_type, max_results_per_type).await?;
             
             results.insert(entity_type, entities);
         }

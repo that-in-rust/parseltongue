@@ -320,7 +320,7 @@ pub struct RiskFactor {
 }
 
 /// Risk level enumeration
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub enum RiskLevel {
     Low,
     Medium,
@@ -329,7 +329,7 @@ pub enum RiskLevel {
 }
 
 /// Complexity level enumeration
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ComplexityLevel {
     Simple,
     Moderate,
@@ -502,7 +502,7 @@ mod tests {
     #[test]
     fn test_workflow_error_types() {
         // Test different error types
-        let discovery_error = WorkflowError::Discovery(DiscoveryError::EntityNotFound("test".to_string()));
+        let discovery_error = WorkflowError::Discovery(DiscoveryError::EntityNotFound { name: "test".to_string() });
         assert!(matches!(discovery_error, WorkflowError::Discovery(_)));
         
         let timeout_error = WorkflowError::Timeout {

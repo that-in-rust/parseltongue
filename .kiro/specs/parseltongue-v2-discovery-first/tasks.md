@@ -121,7 +121,7 @@
   - Write integration tests for workspace isolation and state persistence
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [-] 18. Create workflow orchestration layer (shell toolkit)
+- [x] 18. Create workflow orchestration layer (shell toolkit)
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Build `pt` shell script with subcommand architecture (onboard, feature-start, debug, refactor-check)
   - Implement WorkflowOrchestrator trait combining discovery commands into complete user journeys
@@ -129,7 +129,7 @@
   - Write workflow integration tests validating complete JTBD user journeys
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 19. Implement JTBD workflow commands
+- [x] 19. Implement JTBD workflow commands
   - Read thoroughly to keep in mind solving this task:.kiro/steering/design101-tdd-architecture-principles.md AND .kiro/steering/code-conventions.md AND .kiro/steering/A01-README-MOSTIMP.md
   - Create `pt onboard` workflow: ingest → overview → routes → key contexts (complete in <15 minutes)
   - Build `pt feature-start` workflow: impact analysis → scope guidance → test recommendations
@@ -153,3 +153,11 @@
   - Connect workflow orchestration layer to core discovery primitives
   - Write full system integration tests validating complete feature functionality and workflows
   - _Requirements: All requirements integration and validation_
+
+
+
+- [ ] 22. Take an first example user journey of exploring a codebase such as axum /home/amuldotexe/Desktop/GitHub202410/that-in-rust/parseltongue/zzzzArchive/_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt - run each step and document the journey and results in an MD file for Users to follow along as Demo 1
+
+- [ ] 23. Take an first example user journey of exploring a codebase such as the current codebase - run each step and document the journey and results in an MD file for Users to follow along as Demo 2
+
+- [ ] 24. Build a folder which can be placed in your github repo call it parseltongue_dungeon where all the scripts can be readily placed LLM instruction MD files and update the README doc with Mermaid diagrams in the form of minto pyramid principle - essential highest PMF things at the top - and more details layer by layer. Keep the language low drama everywhere

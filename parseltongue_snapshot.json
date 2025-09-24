@@ -991,6 +991,62 @@
       "signature": "fn target_function",
       "file_path": "src/lib.rs",
       "line": 0
+    },
+    {
+      "hash": 17334949331020383798,
+      "kind": "Function",
+      "name": "add_numbers",
+      "signature": "fn add_numbers",
+      "file_path": "src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 14005627818581542148,
+      "kind": "Function",
+      "name": "multiply",
+      "signature": "fn multiply",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 2711072238502890040,
+      "kind": "Struct",
+      "name": "Calculator",
+      "signature": "struct Calculator",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 5378306514224700285,
+      "kind": "Function",
+      "name": "new",
+      "signature": "fn new",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 12658124669647440818,
+      "kind": "Function",
+      "name": "add",
+      "signature": "fn add",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 12237654192455911552,
+      "kind": "Trait",
+      "name": "Compute",
+      "signature": "trait Compute",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 12676530375733694856,
+      "kind": "Function",
+      "name": "compute",
+      "signature": "fn compute",
+      "file_path": "src/lib.rs",
+      "line": 0
     }
   ],
   "edges": [
@@ -1013,12 +1069,22 @@
       "from": 10740570816758024744,
       "to": 12451646121676216808,
       "kind": "Implements"
+    },
+    {
+      "from": 6115722153671726781,
+      "to": 17334949331020383798,
+      "kind": "Calls"
+    },
+    {
+      "from": 2711072238502890040,
+      "to": 12237654192455911552,
+      "kind": "Implements"
     }
   ],
   "metadata": {
     "version": 1,
-    "timestamp": 1758696822,
-    "node_count": 124,
-    "edge_count": 4
+    "timestamp": 1758726044,
+    "node_count": 131,
+    "edge_count": 6
   }
 }

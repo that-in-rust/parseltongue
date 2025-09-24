@@ -170,7 +170,7 @@ impl DiscoveryIndexes {
         limit: usize
     ) -> impl Iterator<Item = &CompactEntityInfo>
     where
-        F: Fn(&CompactEntityInfo) -> bool,
+        F: Fn(&&CompactEntityInfo) -> bool,
     {
         self.all_entities
             .iter()
@@ -184,7 +184,7 @@ impl DiscoveryIndexes {
     /// complex filtering logic to be composed efficiently.
     pub fn filter_entities_with_predicates<F>(&self, predicate: F) -> impl Iterator<Item = &CompactEntityInfo>
     where
-        F: Fn(&CompactEntityInfo) -> bool,
+        F: Fn(&&CompactEntityInfo) -> bool,
     {
         self.all_entities.iter().filter(predicate)
     }
@@ -196,7 +196,7 @@ impl DiscoveryIndexes {
     /// are needed from a large dataset.
     pub fn find_entities_limited<F>(&self, predicate: F, limit: usize) -> impl Iterator<Item = &CompactEntityInfo>
     where
-        F: Fn(&CompactEntityInfo) -> bool,
+        F: Fn(&&CompactEntityInfo) -> bool,
     {
         self.all_entities.iter().filter(predicate).take(limit)
     }

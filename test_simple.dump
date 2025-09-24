@@ -1,0 +1,39 @@
+FILE: src/main.rs
+fn main() {
+    println!("Hello, world!");
+    let result = add_numbers(5, 3);
+    println!("Result: {}", result);
+}
+
+fn add_numbers(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+FILE: src/lib.rs
+pub fn multiply(x: i32, y: i32) -> i32 {
+    x * y
+}
+
+pub struct Calculator {
+    pub value: i32,
+}
+
+impl Calculator {
+    pub fn new() -> Self {
+        Self { value: 0 }
+    }
+    
+    pub fn add(&mut self, n: i32) {
+        self.value += n;
+    }
+}
+
+pub trait Compute {
+    fn compute(&self) -> i32;
+}
+
+impl Compute for Calculator {
+    fn compute(&self) -> i32 {
+        self.value
+    }
+}

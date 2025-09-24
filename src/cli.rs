@@ -5,6 +5,7 @@
 use crate::daemon::ParseltongueAIM;
 use crate::isg::ISGError;
 use crate::discovery::{SimpleDiscoveryEngine, DiscoveryEngine, EntityInfo, FileLocation};
+use crate::discovery::{WorkflowOrchestrator, ConcreteWorkflowOrchestrator};
 use crate::workspace_cli::{WorkspaceArgs, handle_workspace_command};
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
@@ -52,7 +53,7 @@ pub enum Commands {
         format: OutputFormat,
     },
     /// Debug and visualization commands
-    Debug {
+    DebugGraph {
         /// Show graph structure
         #[arg(long)]
         graph: bool,
@@ -104,6 +105,38 @@ pub enum Commands {
     },
     /// Workspace management commands
     Workspace(WorkspaceArgs),
+    /// JTBD Workflow: Onboard to new codebase (complete in <15 minutes)
+    Onboard {
+        /// Target directory to analyze
+        target_dir: String,
+        /// Output format
+        #[arg(long, default_value = "human")]
+        format: OutputFormat,
+    },
+    /// JTBD Workflow: Plan feature development (complete in <5 minutes)
+    FeatureStart {
+        /// Target entity name to modify
+        entity: String,
+        /// Output format
+        #[arg(long, default_value = "human")]
+        format: OutputFormat,
+    },
+    /// JTBD Workflow: Debug entity usage (complete in <2 minutes)
+    Debug {
+        /// Target entity name to debug
+        entity: String,
+        /// Output format
+        #[arg(long, default_value = "human")]
+        format: OutputFormat,
+    },
+    /// JTBD Workflow: Check refactoring safety (complete in <3 minutes)
+    RefactorCheck {
+        /// Target entity name to refactor
+        entity: String,
+        /// Output format
+        #[arg(long, default_value = "human")]
+        format: OutputFormat,
+    },
 }
 
 #[derive(Debug, Clone, ValueEnum)]
@@ -323,7 +356,7 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             println!("{}", context);
         }
         
-        Commands::Debug { graph, dot, sample } => {
+        Commands::DebugGraph { graph, dot, sample } => {
             if sample {
                 // Create and show sample ISG for learning
                 let sample_isg = crate::isg::OptimizedISG::create_sample();
@@ -389,6 +422,22 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         Commands::Workspace(workspace_args) => {
             handle_workspace_command(workspace_args).await
                 .map_err(|e| format!("Workspace error: {}", e))?;
+        }
+        
+        Commands::Onboard { target_dir, format } => {
+            handle_onboard_workflow(&daemon, &target_dir, format.clone()).await?;
+        }
+        
+        Commands::FeatureStart { entity, format } => {
+            handle_feature_start_workflow(&daemon, &entity, format.clone()).await?;
+        }
+        
+        Commands::Debug { entity, format } => {
+            handle_debug_workflow(&daemon, &entity, format.clone()).await?;
+        }
+        
+        Commands::RefactorCheck { entity, format } => {
+            handle_refactor_check_workflow(&daemon, &entity, format.clone()).await?;
         }
     }
     
@@ -687,6 +736,448 @@ fn format_location_json(entity_name: &str, location: &Option<FileLocation>, elap
         "found": location.is_some(),
         "location": location,
         "execution_time_us": elapsed.as_micros(),
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    });
+    
+    println!("{}", serde_json::to_string_pretty(&output)?);
+    Ok(())
+}
+
+/// Handle the onboard workflow command
+async fn handle_onboard_workflow(
+    daemon: &ParseltongueAIM,
+    target_dir: &str,
+    format: OutputFormat,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let start = std::time::Instant::now();
+    
+    // Create workflow orchestrator
+    let orchestrator = ConcreteWorkflowOrchestrator::new(std::sync::Arc::new(daemon.isg.clone()));
+    
+    // Execute onboard workflow
+    let result = orchestrator.onboard(target_dir).await
+        .map_err(|e| format!("Onboard workflow error: {}", e))?;
+    
+    let elapsed = start.elapsed();
+    
+    // Format and display results
+    match format {
+        OutputFormat::Human => {
+            format_onboard_result_human(&result, elapsed);
+        }
+        OutputFormat::Json => {
+            format_onboard_result_json(&result, elapsed)?;
+        }
+    }
+    
+    // Check performance contract: <15 minutes
+    if elapsed.as_secs() > 15 * 60 {
+        eprintln!("⚠️  Onboard workflow took {:.2}s (>15 minutes contract violated)", elapsed.as_secs_f64());
+    }
+    
+    Ok(())
+}
+
+/// Handle the feature-start workflow command
+async fn handle_feature_start_workflow(
+    daemon: &ParseltongueAIM,
+    entity: &str,
+    format: OutputFormat,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let start = std::time::Instant::now();
+    
+    // Create workflow orchestrator
+    let orchestrator = ConcreteWorkflowOrchestrator::new(std::sync::Arc::new(daemon.isg.clone()));
+    
+    // Execute feature-start workflow
+    let result = orchestrator.feature_start(entity).await
+        .map_err(|e| format!("Feature start workflow error: {}", e))?;
+    
+    let elapsed = start.elapsed();
+    
+    // Format and display results
+    match format {
+        OutputFormat::Human => {
+            format_feature_plan_result_human(&result, elapsed);
+        }
+        OutputFormat::Json => {
+            format_feature_plan_result_json(&result, elapsed)?;
+        }
+    }
+    
+    // Check performance contract: <5 minutes
+    if elapsed.as_secs() > 5 * 60 {
+        eprintln!("⚠️  Feature start workflow took {:.2}s (>5 minutes contract violated)", elapsed.as_secs_f64());
+    }
+    
+    Ok(())
+}
+
+/// Handle the debug workflow command
+async fn handle_debug_workflow(
+    daemon: &ParseltongueAIM,
+    entity: &str,
+    format: OutputFormat,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let start = std::time::Instant::now();
+    
+    // Create workflow orchestrator
+    let orchestrator = ConcreteWorkflowOrchestrator::new(std::sync::Arc::new(daemon.isg.clone()));
+    
+    // Execute debug workflow
+    let result = orchestrator.debug(entity).await
+        .map_err(|e| format!("Debug workflow error: {}", e))?;
+    
+    let elapsed = start.elapsed();
+    
+    // Format and display results
+    match format {
+        OutputFormat::Human => {
+            format_debug_result_human(&result, elapsed);
+        }
+        OutputFormat::Json => {
+            format_debug_result_json(&result, elapsed)?;
+        }
+    }
+    
+    // Check performance contract: <2 minutes
+    if elapsed.as_secs() > 2 * 60 {
+        eprintln!("⚠️  Debug workflow took {:.2}s (>2 minutes contract violated)", elapsed.as_secs_f64());
+    }
+    
+    Ok(())
+}
+
+/// Handle the refactor-check workflow command
+async fn handle_refactor_check_workflow(
+    daemon: &ParseltongueAIM,
+    entity: &str,
+    format: OutputFormat,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let start = std::time::Instant::now();
+    
+    // Create workflow orchestrator
+    let orchestrator = ConcreteWorkflowOrchestrator::new(std::sync::Arc::new(daemon.isg.clone()));
+    
+    // Execute refactor-check workflow
+    let result = orchestrator.refactor_check(entity).await
+        .map_err(|e| format!("Refactor check workflow error: {}", e))?;
+    
+    let elapsed = start.elapsed();
+    
+    // Format and display results
+    match format {
+        OutputFormat::Human => {
+            format_refactor_result_human(&result, elapsed);
+        }
+        OutputFormat::Json => {
+            format_refactor_result_json(&result, elapsed)?;
+        }
+    }
+    
+    // Check performance contract: <3 minutes
+    if elapsed.as_secs() > 3 * 60 {
+        eprintln!("⚠️  Refactor check workflow took {:.2}s (>3 minutes contract violated)", elapsed.as_secs_f64());
+    }
+    
+    Ok(())
+}
+
+/// Format onboard result for human-readable output
+fn format_onboard_result_human(result: &crate::discovery::OnboardingResult, elapsed: std::time::Duration) {
+    println!("🚀 Codebase Onboarding Complete");
+    println!("================================");
+    println!();
+    
+    // Overview section
+    println!("📊 Codebase Overview:");
+    println!("  • Total files: {}", result.overview.total_files);
+    println!("  • Total entities: {}", result.overview.total_entities);
+    println!();
+    
+    // Entities by type
+    if !result.overview.entities_by_type.is_empty() {
+        println!("📈 Entities by Type:");
+        for (entity_type, count) in &result.overview.entities_by_type {
+            println!("  • {}: {}", entity_type, count);
+        }
+        println!();
+    }
+    
+    // Key modules
+    if !result.overview.key_modules.is_empty() {
+        println!("🏗️  Key Modules:");
+        for module in &result.overview.key_modules {
+            println!("  • {}: {}", module.name, module.purpose);
+        }
+        println!();
+    }
+    
+    // Entry points
+    if !result.entry_points.is_empty() {
+        println!("🚪 Entry Points:");
+        for entry in &result.entry_points {
+            println!("  • {} ({}): {}", entry.name, entry.entry_type, entry.description);
+            println!("    Location: {}", entry.location.format_for_editor());
+        }
+        println!();
+    }
+    
+    // Key contexts
+    if !result.key_contexts.is_empty() {
+        println!("🔑 Key Contexts to Understand:");
+        for context in &result.key_contexts {
+            println!("  • {} ({}): {}", context.name, context.context_type, context.importance);
+            println!("    Location: {}", context.location.format_for_editor());
+        }
+        println!();
+    }
+    
+    // Next steps
+    if !result.next_steps.is_empty() {
+        println!("📋 Recommended Next Steps:");
+        for (i, step) in result.next_steps.iter().enumerate() {
+            println!("  {}. {}", i + 1, step);
+        }
+        println!();
+    }
+    
+    println!("⏱️  Workflow completed in {:.2}s (target: <15 minutes)", elapsed.as_secs_f64());
+}
+
+/// Format onboard result for JSON output
+fn format_onboard_result_json(result: &crate::discovery::OnboardingResult, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
+    let output = serde_json::json!({
+        "workflow": "onboard",
+        "result": result,
+        "execution_time_s": elapsed.as_secs_f64(),
+        "performance_target_s": 15 * 60,
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    });
+    
+    println!("{}", serde_json::to_string_pretty(&output)?);
+    Ok(())
+}
+
+/// Format feature plan result for human-readable output
+fn format_feature_plan_result_human(result: &crate::discovery::FeaturePlanResult, elapsed: std::time::Duration) {
+    println!("🎯 Feature Planning Complete");
+    println!("============================");
+    println!();
+    
+    println!("🎯 Target Entity: {}", result.target_entity);
+    println!();
+    
+    // Impact analysis
+    println!("📊 Impact Analysis:");
+    println!("  • Risk Level: {:?}", result.impact_analysis.risk_level);
+    println!("  • Complexity: {:?}", result.impact_analysis.complexity_estimate);
+    println!("  • Direct Impact: {} entities", result.impact_analysis.direct_impact.len());
+    println!("  • Indirect Impact: {} entities", result.impact_analysis.indirect_impact.len());
+    println!();
+    
+    // Scope guidance
+    println!("🎯 Scope Guidance:");
+    if !result.scope_guidance.boundaries.is_empty() {
+        println!("  Boundaries:");
+        for boundary in &result.scope_guidance.boundaries {
+            println!("    • {}", boundary);
+        }
+    }
+    if !result.scope_guidance.files_to_modify.is_empty() {
+        println!("  Files to modify:");
+        for file in &result.scope_guidance.files_to_modify {
+            println!("    • {}", file);
+        }
+    }
+    if !result.scope_guidance.files_to_avoid.is_empty() {
+        println!("  Files to avoid:");
+        for file in &result.scope_guidance.files_to_avoid {
+            println!("    • {}", file);
+        }
+    }
+    println!();
+    
+    // Test recommendations
+    if !result.test_recommendations.is_empty() {
+        println!("🧪 Test Recommendations:");
+        for test in &result.test_recommendations {
+            println!("  • {} ({}): {}", test.test_target, test.test_type, test.rationale);
+            println!("    Suggested location: {}", test.suggested_location);
+        }
+        println!();
+    }
+    
+    println!("⏱️  Workflow completed in {:.2}s (target: <5 minutes)", elapsed.as_secs_f64());
+}
+
+/// Format feature plan result for JSON output
+fn format_feature_plan_result_json(result: &crate::discovery::FeaturePlanResult, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
+    let output = serde_json::json!({
+        "workflow": "feature-start",
+        "result": result,
+        "execution_time_s": elapsed.as_secs_f64(),
+        "performance_target_s": 5 * 60,
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    });
+    
+    println!("{}", serde_json::to_string_pretty(&output)?);
+    Ok(())
+}
+
+/// Format debug result for human-readable output
+fn format_debug_result_human(result: &crate::discovery::DebugResult, elapsed: std::time::Duration) {
+    println!("🐛 Debug Analysis Complete");
+    println!("==========================");
+    println!();
+    
+    println!("🎯 Target Entity: {}", result.target_entity);
+    println!();
+    
+    // Caller traces
+    if !result.caller_traces.is_empty() {
+        println!("📞 Caller Traces:");
+        for trace in &result.caller_traces {
+            println!("  • {} (depth: {}, context: {})", 
+                     trace.caller.name, trace.depth, trace.call_context);
+            println!("    Location: {}", trace.caller.file_path);
+            if let Some(freq) = &trace.frequency {
+                println!("    Frequency: {}", freq);
+            }
+        }
+        println!();
+    }
+    
+    // Usage sites
+    if !result.usage_sites.is_empty() {
+        println!("🔍 Usage Sites:");
+        for usage in &result.usage_sites {
+            println!("  • {} ({}): {}", usage.user.name, usage.usage_type, usage.context);
+            println!("    Location: {}", usage.location.format_for_editor());
+        }
+        println!();
+    }
+    
+    // Minimal change scope
+    println!("🎯 Minimal Change Scope:");
+    if !result.minimal_scope.minimal_files.is_empty() {
+        println!("  Files to change:");
+        for file in &result.minimal_scope.minimal_files {
+            println!("    • {}", file);
+        }
+    }
+    if !result.minimal_scope.safe_boundaries.is_empty() {
+        println!("  Safe boundaries:");
+        for boundary in &result.minimal_scope.safe_boundaries {
+            println!("    • {}", boundary);
+        }
+    }
+    if !result.minimal_scope.side_effects.is_empty() {
+        println!("  Watch for side effects:");
+        for effect in &result.minimal_scope.side_effects {
+            println!("    • {}", effect);
+        }
+    }
+    println!("  Rollback strategy: {}", result.minimal_scope.rollback_strategy);
+    println!();
+    
+    println!("⏱️  Workflow completed in {:.2}s (target: <2 minutes)", elapsed.as_secs_f64());
+}
+
+/// Format debug result for JSON output
+fn format_debug_result_json(result: &crate::discovery::DebugResult, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
+    let output = serde_json::json!({
+        "workflow": "debug",
+        "result": result,
+        "execution_time_s": elapsed.as_secs_f64(),
+        "performance_target_s": 2 * 60,
+        "timestamp": chrono::Utc::now().to_rfc3339()
+    });
+    
+    println!("{}", serde_json::to_string_pretty(&output)?);
+    Ok(())
+}
+
+/// Format refactor result for human-readable output
+fn format_refactor_result_human(result: &crate::discovery::RefactorResult, elapsed: std::time::Duration) {
+    println!("🔧 Refactor Safety Check Complete");
+    println!("=================================");
+    println!();
+    
+    println!("🎯 Target Entity: {}", result.target_entity);
+    println!();
+    
+    // Risk assessment
+    println!("⚠️  Risk Assessment:");
+    println!("  • Overall Risk: {:?}", result.risk_assessment.overall_risk);
+    println!("  • Confidence: {:?}", result.risk_assessment.confidence);
+    
+    if !result.risk_assessment.risk_factors.is_empty() {
+        println!("  Risk Factors:");
+        for factor in &result.risk_assessment.risk_factors {
+            println!("    • {} ({:?}): {}", factor.description, factor.level, factor.impact);
+        }
+    }
+    
+    if !result.risk_assessment.mitigations.is_empty() {
+        println!("  Mitigations:");
+        for mitigation in &result.risk_assessment.mitigations {
+            println!("    • {}", mitigation);
+        }
+    }
+    println!();
+    
+    // Change checklist
+    if !result.change_checklist.is_empty() {
+        println!("✅ Change Checklist:");
+        for item in &result.change_checklist {
+            let status = if item.completed { "✓" } else { "☐" };
+            println!("  {} {} ({:?})", status, item.description, item.priority);
+            if let Some(notes) = &item.notes {
+                println!("    Notes: {}", notes);
+            }
+        }
+        println!();
+    }
+    
+    // Reviewer guidance
+    println!("👥 Reviewer Guidance:");
+    if !result.reviewer_guidance.focus_areas.is_empty() {
+        println!("  Focus Areas:");
+        for area in &result.reviewer_guidance.focus_areas {
+            println!("    • {}", area);
+        }
+    }
+    if !result.reviewer_guidance.potential_issues.is_empty() {
+        println!("  Potential Issues:");
+        for issue in &result.reviewer_guidance.potential_issues {
+            println!("    • {}", issue);
+        }
+    }
+    if !result.reviewer_guidance.testing_recommendations.is_empty() {
+        println!("  Testing Recommendations:");
+        for rec in &result.reviewer_guidance.testing_recommendations {
+            println!("    • {}", rec);
+        }
+    }
+    if !result.reviewer_guidance.approval_criteria.is_empty() {
+        println!("  Approval Criteria:");
+        for criteria in &result.reviewer_guidance.approval_criteria {
+            println!("    • {}", criteria);
+        }
+    }
+    println!();
+    
+    println!("⏱️  Workflow completed in {:.2}s (target: <3 minutes)", elapsed.as_secs_f64());
+}
+
+/// Format refactor result for JSON output
+fn format_refactor_result_json(result: &crate::discovery::RefactorResult, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
+    let output = serde_json::json!({
+        "workflow": "refactor-check",
+        "result": result,
+        "execution_time_s": elapsed.as_secs_f64(),
+        "performance_target_s": 3 * 60,
         "timestamp": chrono::Utc::now().to_rfc3339()
     });
     

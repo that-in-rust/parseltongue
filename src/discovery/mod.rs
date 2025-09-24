@@ -26,6 +26,11 @@ pub mod concurrent_discovery_engine;
 pub mod performance_metrics;
 pub mod performance_regression_tests;
 pub mod workspace_manager;
+pub mod workflow_orchestrator;
+pub mod concrete_workflow_orchestrator;
+
+#[cfg(test)]
+pub mod workflow_integration_tests;
 
 // Re-export core types for convenience
 pub use string_interning::{FileId, FileInterner};
@@ -42,3 +47,11 @@ pub use concurrent_discovery_engine::ConcurrentDiscoveryEngine;
 pub use performance_metrics::{DiscoveryMetrics, Counter, Histogram, MetricsError, ContractValidation, MemoryStats as MetricsMemoryStats};
 pub use performance_regression_tests::{PerformanceRegressionTester, PerformanceTestResults};
 pub use workspace_manager::{WorkspaceManager, AnalysisSession, WorkspaceError};
+pub use workflow_orchestrator::{
+    WorkflowOrchestrator, OnboardingResult, FeaturePlanResult, DebugResult, RefactorResult,
+    WorkflowError, CodebaseOverview, EntryPoint, KeyContext, ImpactAnalysis, ScopeGuidance,
+    TestRecommendation, CallerTrace, UsageSite, ChangeScope, RiskAssessment, ChecklistItem,
+    ReviewerGuidance, RiskLevel as WorkflowRiskLevel, ComplexityLevel, ConfidenceLevel, Priority, ModuleInfo,
+    RiskFactor
+};
+pub use concrete_workflow_orchestrator::ConcreteWorkflowOrchestrator;
