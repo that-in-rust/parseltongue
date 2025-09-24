@@ -639,15 +639,18 @@ async fn handle_where_defined_command(
     Ok(())
 }
 
-/// Format entities for human-readable output
+/// Format entities for human-readable output with Avengers theme
 fn format_entities_human(entities: &[EntityInfo], elapsed: std::time::Duration, filtered: bool) {
     if entities.is_empty() {
-        println!("No entities found.");
+        println!("🔍 No entities detected in the codebase.");
+        println!("💡 Try running 'parseltongue ingest <file>' first to populate the ISG.");
         return;
     }
     
-    let type_filter_text = if filtered { " (filtered)" } else { "" };
-    println!("Found {} entities{}:", entities.len(), type_filter_text);
+    let type_filter_text = if filtered { " (filtered by type)" } else { "" };
+    println!("🛡️  PARSELTONGUE ENTITY SCAN COMPLETE");
+    println!("═══════════════════════════════════════");
+    println!("📊 Discovered {} entities{}", entities.len(), type_filter_text);
     println!();
     
     // Group entities by type for better organization
@@ -662,7 +665,21 @@ fn format_entities_human(entities: &[EntityInfo], elapsed: std::time::Duration, 
     
     for entity_type in types {
         let entities_of_type = by_type.get(entity_type).unwrap();
-        println!("{:?} ({}):", entity_type, entities_of_type.len());
+        
+        // Avengers-themed emojis for different entity types
+        let type_emoji = match format!("{:?}", entity_type).as_str() {
+            "Function" => "🔨", // Thor's hammer for functions
+            "Struct" => "🛡️", // Captain America's shield for structs
+            "Trait" => "💎", // Infinity stones for traits
+            "Impl" => "🔧", // Iron Man's tech for implementations
+            "Module" => "🏗️", // Building blocks
+            "Constant" => "💎", // Precious constants
+            "Static" => "⚡", // Static power
+            "Macro" => "🪄", // Magic macros
+            _ => "⚡"
+        };
+        
+        println!("{} {:?} ({}):", type_emoji, entity_type, entities_of_type.len());
         
         for entity in entities_of_type {
             let location = if let Some(line) = entity.line_number {
@@ -670,12 +687,13 @@ fn format_entities_human(entities: &[EntityInfo], elapsed: std::time::Duration, 
             } else {
                 entity.file_path.clone()
             };
-            println!("  • {} ({})", entity.name, location);
+            println!("  🎯 {} ({})", entity.name, location);
         }
         println!();
     }
     
-    println!("Discovery completed in {}", format_duration(elapsed));
+    let speed_emoji = if elapsed.as_millis() < 100 { "⚡" } else { "🐌" };
+    println!("{}️ Discovery completed in {} (target: <100ms)", speed_emoji, format_duration(elapsed));
 }
 
 /// Format entities for JSON output
@@ -692,13 +710,17 @@ fn format_entities_json(entities: &[EntityInfo], elapsed: std::time::Duration) -
     Ok(())
 }
 
-/// Format file entities for human-readable output
+/// Format file entities for human-readable output with Avengers theme
 fn format_file_entities_human(entities: &[EntityInfo], file_path: &str, elapsed: std::time::Duration, filtered: bool) {
-    let type_filter_text = if filtered { " (filtered)" } else { "" };
-    println!("Entities in file '{}'{}: {}", file_path, type_filter_text, entities.len());
+    let type_filter_text = if filtered { " (filtered by type)" } else { "" };
+    println!("🔍 SPIDER-SENSE FILE SCAN");
+    println!("═══════════════════════════");
+    println!("📁 Target: '{}'", file_path);
+    println!("📊 Entities detected: {}{}", entities.len(), type_filter_text);
     
     if entities.is_empty() {
-        println!("No entities found in this file.");
+        println!("🕷️  No entities found in this web node.");
+        println!("💡 The file might be empty or contain only comments/imports.");
         return;
     }
     
@@ -715,19 +737,34 @@ fn format_file_entities_human(entities: &[EntityInfo], file_path: &str, elapsed:
     
     for entity_type in types {
         let entities_of_type = by_type.get(entity_type).unwrap();
-        println!("{:?} ({}):", entity_type, entities_of_type.len());
+        
+        // Avengers-themed emojis for different entity types
+        let type_emoji = match format!("{:?}", entity_type).as_str() {
+            "Function" => "🔨", // Thor's hammer for functions
+            "Struct" => "🛡️", // Captain America's shield for structs
+            "Trait" => "💎", // Infinity stones for traits
+            "Impl" => "🔧", // Iron Man's tech for implementations
+            "Module" => "🏗️", // Building blocks
+            "Constant" => "💎", // Precious constants
+            "Static" => "⚡", // Static power
+            "Macro" => "🪄", // Magic macros
+            _ => "⚡"
+        };
+        
+        println!("{} {:?} ({}):", type_emoji, entity_type, entities_of_type.len());
         
         for entity in entities_of_type {
             if let Some(line) = entity.line_number {
-                println!("  • {} (line {})", entity.name, line);
+                println!("  🎯 {} (line {})", entity.name, line);
             } else {
-                println!("  • {}", entity.name);
+                println!("  🎯 {}", entity.name);
             }
         }
         println!();
     }
     
-    println!("Discovery completed in {}", format_duration(elapsed));
+    let speed_emoji = if elapsed.as_millis() < 100 { "⚡" } else { "🐌" };
+    println!("{}️ Web scan completed in {} (target: <100ms)", speed_emoji, format_duration(elapsed));
 }
 
 /// Format file entities for JSON output
@@ -745,29 +782,40 @@ fn format_file_entities_json(entities: &[EntityInfo], file_path: &str, elapsed: 
     Ok(())
 }
 
-/// Format location for human-readable output
+/// Format location for human-readable output with Avengers theme
 fn format_location_human(entity_name: &str, location: &Option<FileLocation>, elapsed: std::time::Duration) {
     match location {
         Some(loc) => {
-            println!("Entity '{}' is defined at:", entity_name);
-            println!("  File: {}", loc.file_path);
+            println!("🎯 HAWKEYE PRECISION TARGETING");
+            println!("═══════════════════════════════");
+            println!("🏹 Target acquired: '{}'", entity_name);
+            println!("📁 File: {}", loc.file_path);
             if let Some(line) = loc.line_number {
                 if let Some(col) = loc.column {
-                    println!("  Position: line {}, column {}", line, col);
+                    println!("📍 Coordinates: line {}, column {}", line, col);
                 } else {
-                    println!("  Line: {}", line);
+                    println!("📍 Line: {}", line);
                 }
             }
-            println!("  Editor link: {}", loc.format_for_editor());
+            println!("🔗 Editor link: {}", loc.format_for_editor());
+            println!("✅ Direct hit confirmed!");
         }
         None => {
-            println!("Entity '{}' not found.", entity_name);
-            println!("💡 Try 'parseltongue list-entities' to see available entities");
+            println!("🏹 HAWKEYE TARGET ACQUISITION FAILED");
+            println!("═══════════════════════════════════════");
+            println!("❌ Entity '{}' not found in the codebase.", entity_name);
+            println!("🔍 Possible reasons:");
+            println!("  • Entity name might be misspelled");
+            println!("  • Entity might not be ingested yet");
+            println!("  • Entity might be private/internal");
+            println!();
+            println!("💡 Try 'parseltongue list-entities' to see available targets");
         }
     }
     
     println!();
-    println!("Lookup completed in {}", format_duration(elapsed));
+    let speed_emoji = if elapsed.as_micros() < 50_000 { "⚡" } else { "🐌" };
+    println!("{}️ Targeting completed in {} (target: <50ms)", speed_emoji, format_duration(elapsed));
 }
 
 /// Format location for JSON output

@@ -439,85 +439,118 @@ impl OutputFormatter for HumanFormatter {
     fn format_refactor(&self, result: &RefactorResult) -> Result<String, FormattingError> {
         let start = std::time::Instant::now();
         
-        let emoji_prefix = if self.use_emojis { "🔧 " } else { "" };
+        // Hulk theme - careful transformation with strength
+        let emoji_prefix = if self.use_emojis { "💚 " } else { "" };
         let mut output = String::new();
         
-        // Header
-        output.push_str(&format!("{}Refactor Safety Check Complete\n", emoji_prefix));
-        output.push_str("=================================\n\n");
+        // Header with Hulk transformation theme
+        output.push_str(&format!("{}HULK SMASH... CAREFULLY! REFACTOR PROTOCOL\n", emoji_prefix));
+        output.push_str("═══════════════════════════════════════════════\n\n");
+        output.push_str(&format!("🎯 Transformation Target: {}\n\n", result.target_entity));
         
-        output.push_str(&format!("🎯 Target Entity: {}\n\n", result.target_entity));
+        // Risk assessment (Banner's scientific analysis)
+        let risk_emoji = if self.use_emojis { "🧬 " } else { "" };
+        output.push_str(&format!("{}Dr. Banner's Risk Analysis:\n", risk_emoji));
         
-        // Risk assessment
-        let risk_emoji = if self.use_emojis { "⚠️  " } else { "" };
-        output.push_str(&format!("{}Risk Assessment:\n", risk_emoji));
-        output.push_str(&format!("  • Overall Risk: {:?}\n", result.risk_assessment.overall_risk));
-        output.push_str(&format!("  • Confidence: {:?}\n", result.risk_assessment.confidence));
+        let overall_risk_emoji = match result.risk_assessment.overall_risk {
+            RiskLevel::Low => "🟢",
+            RiskLevel::Medium => "🟡",
+            RiskLevel::High => "🟠", 
+            RiskLevel::Critical => "🔴"
+        };
+        output.push_str(&format!("  {} Overall Risk: {:?}\n", overall_risk_emoji, result.risk_assessment.overall_risk));
+        
+        let confidence_emoji = match result.risk_assessment.confidence {
+            ConfidenceLevel::Low => "🤔",
+            ConfidenceLevel::Medium => "🧐",
+            ConfidenceLevel::High => "💪",
+            ConfidenceLevel::VeryHigh => "🎯"
+        };
+        output.push_str(&format!("  {} Confidence Level: {:?}\n", confidence_emoji, result.risk_assessment.confidence));
         
         if !result.risk_assessment.risk_factors.is_empty() {
-            output.push_str("  Risk Factors:\n");
+            output.push_str("  ⚠️  Gamma Radiation Levels (Risk Factors):\n");
             for factor in &result.risk_assessment.risk_factors {
-                output.push_str(&format!("    • {} ({:?}): {}\n", factor.description, factor.level, factor.impact));
+                let factor_emoji = match factor.level {
+                    RiskLevel::Low => "🟢",
+                    RiskLevel::Medium => "🟡",
+                    RiskLevel::High => "🟠",
+                    RiskLevel::Critical => "🔴"
+                };
+                output.push_str(&format!("    {} {} ({:?}): {}\n", factor_emoji, factor.description, factor.level, factor.impact));
             }
         }
         
         if !result.risk_assessment.mitigations.is_empty() {
-            output.push_str("  Mitigations:\n");
+            output.push_str("  🛡️  Containment Protocols:\n");
             for mitigation in &result.risk_assessment.mitigations {
-                output.push_str(&format!("    • {}\n", mitigation));
+                output.push_str(&format!("    🔬 {}\n", mitigation));
             }
         }
         output.push('\n');
         
-        // Change checklist
+        // Change checklist (Hulk's careful approach)
         if !result.change_checklist.is_empty() {
-            let checklist_emoji = if self.use_emojis { "✅ " } else { "" };
-            output.push_str(&format!("{}Change Checklist:\n", checklist_emoji));
+            let checklist_emoji = if self.use_emojis { "💪 " } else { "" };
+            output.push_str(&format!("{}Hulk's Careful Transformation Steps:\n", checklist_emoji));
             for item in &result.change_checklist {
-                let status = if item.completed { "✓" } else { "☐" };
-                output.push_str(&format!("  {} {} ({:?})\n", status, item.description, item.priority));
+                let status = if item.completed { "✅" } else { "⬜" };
+                let priority_emoji = match item.priority {
+                    Priority::Critical => "🔴",
+                    Priority::High => "🟠",
+                    Priority::Medium => "🟡",
+                    Priority::Low => "🟢"
+                };
+                output.push_str(&format!("  {} {} {} ({:?})\n", status, priority_emoji, item.description, item.priority));
                 if let Some(notes) = &item.notes {
-                    output.push_str(&format!("    Notes: {}\n", notes));
+                    output.push_str(&format!("    📝 Banner's Notes: {}\n", notes));
                 }
             }
             output.push('\n');
         }
         
-        // Reviewer guidance
-        let reviewer_emoji = if self.use_emojis { "👥 " } else { "" };
-        output.push_str(&format!("{}Reviewer Guidance:\n", reviewer_emoji));
+        // Reviewer guidance (Avengers team review)
+        let reviewer_emoji = if self.use_emojis { "🦸‍♂️ " } else { "" };
+        output.push_str(&format!("{}Avengers Team Review Protocol:\n", reviewer_emoji));
         if !result.reviewer_guidance.focus_areas.is_empty() {
-            output.push_str("  Focus Areas:\n");
+            output.push_str("  🎯 Mission Critical Areas:\n");
             for area in &result.reviewer_guidance.focus_areas {
-                output.push_str(&format!("    • {}\n", area));
+                output.push_str(&format!("    🔍 {}\n", area));
             }
         }
         if !result.reviewer_guidance.potential_issues.is_empty() {
-            output.push_str("  Potential Issues:\n");
+            output.push_str("  ⚠️  Threat Assessment:\n");
             for issue in &result.reviewer_guidance.potential_issues {
-                output.push_str(&format!("    • {}\n", issue));
+                output.push_str(&format!("    🚨 {}\n", issue));
             }
         }
         if !result.reviewer_guidance.testing_recommendations.is_empty() {
-            output.push_str("  Testing Recommendations:\n");
+            output.push_str("  🧪 S.H.I.E.L.D. Testing Protocols:\n");
             for rec in &result.reviewer_guidance.testing_recommendations {
-                output.push_str(&format!("    • {}\n", rec));
+                output.push_str(&format!("    🔬 {}\n", rec));
             }
         }
         if !result.reviewer_guidance.approval_criteria.is_empty() {
-            output.push_str("  Approval Criteria:\n");
+            output.push_str("  ✅ Avengers Assembly Approval:\n");
             for criteria in &result.reviewer_guidance.approval_criteria {
-                output.push_str(&format!("    • {}\n", criteria));
+                output.push_str(&format!("    🛡️  {}\n", criteria));
             }
         }
         output.push('\n');
         
-        // Timing information
+        // Timing information (Hulk's controlled power)
         if self.include_timing {
-            let timing_emoji = if self.use_emojis { "⏱️  " } else { "" };
-            output.push_str(&format!("{}Workflow completed in {:.2}s (target: <3 minutes)\n", 
-                                   timing_emoji, result.execution_time.as_secs_f64()));
+            let timing_emoji = if self.use_emojis { "💨 " } else { "" };
+            let time_status = if result.execution_time.as_secs() < 3 * 60 {
+                "✅ HULK CONTROLLED POWER"
+            } else {
+                "⚠️  HULK NEED MORE TIME"
+            };
+            output.push_str(&format!("{}Transformation Speed: {:.2}s {} (target: <3 minutes)\n", 
+                                   timing_emoji, result.execution_time.as_secs_f64(), time_status));
         }
+        
+        output.push_str("\n💚 Hulk Refactor Complete - Hulk Strongest Coder There Is! 💚\n");
         
         let elapsed = start.elapsed();
         if elapsed > Duration::from_millis(100) {
