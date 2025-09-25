@@ -625,7 +625,7 @@ mod tests {
     // TDD RED PHASE: Test workflow orchestrator creation
     #[test]
     fn test_concrete_workflow_orchestrator_creation() {
-        let orchestrator = create_test_orchestrator();
+        let _orchestrator = create_test_orchestrator();
         // Should create successfully
         assert!(true, "ConcreteWorkflowOrchestrator created successfully");
     }

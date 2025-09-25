@@ -5,11 +5,8 @@
 //! discovery operations into cohesive solutions.
 
 use crate::discovery::{
-    ConcreteWorkflowOrchestrator, WorkflowOrchestrator, OnboardingResult, FeaturePlanResult,
-    DebugResult, RefactorResult, WorkflowError, CodebaseOverview, EntryPoint, KeyContext,
-    ImpactAnalysis, ScopeGuidance, TestRecommendation, CallerTrace, UsageSite, ChangeScope,
-    RiskAssessment, ChecklistItem, ReviewerGuidance, WorkflowRiskLevel, ComplexityLevel,
-    ConfidenceLevel, Priority
+    ConcreteWorkflowOrchestrator, WorkflowOrchestrator, WorkflowRiskLevel, 
+    ComplexityLevel, ConfidenceLevel, Priority
 };
 use crate::isg::OptimizedISG;
 use std::sync::Arc;
@@ -19,7 +16,7 @@ use tokio;
 /// Test fixture for workflow integration tests
 struct WorkflowTestFixture {
     orchestrator: ConcreteWorkflowOrchestrator,
-    test_isg: Arc<OptimizedISG>,
+    _test_isg: Arc<OptimizedISG>,
 }
 
 impl WorkflowTestFixture {
@@ -30,7 +27,7 @@ impl WorkflowTestFixture {
         
         Self {
             orchestrator,
-            test_isg,
+            _test_isg: test_isg,
         }
     }
     
@@ -416,10 +413,10 @@ async fn test_workflow_error_handling_contracts() {
     let fixture = WorkflowTestFixture::new();
     
     // Test error handling for non-existent entities
-    let onboard_error = fixture.orchestrator.onboard("./nonexistent_dir").await;
-    let feature_error = fixture.orchestrator.feature_start("nonexistent_entity").await;
-    let debug_error = fixture.orchestrator.debug("nonexistent_function").await;
-    let refactor_error = fixture.orchestrator.refactor_check("nonexistent_target").await;
+    let _onboard_error = fixture.orchestrator.onboard("./nonexistent_dir").await;
+    let _feature_error = fixture.orchestrator.feature_start("nonexistent_entity").await;
+    let _debug_error = fixture.orchestrator.debug("nonexistent_function").await;
+    let _refactor_error = fixture.orchestrator.refactor_check("nonexistent_target").await;
     
     // In RED phase, these will panic with todo!
     // In GREEN phase, these should return proper error results

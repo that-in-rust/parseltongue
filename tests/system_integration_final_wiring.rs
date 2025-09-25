@@ -312,10 +312,11 @@ async fn test_workflow_orchestration_integration() {
     
     // Validate feature-start results structure - relax the requirements for now
     // The concrete implementation returns empty vectors, which is acceptable for integration testing
-    assert!(feature_result.impact_analysis.direct_impact.len() >= 0, 
-            "Should have impact analysis (can be empty for basic implementation)");
-    assert!(feature_result.scope_guidance.boundaries.len() >= 0, 
-            "Should have scope guidance (can be empty for basic implementation)");
+    // Note: These assertions are always true for usize, but document the contract
+    assert!(true, "Impact analysis exists (can be empty for basic implementation): {} items", 
+            feature_result.impact_analysis.direct_impact.len());
+    assert!(true, "Scope guidance exists (can be empty for basic implementation): {} boundaries", 
+            feature_result.scope_guidance.boundaries.len());
     
     // Test debug workflow integration
     let start = Instant::now();
@@ -473,8 +474,8 @@ async fn test_complete_user_journey_workflows() {
     assert!(feature_time < Duration::from_secs(5 * 60), "Feature start within time limit");
     
     // Verify feature planning provides impact analysis (can be empty for basic implementation)
-    assert!(feature_result.impact_analysis.direct_impact.len() >= 0, 
-            "Should analyze impact (can be empty for basic implementation)");
+    assert!(true, "Impact analysis completed with {} direct impacts", 
+            feature_result.impact_analysis.direct_impact.len());
     
     // Step 3: Debug main function usage
     let debug_start = Instant::now();

@@ -530,7 +530,7 @@ mod performance_contract_tests {
         // This test validates that file-based operations scale properly
         // Contract: O(n) where n = entities in file, not total entities
         
-        let isg = TestDataFactory::create_large_test_isg(100, 50); // 5000 total entities
+        let _isg = TestDataFactory::create_large_test_isg(100, 50); // 5000 total entities
         
         // TODO: This will fail until we implement the real provider
         // This is the RED phase of TDD - test should fail first
@@ -553,7 +553,7 @@ mod performance_contract_tests {
         // This test validates that name lookup scales properly
         // Contract: O(1) lookup using name index
         
-        let isg = TestDataFactory::create_large_test_isg(100, 50); // 5000 total entities
+        let _isg = TestDataFactory::create_large_test_isg(100, 50); // 5000 total entities
         
         // TODO: This will fail until we implement the real provider
         // This is the RED phase of TDD - test should fail first

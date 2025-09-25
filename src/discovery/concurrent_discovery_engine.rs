@@ -589,7 +589,7 @@ mod tests {
             let engine_clone = Arc::clone(&engine);
             let counter = Arc::clone(&operation_count);
             join_set.spawn(async move {
-                for j in 0..5 {
+                for _j in 0..5 {
                     let _entities = engine_clone.list_all_entities(
                         Some(EntityType::Function), 
                         10

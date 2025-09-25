@@ -400,7 +400,7 @@ mod tests {
     #[test]
     fn test_blast_radius_analyzer_creation() {
         let isg = create_test_isg();
-        let analyzer = BlastRadiusAnalyzer::new(isg);
+        let _analyzer = BlastRadiusAnalyzer::new(isg);
         
         // Verify analyzer can be created
         // This test will pass once we implement the constructor

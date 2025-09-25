@@ -143,7 +143,7 @@ mod tests {
     use super::*;
     use tempfile::TempDir;
     use tokio::fs;
-    use std::collections::HashMap;
+    // Removed unused import: std::collections::HashMap
 
     async fn create_test_manager() -> (WorkspaceManager, TempDir) {
         let temp_dir = TempDir::new().unwrap();

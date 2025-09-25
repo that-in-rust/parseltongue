@@ -83,6 +83,7 @@ impl AccuracyMetrics {
 }
 
 /// Test helper to extract relationships from ISG for comparison
+#[allow(dead_code)]
 fn extract_relationships_from_isg(daemon: &ParseltongueAIM) -> Vec<(String, String, EdgeKind)> {
     let state = daemon.isg.state.read();
     let mut relationships = Vec::new();
@@ -102,6 +103,7 @@ fn extract_relationships_from_isg(daemon: &ParseltongueAIM) -> Vec<(String, Stri
 }
 
 /// Create expected relationships for a simple Rust program
+#[allow(dead_code)]
 fn create_simple_program_expected_relationships() -> Vec<ExpectedRelationship> {
     vec![
         ExpectedRelationship {
@@ -126,6 +128,7 @@ fn create_simple_program_expected_relationships() -> Vec<ExpectedRelationship> {
 }
 
 /// Create expected relationships for axum-like web framework patterns
+#[allow(dead_code)]
 fn create_axum_expected_relationships() -> Vec<ExpectedRelationship> {
     vec![
         // Router creation and method chaining
@@ -789,7 +792,7 @@ mod tests {
     
     #[test]
     fn test_existing_test_data_accuracy() {
-        let mut daemon = ParseltongueAIM::new();
+        let _daemon = ParseltongueAIM::new();
         
         // Test with existing test data from the test_data directory
         let test_files = [
