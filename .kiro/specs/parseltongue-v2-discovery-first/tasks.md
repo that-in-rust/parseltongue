@@ -190,3 +190,4 @@
 - [x] 27. Clean up the folders structure - add a TOC for all the reference files - and more importantly - explictly say which files and folders need to be ported to your new codebase for the LLM to work with it
 
 - [x] 28. Add a git tag of v0.1 or something - the absolute beginner one as you deem fit for releases to be captured - also choose the most permissive license
+
