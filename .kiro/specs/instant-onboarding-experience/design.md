@@ -633,6 +633,354 @@ impl TestDataGenerator {
 - **Relationship Count**: Up to 50,000 relationships
 - **Browser Performance**: Smooth interaction with 500+ nodes
 
+## LLM Integration Workflows
+
+### Terminal Command Integration
+
+The instant onboarding experience should provide LLM-friendly terminal commands that can be easily referenced and executed programmatically.
+
+#### Core Command Structure
+```bash
+# Primary instant analysis command
+parseltongue instant [OPTIONS] [TARGET]
+
+# Subcommands for different workflows
+parseltongue instant analyze [--format=html|json|terminal] [--mode=user|contributor] [TARGET]
+parseltongue instant map [--interactive] [--export=PATH] [TARGET]
+parseltongue instant context [--entity=NAME] [--depth=N] [TARGET]
+parseltongue instant workflow [--list|--run=NAME] [TARGET]
+```
+
+#### LLM Workflow Commands
+
+```bash
+# 1. Quick Architecture Overview (LLM Context Building)
+parseltongue instant overview --format=json --compact
+# Output: Structured JSON with key entities, patterns, entry points
+
+# 2. Entity Context Extraction (For LLM Code Understanding)
+parseltongue instant context --entity="DiscoveryEngine" --depth=2 --format=json
+# Output: Entity relationships, dependencies, usage patterns
+
+# 3. Pattern Detection (For LLM Architecture Analysis)
+parseltongue instant patterns --list --confidence=high --format=json
+# Output: Detected architectural patterns with confidence scores
+
+# 4. Contribution Guidance (For LLM Development Assistance)
+parseltongue instant contribute --area=performance --difficulty=beginner --format=json
+# Output: Specific contribution opportunities with file locations
+
+# 5. Code Navigation (For LLM File Discovery)
+parseltongue instant navigate --from="main" --to="ISGNode" --format=json
+# Output: Code paths and relationship chains between entities
+
+# 6. Blast Radius Analysis (For LLM Impact Assessment)
+parseltongue instant impact --entity="SigHash" --depth=3 --format=json
+# Output: What would be affected by changes to specific entities
+```
+
+### LLM Integration Architecture
+
+```mermaid
+graph TB
+    subgraph "LLM Interaction Layer"
+        LLM[LLM Agent]
+        CMD[Command Interface]
+        JSON[JSON Output Parser]
+    end
+    
+    subgraph "Instant Analysis Engine"
+        CORE[Core Analysis]
+        CTX[Context Extractor]
+        PAT[Pattern Detector]
+        NAV[Navigation Engine]
+        IMP[Impact Analyzer]
+    end
+    
+    subgraph "Output Formatters"
+        TERM[Terminal Formatter]
+        JFMT[JSON Formatter]
+        HTML[HTML Formatter]
+        MD[Markdown Formatter]
+    end
+    
+    LLM --> CMD
+    CMD --> CORE
+    CORE --> CTX
+    CORE --> PAT
+    CORE --> NAV
+    CORE --> IMP
+    
+    CTX --> JSON
+    PAT --> JSON
+    NAV --> JSON
+    IMP --> JSON
+    
+    JSON --> TERM
+    JSON --> JFMT
+    JSON --> HTML
+    JSON --> MD
+```
+
+### Workflow Templates for LLMs
+
+#### 1. Codebase Onboarding Workflow
+```bash
+#!/bin/bash
+# LLM Codebase Onboarding Script
+
+echo "🔍 Analyzing codebase architecture..."
+parseltongue instant overview --format=json > architecture.json
+
+echo "🎯 Identifying key entry points..."
+parseltongue instant context --entity="main" --depth=1 --format=json > entry_points.json
+
+echo "🏗️ Detecting architectural patterns..."
+parseltongue instant patterns --list --format=json > patterns.json
+
+echo "📊 Generating visual map..."
+parseltongue instant map --interactive --export=architecture.html
+
+echo "✅ Onboarding complete! Key files:"
+echo "  - architecture.json: Overall structure"
+echo "  - entry_points.json: Where to start reading"
+echo "  - patterns.json: Architectural insights"
+echo "  - architecture.html: Interactive visualization"
+```
+
+#### 2. Contribution Discovery Workflow
+```bash
+#!/bin/bash
+# LLM Contribution Discovery Script
+
+echo "🔍 Finding contribution opportunities..."
+parseltongue instant contribute --difficulty=beginner --format=json > beginner_tasks.json
+parseltongue instant contribute --difficulty=intermediate --format=json > intermediate_tasks.json
+
+echo "🎯 Analyzing extension points..."
+parseltongue instant context --entity="DiscoveryEngine" --depth=2 --format=json > extension_points.json
+
+echo "📈 Identifying performance opportunities..."
+parseltongue instant patterns --type=performance --format=json > performance_opportunities.json
+
+echo "✅ Contribution analysis complete!"
+```
+
+#### 3. Impact Analysis Workflow
+```bash
+#!/bin/bash
+# LLM Impact Analysis Script for Changes
+
+ENTITY=${1:-"ISGNode"}
+echo "🔍 Analyzing impact of changes to: $ENTITY"
+
+parseltongue instant impact --entity="$ENTITY" --depth=2 --format=json > impact_direct.json
+parseltongue instant impact --entity="$ENTITY" --depth=3 --format=json > impact_extended.json
+
+echo "🎯 Finding dependent entities..."
+parseltongue instant navigate --to="$ENTITY" --format=json > dependents.json
+
+echo "📊 Generating impact visualization..."
+parseltongue instant map --focus="$ENTITY" --export=impact_map.html
+
+echo "✅ Impact analysis complete for: $ENTITY"
+```
+
+### JSON Output Schemas for LLM Consumption
+
+#### Architecture Overview Schema
+```json
+{
+  "metadata": {
+    "codebase_name": "string",
+    "analysis_timestamp": "ISO8601",
+    "entity_count": "number",
+    "file_count": "number",
+    "analysis_duration_ms": "number"
+  },
+  "key_entities": [
+    {
+      "name": "string",
+      "type": "function|struct|trait|module",
+      "file_path": "string",
+      "line_number": "number",
+      "centrality_score": "number",
+      "relationship_count": "number",
+      "description": "string"
+    }
+  ],
+  "entry_points": [
+    {
+      "name": "string",
+      "file_path": "string",
+      "type": "main|public_api|trait_impl",
+      "description": "string"
+    }
+  ],
+  "architectural_patterns": [
+    {
+      "pattern": "string",
+      "confidence": "number",
+      "examples": ["string"],
+      "description": "string"
+    }
+  ],
+  "next_steps": {
+    "for_understanding": ["string"],
+    "for_contribution": ["string"],
+    "for_extension": ["string"]
+  }
+}
+```
+
+#### Entity Context Schema
+```json
+{
+  "entity": {
+    "name": "string",
+    "type": "string",
+    "file_path": "string",
+    "line_number": "number",
+    "signature": "string",
+    "documentation": "string"
+  },
+  "relationships": {
+    "depends_on": [
+      {
+        "name": "string",
+        "type": "string",
+        "relationship_type": "uses|implements|extends|calls",
+        "file_path": "string"
+      }
+    ],
+    "used_by": [
+      {
+        "name": "string",
+        "type": "string",
+        "relationship_type": "string",
+        "file_path": "string"
+      }
+    ]
+  },
+  "context": {
+    "module_path": "string",
+    "visibility": "public|private|crate",
+    "traits_implemented": ["string"],
+    "generic_parameters": ["string"]
+  },
+  "usage_examples": [
+    {
+      "file_path": "string",
+      "line_number": "number",
+      "code_snippet": "string",
+      "context": "string"
+    }
+  ]
+}
+```
+
+### LLM Command Reference
+
+#### Quick Reference Card
+```bash
+# Essential LLM Commands for Parseltongue Integration
+
+# 1. Get architectural overview (start here)
+parseltongue instant overview --format=json
+
+# 2. Understand specific entity
+parseltongue instant context --entity="EntityName" --format=json
+
+# 3. Find entry points
+parseltongue instant context --entity="main" --depth=1 --format=json
+
+# 4. Discover patterns
+parseltongue instant patterns --list --format=json
+
+# 5. Find contribution opportunities
+parseltongue instant contribute --difficulty=beginner --format=json
+
+# 6. Analyze change impact
+parseltongue instant impact --entity="EntityName" --format=json
+
+# 7. Navigate code relationships
+parseltongue instant navigate --from="A" --to="B" --format=json
+
+# 8. Generate visual map
+parseltongue instant map --interactive --export=map.html
+
+# 9. Export for sharing
+parseltongue instant overview --format=markdown > README_ARCHITECTURE.md
+
+# 10. Validate understanding
+parseltongue instant validate --entity="EntityName" --expected-type="struct"
+```
+
+### Integration with Development Workflows
+
+#### Git Hook Integration
+```bash
+# .git/hooks/post-checkout
+#!/bin/bash
+# Auto-generate architecture context for LLMs after branch switches
+
+if [ $3 == 1 ]; then  # Branch checkout
+    echo "🔄 Branch switched, updating architecture context..."
+    parseltongue instant overview --format=json > .parseltongue/current_architecture.json
+    parseltongue instant patterns --format=json > .parseltongue/current_patterns.json
+    echo "✅ Architecture context updated for LLMs"
+fi
+```
+
+#### IDE Integration Patterns
+```bash
+# VS Code task.json integration
+{
+  "label": "Update Parseltongue Context",
+  "type": "shell",
+  "command": "parseltongue",
+  "args": ["instant", "overview", "--format=json"],
+  "group": "build",
+  "presentation": {
+    "echo": true,
+    "reveal": "silent",
+    "focus": false,
+    "panel": "shared"
+  },
+  "problemMatcher": []
+}
+```
+
+#### CI/CD Integration
+```yaml
+# GitHub Actions workflow
+name: Update Architecture Documentation
+on:
+  push:
+    branches: [main]
+    
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Parseltongue
+        run: |
+          curl -sSL https://raw.githubusercontent.com/user/parseltongue/main/scripts/instant-analyze.sh | bash
+          sudo mv parseltongue /usr/local/bin/
+      - name: Generate Architecture Documentation
+        run: |
+          parseltongue instant overview --format=markdown > docs/ARCHITECTURE.md
+          parseltongue instant contribute --format=markdown > docs/CONTRIBUTING_OPPORTUNITIES.md
+      - name: Commit Documentation
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/
+          git commit -m "Auto-update architecture documentation" || exit 0
+          git push
+```
+
 ## Success Metrics
 
 ### Primary Metrics
@@ -640,15 +988,18 @@ impl TestDataGenerator {
 - **Exploration Engagement**: >3 minutes spent in HTML visualization
 - **Conversion Rate**: >30% proceed to full onboarding after instant analysis
 - **Cross-Platform Success**: >95% success rate on macOS/Linux
+- **LLM Integration Success**: >80% of LLM workflows complete successfully
 
 ### Quality Metrics
 - **Analysis Accuracy**: Correctly identifies key architectural patterns
 - **Visual Impact**: Users report "impressive" or "wow" reactions
 - **Sharing Behavior**: >20% share generated HTML with team members
 - **Error Recovery**: <5% of users encounter unrecoverable errors
+- **LLM Usability**: JSON outputs parse correctly in >99% of cases
 
 ### Technical Metrics
 - **Performance Compliance**: 100% of analyses meet time constraints
 - **Browser Compatibility**: Works in Chrome, Firefox, Safari
 - **Platform Coverage**: Supports all target platforms
 - **Reliability**: <1% failure rate for supported scenarios
+- **Command Consistency**: All LLM commands follow consistent patterns
