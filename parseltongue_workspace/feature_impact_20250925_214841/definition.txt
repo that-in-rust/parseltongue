@@ -1,0 +1,18 @@
+✓ Loaded snapshot: 917 nodes, 1072 edges (0ms)
+🏹 HAWKEYE TARGET ACQUISITION FAILED
+═══════════════════════════════════════
+❌ Entity 'Parseltongue' not found in the codebase.
+
+🔍 Discovery-First Troubleshooting (following parseltongue-llm-guide.md):
+  1. 🎯 Get overview: 'parseltongue list-entities --limit 50'
+  2. 🔍 Search by type: 'parseltongue list-entities --type functions'
+  3. 📁 Check specific file: 'parseltongue entities-in-file src/main.rs'
+  4. 🤖 Ensure ingestion: 'parseltongue ingest codebase.dump'
+
+💡 Common issues:
+  • Entity name case sensitivity
+  • Missing namespace/module prefix
+  • Entity might be private/internal
+  • Codebase not yet ingested
+
+⚡️ Targeting completed in 154μs ✅ HAWKEYE PRECISION (target: <50 milliseconds)
