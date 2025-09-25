@@ -191,4 +191,6 @@
 
 - [x] 28. Add a git tag of v0.1 or something - the absolute beginner one as you deem fit for releases to be captured - also choose the most permissive license
 
-- [ ] A very simple onboarding for developers - have you built it yes - include it in ReadMe - also make a Mermaid diagram for it using .kiro/MermaidPrompts.md -- keep the existing format
+- [x] A very simple onboarding for developers - have you built it yes - include it in ReadMe - also make a Mermaid diagram for it using .kiro/MermaidPrompts.md -- keep the existing format
+
+

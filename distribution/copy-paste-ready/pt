@@ -1,0 +1,99 @@
+#!/bin/bash
+# Parseltongue Unified Wrapper Script
+# Usage: ./pt <command> [args...]
+
+set -e
+
+# Find parseltongue binary
+PARSELTONGUE_BIN=""
+if [ -f "./parseltongue" ]; then
+    PARSELTONGUE_BIN="./parseltongue"
+elif [ -f "./binaries/parseltongue" ]; then
+    PARSELTONGUE_BIN="./binaries/parseltongue"
+elif [ -f "./target/release/parseltongue" ]; then
+    PARSELTONGUE_BIN="./target/release/parseltongue"
+else
+    # Try to find any parseltongue binary
+    PARSELTONGUE_BIN=$(find . -name "parseltongue*" -type f -executable 2>/dev/null | grep -v '\.d$' | head -1)
+fi
+
+if [ -z "$PARSELTONGUE_BIN" ]; then
+    echo "❌ Error: No parseltongue binary found"
+    echo "Make sure parseltongue binary is in current directory or ./binaries/"
+    exit 1
+fi
+
+COMMAND="$1"
+shift || true
+
+case "$COMMAND" in
+    "onboard")
+        TARGET_DIR="${1:-$(pwd)}"
+        echo "🚀 Running onboarding workflow on: $TARGET_DIR"
+        if [ -f "./onboard_codebase.sh" ]; then
+            ./onboard_codebase.sh "$TARGET_DIR"
+        else
+            echo "Running basic onboard command..."
+            $PARSELTONGUE_BIN onboard "$TARGET_DIR"
+        fi
+        ;;
+    "feature-start")
+        ENTITY_NAME="$1"
+        if [ -z "$ENTITY_NAME" ]; then
+            echo "Usage: ./pt feature-start <EntityName>"
+            exit 1
+        fi
+        echo "🎯 Running feature impact analysis for: $ENTITY_NAME"
+        if [ -f "./feature_impact.sh" ]; then
+            ./feature_impact.sh "$ENTITY_NAME"
+        else
+            echo "Running basic feature analysis..."
+            $PARSELTONGUE_BIN blast-radius "$ENTITY_NAME"
+        fi
+        ;;
+    "debug")
+        FUNCTION_NAME="$1"
+        if [ -z "$FUNCTION_NAME" ]; then
+            echo "Usage: ./pt debug <FunctionName>"
+            exit 1
+        fi
+        echo "🐛 Running debug workflow for: $FUNCTION_NAME"
+        if [ -f "./debug_entity.sh" ]; then
+            ./debug_entity.sh "$FUNCTION_NAME"
+        else
+            echo "Running basic debug analysis..."
+            $PARSELTONGUE_BIN where-defined "$FUNCTION_NAME"
+        fi
+        ;;
+    "generate-context")
+        TARGET_DIR="${1:-$(pwd)}"
+        echo "🤖 Generating LLM context for: $TARGET_DIR"
+        if [ -f "./generate_llm_context.sh" ]; then
+            ./generate_llm_context.sh "$TARGET_DIR"
+        else
+            echo "Running basic context generation..."
+            $PARSELTONGUE_BIN list-entities --limit 100
+        fi
+        ;;
+    *)
+        echo "🐍 Parseltongue Unified Wrapper"
+        echo ""
+        echo "Usage: ./pt <command> [args...]"
+        echo ""
+        echo "Commands:"
+        echo "  onboard [dir]           Complete codebase onboarding (<15 min)"
+        echo "  feature-start <entity>  Feature impact analysis (<5 min)"
+        echo "  debug <function>        Debug workflow (<3 min)"
+        echo "  generate-context [dir]  LLM context generation (<2 min)"
+        echo ""
+        echo "Or pass any command directly to parseltongue:"
+        echo "  ./pt list-entities --type functions"
+        echo "  ./pt blast-radius EntityName"
+        echo "  ./pt where-defined FunctionName"
+        echo ""
+        if [ -n "$COMMAND" ]; then
+            echo "Passing '$COMMAND $*' directly to parseltongue..."
+            $PARSELTONGUE_BIN "$COMMAND" "$@"
+        fi
+        ;;
+esac
