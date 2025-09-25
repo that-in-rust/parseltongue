@@ -1,5 +1,7 @@
 # Requirements Document
 
+## Feature: Parseltongue v2 Discovery-First Architecture
+
 ## Introduction
 Parseltongue v2 represents a strategic evolution from a **technical masterpiece with a user experience gap** to a **discovery-first architectural intelligence tool**. Based on comprehensive validation with real-world codebases (Iggy message broker: 983 files, 2727 nodes, 8111 edges; Axum framework: 295 files, 1,147 nodes, 2,090 edges), we have identified that the primary constraint on adoption is not technical capability but **entity discoverability**.
 
@@ -18,10 +20,8 @@ The current architecture optimizes for **query execution speed** at the expense 
 ### Layer 3: Strategic Problem (Business Impact)
 Parseltongue v1 is a **power tool for experts** when it needs to be a **discovery tool for practitioners**. The gap between "tool capability" and "user capability" is the primary constraint on adoption and business value realization.
 
-## Requirements: The 80/20 Focus
-
-### P0 Requirements: The Core Constraint Removers
-#### Requirement 1: Entity Discovery Infrastructure
+## Requirements
+### Requirement 1: Entity Discovery Infrastructure
 **The One Thing**: Eliminate the entity name discovery bottleneck that prevents users from accessing Parseltongue's existing excellence.
 
 **User Story:** As a Rust developer exploring an unfamiliar codebase, I want to see what entities exist and where they are located, so that I can formulate effective queries without needing to guess entity names.
@@ -33,14 +33,15 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 - Query success rate: 90%+ (from current ~30% for unknown entities)
 - Interactive responsiveness: <100ms for entity listing queries
 
-**Implementation Requirements**:
+#### Acceptance Criteria
+
 1. WHEN I run `parseltongue list-entities` THEN the system SHALL return all entities with their file locations and types
 2. WHEN I run `parseltongue list-entities --type functions` THEN the system SHALL return only function entities with file locations
 3. WHEN I run `parseltongue entities-in-file src/server/handlers.rs` THEN the system SHALL return all entities defined in that specific file
 4. WHEN I run `parseltongue where-defined EntityName` THEN the system SHALL return the exact file location for immediate navigation
 5. WHEN discovery queries return results THEN they SHALL be organized by entity type for easy browsing
 
-#### Requirement 2: File Location as Entity Attributes
+### Requirement 2: File Location as Entity Attributes
 **The One Thing**: Embed file location directly in entity nodes as attributes, avoiding separate file nodes that would degrade performance.
 
 **User Story:** As a developer analyzing code relationships, I want every entity to include its file location as an immediate attribute, so that I can navigate from architectural insights to code without additional graph traversals.
@@ -52,13 +53,14 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 - No performance degradation from file location queries
 - Simple, direct implementation without graph complexity
 
-**Implementation Requirements**:
+#### Acceptance Criteria
+
 1. WHEN the system creates entity nodes THEN it SHALL embed file_path as a required attribute (not a separate node)
 2. WHEN I query `parseltongue where-defined EntityName` THEN the system SHALL return file_path directly from the entity node in O(1) time
 3. WHEN I query `parseltongue entities-in-file src/path/file.rs` THEN the system SHALL filter nodes by file_path attribute in O(n) time with direct access
 4. WHEN storing file paths THEN the system SHALL use FileId (string interning) to minimize memory overhead
 5. WHEN displaying entity information THEN file location SHALL be immediately available without additional graph traversal
-#### Requirement 3: Readable Impact Analysis
+### Requirement 3: Readable Impact Analysis
 **The One Thing**: Fix the hash-only output that breaks analytical flow and destroys user confidence.
 
 **User Story:** As a developer planning code changes, I want blast-radius analysis to return human-readable entity names with file context, so that I can immediately understand and act on the impact assessment.
@@ -70,16 +72,15 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 - Immediate actionability of impact analysis
 - Risk categorization for decision support
 
-**Implementation Requirements**:
+#### Acceptance Criteria
+
 1. WHEN I run `parseltongue blast-radius EntityName` THEN the system SHALL return readable entity names instead of hash values
 2. WHEN displaying blast-radius results THEN the system SHALL group impacts by relationship type (CALLS, USES, IMPLEMENTS) with file locations
 3. WHEN blast-radius analysis completes THEN the system SHALL provide risk categorization (Low: 1-5, Medium: 6-20, High: 21-50, Critical: 50+)
 4. WHEN displaying impact results THEN the system SHALL separate test files from production code
 5. WHEN I run `parseltongue blast-radius EntityName --summary` THEN the system SHALL provide executive summary suitable for team communication
 
-### P0 Constraints: The Non-Negotiables
-
-#### Constraint 1: Performance Preservation
+### Requirement 4: Performance Preservation
 **The One Thing**: Maintain the microsecond performance that is Parseltongue's key differentiator.
 
 **Why This Matters**: **Microsecond performance is the core competitive advantage**. Any regression would undermine the tool's unique value proposition.
@@ -89,7 +90,8 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 - Discovery query performance: <100ms (new capability)
 - Memory usage increase: <20% (efficient implementation)
 
-**Implementation Requirements**:
+#### Acceptance Criteria
+
 1. WHEN new discovery features are implemented THEN existing query performance SHALL remain under 50μs for simple queries
 2. WHEN the system stores file location data THEN memory usage SHALL increase by no more than 20% through efficient data structures
 3. WHEN I run entity listing queries THEN they SHALL complete in <100ms to maintain interactive responsiveness
@@ -212,7 +214,7 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 
 ### Workflow Integration Requirements
 
-#### Requirement 4: Workflow Orchestration Layer
+### Requirement 5: Workflow Orchestration Layer
 **The One Thing**: Provide complete user journey workflows, not just individual commands.
 
 **User Story**: As a developer completing common tasks, I want orchestrated workflows that combine discovery + analysis + guidance, so that I can complete entire jobs-to-be-done without manual command chaining.
@@ -224,14 +226,15 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 - Workflow success rate: 95%+ (users complete intended task)
 - Context preservation: State maintained across workflow steps
 
-**Implementation Requirements**:
+#### Acceptance Criteria
+
 1. WHEN I run `pt onboard` THEN the system SHALL execute discovery → overview → context generation as single workflow
 2. WHEN workflows generate outputs THEN they SHALL be stored in persistent workspace for reuse
 3. WHEN workflows complete THEN they SHALL provide next-step guidance for common follow-up tasks
 4. WHEN I run workflow commands THEN they SHALL reuse existing analysis when possible (no redundant work)
 5. WHEN workflows fail THEN they SHALL provide clear recovery steps and partial results
 
-#### Requirement 5: Machine-Readable Output Integration
+### Requirement 6: Machine-Readable Output Integration
 **The One Thing**: Enable downstream tooling integration and workflow automation.
 
 **User Story**: As a developer using Parseltongue in larger workflows, I want machine-readable outputs that integrate with PRs, documentation, and other tools, so that architectural insights become part of my standard development process.
@@ -243,13 +246,14 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 - JSON schemas are stable and documented
 - Integration with common developer tools (git hooks, PR templates, CI/CD)
 
-**Implementation Requirements**:
+#### Acceptance Criteria
+
 1. WHEN I run any discovery command with `--json` THEN the system SHALL output structured JSON
 2. WHEN generating JSON THEN the system SHALL include metadata (timestamps, confidence scores, file paths)
 3. WHEN integrating with tools THEN JSON SHALL include actionable file paths and line numbers
 4. WHEN workflows complete THEN they SHALL generate summary JSON suitable for PR descriptions
 
-#### Requirement 6: Workspace State Management
+### Requirement 7: Workspace State Management
 **The One Thing**: Maintain persistent analysis state across discovery sessions.
 
 **User Story**: As a developer working on multiple tasks, I want my discovery work to persist across sessions, so that I don't repeat expensive analysis and can build on previous insights.
@@ -261,7 +265,8 @@ Parseltongue v1 is a **power tool for experts** when it needs to be a **discover
 - Latest analysis automatically reused when valid
 - Clear workspace management (timestamps, cleanup, versioning)
 
-**Implementation Requirements**:
+#### Acceptance Criteria
+
 1. WHEN I run discovery commands THEN the system SHALL store results in `./parseltongue_workspace/analysis_TIMESTAMP/`
 2. WHEN analysis exists THEN the system SHALL reuse it unless `--force-refresh` specified
 3. WHEN workspace grows large THEN the system SHALL provide cleanup commands for old analysis
