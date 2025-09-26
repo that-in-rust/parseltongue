@@ -208,7 +208,7 @@
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
 
-- [ ] In docs/IdeaResearch20250926.md  List down unique ideas with Shreyas Doshi level Minto Pyramid Principle 10 liner description in Section A - Snapshot of Ideas - and then using Shreyas Doshi level judgement Tell top 5 ideas of strategic_themes from the folder  parseltongue_workspace/future_workflows_processing_session/extracted_insights/strategic_themes
+- [x] In docs/IdeaResearch20250926.md  List down unique ideas with Shreyas Doshi level Minto Pyramid Principle 10 liner description in Section A - Snapshot of Ideas - and then using Shreyas Doshi level judgement Tell top 5 ideas of strategic_themes from the folder  parseltongue_workspace/future_workflows_processing_session/extracted_insights/strategic_themes
 - [ ] In docs/IdeaResearch20250926.md  List down unique ideas with Shreyas Doshi level Minto Pyramid Principle 10 liner description in Section A - Snapshot of Ideas - and then using Shreyas Doshi level judgement Tell top 5 ideas of technical_insights from the folder  parseltongue_workspace/future_workflows_processing_session/extracted_insights/technical_insights 
 - [ ] In docs/IdeaResearch20250926.md  List down unique ideas with Shreyas Doshi level Minto Pyramid Principle 10 liner description in Section A - Snapshot of Ideas - and then using Shreyas Doshi level judgement Tell top 5 ideas of user_journeys from the folder  parseltongue_workspace/future_workflows_processing_session/extracted_insights/user_journyes 
 
