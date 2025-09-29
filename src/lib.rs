@@ -18,6 +18,7 @@ pub mod performance_validation;
 pub mod performance_monitoring;
 pub mod relationship_accuracy_tests;
 pub mod accuracy_validation_report;
+pub mod content_processing;
 
 #[cfg(test)]
 mod tests {
