@@ -2,7 +2,10 @@
 
 ## Introduction
 
-This document outlines the requirements for systematically extracting and documenting comprehensive future parseltongue workflows from the DeepThink Advisory notes. The goal is to create a thorough collection of user journeys, insights, and strategic workflows by methodically reading through the advisory notes 300 lines at a time, ensuring no valuable insights are missed in creating the definitive future workflows document.
+This document outlines the requirements for systematically extracting and documenting comprehensive future parseltongue workflows from the codebase of ast-grep & grep codebase kept at docs/ast-grep-ast-grep-8a5edab282632443.txt . The goal is to create a thorough collection of user journeys, insights, and strategic workflows by methodically reading through it 300 lines at a time, ensuring no valuable insights are missed in creating the definitive future workflows document.
+
+
+
 
 ## Requirements
 
