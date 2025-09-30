@@ -1,0 +1,6 @@
+# Clippy configuration for Parseltongue
+# Allow certain lints that are used in TDD/placeholder code
+
+# Allow assert!(true) in test code - used for TDD placeholders
+allow-expect-in-tests = true
+allow-unwrap-in-tests = true

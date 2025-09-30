@@ -1,8 +1,8 @@
 //! End-to-End Workflow Validation Tests
-//! 
+//!
 //! Tests the complete ingest → query → visualize → context workflow
 //! Validates Sarah's core workflow with realistic Rust codebase scenarios
-//! 
+//!
 //! Requirements: Complete end-to-end workflow validation task
 
 use parseltongue::ParseltongueAIM;
@@ -24,11 +24,11 @@ impl EndToEndWorkflowSuite {
             daemon: ParseltongueAIM::new(),
         }
     }
-    
+
     /// Create realistic Rust codebase test data
     fn create_realistic_codebase(&self) -> std::path::PathBuf {
         let dump_path = self.temp_dir.path().join("realistic_codebase.dump");
-        
+
         let realistic_code = r#"
 FILE: src/lib.rs
 //! A realistic Rust web service codebase for testing
@@ -1001,46 +1001,49 @@ pub enum PasswordError {
     InvalidHash,
 }
 "#;
-        
-        fs::write(&dump_path, realistic_code)
-            .expect("Failed to write realistic codebase");
-        
+
+        fs::write(&dump_path, realistic_code).expect("Failed to write realistic codebase");
+
         dump_path
     }
-    
+
     /// Test the complete ingest workflow
     fn test_ingest_workflow(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         println!("🔄 Testing ingest workflow...");
-        
+
         let dump_path = self.create_realistic_codebase();
-        
+
         let start = Instant::now();
         let stats = self.daemon.ingest_code_dump(&dump_path)?;
         let elapsed = start.elapsed();
-        
+
         // Validate ingestion results
         assert!(stats.files_processed > 0, "No files were processed");
         assert!(stats.nodes_created > 0, "No nodes were created");
         assert!(self.daemon.isg.node_count() > 0, "ISG has no nodes");
         assert!(self.daemon.isg.edge_count() > 0, "ISG has no edges");
-        
+
         // Validate performance constraint (<5s for realistic codebase)
-        assert!(elapsed.as_secs() < 10, "Ingestion took too long: {:?}", elapsed);
-        
+        assert!(
+            elapsed.as_secs() < 10,
+            "Ingestion took too long: {:?}",
+            elapsed
+        );
+
         println!("✅ Ingest workflow completed:");
         println!("   Files processed: {}", stats.files_processed);
         println!("   Nodes created: {}", stats.nodes_created);
         println!("   Total nodes: {}", self.daemon.isg.node_count());
         println!("   Total edges: {}", self.daemon.isg.edge_count());
         println!("   Time: {:.2}s", elapsed.as_secs_f64());
-        
+
         Ok(())
     }
-    
+
     /// Test the complete query workflow
     fn test_query_workflow(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         println!("🔍 Testing query workflow...");
-        
+
         // Test different query types with realistic entities
         let test_queries = vec![
             ("User", "what-implements"),
@@ -1049,14 +1052,16 @@ pub enum PasswordError {
             ("Model", "what-implements"),
             ("Database", "uses"),
         ];
-        
+
         for (entity, query_type) in test_queries {
             let start = Instant::now();
-            
+
             let result = match query_type {
                 "what-implements" => {
                     if let Ok(trait_hash) = self.daemon.find_entity_by_name(entity) {
-                        self.daemon.isg.find_implementors(trait_hash)
+                        self.daemon
+                            .isg
+                            .find_implementors(trait_hash)
                             .map(|implementors| implementors.len())
                             .unwrap_or(0)
                     } else {
@@ -1065,7 +1070,9 @@ pub enum PasswordError {
                 }
                 "blast-radius" => {
                     if let Ok(entity_hash) = self.daemon.find_entity_by_name(entity) {
-                        self.daemon.isg.calculate_blast_radius(entity_hash)
+                        self.daemon
+                            .isg
+                            .calculate_blast_radius(entity_hash)
                             .map(|radius| radius.len())
                             .unwrap_or(0)
                     } else {
@@ -1074,7 +1081,9 @@ pub enum PasswordError {
                 }
                 "calls" => {
                     if let Ok(entity_hash) = self.daemon.find_entity_by_name(entity) {
-                        self.daemon.isg.find_callers(entity_hash)
+                        self.daemon
+                            .isg
+                            .find_callers(entity_hash)
                             .map(|callers| callers.len())
                             .unwrap_or(0)
                     } else {
@@ -1083,7 +1092,9 @@ pub enum PasswordError {
                 }
                 "uses" => {
                     if let Ok(entity_hash) = self.daemon.find_entity_by_name(entity) {
-                        self.daemon.isg.find_users(entity_hash)
+                        self.daemon
+                            .isg
+                            .find_users(entity_hash)
                             .map(|users| users.len())
                             .unwrap_or(0)
                     } else {
@@ -1092,78 +1103,105 @@ pub enum PasswordError {
                 }
                 _ => 0,
             };
-            
+
             let elapsed = start.elapsed();
-            
+
             // Validate performance constraint (<1ms for queries)
-            assert!(elapsed.as_millis() < 10, 
-                "Query '{}' on '{}' took too long: {:?}", query_type, entity, elapsed);
-            
-            println!("   {} query on '{}': {} results in {}μs", 
-                query_type, entity, result, elapsed.as_micros());
+            assert!(
+                elapsed.as_millis() < 10,
+                "Query '{}' on '{}' took too long: {:?}",
+                query_type,
+                entity,
+                elapsed
+            );
+
+            println!(
+                "   {} query on '{}': {} results in {}μs",
+                query_type,
+                entity,
+                result,
+                elapsed.as_micros()
+            );
         }
-        
+
         println!("✅ Query workflow completed");
         Ok(())
     }
-    
+
     /// Test the visualization workflow
     fn test_visualization_workflow(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         println!("🎨 Testing visualization workflow...");
-        
+
         let output_path = self.temp_dir.path().join("test_visualization.html");
-        
+
         let start = Instant::now();
-        let html = self.daemon.isg.generate_html_visualization(Some("UserService"))?;
+        let html = self
+            .daemon
+            .isg
+            .generate_html_visualization(Some("UserService"))?;
         let elapsed = start.elapsed();
-        
+
         // Write HTML to file
         fs::write(&output_path, &html)?;
-        
+
         // Validate HTML content
         assert!(html.contains("<!DOCTYPE html>"), "Invalid HTML structure");
         assert!(html.contains("Parseltongue"), "Missing title");
         assert!(html.len() > 1000, "HTML too short: {} bytes", html.len());
-        
+
         // Validate performance constraint (<500ms)
-        assert!(elapsed.as_millis() < 1000, 
-            "HTML generation took too long: {:?}", elapsed);
-        
+        assert!(
+            elapsed.as_millis() < 1000,
+            "HTML generation took too long: {:?}",
+            elapsed
+        );
+
         // Validate file was created
         assert!(output_path.exists(), "HTML file was not created");
-        
+
         println!("✅ Visualization workflow completed:");
         println!("   HTML size: {} bytes", html.len());
         println!("   Generation time: {}ms", elapsed.as_millis());
         println!("   Output file: {}", output_path.display());
-        
+
         Ok(())
     }
-    
+
     /// Test the LLM context generation workflow
     fn test_context_generation_workflow(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         println!("🤖 Testing LLM context generation workflow...");
-        
+
         let test_entities = vec!["User", "UserService", "create_user", "Database"];
-        
+
         for entity in test_entities {
             let start = Instant::now();
-            
+
             let context_result = self.daemon.generate_llm_context(entity);
             let elapsed = start.elapsed();
-            
+
             // Validate performance constraint (<100ms)
-            assert!(elapsed.as_millis() < 200, 
-                "Context generation for '{}' took too long: {:?}", entity, elapsed);
-            
+            assert!(
+                elapsed.as_millis() < 200,
+                "Context generation for '{}' took too long: {:?}",
+                entity,
+                elapsed
+            );
+
             match context_result {
                 Ok(context) => {
                     // Validate context structure
                     assert!(!context.is_empty(), "Context is empty for '{}'", entity);
-                    assert!(context.contains(entity), "Context doesn't mention target entity");
-                    
-                    println!("   Context for '{}': {} chars in {}μs", 
-                        entity, context.len(), elapsed.as_micros());
+                    assert!(
+                        context.contains(entity),
+                        "Context doesn't mention target entity"
+                    );
+
+                    println!(
+                        "   Context for '{}': {} chars in {}μs",
+                        entity,
+                        context.len(),
+                        elapsed.as_micros()
+                    );
                 }
                 Err(e) => {
                     println!("   Context for '{}': Error - {}", entity, e);
@@ -1171,77 +1209,114 @@ pub enum PasswordError {
                 }
             }
         }
-        
+
         println!("✅ Context generation workflow completed");
         Ok(())
     }
-    
+
     /// Test Sarah's complete workflow scenario
     fn test_sarahs_workflow(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         println!("👩‍💻 Testing Sarah's complete workflow scenario...");
-        
+
         // Sarah's workflow: Understand impact of changing UserService
         let target_entity = "UserService";
-        
-        println!("   Sarah wants to refactor '{}' - analyzing impact...", target_entity);
-        
+
+        println!(
+            "   Sarah wants to refactor '{}' - analyzing impact...",
+            target_entity
+        );
+
         // Step 1: Find the entity
         let entity_hash = self.daemon.find_entity_by_name(target_entity)?;
         let entity_node = self.daemon.isg.get_node(entity_hash)?;
-        
-        println!("   ✓ Found entity: {} at {}:{}", 
-            entity_node.name, entity_node.file_path, entity_node.line);
-        
+
+        println!(
+            "   ✓ Found entity: {} at {}:{}",
+            entity_node.name, entity_node.file_path, entity_node.line
+        );
+
         // Step 2: Calculate blast radius
         let start = Instant::now();
         let blast_radius = self.daemon.isg.calculate_blast_radius(entity_hash)?;
         let blast_time = start.elapsed();
-        
-        println!("   ✓ Blast radius: {} entities affected ({}μs)", 
-            blast_radius.len(), blast_time.as_micros());
-        
+
+        println!(
+            "   ✓ Blast radius: {} entities affected ({}μs)",
+            blast_radius.len(),
+            blast_time.as_micros()
+        );
+
         // Step 3: Find all callers
         let start = Instant::now();
         let callers = self.daemon.isg.find_callers(entity_hash)?;
         let callers_time = start.elapsed();
-        
-        println!("   ✓ Direct callers: {} entities ({}μs)", 
-            callers.len(), callers_time.as_micros());
-        
+
+        println!(
+            "   ✓ Direct callers: {} entities ({}μs)",
+            callers.len(),
+            callers_time.as_micros()
+        );
+
         // Step 4: Generate LLM context for AI assistance
         let start = Instant::now();
         let context = self.daemon.generate_llm_context(target_entity)?;
         let context_time = start.elapsed();
-        
-        println!("   ✓ LLM context: {} chars ({}μs)", 
-            context.len(), context_time.as_micros());
-        
+
+        println!(
+            "   ✓ LLM context: {} chars ({}μs)",
+            context.len(),
+            context_time.as_micros()
+        );
+
         // Step 5: Create visualization for team review
         let start = Instant::now();
-        let html = self.daemon.isg.generate_html_visualization(Some(target_entity))?;
+        let html = self
+            .daemon
+            .isg
+            .generate_html_visualization(Some(target_entity))?;
         let viz_time = start.elapsed();
-        
+
         let viz_path = self.temp_dir.path().join("sarah_refactor_analysis.html");
         fs::write(&viz_path, &html)?;
-        
-        println!("   ✓ Visualization: {} bytes ({}ms)", 
-            html.len(), viz_time.as_millis());
-        
+
+        println!(
+            "   ✓ Visualization: {} bytes ({}ms)",
+            html.len(),
+            viz_time.as_millis()
+        );
+
         // Validate Sarah's workflow performance requirements
-        assert!(blast_time.as_millis() < 5, "Blast radius too slow for Sarah");
-        assert!(callers_time.as_millis() < 5, "Callers query too slow for Sarah");
-        assert!(context_time.as_millis() < 200, "Context generation too slow for Sarah");
-        assert!(viz_time.as_millis() < 1000, "Visualization too slow for Sarah");
-        
+        assert!(
+            blast_time.as_millis() < 5,
+            "Blast radius too slow for Sarah"
+        );
+        assert!(
+            callers_time.as_millis() < 5,
+            "Callers query too slow for Sarah"
+        );
+        assert!(
+            context_time.as_millis() < 200,
+            "Context generation too slow for Sarah"
+        );
+        assert!(
+            viz_time.as_millis() < 1000,
+            "Visualization too slow for Sarah"
+        );
+
         // Validate Sarah gets actionable information
         assert!(!blast_radius.is_empty(), "Sarah needs to see impact");
         assert!(!context.is_empty(), "Sarah needs context for AI");
-        assert!(html.contains(target_entity), "Visualization must focus on target");
-        
+        assert!(
+            html.contains(target_entity),
+            "Visualization must focus on target"
+        );
+
         println!("✅ Sarah's workflow completed successfully!");
-        println!("   Total analysis time: {}ms", 
-            (blast_time + callers_time + context_time + viz_time).as_millis());
-        
+        println!(
+            "   Total analysis time: {}ms",
+            (blast_time + callers_time + context_time + viz_time).as_millis()
+        );
+
         Ok(())
     }
 }
@@ -1250,26 +1325,29 @@ pub enum PasswordError {
 #[test]
 fn test_complete_end_to_end_workflow() {
     println!("🚀 Starting complete end-to-end workflow validation");
-    
+
     let mut suite = EndToEndWorkflowSuite::new();
-    
+
     // Test each workflow component
-    suite.test_ingest_workflow()
+    suite
+        .test_ingest_workflow()
         .expect("Ingest workflow failed");
-    
-    suite.test_query_workflow()
-        .expect("Query workflow failed");
-    
-    suite.test_visualization_workflow()
+
+    suite.test_query_workflow().expect("Query workflow failed");
+
+    suite
+        .test_visualization_workflow()
         .expect("Visualization workflow failed");
-    
-    suite.test_context_generation_workflow()
+
+    suite
+        .test_context_generation_workflow()
         .expect("Context generation workflow failed");
-    
+
     // Test Sarah's complete workflow scenario
-    suite.test_sarahs_workflow()
+    suite
+        .test_sarahs_workflow()
         .expect("Sarah's workflow failed");
-    
+
     println!("🎉 Complete end-to-end workflow validation PASSED!");
 }
 
@@ -1277,21 +1355,21 @@ fn test_complete_end_to_end_workflow() {
 #[test]
 fn test_workflow_with_real_axum_data() {
     println!("🔍 Testing workflow with real Axum codebase data");
-    
+
     let axum_data_path = Path::new("_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt");
-    
+
     if !axum_data_path.exists() {
         println!("⚠️  Axum test data not found, skipping real data test");
         return;
     }
-    
+
     let mut daemon = ParseltongueAIM::new();
-    
+
     // Test ingestion with real data
     let start = Instant::now();
     let result = daemon.ingest_code_dump(axum_data_path);
     let elapsed = start.elapsed();
-    
+
     match result {
         Ok(stats) => {
             println!("✅ Real Axum data ingestion successful:");
@@ -1300,20 +1378,24 @@ fn test_workflow_with_real_axum_data() {
             println!("   Total nodes: {}", daemon.isg.node_count());
             println!("   Total edges: {}", daemon.isg.edge_count());
             println!("   Time: {:.2}s", elapsed.as_secs_f64());
-            
+
             // Test queries on real data
             let test_queries = vec!["Router", "Handler", "Service", "Extract"];
-            
+
             for entity in test_queries {
                 if let Ok(entity_hash) = daemon.find_entity_by_name(entity) {
                     let start = Instant::now();
                     let blast_radius = daemon.isg.calculate_blast_radius(entity_hash);
                     let elapsed = start.elapsed();
-                    
+
                     match blast_radius {
                         Ok(radius) => {
-                            println!("   Query '{}': {} dependencies in {}μs", 
-                                entity, radius.len(), elapsed.as_micros());
+                            println!(
+                                "   Query '{}': {} dependencies in {}μs",
+                                entity,
+                                radius.len(),
+                                elapsed.as_micros()
+                            );
                         }
                         Err(e) => {
                             println!("   Query '{}': Error - {}", entity, e);
@@ -1333,65 +1415,73 @@ fn test_workflow_with_real_axum_data() {
 #[test]
 fn test_workflow_performance_under_load() {
     println!("⚡ Testing workflow performance under load");
-    
+
     let mut suite = EndToEndWorkflowSuite::new();
-    
+
     // Ingest the realistic codebase
-    suite.test_ingest_workflow()
+    suite
+        .test_ingest_workflow()
         .expect("Failed to ingest test data");
-    
+
     // Test multiple concurrent queries
     let query_count = 100;
     let start = Instant::now();
-    
+
     for i in 0..query_count {
         let entity = match i % 4 {
             0 => "User",
-            1 => "UserService", 
+            1 => "UserService",
             2 => "Post",
             _ => "Database",
         };
-        
+
         if let Ok(entity_hash) = suite.daemon.find_entity_by_name(entity) {
             let _ = suite.daemon.isg.calculate_blast_radius(entity_hash);
         }
     }
-    
+
     let total_elapsed = start.elapsed();
     let avg_query_time = total_elapsed.as_micros() / query_count as u128;
-    
+
     println!("✅ Performance under load:");
     println!("   Queries executed: {}", query_count);
     println!("   Total time: {}ms", total_elapsed.as_millis());
     println!("   Average query time: {}μs", avg_query_time);
-    
+
     // Validate performance doesn't degrade significantly under load
-    assert!(avg_query_time < 1000, "Average query time too high under load: {}μs", avg_query_time);
+    assert!(
+        avg_query_time < 1000,
+        "Average query time too high under load: {}μs",
+        avg_query_time
+    );
 }
 
 /// Test workflow error handling and recovery
 #[test]
 fn test_workflow_error_handling() {
     println!("🛡️  Testing workflow error handling and recovery");
-    
+
     let mut daemon = ParseltongueAIM::new();
-    
+
     // Test with non-existent file
     let result = daemon.ingest_code_dump(Path::new("non_existent_file.dump"));
     assert!(result.is_err(), "Should fail with non-existent file");
-    
+
     // Test queries on empty ISG
     let result = daemon.find_entity_by_name("NonExistentEntity");
     assert!(result.is_err(), "Should fail to find entity in empty ISG");
-    
+
     // Test visualization with empty ISG
     let result = daemon.isg.generate_html_visualization(None);
     assert!(result.is_ok(), "Should handle empty ISG gracefully");
-    
+
     // Test context generation with empty ISG
     let result = daemon.generate_llm_context("NonExistentEntity");
-    assert!(result.is_err(), "Should fail to generate context for non-existent entity");
-    
+    assert!(
+        result.is_err(),
+        "Should fail to generate context for non-existent entity"
+    );
+
     println!("✅ Error handling tests completed");
 }
 
@@ -1399,45 +1489,57 @@ fn test_workflow_error_handling() {
 #[test]
 fn test_workflow_edge_cases() {
     println!("🔬 Testing workflow edge cases");
-    
+
     let temp_dir = TempDir::new().expect("Failed to create temp directory");
     let mut daemon = ParseltongueAIM::new();
-    
+
     // Test with empty file
     let empty_file = temp_dir.path().join("empty.dump");
     fs::write(&empty_file, "").expect("Failed to write empty file");
-    
+
     let result = daemon.ingest_code_dump(&empty_file);
     match result {
         Ok(stats) => {
-            assert_eq!(stats.files_processed, 0, "Should process 0 files from empty dump");
-            assert_eq!(stats.nodes_created, 0, "Should create 0 nodes from empty dump");
+            assert_eq!(
+                stats.files_processed, 0,
+                "Should process 0 files from empty dump"
+            );
+            assert_eq!(
+                stats.nodes_created, 0,
+                "Should create 0 nodes from empty dump"
+            );
         }
         Err(_) => {
             // Acceptable to fail on empty file
         }
     }
-    
+
     // Test with malformed code
     let malformed_file = temp_dir.path().join("malformed.dump");
-    fs::write(&malformed_file, "FILE: test.rs\nthis is not valid rust code {{{").expect("Failed to write malformed file");
-    
+    fs::write(
+        &malformed_file,
+        "FILE: test.rs\nthis is not valid rust code {{{",
+    )
+    .expect("Failed to write malformed file");
+
     let result = daemon.ingest_code_dump(&malformed_file);
     // Should handle malformed code gracefully (either succeed with partial parsing or fail cleanly)
     match result {
         Ok(stats) => {
-            println!("   Malformed code handled gracefully: {} files, {} nodes", 
-                stats.files_processed, stats.nodes_created);
+            println!(
+                "   Malformed code handled gracefully: {} files, {} nodes",
+                stats.files_processed, stats.nodes_created
+            );
         }
         Err(e) => {
             println!("   Malformed code failed cleanly: {}", e);
         }
     }
-    
+
     // Test with very long entity names
     let long_name = "a".repeat(1000);
     let result = daemon.find_entity_by_name(&long_name);
     assert!(result.is_err(), "Should handle very long entity names");
-    
+
     println!("✅ Edge case tests completed");
 }

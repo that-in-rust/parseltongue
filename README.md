@@ -1,6 +1,9 @@
 # Parseltongue 🐍 
 ## Understand Any Rust Codebase in 30 Seconds
 
+[![CI](https://github.com/your-org/parseltongue/workflows/CI/badge.svg)](https://github.com/your-org/parseltongue/actions)
+[![Build Status](https://github.com/your-org/parseltongue/workflows/CI/badge.svg?branch=main)](https://github.com/your-org/parseltongue/actions)
+
 **Stop spending 30 minutes figuring out where things are.** Get instant architectural intelligence for any Rust project.
 
 ```bash

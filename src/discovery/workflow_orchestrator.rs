@@ -1,17 +1,17 @@
 //! Workflow Orchestration Layer for Parseltongue v2
-//! 
+//!
 //! Combines discovery commands into complete user journeys following JTBD patterns.
 //! Provides high-level workflow abstractions that orchestrate multiple discovery
 //! operations to deliver complete solutions for common developer tasks.
 
+use crate::discovery::{DiscoveryError, EntityInfo, FileLocation};
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use chrono::{DateTime, Utc};
-use crate::discovery::{DiscoveryError, EntityInfo, FileLocation};
 
 /// Core trait for workflow orchestration
-/// 
+///
 /// # Contract
 /// - All workflows must complete within specified time limits
 /// - Results must be cacheable and serializable
@@ -19,47 +19,47 @@ use crate::discovery::{DiscoveryError, EntityInfo, FileLocation};
 #[async_trait]
 pub trait WorkflowOrchestrator {
     /// Execute onboarding workflow for new codebase
-    /// 
+    ///
     /// # Preconditions
     /// - Codebase has been ingested into discovery engine
     /// - Discovery indexes are available
-    /// 
+    ///
     /// # Postconditions
     /// - Returns comprehensive onboarding overview
     /// - Completes within 15 minutes for typical codebases
     /// - Provides actionable next steps
     async fn onboard(&self, target_dir: &str) -> Result<OnboardingResult, WorkflowError>;
-    
+
     /// Execute feature planning workflow
-    /// 
+    ///
     /// # Preconditions
     /// - Entity exists in codebase
     /// - Discovery engine is initialized
-    /// 
+    ///
     /// # Postconditions
     /// - Returns impact analysis and scope guidance
     /// - Provides test recommendations
     /// - Completes within 5 minutes
     async fn feature_start(&self, entity_name: &str) -> Result<FeaturePlanResult, WorkflowError>;
-    
+
     /// Execute debugging workflow
-    /// 
+    ///
     /// # Preconditions
     /// - Entity exists in codebase
     /// - Caller traces are available
-    /// 
+    ///
     /// # Postconditions
     /// - Returns caller traces and usage sites
     /// - Provides minimal change scope recommendations
     /// - Completes within 2 minutes
     async fn debug(&self, entity_name: &str) -> Result<DebugResult, WorkflowError>;
-    
+
     /// Execute refactoring safety check workflow
-    /// 
+    ///
     /// # Preconditions
     /// - Entity exists in codebase
     /// - Dependency graph is available
-    /// 
+    ///
     /// # Postconditions
     /// - Returns risk assessment
     /// - Provides change checklist and reviewer guidance
@@ -360,23 +360,23 @@ pub enum Priority {
 pub enum WorkflowError {
     #[error("Discovery error: {0}")]
     Discovery(#[from] DiscoveryError),
-    
+
     #[error("Workflow timeout: {workflow} took {elapsed:?} (limit: {limit:?})")]
     Timeout {
         workflow: String,
         elapsed: Duration,
         limit: Duration,
     },
-    
+
     #[error("Entity not found: {entity}")]
     EntityNotFound { entity: String },
-    
+
     #[error("Invalid workflow state: {message}")]
     InvalidState { message: String },
-    
+
     #[error("Serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
-    
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 }
@@ -403,12 +403,15 @@ mod tests {
             key_contexts: vec![],
             next_steps: vec!["Read main.rs".to_string()],
         };
-        
+
         // Should serialize and deserialize without errors
         let json = serde_json::to_string(&result).unwrap();
         let deserialized: OnboardingResult = serde_json::from_str(&json).unwrap();
-        
-        assert_eq!(result.overview.total_files, deserialized.overview.total_files);
+
+        assert_eq!(
+            result.overview.total_files,
+            deserialized.overview.total_files
+        );
         assert_eq!(result.next_steps, deserialized.next_steps);
     }
 
@@ -432,12 +435,15 @@ mod tests {
             },
             test_recommendations: vec![],
         };
-        
+
         let json = serde_json::to_string(&result).unwrap();
         let deserialized: FeaturePlanResult = serde_json::from_str(&json).unwrap();
-        
+
         assert_eq!(result.target_entity, deserialized.target_entity);
-        assert_eq!(result.impact_analysis.risk_level, deserialized.impact_analysis.risk_level);
+        assert_eq!(
+            result.impact_analysis.risk_level,
+            deserialized.impact_analysis.risk_level
+        );
     }
 
     #[test]
@@ -455,12 +461,15 @@ mod tests {
                 rollback_strategy: "revert commit".to_string(),
             },
         };
-        
+
         let json = serde_json::to_string(&result).unwrap();
         let deserialized: DebugResult = serde_json::from_str(&json).unwrap();
-        
+
         assert_eq!(result.target_entity, deserialized.target_entity);
-        assert_eq!(result.minimal_scope.rollback_strategy, deserialized.minimal_scope.rollback_strategy);
+        assert_eq!(
+            result.minimal_scope.rollback_strategy,
+            deserialized.minimal_scope.rollback_strategy
+        );
     }
 
     #[test]
@@ -475,14 +484,12 @@ mod tests {
                 mitigations: vec!["Add tests".to_string()],
                 confidence: ConfidenceLevel::High,
             },
-            change_checklist: vec![
-                ChecklistItem {
-                    description: "Update tests".to_string(),
-                    priority: Priority::High,
-                    completed: false,
-                    notes: Some("Focus on integration tests".to_string()),
-                }
-            ],
+            change_checklist: vec![ChecklistItem {
+                description: "Update tests".to_string(),
+                priority: Priority::High,
+                completed: false,
+                notes: Some("Focus on integration tests".to_string()),
+            }],
             reviewer_guidance: ReviewerGuidance {
                 focus_areas: vec!["Error handling".to_string()],
                 potential_issues: vec!["Race conditions".to_string()],
@@ -490,28 +497,36 @@ mod tests {
                 approval_criteria: vec!["All tests pass".to_string()],
             },
         };
-        
+
         let json = serde_json::to_string(&result).unwrap();
         let deserialized: RefactorResult = serde_json::from_str(&json).unwrap();
-        
+
         assert_eq!(result.target_entity, deserialized.target_entity);
-        assert_eq!(result.risk_assessment.overall_risk, deserialized.risk_assessment.overall_risk);
-        assert_eq!(result.change_checklist.len(), deserialized.change_checklist.len());
+        assert_eq!(
+            result.risk_assessment.overall_risk,
+            deserialized.risk_assessment.overall_risk
+        );
+        assert_eq!(
+            result.change_checklist.len(),
+            deserialized.change_checklist.len()
+        );
     }
 
     #[test]
     fn test_workflow_error_types() {
         // Test different error types
-        let discovery_error = WorkflowError::Discovery(DiscoveryError::EntityNotFound { name: "test".to_string() });
+        let discovery_error = WorkflowError::Discovery(DiscoveryError::EntityNotFound {
+            name: "test".to_string(),
+        });
         assert!(matches!(discovery_error, WorkflowError::Discovery(_)));
-        
+
         let timeout_error = WorkflowError::Timeout {
             workflow: "onboard".to_string(),
             elapsed: Duration::from_secs(20),
             limit: Duration::from_secs(15),
         };
         assert!(matches!(timeout_error, WorkflowError::Timeout { .. }));
-        
+
         let entity_error = WorkflowError::EntityNotFound {
             entity: "missing_entity".to_string(),
         };

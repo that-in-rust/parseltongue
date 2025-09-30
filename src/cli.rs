@@ -1,15 +1,15 @@
 //! CLI Interface for Parseltongue AIM Daemon
-//! 
+//!
 //! Provides command-line interface with performance monitoring and JSON/human output
 
 use crate::daemon::ParseltongueAIM;
+use crate::discovery::{ConcreteWorkflowOrchestrator, WorkflowOrchestrator};
+use crate::discovery::{DiscoveryEngine, EntityInfo, FileLocation, SimpleDiscoveryEngine};
 use crate::isg::ISGError;
-use crate::discovery::{SimpleDiscoveryEngine, DiscoveryEngine, EntityInfo, FileLocation};
-use crate::discovery::{WorkflowOrchestrator, ConcreteWorkflowOrchestrator};
-use crate::workspace_cli::{WorkspaceArgs, handle_workspace_command};
+use crate::workspace_cli::{handle_workspace_command, WorkspaceArgs};
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 
 #[derive(Parser)]
 #[command(name = "parseltongue")]
@@ -237,7 +237,7 @@ impl LlmContext {
 fn format_duration(duration: Duration) -> String {
     let total_ms = duration.as_secs_f64() * 1000.0;
     let total_us = duration.as_micros() as f64;
-    
+
     if total_us < 1000.0 {
         // Less than 1 millisecond: show in microseconds (for very fast operations)
         format!("{:.0}μs", total_us)
@@ -253,28 +253,28 @@ fn format_duration(duration: Duration) -> String {
 
 pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     let mut daemon = ParseltongueAIM::new();
-    
+
     // Try to load existing snapshot for persistence between commands
     let snapshot_path = std::path::Path::new("parseltongue_snapshot.json");
     if let Err(e) = daemon.load_snapshot(snapshot_path) {
         eprintln!("⚠️  Could not load snapshot: {}", e);
     }
-    
+
     match cli.command {
         Commands::Ingest { file } => {
             if !file.exists() {
                 return Err(format!("🚫 File not found: {}", file.display()).into());
             }
-            
+
             println!("🤖 STARK INDUSTRIES CODEBASE INGESTION PROTOCOL");
             println!("═══════════════════════════════════════════════");
             println!("📁 Target: {}", file.display());
             println!("⚡ Initializing JARVIS analysis...");
-            
+
             let start = Instant::now();
             let stats = daemon.ingest_code_dump(&file)?;
             let elapsed = start.elapsed();
-            
+
             println!();
             println!("✅ INGESTION PROTOCOL COMPLETE");
             println!("  📊 Files processed: {}", stats.files_processed);
@@ -282,15 +282,18 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             println!("  🌐 Total nodes in ISG: {}", daemon.isg.node_count());
             println!("  🕸️  Total edges in ISG: {}", daemon.isg.edge_count());
             println!("  ⚡ Processing time: {}", format_duration(elapsed));
-            
+
             // Verify <5s constraint for 2.1MB dumps (Performance Contract)
             if elapsed.as_secs() > 5 {
-                eprintln!("⚠️  PERFORMANCE ALERT: Ingestion took {:.2}s (>5s target exceeded)", elapsed.as_secs_f64());
+                eprintln!(
+                    "⚠️  PERFORMANCE ALERT: Ingestion took {:.2}s (>5s target exceeded)",
+                    elapsed.as_secs_f64()
+                );
                 eprintln!("💡 Consider optimizing for larger codebases");
             } else {
                 println!("🎯 Performance target achieved!");
             }
-            
+
             // Save snapshot for persistence between commands
             let snapshot_path = std::path::Path::new("parseltongue_snapshot.json");
             if let Err(e) = daemon.save_snapshot(snapshot_path) {
@@ -298,10 +301,10 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 println!("💾 Snapshot saved for future missions");
             }
-            
+
             println!("\n🤖 JARVIS ready for architectural intelligence queries! 🤖");
         }
-        
+
         Commands::Daemon { watch } => {
             if !watch.exists() {
                 return Err(format!("Directory not found: {}", watch.display()).into());
@@ -309,57 +312,73 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             if !watch.is_dir() {
                 return Err(format!("Path is not a directory: {}", watch.display()).into());
             }
-            
+
             daemon.start_daemon(&watch)?;
         }
-        
-        Commands::Query { query_type, target, format } => {
+
+        Commands::Query {
+            query_type,
+            target,
+            format,
+        } => {
             if target.trim().is_empty() {
                 return Err("Target entity name cannot be empty".into());
             }
-            
+
             let start = Instant::now();
-            
+
             let result = match query_type {
                 QueryType::WhatImplements => {
                     let trait_hash = daemon.find_entity_by_name(&target)?;
                     let implementors = daemon.isg.find_implementors(trait_hash)?;
-                    implementors.into_iter().map(|n| n.name.to_string()).collect::<Vec<_>>()
+                    implementors
+                        .into_iter()
+                        .map(|n| n.name.to_string())
+                        .collect::<Vec<_>>()
                 }
                 QueryType::BlastRadius => {
                     let entity_hash = daemon.find_entity_by_name(&target)?;
                     let radius = daemon.isg.calculate_blast_radius(entity_hash)?;
                     radius.into_iter().map(|h| format!("{:?}", h)).collect()
                 }
-                QueryType::FindCycles => {
-                    daemon.isg.find_cycles().into_iter().flatten()
-                        .map(|h| format!("{:?}", h)).collect()
-                }
+                QueryType::FindCycles => daemon
+                    .isg
+                    .find_cycles()
+                    .into_iter()
+                    .flatten()
+                    .map(|h| format!("{:?}", h))
+                    .collect(),
                 QueryType::Calls => {
                     let entity_hash = daemon.find_entity_by_name(&target)?;
                     let callers = daemon.isg.find_callers(entity_hash)?;
-                    callers.into_iter().map(|n| n.name.to_string()).collect::<Vec<_>>()
+                    callers
+                        .into_iter()
+                        .map(|n| n.name.to_string())
+                        .collect::<Vec<_>>()
                 }
                 QueryType::Uses => {
                     let entity_hash = daemon.find_entity_by_name(&target)?;
                     let users = daemon.isg.find_users(entity_hash)?;
-                    users.into_iter().map(|n| n.name.to_string()).collect::<Vec<_>>()
+                    users
+                        .into_iter()
+                        .map(|n| n.name.to_string())
+                        .collect::<Vec<_>>()
                 }
             };
-            
+
             let elapsed = start.elapsed();
-            
+
             match format {
                 OutputFormat::Human => {
                     // Avengers-themed query results following discovery-first approach
                     let query_emoji = match query_type {
                         QueryType::WhatImplements => "🔍", // Hawkeye's precision
-                        QueryType::BlastRadius => "💥", // Hulk's impact
-                        QueryType::FindCycles => "🌀", // Doctor Strange's loops
-                        QueryType::Calls => "📞", // Communication network
-                        QueryType::Uses => "🕸️", // Spider-Man's web
+                        QueryType::BlastRadius => "💥",    // Hulk's impact
+                        QueryType::FindCycles => "🌀",     // Doctor Strange's loops
+                        QueryType::Calls => "📞",          // Communication network
+                        QueryType::Uses => "🕸️",           // Spider-Man's web
                     };
-                    
+
                     let query_name = match query_type {
                         QueryType::WhatImplements => "TRAIT IMPLEMENTATION SCAN",
                         QueryType::BlastRadius => "IMPACT BLAST RADIUS",
@@ -367,13 +386,13 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                         QueryType::Calls => "CALLER NETWORK ANALYSIS",
                         QueryType::Uses => "USAGE WEB MAPPING",
                     };
-                    
+
                     println!("{} {}", query_emoji, query_name);
                     println!("═══════════════════════════════════════");
                     println!("🎯 Target: '{}'", target);
                     println!("📊 Results found: {}", result.len());
                     println!();
-                    
+
                     if result.is_empty() {
                         println!("❌ No results found for '{}'", target);
                         println!("💡 Suggestions:");
@@ -385,15 +404,18 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                             println!("  {}. 🎯 {}", i + 1, item);
                         }
                     }
-                    
+
                     println!();
                     println!("⚡ Query completed in {}", format_duration(elapsed));
-                    
+
                     // Verify performance constraints following guide expectations
                     let target_us = 500; // 500μs target from guide
                     if elapsed.as_micros() > target_us {
-                        eprintln!("⚠️  PERFORMANCE ALERT: Query took {} (target: <{}μs)", 
-                                format_duration(elapsed), target_us);
+                        eprintln!(
+                            "⚠️  PERFORMANCE ALERT: Query took {} (target: <{}μs)",
+                            format_duration(elapsed),
+                            target_us
+                        );
                     } else {
                         println!("✅ Performance target achieved!");
                     }
@@ -411,20 +433,22 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 }
                 OutputFormat::PrSummary | OutputFormat::Ci => {
                     // Query results don't support PR summary or CI formats
-                    return Err("PR summary and CI formats are not supported for query commands".into());
+                    return Err(
+                        "PR summary and CI formats are not supported for query commands".into(),
+                    );
                 }
             }
         }
-        
+
         Commands::GenerateContext { entity, format } => {
             if entity.trim().is_empty() {
                 return Err("Entity name cannot be empty".into());
             }
-            
+
             let context = generate_context(&daemon, &entity, format.clone())?;
             println!("{}", context);
         }
-        
+
         Commands::DebugGraph { graph, dot, sample } => {
             if sample {
                 // Create and show sample ISG for learning
@@ -432,10 +456,12 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 println!("=== SAMPLE ISG FOR LEARNING ===\n");
                 println!("This shows a simple Rust program structure:\n");
                 println!("{}", sample_isg.debug_print());
-                
+
                 if dot {
                     println!("\n=== DOT FORMAT (for Graphviz) ===");
-                    println!("Copy this to a .dot file and run: dot -Tpng graph.dot -o graph.png\n");
+                    println!(
+                        "Copy this to a .dot file and run: dot -Tpng graph.dot -o graph.png\n"
+                    );
                     println!("{}", sample_isg.export_dot());
                 }
             } else if graph {
@@ -448,22 +474,21 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 println!("Use --graph to see ISG structure, --dot for Graphviz export, or --sample for learning example");
             }
         }
-        
+
         Commands::Visualize { entity, output } => {
             println!("🔮 DOCTOR STRANGE VISUALIZATION PROTOCOL");
             println!("═══════════════════════════════════════════");
             println!("✨ Opening the Eye of Agamotto...");
-            
+
             let start = Instant::now();
-            
+
             let html = daemon.isg.generate_html_visualization(entity.as_deref())?;
-            
+
             // Write HTML to file
-            std::fs::write(&output, html)
-                .map_err(|e| format!("🚫 Mystical arts failed: {}", e))?;
-            
+            std::fs::write(&output, html).map_err(|e| format!("🚫 Mystical arts failed: {}", e))?;
+
             let elapsed = start.elapsed();
-            
+
             println!();
             println!("✅ MYSTICAL VISUALIZATION COMPLETE");
             println!("  📄 Sanctum file: {}", output.display());
@@ -473,88 +498,107 @@ pub async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 println!("  🎯 Focused entity: {}", entity);
             }
             println!("  ⚡ Spell casting time: {}", format_duration(elapsed));
-            
+
             // Verify <500ms constraint
             if elapsed.as_millis() > 500 {
-                eprintln!("⚠️  TEMPORAL ANOMALY: Generation took {}ms (>500ms target)", elapsed.as_millis());
+                eprintln!(
+                    "⚠️  TEMPORAL ANOMALY: Generation took {}ms (>500ms target)",
+                    elapsed.as_millis()
+                );
             } else {
                 println!("🎯 Mystical efficiency achieved!");
             }
-            
+
             println!();
-            println!("🔮 Open {} in your browser to witness the architectural dimensions!", output.display());
+            println!(
+                "🔮 Open {} in your browser to witness the architectural dimensions!",
+                output.display()
+            );
             println!("✨ The multiverse of code awaits your exploration! ✨");
         }
-        
-        Commands::ListEntities { r#type, limit, format } => {
+
+        Commands::ListEntities {
+            r#type,
+            limit,
+            format,
+        } => {
             handle_list_entities_command(&daemon, r#type, limit, format.clone()).await?;
         }
-        
-        Commands::EntitiesInFile { file, r#type, format } => {
+
+        Commands::EntitiesInFile {
+            file,
+            r#type,
+            format,
+        } => {
             handle_entities_in_file_command(&daemon, &file, r#type, format.clone()).await?;
         }
-        
+
         Commands::WhereDefined { entity, format } => {
             handle_where_defined_command(&daemon, &entity, format.clone()).await?;
         }
-        
+
         Commands::Workspace(workspace_args) => {
-            handle_workspace_command(workspace_args).await
+            handle_workspace_command(workspace_args)
+                .await
                 .map_err(|e| format!("Workspace error: {}", e))?;
         }
-        
+
         Commands::Onboard { target_dir, format } => {
             handle_onboard_workflow(&daemon, &target_dir, format.clone()).await?;
         }
-        
+
         Commands::FeatureStart { entity, format } => {
             handle_feature_start_workflow(&daemon, &entity, format.clone()).await?;
         }
-        
+
         Commands::Debug { entity, format } => {
             handle_debug_workflow(&daemon, &entity, format.clone()).await?;
         }
-        
+
         Commands::RefactorCheck { entity, format } => {
             handle_refactor_check_workflow(&daemon, &entity, format.clone()).await?;
         }
     }
-    
+
     Ok(())
 }
 
 /// Generate LLM context with 2-hop dependency analysis
-pub fn generate_context(daemon: &ParseltongueAIM, entity_name: &str, format: OutputFormat) -> Result<String, ISGError> {
+pub fn generate_context(
+    daemon: &ParseltongueAIM,
+    entity_name: &str,
+    format: OutputFormat,
+) -> Result<String, ISGError> {
     let start = Instant::now();
-    
+
     // Find entity by name
     let target_hash = daemon.find_entity_by_name(entity_name)?;
     let target_node = daemon.isg.get_node(target_hash)?;
-    
+
     let context = LlmContext {
         target: target_node.clone(),
         dependencies: daemon.get_dependencies(target_hash),
         callers: daemon.get_callers(target_hash),
     };
-    
+
     let elapsed = start.elapsed();
-    
+
     let result = match format {
         OutputFormat::Human => {
             let mut output = context.format_human();
             output.push_str(&format!("\nContext generated in {}μs", elapsed.as_micros()));
             output
         }
-        OutputFormat::Json => {
-            serde_json::to_string_pretty(&context)
-                .map_err(|e| ISGError::IoError(format!("JSON serialization failed: {}", e)))?
-        }
+        OutputFormat::Json => serde_json::to_string_pretty(&context)
+            .map_err(|e| ISGError::IoError(format!("JSON serialization failed: {}", e)))?,
         OutputFormat::PrSummary | OutputFormat::Ci => {
             // Context generation doesn't support PR summary or CI formats
-            return Err(ISGError::IoError("PR summary and CI formats are not supported for context generation".to_string()));
+            return Err(ISGError::IoError(
+                "PR summary and CI formats are not supported for context generation".to_string(),
+            ));
         }
     };
-    
+
     Ok(result)
 }
 
@@ -566,21 +610,21 @@ async fn handle_list_entities_command(
     format: OutputFormat,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
-    
+
     // Create discovery engine
     let discovery_engine = SimpleDiscoveryEngine::new(daemon.isg.clone());
-    
+
     // Convert CLI entity type to discovery entity type
     let discovery_type = entity_type.map(|t| t.into());
-    
+
     // Execute the query
     let entities = discovery_engine
         .list_all_entities(discovery_type, limit)
         .await
         .map_err(|e| format!("Discovery error: {}", e))?;
-    
+
     let elapsed = start.elapsed();
-    
+
     // Format and display results
     match format {
         OutputFormat::Human => {
@@ -594,12 +638,15 @@ async fn handle_list_entities_command(
             return Err("PR summary and CI formats are not supported for entity listing".into());
         }
     }
-    
+
     // Check performance contract
     if elapsed.as_millis() > 100 {
-        eprintln!("⚠️  Discovery took {}ms (>100ms contract violated)", elapsed.as_millis());
+        eprintln!(
+            "⚠️  Discovery took {}ms (>100ms contract violated)",
+            elapsed.as_millis()
+        );
     }
-    
+
     Ok(())
 }
 
@@ -611,24 +658,24 @@ async fn handle_entities_in_file_command(
     format: OutputFormat,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
-    
+
     // Create discovery engine
     let discovery_engine = SimpleDiscoveryEngine::new(daemon.isg.clone());
-    
+
     // Get entities in file
     let mut entities = discovery_engine
         .entities_in_file(file_path)
         .await
         .map_err(|e| format!("Discovery error: {}", e))?;
-    
+
     // Apply entity type filter if specified
     if let Some(filter_type) = entity_type {
         let discovery_type = filter_type.into();
         entities.retain(|entity| entity.entity_type == discovery_type);
     }
-    
+
     let elapsed = start.elapsed();
-    
+
     // Format and display results
     match format {
         OutputFormat::Human => {
@@ -639,15 +686,20 @@ async fn handle_entities_in_file_command(
         }
         OutputFormat::PrSummary | OutputFormat::Ci => {
             // File entity listing doesn't support PR summary or CI formats
-            return Err("PR summary and CI formats are not supported for file entity listing".into());
+            return Err(
+                "PR summary and CI formats are not supported for file entity listing".into(),
+            );
         }
     }
-    
+
     // Check performance contract
     if elapsed.as_millis() > 100 {
-        eprintln!("⚠️  Discovery took {}ms (>100ms contract violated)", elapsed.as_millis());
+        eprintln!(
+            "⚠️  Discovery took {}ms (>100ms contract violated)",
+            elapsed.as_millis()
+        );
     }
-    
+
     Ok(())
 }
 
@@ -658,18 +710,18 @@ async fn handle_where_defined_command(
     format: OutputFormat,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let start = Instant::now();
-    
+
     // Create discovery engine
     let discovery_engine = SimpleDiscoveryEngine::new(daemon.isg.clone());
-    
+
     // Find entity definition
     let location = discovery_engine
         .where_defined(entity_name)
         .await
         .map_err(|e| format!("Discovery error: {}", e))?;
-    
+
     let elapsed = start.elapsed();
-    
+
     // Format and display results
     match format {
         OutputFormat::Human => {
@@ -683,12 +735,15 @@ async fn handle_where_defined_command(
             return Err("PR summary and CI formats are not supported for location lookup".into());
         }
     }
-    
+
     // Check performance contract (stricter for exact lookups)
     if elapsed.as_micros() > 50_000 {
-        eprintln!("⚠️  Lookup took {}μs (>50ms contract violated)", elapsed.as_micros());
+        eprintln!(
+            "⚠️  Lookup took {}μs (>50ms contract violated)",
+            elapsed.as_micros()
+        );
     }
-    
+
     Ok(())
 }
 
@@ -706,41 +761,53 @@ fn format_entities_human(entities: &[EntityInfo], elapsed: std::time::Duration, 
         println!("💡 Expected baseline: ~2177 nodes, 3933 edges for Parseltongue itself");
         return;
     }
-    
+
     let type_filter_text = if filtered { " (filtered by type)" } else { "" };
     println!("🛡️  PARSELTONGUE ENTITY SCAN COMPLETE");
     println!("═══════════════════════════════════════");
-    println!("📊 Discovered {} entities{}", entities.len(), type_filter_text);
+    println!(
+        "📊 Discovered {} entities{}",
+        entities.len(),
+        type_filter_text
+    );
     println!();
-    
+
     // Group entities by type for better organization
     let mut by_type = std::collections::HashMap::new();
     for entity in entities {
-        by_type.entry(entity.entity_type).or_insert_with(Vec::new).push(entity);
+        by_type
+            .entry(entity.entity_type)
+            .or_insert_with(Vec::new)
+            .push(entity);
     }
-    
+
     // Sort types for consistent output
     let mut types: Vec<_> = by_type.keys().collect();
     types.sort_by_key(|t| format!("{:?}", t));
-    
+
     for entity_type in types {
         let entities_of_type = by_type.get(entity_type).unwrap();
-        
+
         // Avengers-themed emojis for different entity types
         let type_emoji = match format!("{:?}", entity_type).as_str() {
             "Function" => "🔨", // Thor's hammer for functions
-            "Struct" => "🛡️", // Captain America's shield for structs
-            "Trait" => "💎", // Infinity stones for traits
-            "Impl" => "🔧", // Iron Man's tech for implementations
-            "Module" => "🏗️", // Building blocks
+            "Struct" => "🛡️",   // Captain America's shield for structs
+            "Trait" => "💎",    // Infinity stones for traits
+            "Impl" => "🔧",     // Iron Man's tech for implementations
+            "Module" => "🏗️",   // Building blocks
             "Constant" => "💎", // Precious constants
-            "Static" => "⚡", // Static power
-            "Macro" => "🪄", // Magic macros
-            _ => "⚡"
+            "Static" => "⚡",   // Static power
+            "Macro" => "🪄",    // Magic macros
+            _ => "⚡",
         };
-        
-        println!("{} {:?} ({}):", type_emoji, entity_type, entities_of_type.len());
-        
+
+        println!(
+            "{} {:?} ({}):",
+            type_emoji,
+            entity_type,
+            entities_of_type.len()
+        );
+
         for entity in entities_of_type {
             let location = if let Some(line) = entity.line_number {
                 format!("{}:{}", entity.file_path, line)
@@ -751,18 +818,34 @@ fn format_entities_human(entities: &[EntityInfo], elapsed: std::time::Duration, 
         }
         println!();
     }
-    
+
     // Performance validation following parseltongue-llm-guide.md expectations
     let target_ms = 100; // <100ms target from guide
-    let speed_emoji = if elapsed.as_millis() < target_ms { "⚡" } else { "🐌" };
-    let status = if elapsed.as_millis() < target_ms { "✅ TARGET ACHIEVED" } else { "⚠️ PERFORMANCE REVIEW NEEDED" };
-    
-    println!("{}️ Discovery completed in {} {} (target: <{} milliseconds)", 
-             speed_emoji, format_duration(elapsed), status, target_ms);
+    let speed_emoji = if elapsed.as_millis() < target_ms {
+        "⚡"
+    } else {
+        "🐌"
+    };
+    let status = if elapsed.as_millis() < target_ms {
+        "✅ TARGET ACHIEVED"
+    } else {
+        "⚠️ PERFORMANCE REVIEW NEEDED"
+    };
+
+    println!(
+        "{}️ Discovery completed in {} {} (target: <{} milliseconds)",
+        speed_emoji,
+        format_duration(elapsed),
+        status,
+        target_ms
+    );
 }
 
 /// Format entities for JSON output
-fn format_entities_json(entities: &[EntityInfo], elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
+fn format_entities_json(
+    entities: &[EntityInfo],
+    elapsed: std::time::Duration,
+) -> Result<(), Box<dyn std::error::Error>> {
     let output = serde_json::json!({
         "command": "list-entities",
         "results": entities,
@@ -770,19 +853,28 @@ fn format_entities_json(entities: &[EntityInfo], elapsed: std::time::Duration) -
         "execution_time_ms": elapsed.as_secs_f64() * 1000.0,
         "timestamp": chrono::Utc::now().to_rfc3339()
     });
-    
+
     println!("{}", serde_json::to_string_pretty(&output)?);
     Ok(())
 }
 
 /// Format file entities for human-readable output with Avengers theme
-fn format_file_entities_human(entities: &[EntityInfo], file_path: &str, elapsed: std::time::Duration, filtered: bool) {
+fn format_file_entities_human(
+    entities: &[EntityInfo],
+    file_path: &str,
+    elapsed: std::time::Duration,
+    filtered: bool,
+) {
     let type_filter_text = if filtered { " (filtered by type)" } else { "" };
     println!("🔍 SPIDER-SENSE FILE SCAN");
     println!("═══════════════════════════");
     println!("📁 Target: '{}'", file_path);
-    println!("📊 Entities detected: {}{}", entities.len(), type_filter_text);
-    
+    println!(
+        "📊 Entities detected: {}{}",
+        entities.len(),
+        type_filter_text
+    );
+
     if entities.is_empty() {
         println!("🕷️  No entities found in this web node.");
         println!();
@@ -797,36 +889,44 @@ fn format_file_entities_human(entities: &[EntityInfo], file_path: &str, elapsed:
         println!("  3. 📁 Try a known file: 'parseltongue entities-in-file src/main.rs'");
         return;
     }
-    
+
     println!();
-    
+
     // Group by type
     let mut by_type = std::collections::HashMap::new();
     for entity in entities {
-        by_type.entry(entity.entity_type).or_insert_with(Vec::new).push(entity);
+        by_type
+            .entry(entity.entity_type)
+            .or_insert_with(Vec::new)
+            .push(entity);
     }
-    
+
     let mut types: Vec<_> = by_type.keys().collect();
     types.sort_by_key(|t| format!("{:?}", t));
-    
+
     for entity_type in types {
         let entities_of_type = by_type.get(entity_type).unwrap();
-        
+
         // Avengers-themed emojis for different entity types
         let type_emoji = match format!("{:?}", entity_type).as_str() {
             "Function" => "🔨", // Thor's hammer for functions
-            "Struct" => "🛡️", // Captain America's shield for structs
-            "Trait" => "💎", // Infinity stones for traits
-            "Impl" => "🔧", // Iron Man's tech for implementations
-            "Module" => "🏗️", // Building blocks
+            "Struct" => "🛡️",   // Captain America's shield for structs
+            "Trait" => "💎",    // Infinity stones for traits
+            "Impl" => "🔧",     // Iron Man's tech for implementations
+            "Module" => "🏗️",   // Building blocks
             "Constant" => "💎", // Precious constants
-            "Static" => "⚡", // Static power
-            "Macro" => "🪄", // Magic macros
-            _ => "⚡"
+            "Static" => "⚡",   // Static power
+            "Macro" => "🪄",    // Magic macros
+            _ => "⚡",
         };
-        
-        println!("{} {:?} ({}):", type_emoji, entity_type, entities_of_type.len());
-        
+
+        println!(
+            "{} {:?} ({}):",
+            type_emoji,
+            entity_type,
+            entities_of_type.len()
+        );
+
         for entity in entities_of_type {
             if let Some(line) = entity.line_number {
                 println!("  🎯 {} (line {})", entity.name, line);
@@ -836,18 +936,35 @@ fn format_file_entities_human(entities: &[EntityInfo], file_path: &str, elapsed:
         }
         println!();
     }
-    
-    // Performance validation following parseltongue-llm-guide.md expectations  
+
+    // Performance validation following parseltongue-llm-guide.md expectations
     let target_ms = 100; // <100ms target from guide
-    let speed_emoji = if elapsed.as_millis() < target_ms { "⚡" } else { "🐌" };
-    let status = if elapsed.as_millis() < target_ms { "✅ WEB-SLINGER SPEED" } else { "⚠️ NEED MORE SPIDER-POWER" };
-    
-    println!("{}️ Web scan completed in {} {} (target: <{} milliseconds)", 
-             speed_emoji, format_duration(elapsed), status, target_ms);
+    let speed_emoji = if elapsed.as_millis() < target_ms {
+        "⚡"
+    } else {
+        "🐌"
+    };
+    let status = if elapsed.as_millis() < target_ms {
+        "✅ WEB-SLINGER SPEED"
+    } else {
+        "⚠️ NEED MORE SPIDER-POWER"
+    };
+
+    println!(
+        "{}️ Web scan completed in {} {} (target: <{} milliseconds)",
+        speed_emoji,
+        format_duration(elapsed),
+        status,
+        target_ms
+    );
 }
 
 /// Format file entities for JSON output
-fn format_file_entities_json(entities: &[EntityInfo], file_path: &str, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
+fn format_file_entities_json(
+    entities: &[EntityInfo],
+    file_path: &str,
+    elapsed: std::time::Duration,
+) -> Result<(), Box<dyn std::error::Error>> {
     let output = serde_json::json!({
         "command": "entities-in-file",
         "file_path": file_path,
@@ -856,13 +973,17 @@ fn format_file_entities_json(entities: &[EntityInfo], file_path: &str, elapsed: 
         "execution_time_ms": elapsed.as_secs_f64() * 1000.0,
         "timestamp": chrono::Utc::now().to_rfc3339()
     });
-    
+
     println!("{}", serde_json::to_string_pretty(&output)?);
     Ok(())
 }
 
 /// Format location for human-readable output with Avengers theme
-fn format_location_human(entity_name: &str, location: &Option<FileLocation>, elapsed: std::time::Duration) {
+fn format_location_human(
+    entity_name: &str,
+    location: &Option<FileLocation>,
+    elapsed: std::time::Duration,
+) {
     match location {
         Some(loc) => {
             println!("🎯 HAWKEYE PRECISION TARGETING");
@@ -897,19 +1018,36 @@ fn format_location_human(entity_name: &str, location: &Option<FileLocation>, ela
             println!("  • Codebase not yet ingested");
         }
     }
-    
+
     println!();
     // Performance validation following parseltongue-llm-guide.md expectations
     let target_ms = 50; // <50ms target from guide for exact lookups
-    let speed_emoji = if elapsed.as_millis() < target_ms { "⚡" } else { "🐌" };
-    let status = if elapsed.as_millis() < target_ms { "✅ HAWKEYE PRECISION" } else { "⚠️ RECALIBRATING TARGETING SYSTEM" };
-    
-    println!("{}️ Targeting completed in {} {} (target: <{} milliseconds)", 
-             speed_emoji, format_duration(elapsed), status, target_ms);
+    let speed_emoji = if elapsed.as_millis() < target_ms {
+        "⚡"
+    } else {
+        "🐌"
+    };
+    let status = if elapsed.as_millis() < target_ms {
+        "✅ HAWKEYE PRECISION"
+    } else {
+        "⚠️ RECALIBRATING TARGETING SYSTEM"
+    };
+
+    println!(
+        "{}️ Targeting completed in {} {} (target: <{} milliseconds)",
+        speed_emoji,
+        format_duration(elapsed),
+        status,
+        target_ms
+    );
 }
 
 /// Format location for JSON output
-fn format_location_json(entity_name: &str, location: &Option<FileLocation>, elapsed: std::time::Duration) -> Result<(), Box<dyn std::error::Error>> {
+fn format_location_json(
+    entity_name: &str,
+    location: &Option<FileLocation>,
+    elapsed: std::time::Duration,
+) -> Result<(), Box<dyn std::error::Error>> {
     let output = serde_json::json!({
         "command": "where-defined",
         "entity_name": entity_name,
@@ -918,7 +1056,7 @@ fn format_location_json(entity_name: &str, location: &Option<FileLocation>, elap
         "execution_time_us": elapsed.as_micros(),
         "timestamp": chrono::Utc::now().to_rfc3339()
     });
-    
+
     println!("{}", serde_json::to_string_pretty(&output)?);
     Ok(())
 }
@@ -930,34 +1068,42 @@ async fn handle_onboard_workflow(
     format: OutputFormat,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let start = std::time::Instant::now();
-    
+
     // Create workflow orchestrator
     let orchestrator = ConcreteWorkflowOrchestrator::new(std::sync::Arc::new(daemon.isg.clone()));
-    
+
     // Execute onboard workflow
-    let result = orchestrator.onboard(target_dir).await
+    let result = orchestrator
+        .onboard(target_dir)
+        .await
         .map_err(|e| format!("Onboard workflow error: {}", e))?;
-    
+
     let elapsed = start.elapsed();
-    
+
     // Format and display results using new OutputFormatter system
     let formatter = match format {
         OutputFormat::Human => crate::discovery::FormatterFactory::create_formatter("human")?,
         OutputFormat::Json => crate::discovery::FormatterFactory::create_formatter("json")?,
-        OutputFormat::PrSummary => crate::discovery::FormatterFactory::create_formatter("pr-summary")?,
+        OutputFormat::PrSummary => {
+            crate::discovery::FormatterFactory::create_formatter("pr-summary")?
+        }
         OutputFormat::Ci => crate::discovery::FormatterFactory::create_formatter("ci")?,
     };
-    
-    let formatted_output = formatter.format_onboarding(&result)
+
+    let formatted_output = formatter
+        .format_onboarding(&result)
         .map_err(|e| format!("Output formatting error: {}", e))?;
-    
+
     println!("{}", formatted_output);
-    
+
     // Check performance contract: <15 minutes
     if elapsed.as_secs() > 15 * 60 {
-        eprintln!("⚠️  Onboard workflow took {:.2}s (>15 minutes contract violated)", elapsed.as_secs_f64());
+        eprintln!(
+            "⚠️  Onboard workflow took {:.2}s (>15 minutes contract violated)",
+            elapsed.as_secs_f64()
+        );
     }
-    
+
     Ok(())
 }
 
@@ -968,34 +1114,42 @@ async fn handle_feature_start_workflow(
     format: OutputFormat,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let start = std::time::Instant::now();
-    
+
     // Create workflow orchestrator
     let orchestrator = ConcreteWorkflowOrchestrator::new(std::sync::Arc::new(daemon.isg.clone()));
-    
+
     // Execute feature-start workflow
-    let result = orchestrator.feature_start(entity).await
+    let result = orchestrator
+        .feature_start(entity)
+        .await
         .map_err(|e| format!("Feature start workflow error: {}", e))?;
-    
+
     let elapsed = start.elapsed();
-    
+
     // Format and display results using new OutputFormatter system
     let formatter = match format {
         OutputFormat::Human => crate::discovery::FormatterFactory::create_formatter("human")?,
         OutputFormat::Json => crate::discovery::FormatterFactory::create_formatter("json")?,
-        OutputFormat::PrSummary => crate::discovery::FormatterFactory::create_formatter("pr-summary")?,
+        OutputFormat::PrSummary => {
+            crate::discovery::FormatterFactory::create_formatter("pr-summary")?
+        }
         OutputFormat::Ci => crate::discovery::FormatterFactory::create_formatter("ci")?,
     };
-    
-    let formatted_output = formatter.format_feature_plan(&result)
+
+    let formatted_output = formatter
+        .format_feature_plan(&result)
         .map_err(|e| format!("Output formatting error: {}", e))?;
-    
+
     println!("{}", formatted_output);
-    
+
     // Check performance contract: <5 minutes
     if elapsed.as_secs() > 5 * 60 {
-        eprintln!("⚠️  Feature start workflow took {:.2}s (>5 minutes contract violated)", elapsed.as_secs_f64());
+        eprintln!(
+            "⚠️  Feature start workflow took {:.2}s (>5 minutes contract violated)",
+            elapsed.as_secs_f64()
+        );
     }
-    
+
     Ok(())
 }
 
@@ -1006,34 +1160,42 @@ async fn handle_debug_workflow(
     format: OutputFormat,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let start = std::time::Instant::now();
-    
+
     // Create workflow orchestrator
     let orchestrator = ConcreteWorkflowOrchestrator::new(std::sync::Arc::new(daemon.isg.clone()));
-    
+
     // Execute debug workflow
-    let result = orchestrator.debug(entity).await
+    let result = orchestrator
+        .debug(entity)
+        .await
         .map_err(|e| format!("Debug workflow error: {}", e))?;
-    
+
     let elapsed = start.elapsed();
-    
+
     // Format and display results using new OutputFormatter system
     let formatter = match format {
         OutputFormat::Human => crate::discovery::FormatterFactory::create_formatter("human")?,
         OutputFormat::Json => crate::discovery::FormatterFactory::create_formatter("json")?,
-        OutputFormat::PrSummary => crate::discovery::FormatterFactory::create_formatter("pr-summary")?,
+        OutputFormat::PrSummary => {
+            crate::discovery::FormatterFactory::create_formatter("pr-summary")?
+        }
         OutputFormat::Ci => crate::discovery::FormatterFactory::create_formatter("ci")?,
     };
-    
-    let formatted_output = formatter.format_debug(&result)
+
+    let formatted_output = formatter
+        .format_debug(&result)
         .map_err(|e| format!("Output formatting error: {}", e))?;
-    
+
     println!("{}", formatted_output);
-    
+
     // Check performance contract: <2 minutes
     if elapsed.as_secs() > 2 * 60 {
-        eprintln!("⚠️  Debug workflow took {:.2}s (>2 minutes contract violated)", elapsed.as_secs_f64());
+        eprintln!(
+            "⚠️  Debug workflow took {:.2}s (>2 minutes contract violated)",
+            elapsed.as_secs_f64()
+        );
     }
-    
+
     Ok(())
 }
 
@@ -1044,44 +1206,50 @@ async fn handle_refactor_check_workflow(
     format: OutputFormat,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let start = std::time::Instant::now();
-    
+
     // Create workflow orchestrator
     let orchestrator = ConcreteWorkflowOrchestrator::new(std::sync::Arc::new(daemon.isg.clone()));
-    
+
     // Execute refactor-check workflow
-    let result = orchestrator.refactor_check(entity).await
+    let result = orchestrator
+        .refactor_check(entity)
+        .await
         .map_err(|e| format!("Refactor check workflow error: {}", e))?;
-    
+
     let elapsed = start.elapsed();
-    
+
     // Format and display results using new OutputFormatter system
     let formatter = match format {
         OutputFormat::Human => crate::discovery::FormatterFactory::create_formatter("human")?,
         OutputFormat::Json => crate::discovery::FormatterFactory::create_formatter("json")?,
-        OutputFormat::PrSummary => crate::discovery::FormatterFactory::create_formatter("pr-summary")?,
+        OutputFormat::PrSummary => {
+            crate::discovery::FormatterFactory::create_formatter("pr-summary")?
+        }
         OutputFormat::Ci => crate::discovery::FormatterFactory::create_formatter("ci")?,
     };
-    
-    let formatted_output = formatter.format_refactor(&result)
+
+    let formatted_output = formatter
+        .format_refactor(&result)
         .map_err(|e| format!("Output formatting error: {}", e))?;
-    
+
     println!("{}", formatted_output);
-    
+
     // Check performance contract: <3 minutes
     if elapsed.as_secs() > 3 * 60 {
-        eprintln!("⚠️  Refactor check workflow took {:.2}s (>3 minutes contract violated)", elapsed.as_secs_f64());
+        eprintln!(
+            "⚠️  Refactor check workflow took {:.2}s (>3 minutes contract violated)",
+            elapsed.as_secs_f64()
+        );
     }
-    
+
     Ok(())
 }
-
-
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
     use std::fs;
+    use tempfile::TempDir;
 
     // TDD Cycle 14: CLI parsing (RED phase)
     #[test]
@@ -1089,42 +1257,53 @@ mod tests {
         // Test ingest command
         let args = vec!["parseltongue", "ingest", "test.dump"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
             Commands::Ingest { file } => {
                 assert_eq!(file, PathBuf::from("test.dump"));
             }
             _ => panic!("Expected Ingest command"),
         }
-        
+
         // Test daemon command
         let args = vec!["parseltongue", "daemon", "--watch", "/path/to/watch"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
             Commands::Daemon { watch } => {
                 assert_eq!(watch, PathBuf::from("/path/to/watch"));
             }
             _ => panic!("Expected Daemon command"),
         }
-        
+
         // Test query command
-        let args = vec!["parseltongue", "query", "what-implements", "TestTrait", "--format", "json"];
+        let args = vec![
+            "parseltongue",
+            "query",
+            "what-implements",
+            "TestTrait",
+            "--format",
+            "json",
+        ];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
-            Commands::Query { query_type, target, format } => {
+            Commands::Query {
+                query_type,
+                target,
+                format,
+            } => {
                 assert!(matches!(query_type, QueryType::WhatImplements));
                 assert_eq!(target, "TestTrait");
                 assert!(matches!(format, OutputFormat::Json));
             }
             _ => panic!("Expected Query command"),
         }
-        
+
         // Test generate-context command
         let args = vec!["parseltongue", "generate-context", "MyFunction"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
             Commands::GenerateContext { entity, format } => {
                 assert_eq!(entity, "MyFunction");
@@ -1139,7 +1318,7 @@ mod tests {
         use clap::CommandFactory;
         let mut cli = Cli::command();
         let help = cli.render_help();
-        
+
         // Should contain all required commands
         assert!(help.to_string().contains("ingest"));
         assert!(help.to_string().contains("daemon"));
@@ -1153,20 +1332,31 @@ mod tests {
         // Query commands should work now
         let args = vec!["parseltongue", "query", "what-implements", "TestTrait"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         let result = run(cli).await;
-        
+
         // Should succeed now that query execution is implemented
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_calls_query_parsing() {
-        let args = vec!["parseltongue", "query", "calls", "test_function", "--format", "json"];
+        let args = vec![
+            "parseltongue",
+            "query",
+            "calls",
+            "test_function",
+            "--format",
+            "json",
+        ];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
-            Commands::Query { query_type, target, format } => {
+            Commands::Query {
+                query_type,
+                target,
+                format,
+            } => {
                 assert!(matches!(query_type, QueryType::Calls));
                 assert_eq!(target, "test_function");
                 assert!(matches!(format, OutputFormat::Json));
@@ -1179,9 +1369,13 @@ mod tests {
     fn test_uses_query_parsing() {
         let args = vec!["parseltongue", "query", "uses", "TestStruct"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
-            Commands::Query { query_type, target, format } => {
+            Commands::Query {
+                query_type,
+                target,
+                format,
+            } => {
                 assert!(matches!(query_type, QueryType::Uses));
                 assert_eq!(target, "TestStruct");
                 assert!(matches!(format, OutputFormat::Human));
@@ -1192,14 +1386,15 @@ mod tests {
 
     #[tokio::test]
     async fn test_calls_query_execution() {
-        // This test will fail until we implement calls query execution
+        // Test calls query execution - should succeed now that find_callers is implemented
         let args = vec!["parseltongue", "query", "calls", "test_function"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         let result = run(cli).await;
-        
-        // Should fail in RED phase because find_callers doesn't exist yet
-        assert!(result.is_err());
+
+        // Should succeed now that find_callers is implemented
+        // If entity doesn't exist, it should return a proper error message, not crash
+        assert!(result.is_ok() || result.unwrap_err().to_string().contains("Entity not found"));
     }
 
     #[tokio::test]
@@ -1207,9 +1402,9 @@ mod tests {
         // Uses query commands should work now
         let args = vec!["parseltongue", "query", "uses", "TestStruct"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         let result = run(cli).await;
-        
+
         // Should succeed now that query execution is implemented
         assert!(result.is_ok());
     }
@@ -1218,7 +1413,7 @@ mod tests {
     fn test_query_performance_reporting() {
         // Test that query commands measure and report performance
         // This will be implemented in GREEN phase
-        
+
         // For now, just validate the structure exists
         assert!(true, "Performance reporting structure ready");
     }
@@ -1228,14 +1423,14 @@ mod tests {
     async fn test_ingest_command() {
         let temp_dir = TempDir::new().unwrap();
         let dump_path = temp_dir.path().join("test.dump");
-        
+
         fs::write(&dump_path, "FILE: test.rs\npub fn test() {}").unwrap();
-        
+
         let args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         let result = run(cli).await;
-        
+
         // Should succeed in GREEN phase
         assert!(result.is_ok());
     }
@@ -1243,10 +1438,15 @@ mod tests {
     #[test]
     fn test_daemon_command() {
         let temp_dir = TempDir::new().unwrap();
-        
-        let args = vec!["parseltongue", "daemon", "--watch", temp_dir.path().to_str().unwrap()];
+
+        let args = vec![
+            "parseltongue",
+            "daemon",
+            "--watch",
+            temp_dir.path().to_str().unwrap(),
+        ];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         // For testing, we need to avoid the infinite loop
         // This test just verifies the CLI parsing works correctly
         match cli.command {
@@ -1261,9 +1461,9 @@ mod tests {
     #[test]
     fn test_generate_context_human() {
         let daemon = ParseltongueAIM::new();
-        
+
         let result = generate_context(&daemon, "test_function", OutputFormat::Human);
-        
+
         // Should fail in RED phase
         assert!(result.is_err());
     }
@@ -1271,20 +1471,26 @@ mod tests {
     #[test]
     fn test_generate_context_json() {
         let daemon = ParseltongueAIM::new();
-        
+
         let result = generate_context(&daemon, "test_function", OutputFormat::Json);
-        
+
         // Should fail in RED phase
         assert!(result.is_err());
     }
 
     #[tokio::test]
     async fn test_generate_context_command() {
-        let args = vec!["parseltongue", "generate-context", "TestFunction", "--format", "json"];
+        let args = vec![
+            "parseltongue",
+            "generate-context",
+            "TestFunction",
+            "--format",
+            "json",
+        ];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         let result = run(cli).await;
-        
+
         // Should fail in RED phase
         assert!(result.is_err());
     }
@@ -1294,7 +1500,7 @@ mod tests {
     fn test_llm_context_format_human() {
         use crate::isg::{NodeData, NodeKind, SigHash};
         use std::sync::Arc;
-        
+
         let target = NodeData {
             hash: SigHash(1),
             kind: NodeKind::Function,
@@ -1303,15 +1509,15 @@ mod tests {
             file_path: Arc::from("test.rs"),
             line: 10,
         };
-        
+
         let context = LlmContext {
             target,
             dependencies: Vec::new(),
             callers: Vec::new(),
         };
-        
+
         let formatted = context.format_human();
-        
+
         assert!(formatted.contains("test_function"));
         assert!(formatted.contains("Function"));
         assert!(formatted.contains("test.rs:10"));
@@ -1323,7 +1529,7 @@ mod tests {
     fn test_llm_context_json_serialization() {
         use crate::isg::{NodeData, NodeKind, SigHash};
         use std::sync::Arc;
-        
+
         let target = NodeData {
             hash: SigHash(1),
             kind: NodeKind::Function,
@@ -1332,15 +1538,15 @@ mod tests {
             file_path: Arc::from("test.rs"),
             line: 10,
         };
-        
+
         let context = LlmContext {
             target,
             dependencies: Vec::new(),
             callers: Vec::new(),
         };
-        
+
         let json = serde_json::to_string_pretty(&context).unwrap();
-        
+
         assert!(json.contains("test_function"));
         assert!(json.contains("Function"));
         assert!(json.contains("dependencies"));
@@ -1352,7 +1558,7 @@ mod tests {
     async fn test_end_to_end_workflow() {
         let temp_dir = TempDir::new().unwrap();
         let dump_path = temp_dir.path().join("test.dump");
-        
+
         // Create test dump
         let dump_content = r#"
 FILE: src/lib.rs
@@ -1374,19 +1580,19 @@ impl Greeter for Person {
     }
 }
 "#;
-        
+
         fs::write(&dump_path, dump_content).unwrap();
-        
+
         // Test complete workflow: ingest → query → context
-        
+
         // 1. Ingest
         let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
         let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
         let ingest_result = run(ingest_cli).await;
-        
+
         // Should succeed in GREEN phase
         assert!(ingest_result.is_ok());
-        
+
         // TODO: Add query and context generation tests in future iterations
     }
 
@@ -1394,14 +1600,14 @@ impl Greeter for Person {
     fn test_performance_requirements_met() {
         // This test validates all performance requirements are met
         // Will be implemented in GREEN phase
-        
+
         // Performance targets:
         // - Code dump ingestion: <5s for 2.1MB
         // - File updates: <12ms
         // - Simple queries: <500μs
         // - Complex queries: <1ms
         // - Persistence: <500ms
-        
+
         assert!(true, "Performance requirements test structure ready");
     }
 
@@ -1411,7 +1617,7 @@ impl Greeter for Person {
         // Test visualize command without entity
         let args = vec!["parseltongue", "visualize"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
             Commands::Visualize { entity, output } => {
                 assert!(entity.is_none());
@@ -1419,11 +1625,17 @@ impl Greeter for Person {
             }
             _ => panic!("Expected Visualize command"),
         }
-        
+
         // Test visualize command with entity and custom output
-        let args = vec!["parseltongue", "visualize", "MyFunction", "--output", "custom.html"];
+        let args = vec![
+            "parseltongue",
+            "visualize",
+            "MyFunction",
+            "--output",
+            "custom.html",
+        ];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
             Commands::Visualize { entity, output } => {
                 assert_eq!(entity, Some("MyFunction".to_string()));
@@ -1437,16 +1649,21 @@ impl Greeter for Person {
     async fn test_visualize_command_execution() {
         let temp_dir = TempDir::new().unwrap();
         let output_path = temp_dir.path().join("test_visualization.html");
-        
-        let args = vec!["parseltongue", "visualize", "--output", output_path.to_str().unwrap()];
+
+        let args = vec![
+            "parseltongue",
+            "visualize",
+            "--output",
+            output_path.to_str().unwrap(),
+        ];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         let result = run(cli).await;
-        
+
         // Should succeed and create HTML file
         assert!(result.is_ok());
         assert!(output_path.exists());
-        
+
         // Verify HTML content
         let html_content = fs::read_to_string(&output_path).unwrap();
         assert!(html_content.contains("<!DOCTYPE html>"));
@@ -1457,17 +1674,23 @@ impl Greeter for Person {
     fn test_visualize_command_with_focus() {
         let temp_dir = TempDir::new().unwrap();
         let output_path = temp_dir.path().join("focused_visualization.html");
-        
-        let args = vec!["parseltongue", "visualize", "TestFunction", "--output", output_path.to_str().unwrap()];
+
+        let args = vec![
+            "parseltongue",
+            "visualize",
+            "TestFunction",
+            "--output",
+            output_path.to_str().unwrap(),
+        ];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         let rt = tokio::runtime::Runtime::new().unwrap();
         let result = rt.block_on(run(cli));
-        
+
         // Should succeed even if entity doesn't exist (graceful handling)
         assert!(result.is_ok());
         assert!(output_path.exists());
-        
+
         let html_content = fs::read_to_string(&output_path).unwrap();
         assert!(html_content.contains("TestFunction"));
     }
@@ -1478,35 +1701,54 @@ impl Greeter for Person {
         // Test basic list-entities command
         let args = vec!["parseltongue", "list-entities"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
-            Commands::ListEntities { r#type, limit, format } => {
+            Commands::ListEntities {
+                r#type,
+                limit,
+                format,
+            } => {
                 assert!(r#type.is_none());
                 assert_eq!(limit, 100); // default
                 assert!(matches!(format, OutputFormat::Human)); // default
             }
             _ => panic!("Expected ListEntities command"),
         }
-        
+
         // Test with type filter
-        let args = vec!["parseltongue", "list-entities", "--type", "function", "--limit", "50"];
+        let args = vec![
+            "parseltongue",
+            "list-entities",
+            "--type",
+            "function",
+            "--limit",
+            "50",
+        ];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
-            Commands::ListEntities { r#type, limit, format } => {
+            Commands::ListEntities {
+                r#type,
+                limit,
+                format,
+            } => {
                 assert!(matches!(r#type, Some(DiscoveryEntityType::Function)));
                 assert_eq!(limit, 50);
                 assert!(matches!(format, OutputFormat::Human));
             }
             _ => panic!("Expected ListEntities command"),
         }
-        
+
         // Test with JSON format
         let args = vec!["parseltongue", "list-entities", "--format", "json"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
-            Commands::ListEntities { r#type, limit, format } => {
+            Commands::ListEntities {
+                r#type,
+                limit,
+                format,
+            } => {
                 assert!(r#type.is_none());
                 assert_eq!(limit, 100);
                 assert!(matches!(format, OutputFormat::Json));
@@ -1514,28 +1756,44 @@ impl Greeter for Person {
             _ => panic!("Expected ListEntities command"),
         }
     }
-    
+
     #[test]
     fn test_entities_in_file_command_parsing() {
         // Test basic entities-in-file command
         let args = vec!["parseltongue", "entities-in-file", "src/main.rs"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
-            Commands::EntitiesInFile { file, r#type, format } => {
+            Commands::EntitiesInFile {
+                file,
+                r#type,
+                format,
+            } => {
                 assert_eq!(file, "src/main.rs");
                 assert!(r#type.is_none());
                 assert!(matches!(format, OutputFormat::Human));
             }
             _ => panic!("Expected EntitiesInFile command"),
         }
-        
+
         // Test with type filter and JSON format
-        let args = vec!["parseltongue", "entities-in-file", "src/lib.rs", "--type", "struct", "--format", "json"];
+        let args = vec![
+            "parseltongue",
+            "entities-in-file",
+            "src/lib.rs",
+            "--type",
+            "struct",
+            "--format",
+            "json",
+        ];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
-            Commands::EntitiesInFile { file, r#type, format } => {
+            Commands::EntitiesInFile {
+                file,
+                r#type,
+                format,
+            } => {
                 assert_eq!(file, "src/lib.rs");
                 assert!(matches!(r#type, Some(DiscoveryEntityType::Struct)));
                 assert!(matches!(format, OutputFormat::Json));
@@ -1543,13 +1801,13 @@ impl Greeter for Person {
             _ => panic!("Expected EntitiesInFile command"),
         }
     }
-    
+
     #[test]
     fn test_where_defined_command_parsing() {
         // Test basic where-defined command
         let args = vec!["parseltongue", "where-defined", "test_function"];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
             Commands::WhereDefined { entity, format } => {
                 assert_eq!(entity, "test_function");
@@ -1557,11 +1815,17 @@ impl Greeter for Person {
             }
             _ => panic!("Expected WhereDefined command"),
         }
-        
+
         // Test with JSON format
-        let args = vec!["parseltongue", "where-defined", "MyStruct", "--format", "json"];
+        let args = vec![
+            "parseltongue",
+            "where-defined",
+            "MyStruct",
+            "--format",
+            "json",
+        ];
         let cli = Cli::try_parse_from(args).unwrap();
-        
+
         match cli.command {
             Commands::WhereDefined { entity, format } => {
                 assert_eq!(entity, "MyStruct");
@@ -1570,20 +1834,44 @@ impl Greeter for Person {
             _ => panic!("Expected WhereDefined command"),
         }
     }
-    
+
     #[test]
     fn test_discovery_entity_type_conversion() {
         // Test all entity type conversions
         use crate::discovery::types::EntityType;
-        
-        assert_eq!(EntityType::from(DiscoveryEntityType::Function), EntityType::Function);
-        assert_eq!(EntityType::from(DiscoveryEntityType::Struct), EntityType::Struct);
-        assert_eq!(EntityType::from(DiscoveryEntityType::Trait), EntityType::Trait);
-        assert_eq!(EntityType::from(DiscoveryEntityType::Impl), EntityType::Impl);
-        assert_eq!(EntityType::from(DiscoveryEntityType::Module), EntityType::Module);
-        assert_eq!(EntityType::from(DiscoveryEntityType::Constant), EntityType::Constant);
-        assert_eq!(EntityType::from(DiscoveryEntityType::Static), EntityType::Static);
-        assert_eq!(EntityType::from(DiscoveryEntityType::Macro), EntityType::Macro);
+
+        assert_eq!(
+            EntityType::from(DiscoveryEntityType::Function),
+            EntityType::Function
+        );
+        assert_eq!(
+            EntityType::from(DiscoveryEntityType::Struct),
+            EntityType::Struct
+        );
+        assert_eq!(
+            EntityType::from(DiscoveryEntityType::Trait),
+            EntityType::Trait
+        );
+        assert_eq!(
+            EntityType::from(DiscoveryEntityType::Impl),
+            EntityType::Impl
+        );
+        assert_eq!(
+            EntityType::from(DiscoveryEntityType::Module),
+            EntityType::Module
+        );
+        assert_eq!(
+            EntityType::from(DiscoveryEntityType::Constant),
+            EntityType::Constant
+        );
+        assert_eq!(
+            EntityType::from(DiscoveryEntityType::Static),
+            EntityType::Static
+        );
+        assert_eq!(
+            EntityType::from(DiscoveryEntityType::Macro),
+            EntityType::Macro
+        );
     }
 
     // Integration tests for discovery commands
@@ -1591,7 +1879,7 @@ impl Greeter for Person {
     async fn test_list_entities_command_execution() {
         let temp_dir = TempDir::new().unwrap();
         let dump_path = temp_dir.path().join("test.dump");
-        
+
         // Create test dump with entities
         let dump_content = r#"
 FILE: src/lib.rs
@@ -1614,61 +1902,61 @@ impl Greeter for Person {
     }
 }
 "#;
-        
+
         fs::write(&dump_path, dump_content).unwrap();
-        
+
         // First ingest the data
         let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
         let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
         let ingest_result = run(ingest_cli).await;
         assert!(ingest_result.is_ok());
-        
+
         // Test list-entities command
         let list_args = vec!["parseltongue", "list-entities", "--limit", "10"];
         let list_cli = Cli::try_parse_from(list_args).unwrap();
         let list_result = run(list_cli).await;
-        
+
         // Should succeed
         assert!(list_result.is_ok());
     }
-    
+
     #[tokio::test]
     async fn test_list_entities_with_type_filter() {
         let temp_dir = TempDir::new().unwrap();
         let dump_path = temp_dir.path().join("test.dump");
-        
+
         let dump_content = r#"
 FILE: src/lib.rs
 pub fn test_function() {}
 pub struct TestStruct {}
 pub trait TestTrait {}
 "#;
-        
+
         fs::write(&dump_path, dump_content).unwrap();
-        
+
         // Ingest data
         let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
         let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
         let _ = run(ingest_cli).await;
-        
+
         // Test with function filter
         let list_args = vec!["parseltongue", "list-entities", "--type", "function"];
         let list_cli = Cli::try_parse_from(list_args).unwrap();
         let list_result = run(list_cli).await;
         assert!(list_result.is_ok());
-        
+
         // Test with struct filter
         let list_args = vec!["parseltongue", "list-entities", "--type", "struct"];
         let list_cli = Cli::try_parse_from(list_args).unwrap();
         let list_result = run(list_cli).await;
         assert!(list_result.is_ok());
     }
-    
+
     #[tokio::test]
     async fn test_entities_in_file_command_execution() {
         let temp_dir = TempDir::new().unwrap();
         let dump_path = temp_dir.path().join("test.dump");
-        
+
         let dump_content = r#"
 FILE: src/main.rs
 pub fn main() {
@@ -1684,175 +1972,199 @@ pub struct Config {
     debug: bool,
 }
 "#;
-        
+
         fs::write(&dump_path, dump_content).unwrap();
-        
+
         // Ingest data
         let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
         let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
         let _ = run(ingest_cli).await;
-        
+
         // Test entities-in-file command
         let file_args = vec!["parseltongue", "entities-in-file", "src/main.rs"];
         let file_cli = Cli::try_parse_from(file_args).unwrap();
         let file_result = run(file_cli).await;
         assert!(file_result.is_ok());
-        
+
         // Test with type filter
-        let file_args = vec!["parseltongue", "entities-in-file", "src/main.rs", "--type", "function"];
+        let file_args = vec![
+            "parseltongue",
+            "entities-in-file",
+            "src/main.rs",
+            "--type",
+            "function",
+        ];
         let file_cli = Cli::try_parse_from(file_args).unwrap();
         let file_result = run(file_cli).await;
         assert!(file_result.is_ok());
     }
-    
+
     #[tokio::test]
     async fn test_where_defined_command_execution() {
         let temp_dir = TempDir::new().unwrap();
         let dump_path = temp_dir.path().join("test.dump");
-        
+
         let dump_content = r#"
 FILE: src/lib.rs
 pub fn target_function() -> String {
     "Found me!".to_string()
 }
 "#;
-        
+
         fs::write(&dump_path, dump_content).unwrap();
-        
+
         // Ingest data
         let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
         let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
         let _ = run(ingest_cli).await;
-        
+
         // Test where-defined command
         let where_args = vec!["parseltongue", "where-defined", "target_function"];
         let where_cli = Cli::try_parse_from(where_args).unwrap();
         let where_result = run(where_cli).await;
         assert!(where_result.is_ok());
-        
+
         // Test with non-existent entity
         let where_args = vec!["parseltongue", "where-defined", "nonexistent_function"];
         let where_cli = Cli::try_parse_from(where_args).unwrap();
         let where_result = run(where_cli).await;
         assert!(where_result.is_ok()); // Should succeed but report not found
     }
-    
+
     #[tokio::test]
     async fn test_discovery_commands_json_output() {
         let temp_dir = TempDir::new().unwrap();
         let dump_path = temp_dir.path().join("test.dump");
-        
+
         let dump_content = r#"
 FILE: src/lib.rs
 pub fn json_test() {}
 "#;
-        
+
         fs::write(&dump_path, dump_content).unwrap();
-        
+
         // Ingest data
         let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
         let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
         let _ = run(ingest_cli).await;
-        
+
         // Test list-entities with JSON output
         let list_args = vec!["parseltongue", "list-entities", "--format", "json"];
         let list_cli = Cli::try_parse_from(list_args).unwrap();
         let list_result = run(list_cli).await;
         assert!(list_result.is_ok());
-        
+
         // Test entities-in-file with JSON output
-        let file_args = vec!["parseltongue", "entities-in-file", "src/lib.rs", "--format", "json"];
+        let file_args = vec![
+            "parseltongue",
+            "entities-in-file",
+            "src/lib.rs",
+            "--format",
+            "json",
+        ];
         let file_cli = Cli::try_parse_from(file_args).unwrap();
         let file_result = run(file_cli).await;
         assert!(file_result.is_ok());
-        
+
         // Test where-defined with JSON output
-        let where_args = vec!["parseltongue", "where-defined", "json_test", "--format", "json"];
+        let where_args = vec![
+            "parseltongue",
+            "where-defined",
+            "json_test",
+            "--format",
+            "json",
+        ];
         let where_cli = Cli::try_parse_from(where_args).unwrap();
         let where_result = run(where_cli).await;
         assert!(where_result.is_ok());
     }
-    
+
     #[tokio::test]
     async fn test_discovery_commands_performance_contracts() {
         let temp_dir = TempDir::new().unwrap();
         let dump_path = temp_dir.path().join("test.dump");
-        
+
         // Create a reasonably sized test dump
         let mut dump_content = String::new();
         dump_content.push_str("FILE: src/lib.rs\n");
-        
+
         // Add multiple entities to test performance
         for i in 0..50 {
             dump_content.push_str(&format!("pub fn test_function_{}() {{}}\n", i));
             dump_content.push_str(&format!("pub struct TestStruct{} {{}}\n", i));
         }
-        
+
         fs::write(&dump_path, dump_content).unwrap();
-        
+
         // Ingest data
         let ingest_args = vec!["parseltongue", "ingest", dump_path.to_str().unwrap()];
         let ingest_cli = Cli::try_parse_from(ingest_args).unwrap();
         let _ = run(ingest_cli).await;
-        
+
         // Test list-entities performance
         let start = Instant::now();
         let list_args = vec!["parseltongue", "list-entities"];
         let list_cli = Cli::try_parse_from(list_args).unwrap();
         let _ = run(list_cli).await;
         let list_elapsed = start.elapsed();
-        
+
         // Should meet <100ms contract for discovery operations
-        assert!(list_elapsed.as_millis() < 100, 
-                "list-entities took {:?}, expected <100ms", list_elapsed);
-        
+        assert!(
+            list_elapsed.as_millis() < 100,
+            "list-entities took {:?}, expected <100ms",
+            list_elapsed
+        );
+
         // Test where-defined performance
         let start = Instant::now();
         let where_args = vec!["parseltongue", "where-defined", "test_function_0"];
         let where_cli = Cli::try_parse_from(where_args).unwrap();
         let _ = run(where_cli).await;
         let where_elapsed = start.elapsed();
-        
+
         // Should meet <50ms contract for exact lookups
-        assert!(where_elapsed.as_millis() < 50, 
-                "where-defined took {:?}, expected <50ms", where_elapsed);
+        assert!(
+            where_elapsed.as_millis() < 50,
+            "where-defined took {:?}, expected <50ms",
+            where_elapsed
+        );
     }
-    
+
     #[test]
     fn test_cli_help_includes_discovery_commands() {
         use clap::CommandFactory;
         let mut cli = Cli::command();
         let help = cli.render_help();
         let help_text = help.to_string();
-        
+
         // Should contain all discovery commands
         assert!(help_text.contains("list-entities"));
         assert!(help_text.contains("entities-in-file"));
         assert!(help_text.contains("where-defined"));
-        
+
         // Should contain command descriptions
         assert!(help_text.contains("List all entities in the codebase"));
         assert!(help_text.contains("List entities defined in a specific file"));
         assert!(help_text.contains("Find where an entity is defined"));
     }
-    
+
     #[test]
     fn test_discovery_command_error_handling() {
         // Test invalid entity type
         let args = vec!["parseltongue", "list-entities", "--type", "invalid"];
         let result = Cli::try_parse_from(args);
         assert!(result.is_err());
-        
+
         // Test invalid format
         let args = vec!["parseltongue", "list-entities", "--format", "invalid"];
         let result = Cli::try_parse_from(args);
         assert!(result.is_err());
-        
+
         // Test missing required arguments
         let args = vec!["parseltongue", "entities-in-file"];
         let result = Cli::try_parse_from(args);
         assert!(result.is_err());
-        
+
         let args = vec!["parseltongue", "where-defined"];
         let result = Cli::try_parse_from(args);
         assert!(result.is_err());

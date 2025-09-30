@@ -1,13 +1,12 @@
-
 //! Relationship Extraction Accuracy Validation Tests
-//! 
+//!
 //! Tests relationship extraction accuracy with real Rust codebases
 //! Target: 95%+ accuracy on CALLS, USES, and IMPLEMENTS relationships
 
 use crate::daemon::ParseltongueAIM;
 use crate::isg::EdgeKind;
+use petgraph::visit::{EdgeRef, IntoEdgeReferences};
 use std::collections::HashSet;
-use petgraph::visit::{IntoEdgeReferences, EdgeRef};
 
 /// Expected relationship for accuracy validation
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -31,42 +30,43 @@ pub struct AccuracyMetrics {
 }
 
 impl AccuracyMetrics {
-    pub fn calculate(expected: &[ExpectedRelationship], extracted: &[(String, String, EdgeKind)]) -> Self {
+    pub fn calculate(
+        expected: &[ExpectedRelationship],
+        extracted: &[(String, String, EdgeKind)],
+    ) -> Self {
         let expected_set: HashSet<(String, String, EdgeKind)> = expected
             .iter()
             .map(|r| (r.source.clone(), r.target.clone(), r.kind))
             .collect();
-        
-        let extracted_set: HashSet<(String, String, EdgeKind)> = extracted
-            .iter()
-            .cloned()
-            .collect();
-        
+
+        let extracted_set: HashSet<(String, String, EdgeKind)> =
+            extracted.iter().cloned().collect();
+
         let correctly_extracted = expected_set.intersection(&extracted_set).count();
         let false_positives = extracted_set.difference(&expected_set).count();
         let false_negatives = expected_set.difference(&extracted_set).count();
-        
+
         let total_expected = expected.len();
         let total_extracted = extracted.len();
-        
+
         let accuracy_percentage = if total_expected > 0 {
             (correctly_extracted as f64 / total_expected as f64) * 100.0
         } else {
             0.0
         };
-        
+
         let precision = if total_extracted > 0 {
             correctly_extracted as f64 / total_extracted as f64
         } else {
             0.0
         };
-        
+
         let recall = if total_expected > 0 {
             correctly_extracted as f64 / total_expected as f64
         } else {
             0.0
         };
-        
+
         Self {
             total_expected,
             correctly_extracted,
@@ -77,7 +77,7 @@ impl AccuracyMetrics {
             recall,
         }
     }
-    
+
     pub fn meets_target(&self) -> bool {
         self.accuracy_percentage >= 95.0
     }
@@ -88,18 +88,18 @@ impl AccuracyMetrics {
 fn extract_relationships_from_isg(daemon: &ParseltongueAIM) -> Vec<(String, String, EdgeKind)> {
     let state = daemon.isg.state.read();
     let mut relationships = Vec::new();
-    
+
     for edge_ref in state.graph.edge_references() {
         let source_node = &state.graph[edge_ref.source()];
         let target_node = &state.graph[edge_ref.target()];
-        
+
         relationships.push((
             source_node.signature.to_string(),
             target_node.signature.to_string(),
             *edge_ref.weight(),
         ));
     }
-    
+
     relationships
 }
 
@@ -173,7 +173,7 @@ fn create_axum_expected_relationships() -> Vec<ExpectedRelationship> {
 mod tests {
     use super::*;
     use std::path::Path;
-    
+
     #[test]
     fn test_accuracy_metrics_calculation() {
         let expected = vec![
@@ -190,15 +190,27 @@ mod tests {
                 description: "test".to_string(),
             },
         ];
-        
+
         let extracted = vec![
-            ("fn main".to_string(), "fn test".to_string(), EdgeKind::Calls),
-            ("fn test".to_string(), "struct User".to_string(), EdgeKind::Uses),
-            ("fn extra".to_string(), "struct Extra".to_string(), EdgeKind::Uses), // False positive
+            (
+                "fn main".to_string(),
+                "fn test".to_string(),
+                EdgeKind::Calls,
+            ),
+            (
+                "fn test".to_string(),
+                "struct User".to_string(),
+                EdgeKind::Uses,
+            ),
+            (
+                "fn extra".to_string(),
+                "struct Extra".to_string(),
+                EdgeKind::Uses,
+            ), // False positive
         ];
-        
+
         let metrics = AccuracyMetrics::calculate(&expected, &extracted);
-        
+
         assert_eq!(metrics.total_expected, 2);
         assert_eq!(metrics.correctly_extracted, 2);
         assert_eq!(metrics.false_positives, 1);
@@ -206,11 +218,11 @@ mod tests {
         assert_eq!(metrics.accuracy_percentage, 100.0);
         assert!(metrics.meets_target());
     }
-    
+
     #[test]
     fn test_simple_program_relationship_extraction() {
         let mut daemon = ParseltongueAIM::new();
-        
+
         // Simple Rust program with clear relationships
         let code = r#"
             struct User {
@@ -237,19 +249,19 @@ mod tests {
                 println!("{}", user.fmt());
             }
         "#;
-        
+
         // Parse the code
         daemon.parse_rust_file("test.rs", code).unwrap();
-        
+
         // Extract actual relationships
         let extracted = extract_relationships_from_isg(&daemon);
-        
+
         // Define expected relationships
         let expected = create_simple_program_expected_relationships();
-        
+
         // Calculate accuracy metrics
         let metrics = AccuracyMetrics::calculate(&expected, &extracted);
-        
+
         println!("Simple Program Accuracy Metrics:");
         println!("  Total Expected: {}", metrics.total_expected);
         println!("  Correctly Extracted: {}", metrics.correctly_extracted);
@@ -258,30 +270,33 @@ mod tests {
         println!("  Accuracy: {:.1}%", metrics.accuracy_percentage);
         println!("  Precision: {:.1}%", metrics.precision * 100.0);
         println!("  Recall: {:.1}%", metrics.recall * 100.0);
-        
+
         // Print detailed comparison for debugging
         println!("\nExpected relationships:");
         for rel in &expected {
-            println!("  {} --{:?}--> {} ({})", rel.source, rel.kind, rel.target, rel.description);
+            println!(
+                "  {} --{:?}--> {} ({})",
+                rel.source, rel.kind, rel.target, rel.description
+            );
         }
-        
+
         println!("\nExtracted relationships:");
         for (source, target, kind) in &extracted {
             println!("  {} --{:?}--> {}", source, kind, target);
         }
-        
+
         // Validate that we meet the 95% accuracy target
         assert!(
             metrics.accuracy_percentage >= 80.0, // Relaxed for initial implementation
-            "Accuracy {:.1}% is below 80% threshold", 
+            "Accuracy {:.1}% is below 80% threshold",
             metrics.accuracy_percentage
         );
     }
-    
+
     #[test]
     fn test_axum_pattern_relationship_extraction() {
         let mut daemon = ParseltongueAIM::new();
-        
+
         // Axum-like web framework code with complex patterns
         let code = r#"
             use std::collections::HashMap;
@@ -354,19 +369,19 @@ mod tests {
                 route("/health", Box::new(health_check))
             }
         "#;
-        
+
         // Parse the code
         daemon.parse_rust_file("axum_test.rs", code).unwrap();
-        
+
         // Extract actual relationships
         let extracted = extract_relationships_from_isg(&daemon);
-        
+
         // Define expected relationships (subset for testing)
         let expected = create_axum_expected_relationships();
-        
+
         // Calculate accuracy metrics
         let metrics = AccuracyMetrics::calculate(&expected, &extracted);
-        
+
         println!("Axum Pattern Accuracy Metrics:");
         println!("  Total Expected: {}", metrics.total_expected);
         println!("  Correctly Extracted: {}", metrics.correctly_extracted);
@@ -375,101 +390,102 @@ mod tests {
         println!("  Accuracy: {:.1}%", metrics.accuracy_percentage);
         println!("  Precision: {:.1}%", metrics.precision * 100.0);
         println!("  Recall: {:.1}%", metrics.recall * 100.0);
-        
+
         // Print all extracted relationships for analysis
         println!("\nAll extracted relationships:");
         for (source, target, kind) in &extracted {
             println!("  {} --{:?}--> {}", source, kind, target);
         }
-        
+
         // Validate that we have reasonable accuracy (relaxed for complex patterns)
         assert!(
             metrics.accuracy_percentage >= 60.0, // Relaxed for complex patterns
-            "Accuracy {:.1}% is below 60% threshold for complex patterns", 
+            "Accuracy {:.1}% is below 60% threshold for complex patterns",
             metrics.accuracy_percentage
         );
     }
-    
+
     #[test]
     fn test_real_axum_codebase_sample() {
         let mut daemon = ParseltongueAIM::new();
-        
+
         // Test with the actual axum codebase sample
-        let test_data_path = Path::new("_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt");
-        
+        let test_data_path =
+            Path::new("_refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt");
+
         if !test_data_path.exists() {
             println!("⚠️  Skipping real codebase test - test data file not found");
             return;
         }
-        
+
         let start_time = std::time::Instant::now();
-        
+
         // Ingest the real axum codebase
         let stats = daemon.ingest_code_dump(test_data_path).unwrap();
-        
+
         let ingestion_time = start_time.elapsed();
-        
+
         println!("Real Axum Codebase Ingestion Results:");
         println!("  Files Processed: {}", stats.files_processed);
         println!("  Nodes Created: {}", stats.nodes_created);
         println!("  Ingestion Time: {:?}", ingestion_time);
         println!("  Total Edges: {}", daemon.isg.edge_count());
-        
+
         // Validate performance constraints
         assert!(
             ingestion_time.as_secs() < 10, // Relaxed from 5s for large codebase
             "Ingestion took {:?}, expected <10s",
             ingestion_time
         );
-        
+
         // Validate that we extracted a reasonable number of relationships
         let edge_count = daemon.isg.edge_count();
         let node_count = daemon.isg.node_count();
-        
+
         assert!(node_count > 100, "Expected >100 nodes, got {}", node_count);
         assert!(edge_count > 50, "Expected >50 edges, got {}", edge_count);
-        
+
         // Calculate relationship density (edges per node)
         let density = if node_count > 0 {
             edge_count as f64 / node_count as f64
         } else {
             0.0
         };
-        
+
         println!("  Relationship Density: {:.2} edges per node", density);
-        
+
         // Validate reasonable relationship density for Rust code
         assert!(
             (0.3..=5.0).contains(&density),
             "Relationship density {:.2} seems unrealistic",
             density
         );
-        
+
         // Test specific queries on the real codebase
         test_real_codebase_queries(&daemon);
     }
-    
+
     fn test_real_codebase_queries(daemon: &ParseltongueAIM) {
         // Test finding entities by name
         let router_entities = daemon.isg.find_by_name("Router");
         println!("Found {} Router entities", router_entities.len());
-        
+
         if !router_entities.is_empty() {
             let router_hash = router_entities[0];
-            
+
             // Test blast radius calculation
             let blast_radius = daemon.isg.calculate_blast_radius(router_hash).unwrap();
             println!("Router blast radius: {} entities", blast_radius.len());
-            
+
             // Test finding callers
             let callers = daemon.isg.find_callers(router_hash).unwrap();
             println!("Router callers: {} entities", callers.len());
-            
+
             // Test finding users
             let users = daemon.isg.find_users(router_hash).unwrap();
             println!("Router users: {} entities", users.len());
         }
-        
+
         // Test finding trait implementations
         let display_entities = daemon.isg.find_by_name("Display");
         if !display_entities.is_empty() {
@@ -478,11 +494,11 @@ mod tests {
             println!("Display implementors: {} entities", implementors.len());
         }
     }
-    
+
     #[test]
     fn test_relationship_extraction_edge_cases() {
         let mut daemon = ParseltongueAIM::new();
-        
+
         // Test edge cases that commonly cause parsing issues
         let code = r#"
             // Generic functions and types
@@ -536,40 +552,40 @@ mod tests {
                 Ok("async result".to_string())
             }
         "#;
-        
+
         // Parse the code
         daemon.parse_rust_file("edge_cases.rs", code).unwrap();
-        
+
         // Extract relationships
         let extracted = extract_relationships_from_isg(&daemon);
-        
+
         println!("Edge Cases - Extracted {} relationships:", extracted.len());
         for (source, target, kind) in &extracted {
             println!("  {} --{:?}--> {}", source, kind, target);
         }
-        
+
         // Validate that we extracted some relationships despite complexity
         assert!(
             !extracted.is_empty(),
             "Expected at least 1 relationship from edge cases, got {}",
             extracted.len()
         );
-        
+
         // Validate that we found the nested module function call
         let has_nested_call = extracted.iter().any(|(source, target, kind)| {
-            *kind == EdgeKind::Calls && 
-            (source.contains("call_deep") || target.contains("deep_function"))
+            *kind == EdgeKind::Calls
+                && (source.contains("call_deep") || target.contains("deep_function"))
         });
-        
+
         if !has_nested_call {
             println!("⚠️  Warning: Nested module function call not detected");
         }
     }
-    
+
     #[test]
     fn test_comprehensive_accuracy_validation() {
         let mut daemon = ParseltongueAIM::new();
-        
+
         // Comprehensive test program with known relationships
         let code = r#"
             // Core types
@@ -663,13 +679,13 @@ mod tests {
                 todo!("Create repository implementation")
             }
         "#;
-        
+
         // Parse the code
         daemon.parse_rust_file("comprehensive.rs", code).unwrap();
-        
+
         // Extract relationships
         let extracted = extract_relationships_from_isg(&daemon);
-        
+
         // Define comprehensive expected relationships
         let expected = vec![
             // Trait implementations
@@ -718,10 +734,10 @@ mod tests {
                 description: "UserService uses Repository trait".to_string(),
             },
         ];
-        
+
         // Calculate accuracy metrics
         let metrics = AccuracyMetrics::calculate(&expected, &extracted);
-        
+
         println!("Comprehensive Accuracy Validation:");
         println!("  Total Expected: {}", metrics.total_expected);
         println!("  Correctly Extracted: {}", metrics.correctly_extracted);
@@ -730,30 +746,31 @@ mod tests {
         println!("  Accuracy: {:.1}%", metrics.accuracy_percentage);
         println!("  Precision: {:.1}%", metrics.precision * 100.0);
         println!("  Recall: {:.1}%", metrics.recall * 100.0);
-        
+
         // Print detailed analysis
         println!("\nDetailed Analysis:");
         println!("Expected relationships:");
         for rel in &expected {
-            println!("  {} --{:?}--> {} ({})", rel.source, rel.kind, rel.target, rel.description);
+            println!(
+                "  {} --{:?}--> {} ({})",
+                rel.source, rel.kind, rel.target, rel.description
+            );
         }
-        
+
         println!("\nExtracted relationships:");
         for (source, target, kind) in &extracted {
             println!("  {} --{:?}--> {}", source, kind, target);
         }
-        
+
         // Identify missing relationships
         let expected_set: HashSet<(String, String, EdgeKind)> = expected
             .iter()
             .map(|r| (r.source.clone(), r.target.clone(), r.kind))
             .collect();
-        
-        let extracted_set: HashSet<(String, String, EdgeKind)> = extracted
-            .iter()
-            .cloned()
-            .collect();
-        
+
+        let extracted_set: HashSet<(String, String, EdgeKind)> =
+            extracted.iter().cloned().collect();
+
         let missing: Vec<_> = expected_set.difference(&extracted_set).collect();
         if !missing.is_empty() {
             println!("\nMissing relationships:");
@@ -761,7 +778,7 @@ mod tests {
                 println!("  {} --{:?}--> {}", source, kind, target);
             }
         }
-        
+
         let extra: Vec<_> = extracted_set.difference(&expected_set).collect();
         if !extra.is_empty() {
             println!("\nExtra relationships (false positives):");
@@ -769,134 +786,144 @@ mod tests {
                 println!("  {} --{:?}--> {}", source, kind, target);
             }
         }
-        
+
         // Validate accuracy target (relaxed for comprehensive test)
         assert!(
             metrics.accuracy_percentage >= 70.0,
             "Comprehensive accuracy {:.1}% is below 70% threshold",
             metrics.accuracy_percentage
         );
-        
+
         // Validate that we have reasonable precision and recall
         assert!(
             metrics.precision >= 0.5,
             "Precision {:.1}% is too low",
             metrics.precision * 100.0
         );
-        
+
         assert!(
             metrics.recall >= 0.5,
-            "Recall {:.1}% is too low", 
+            "Recall {:.1}% is too low",
             metrics.recall * 100.0
         );
     }
-    
+
     #[test]
     fn test_existing_test_data_accuracy() {
         let _daemon = ParseltongueAIM::new();
-        
+
         // Test with existing test data from the test_data directory
         let test_files = [
             ("test_data/simple_test.dump", "Simple test dump"),
             ("test_data/example_dump.txt", "Example dump"),
         ];
-        
+
         for (file_path, description) in &test_files {
             let path = Path::new(file_path);
             if !path.exists() {
                 println!("⚠️  Skipping {} - file not found", description);
                 continue;
             }
-            
+
             println!("Testing accuracy on: {}", description);
-            
+
             let start_time = std::time::Instant::now();
-            
+
             // Create a fresh daemon for each test
             let mut test_daemon = ParseltongueAIM::new();
-            
+
             // Ingest the test data
             let stats = test_daemon.ingest_code_dump(path).unwrap();
-            
+
             let ingestion_time = start_time.elapsed();
-            
+
             println!("  Files Processed: {}", stats.files_processed);
             println!("  Nodes Created: {}", stats.nodes_created);
             println!("  Edges Created: {}", test_daemon.isg.edge_count());
             println!("  Ingestion Time: {:?}", ingestion_time);
-            
+
             // Validate basic metrics
-            assert!(stats.files_processed > 0, "Should process at least one file");
+            assert!(
+                stats.files_processed > 0,
+                "Should process at least one file"
+            );
             assert!(stats.nodes_created > 0, "Should create at least one node");
-            
+
             // Calculate relationship density
             let edge_count = test_daemon.isg.edge_count();
             let node_count = test_daemon.isg.node_count();
-            
+
             if node_count > 0 {
                 let density = edge_count as f64 / node_count as f64;
                 println!("  Relationship Density: {:.2} edges per node", density);
-                
+
                 // Validate reasonable relationship density
                 assert!(
                     (0.1..=10.0).contains(&density),
                     "Relationship density {:.2} seems unrealistic for {}",
-                    density, description
+                    density,
+                    description
                 );
             }
-            
+
             // Test query functionality
             test_query_functionality(&test_daemon, description);
         }
     }
-    
+
     fn test_query_functionality(daemon: &ParseltongueAIM, description: &str) {
         println!("  Testing query functionality for {}", description);
-        
+
         // Get all nodes to test queries
         let state = daemon.isg.state.read();
         let node_count = state.graph.node_count();
-        
+
         if node_count == 0 {
             println!("    No nodes to test queries on");
             return;
         }
-        
+
         // Test finding entities by common names
         let common_names = ["main", "new", "test", "create", "get", "set", "run"];
         let mut found_entities = 0;
-        
+
         for name in &common_names {
             let entities = daemon.isg.find_by_name(name);
             if !entities.is_empty() {
                 found_entities += 1;
                 let entity_hash = entities[0];
-                
+
                 // Test blast radius calculation
                 let blast_radius = daemon.isg.calculate_blast_radius(entity_hash);
-                assert!(blast_radius.is_ok(), "Blast radius calculation should succeed");
-                
+                assert!(
+                    blast_radius.is_ok(),
+                    "Blast radius calculation should succeed"
+                );
+
                 // Test finding callers
                 let callers = daemon.isg.find_callers(entity_hash);
                 assert!(callers.is_ok(), "Find callers should succeed");
-                
+
                 // Test finding users
                 let users = daemon.isg.find_users(entity_hash);
                 assert!(users.is_ok(), "Find users should succeed");
-                
+
                 if found_entities >= 3 {
                     break; // Test a few entities to avoid excessive output
                 }
             }
         }
-        
-        println!("    Successfully tested queries on {} entities", found_entities);
+
+        println!(
+            "    Successfully tested queries on {} entities",
+            found_entities
+        );
     }
-    
+
     #[test]
     fn test_accuracy_benchmark_with_known_patterns() {
         let mut daemon = ParseltongueAIM::new();
-        
+
         // Test with a known pattern that should have high accuracy
         let code = r#"
             // Simple trait and implementation
@@ -945,13 +972,13 @@ mod tests {
                 draw_shape(&rectangle);
             }
         "#;
-        
+
         // Parse the code
         daemon.parse_rust_file("benchmark.rs", code).unwrap();
-        
+
         // Extract relationships
         let extracted = extract_relationships_from_isg(&daemon);
-        
+
         // Define expected relationships for this known pattern
         let expected = vec![
             ExpectedRelationship {
@@ -997,10 +1024,10 @@ mod tests {
                 description: "create_rectangle returns Rectangle".to_string(),
             },
         ];
-        
+
         // Calculate accuracy metrics
         let metrics = AccuracyMetrics::calculate(&expected, &extracted);
-        
+
         println!("Accuracy Benchmark Results:");
         println!("  Total Expected: {}", metrics.total_expected);
         println!("  Correctly Extracted: {}", metrics.correctly_extracted);
@@ -1009,26 +1036,29 @@ mod tests {
         println!("  Accuracy: {:.1}%", metrics.accuracy_percentage);
         println!("  Precision: {:.1}%", metrics.precision * 100.0);
         println!("  Recall: {:.1}%", metrics.recall * 100.0);
-        
+
         // Print all extracted relationships for analysis
         println!("\nAll extracted relationships:");
         for (source, target, kind) in &extracted {
             println!("  {} --{:?}--> {}", source, kind, target);
         }
-        
+
         // This benchmark should achieve high accuracy on this simple pattern
         assert!(
             metrics.accuracy_percentage >= 85.0,
             "Benchmark accuracy {:.1}% is below 85% threshold",
             metrics.accuracy_percentage
         );
-        
+
         assert!(
             metrics.recall >= 0.8,
             "Benchmark recall {:.1}% is below 80%",
             metrics.recall * 100.0
         );
-        
-        println!("✅ Accuracy benchmark passed with {:.1}% accuracy", metrics.accuracy_percentage);
+
+        println!(
+            "✅ Accuracy benchmark passed with {:.1}% accuracy",
+            metrics.accuracy_percentage
+        );
     }
 }
