@@ -685,18 +685,19 @@ flowchart TD
     class I1,I2,I3,I4 core
     class P1,P2,P3,P4 performance
     class K1,K2,K3 innovation
+
 ```
 
 **Key Innovation:** Discovery layer eliminates the entity name bottleneck while preserving microsecond query performance.
 
 ---
-
 ## The Technology (For the Curious)
 
 <details>
 <summary><strong>How we achieve sub-millisecond queries</strong></summary>
 
-```mermaid
+``` mermaid
+
 graph TD
     subgraph "Parse Once"
         A[Rust AST] --> B[Interface Signatures]
@@ -714,6 +715,7 @@ graph TD
     
     class A,B,C parse
     class D,E,F query
+
 ```
 
 **The Stack:**
