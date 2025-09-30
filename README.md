@@ -47,6 +47,23 @@ cp distribution/copy-paste-ready/kiro-steering-complete.md .kiro/steering/parsel
 
 **That's it.** No installation, no dependencies, works immediately.
 
+## 🔧 **Development & Contributing**
+
+- **[Build Instructions](BUILD.md)** - Complete setup and development guide
+- **[Changelog](CHANGELOG.md)** - Version history and milestones
+- **[CI Status](https://github.com/your-org/parseltongue/actions)** - Automated quality checks
+
+### Quick Development Setup
+```bash
+# Clone and build
+git clone <repository-url>
+cd parseltongue
+cargo build --all-features
+
+# Run quality checks (same as CI)
+./scripts/ci-check.sh
+```
+
 ---
 
 ## 🎯 **Developer Onboarding (Built & Ready)**
