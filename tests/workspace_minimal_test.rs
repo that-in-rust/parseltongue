@@ -1,11 +1,10 @@
 //! Minimal test for workspace manager functionality
 //! Tests only the core workspace management without dependencies on other modules
 
-use std::path::PathBuf;
 use tempfile::TempDir;
 use tokio::fs;
 use chrono::Utc;
-use serde_json;
+
 use std::collections::HashMap;
 
 // Directly include the workspace manager code for testing
@@ -35,6 +34,7 @@ mod workspace_manager {
 
     /// Workspace management errors
     #[derive(Error, Debug)]
+    #[allow(dead_code)]
     pub enum WorkspaceError {
         #[error("IO error: {0}")]
         Io(#[from] std::io::Error),
@@ -460,7 +460,7 @@ async fn test_workspace_isolation() {
 
 #[tokio::test]
 async fn test_workspace_error_handling() {
-    let (mut manager, _temp_dir) = create_test_workspace().await;
+    let (manager, _temp_dir) = create_test_workspace().await;
     
     // Test error when trying to store without active session
     let test_data = HashMap::from([("test".to_string(), 1)]);

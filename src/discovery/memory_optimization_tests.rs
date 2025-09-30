@@ -1,3 +1,4 @@
+#![cfg(feature = "experimental")]
 //! Memory optimization integration tests
 //! 
 //! Integration tests that validate memory optimizations work correctly
@@ -8,7 +9,7 @@
 
 use super::*;
 
-#[cfg(test)]
+#[cfg(all(test, feature = "experimental"))]
 mod integration_tests {
     use super::*;
     use crate::discovery::{

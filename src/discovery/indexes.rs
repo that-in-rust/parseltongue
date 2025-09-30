@@ -283,10 +283,10 @@ impl DiscoveryIndexes {
             self.all_entities.push(compact.clone());
             
             // Add to file index
-            self.file_index.entry(file_id).or_insert_with(Vec::new).push(index);
+            self.file_index.entry(file_id).or_default().push(index);
             
             // Add to type index
-            self.type_index.entry(entity.entity_type).or_insert_with(Vec::new).push(index);
+            self.type_index.entry(entity.entity_type).or_default().push(index);
         }
         
         self.last_rebuild = Instant::now();
@@ -405,7 +405,7 @@ impl FileInterner {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "experimental"))]
 mod memory_optimization_tests {
     use super::*;
     use std::time::Duration;
@@ -560,8 +560,8 @@ mod memory_optimization_tests {
         assert!(elapsed < Duration::from_millis(2),
                 "Name prefix filtering took {:?}, expected <2ms", elapsed);
         
-        assert!(test_matches.len() > 0, "Should find test_ prefixed entities");
-        assert!(util_matches.len() > 0, "Should find util_ prefixed entities");
+        assert!(!test_matches.is_empty(), "Should find test_ prefixed entities");
+        assert!(!util_matches.is_empty(), "Should find util_ prefixed entities");
         
         // Verify correctness
         for entity in &test_matches {

@@ -8,13 +8,12 @@
 
 use std::time::Duration;
 use std::sync::Arc;
-use tempfile::TempDir;
+
 
 // Import discovery system components
 use parseltongue::discovery::{
     DiscoveryEngine, SimpleDiscoveryEngine, 
-    types::{EntityInfo, EntityType, DiscoveryQuery, DiscoveryResult},
-    DiscoveryMetrics,
+    types::EntityType,
 };
 use parseltongue::isg::{OptimizedISG, NodeData, NodeKind, SigHash};
 
@@ -77,7 +76,7 @@ mod discovery_to_analysis_workflow {
         if all_entities_result.is_ok() {
             successful_operations += 1;
             let entities = all_entities_result.unwrap();
-            assert!(entities.len() > 0, "Should find entities in realistic codebase");
+            assert!(!entities.is_empty(), "Should find entities in realistic codebase");
             assert!(entities.len() <= 2000, "Should respect max_results limit");
         }
         
@@ -145,7 +144,7 @@ mod discovery_to_analysis_workflow {
 /// Performance: All queries <100ms for interactive responsiveness
 #[cfg(test)]
 mod discovery_query_invariants {
-    use super::*;
+    
     
     /// STUB: Property test for discovery query invariants
     /// 
@@ -607,7 +606,7 @@ mod success_metrics_validation {
         
         assert!(list_time < Duration::from_millis(100), 
                 "Entity listing took {:?}, expected <100ms", list_time);
-        assert!(all_entities.len() > 0, "Should find entities");
+        assert!(!all_entities.is_empty(), "Should find entities");
         
         // Test 2: Filtered entity listing performance
         let start = std::time::Instant::now();
@@ -627,7 +626,7 @@ mod success_metrics_validation {
         
         assert!(file_time < Duration::from_millis(50), 
                 "File query took {:?}, expected <50ms", file_time);
-        assert!(file_entities.len() > 0, "Should find entities in file");
+        assert!(!file_entities.is_empty(), "Should find entities in file");
         
         // Test 4: Location lookup performance (<25ms)
         let start = std::time::Instant::now();
@@ -709,9 +708,9 @@ mod end_to_end_workflow_validation {
         let traits = engine.list_all_entities(Some(EntityType::Trait), 200).await
             .expect("Should find traits");
         
-        assert!(functions.len() > 0, "Should find functions");
-        assert!(structs.len() > 0, "Should find structs");
-        assert!(traits.len() > 0, "Should find traits");
+        assert!(!functions.is_empty(), "Should find functions");
+        assert!(!structs.is_empty(), "Should find structs");
+        assert!(!traits.is_empty(), "Should find traits");
         
         // Step 4: Navigate to entity definitions
         let sample_entity = &all_entities[0];
@@ -725,7 +724,7 @@ mod end_to_end_workflow_validation {
         // Step 5: Explore file contents
         let file_entities = engine.entities_in_file(&loc.file_path).await
             .expect("Should find entities in file");
-        assert!(file_entities.len() > 0, "Should find entities in the file");
+        assert!(!file_entities.is_empty(), "Should find entities in the file");
         
         // Step 6: System overview
         let total_count = engine.total_entity_count().await
@@ -734,7 +733,7 @@ mod end_to_end_workflow_validation {
             .expect("Should get counts by type");
         
         assert_eq!(total_count, all_entities.len(), "Counts should match");
-        assert!(counts_by_type.len() > 0, "Should have type breakdown");
+        assert!(!counts_by_type.is_empty(), "Should have type breakdown");
         
         let workflow_time = workflow_start.elapsed();
         
@@ -767,145 +766,6 @@ mod end_to_end_workflow_validation {
 /// STUB: Integration Test Utilities
 /// 
 /// Provides utilities for creating realistic test data and validating contracts
-mod integration_test_utils {
-    use super::*;
-    
-    /// STUB: Create realistic Rust codebase for testing
-    /// 
-    /// # Parameters
-    /// - file_count: Number of files to generate
-    /// - entities_per_file: Average entities per file
-    /// - complexity_level: Code complexity (simple, medium, complex)
-    /// 
-    /// # Returns
-    /// - TempDir with generated codebase
-    /// - Metadata about generated entities
-    pub fn create_realistic_codebase(
-        file_count: usize,
-        entities_per_file: usize,
-        complexity_level: CodeComplexity,
-    ) -> (TempDir, CodebaseMetadata) {
-        todo!("Implement realistic codebase generator");
-    }
-    
-    /// STUB: Validate performance contracts
-    /// 
-    /// # Contracts to Validate
-    /// - Discovery time <30s
-    /// - Query time <100ms
-    /// - Success rate >90%
-    /// - Memory usage bounds
-    pub fn validate_performance_contracts(
-        metrics: &DiscoveryMetrics,
-        expected_contracts: &PerformanceContracts,
-    ) -> ContractValidationResult {
-        todo!("Implement performance contract validation");
-    }
-    
-    /// STUB: Generate concurrent load for stress testing
-    /// 
-    /// # Load Characteristics
-    /// - Multiple simultaneous queries
-    /// - Mixed query types
-    /// - Realistic access patterns
-    /// - Sustained load over time
-    pub async fn generate_concurrent_load(
-        engine: Arc<dyn DiscoveryEngine>,
-        load_config: LoadTestConfig,
-    ) -> LoadTestResults {
-        todo!("Implement concurrent load generator");
-    }
-    
-    #[derive(Debug, Clone)]
-    pub enum CodeComplexity {
-        Simple,   // Basic structs and functions
-        Medium,   // Traits, impls, generics
-        Complex,  // Advanced generics, macros, complex relationships
-    }
-    
-    #[derive(Debug, Clone)]
-    pub struct CodebaseMetadata {
-        pub total_entities: usize,
-        pub entities_by_type: std::collections::HashMap<EntityType, usize>,
-        pub files_generated: usize,
-        pub total_lines: usize,
-    }
-    
-    #[derive(Debug, Clone)]
-    pub struct PerformanceContracts {
-        pub max_discovery_time: Duration,
-        pub max_query_time: Duration,
-        pub min_success_rate: f64,
-        pub max_memory_usage: usize,
-    }
-    
-    #[derive(Debug, Clone)]
-    pub struct ContractValidationResult {
-        pub discovery_time_ok: bool,
-        pub query_time_ok: bool,
-        pub success_rate_ok: bool,
-        pub memory_usage_ok: bool,
-        pub violations: Vec<String>,
-    }
-    
-    #[derive(Debug, Clone)]
-    pub struct LoadTestConfig {
-        pub concurrent_queries: usize,
-        pub duration: Duration,
-        pub query_mix: Vec<(DiscoveryQuery, f64)>, // Query type and probability
-    }
-    
-    #[derive(Debug, Clone)]
-    pub struct LoadTestResults {
-        pub total_queries: usize,
-        pub successful_queries: usize,
-        pub average_response_time: Duration,
-        pub max_response_time: Duration,
-        pub errors: Vec<String>,
-    }
-}
-
-/// STUB: Property-Based Test Generators
-/// 
-/// Generates test data for property-based testing of discovery invariants
-mod property_test_generators {
-    use super::*;
-    
-    /// STUB: Generate arbitrary EntityType for property tests
-    pub fn arbitrary_entity_type() -> EntityType {
-        todo!("Implement EntityType generator for property tests");
-    }
-    
-    /// STUB: Generate arbitrary DiscoveryQuery for property tests
-    pub fn arbitrary_discovery_query() -> DiscoveryQuery {
-        todo!("Implement DiscoveryQuery generator for property tests");
-    }
-    
-    /// STUB: Generate realistic codebase structure for property tests
-    pub fn arbitrary_codebase_structure() -> CodebaseStructure {
-        todo!("Implement codebase structure generator");
-    }
-    
-    #[derive(Debug, Clone)]
-    pub struct CodebaseStructure {
-        pub files: Vec<FileStructure>,
-        pub total_entities: usize,
-    }
-    
-    #[derive(Debug, Clone)]
-    pub struct FileStructure {
-        pub path: String,
-        pub entities: Vec<EntityStructure>,
-    }
-    
-    #[derive(Debug, Clone)]
-    pub struct EntityStructure {
-        pub name: String,
-        pub entity_type: EntityType,
-        pub line: u32,
-    }
-}
-
 // Helper functions for test implementation
 fn create_realistic_test_isg(file_count: usize, entities_per_file: usize) -> OptimizedISG {
     let isg = OptimizedISG::new();

@@ -184,6 +184,12 @@ pub struct MockFileNavigationProvider {
     entities: Vec<EntityInfo>,
 }
 
+impl Default for MockFileNavigationProvider {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MockFileNavigationProvider {
     pub fn new() -> Self {
         Self {

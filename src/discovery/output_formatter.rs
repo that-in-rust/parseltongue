@@ -824,7 +824,7 @@ impl OutputFormatter for PrSummaryFormatter {
         // Recommended actions
         if !result.next_steps.is_empty() && self.include_checklists {
             output.push_str("## Recommended Actions\n\n");
-            for (_i, step) in result.next_steps.iter().enumerate() {
+            for step in result.next_steps.iter() {
                 output.push_str(&format!("- [ ] {}\n", step));
             }
             output.push('\n');
@@ -1202,7 +1202,7 @@ impl OutputFormatter for CiFormatter {
                 output.push_str("::notice title=Onboarding Complete::Codebase analysis completed successfully\n");
                 
                 if self.export_variables {
-                    output.push_str(&format!("echo \"ONBOARD_STATUS=SUCCESS\" >> $GITHUB_ENV\n"));
+                    output.push_str("echo \"ONBOARD_STATUS=SUCCESS\" >> $GITHUB_ENV\n");
                     output.push_str(&format!("echo \"TOTAL_FILES={}\" >> $GITHUB_ENV\n", result.overview.total_files));
                     output.push_str(&format!("echo \"TOTAL_ENTITIES={}\" >> $GITHUB_ENV\n", result.overview.total_entities));
                     
@@ -1231,7 +1231,7 @@ impl OutputFormatter for CiFormatter {
                 output.push_str("echo \"✅ Onboarding analysis completed\"\n");
                 
                 if self.export_variables {
-                    output.push_str(&format!("export ONBOARD_STATUS=SUCCESS\n"));
+                    output.push_str("export ONBOARD_STATUS=SUCCESS\n");
                     output.push_str(&format!("export TOTAL_FILES={}\n", result.overview.total_files));
                     output.push_str(&format!("export TOTAL_ENTITIES={}\n", result.overview.total_entities));
                 }
@@ -1240,7 +1240,7 @@ impl OutputFormatter for CiFormatter {
             CiPlatform::Generic => {
                 // Generic CI format
                 output.push_str("# Onboarding Analysis Complete\n");
-                output.push_str(&format!("ONBOARD_STATUS=SUCCESS\n"));
+                output.push_str("ONBOARD_STATUS=SUCCESS\n");
                 output.push_str(&format!("TOTAL_FILES={}\n", result.overview.total_files));
                 output.push_str(&format!("TOTAL_ENTITIES={}\n", result.overview.total_entities));
             }

@@ -4,7 +4,6 @@
 //! Validates the full ingest → query → visualize → context pipeline
 
 use std::fs;
-use std::path::Path;
 use std::process::Command;
 use tempfile::TempDir;
 
@@ -97,7 +96,7 @@ impl UserService {
     // Test 1: Ingest command
     println!("📥 Testing ingest command...");
     let output = Command::new("cargo")
-        .args(&["run", "--", "ingest", dump_path.to_str().unwrap()])
+        .args(["run", "--", "ingest", dump_path.to_str().unwrap()])
         .output()
         .expect("Failed to run ingest command");
     
@@ -128,7 +127,7 @@ impl UserService {
         println!("   Testing {} query on '{}'...", query_type, target);
         
         let output = Command::new("cargo")
-            .args(&["run", "--", "query", query_type, target, "--format", "json"])
+            .args(["run", "--", "query", query_type, target, "--format", "json"])
             .output()
             .expect("Failed to run query command");
         
@@ -165,7 +164,7 @@ impl UserService {
         println!("   Testing context generation for '{}'...", target);
         
         let output = Command::new("cargo")
-            .args(&["run", "--", "generate-context", target])
+            .args(["run", "--", "generate-context", target])
             .output()
             .expect("Failed to run generate-context command");
         
@@ -195,7 +194,7 @@ impl UserService {
     let viz_output = temp_dir.path().join("test_visualization.html");
     
     let output = Command::new("cargo")
-        .args(&["run", "--", "visualize", "--output", viz_output.to_str().unwrap()])
+        .args(["run", "--", "visualize", "--output", viz_output.to_str().unwrap()])
         .output()
         .expect("Failed to run visualize command");
     
@@ -222,7 +221,7 @@ impl UserService {
     println!("🔧 Testing debug commands...");
     
     let output = Command::new("cargo")
-        .args(&["run", "--", "debug", "--sample"])
+        .args(["run", "--", "debug", "--sample"])
         .output()
         .expect("Failed to run debug command");
     
@@ -243,7 +242,7 @@ fn test_cli_error_handling() {
     
     // Test with non-existent file
     let output = Command::new("cargo")
-        .args(&["run", "--", "ingest", "non_existent_file.dump"])
+        .args(["run", "--", "ingest", "non_existent_file.dump"])
         .output()
         .expect("Failed to run command");
     
@@ -255,7 +254,7 @@ fn test_cli_error_handling() {
     
     // Test query with empty ISG
     let output = Command::new("cargo")
-        .args(&["run", "--", "query", "blast-radius", "NonExistentEntity"])
+        .args(["run", "--", "query", "blast-radius", "NonExistentEntity"])
         .output()
         .expect("Failed to run command");
     
@@ -341,7 +340,7 @@ fn test_cli_performance_realistic_workload() {
     // Test ingestion performance
     let start = std::time::Instant::now();
     let output = Command::new("cargo")
-        .args(&["run", "--", "ingest", dump_path.to_str().unwrap()])
+        .args(["run", "--", "ingest", dump_path.to_str().unwrap()])
         .output()
         .expect("Failed to run ingest command");
     let ingest_time = start.elapsed();
@@ -365,7 +364,7 @@ fn test_cli_performance_realistic_workload() {
     for target in query_targets {
         let start = std::time::Instant::now();
         let output = Command::new("cargo")
-            .args(&["run", "--", "query", "blast-radius", target, "--format", "json"])
+            .args(["run", "--", "query", "blast-radius", target, "--format", "json"])
             .output()
             .expect("Failed to run query command");
         let query_time = start.elapsed();
@@ -389,7 +388,7 @@ fn test_cli_performance_realistic_workload() {
     let viz_output = temp_dir.path().join("large_visualization.html");
     let start = std::time::Instant::now();
     let output = Command::new("cargo")
-        .args(&["run", "--", "visualize", "--output", viz_output.to_str().unwrap()])
+        .args(["run", "--", "visualize", "--output", viz_output.to_str().unwrap()])
         .output()
         .expect("Failed to run visualize command");
     let viz_time = start.elapsed();

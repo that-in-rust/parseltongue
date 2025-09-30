@@ -160,7 +160,7 @@ impl<'de> Deserialize<'de> for EnhancedIsgNode {
             }
         }
 
-        const FIELDS: &'static [&'static str] = &["sig_hash", "kind", "name", "signature", "file_id", "line_number", "column"];
+        const FIELDS: &[&str] = &["sig_hash", "kind", "name", "signature", "file_id", "line_number", "column"];
         deserializer.deserialize_struct("EnhancedIsgNode", FIELDS, EnhancedIsgNodeVisitor)
     }
 }

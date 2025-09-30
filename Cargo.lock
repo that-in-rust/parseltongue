@@ -726,7 +726,6 @@ dependencies = [
  "notify",
  "parking_lot",
  "petgraph",
- "quote",
  "rand",
  "serde",
  "serde_json",

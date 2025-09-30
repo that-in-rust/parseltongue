@@ -56,7 +56,7 @@ impl TypeIndex {
             // Add to type-to-entities map
             self.type_to_entities
                 .entry(entity_type)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(entity);
             
             // Update count
@@ -229,7 +229,7 @@ where
         let mut entities = Vec::new();
         
         // Iterate through all nodes in the ISG
-        for (_hash, &node_idx) in &state.id_map {
+        for &node_idx in state.id_map.values() {
             if let Some(node) = state.graph.node_weight(node_idx) {
                 entities.push(self.node_to_entity_info(node));
             }
@@ -283,11 +283,6 @@ where
         let index = self.type_index.read().unwrap();
         Ok(index.organized_by_type())
     }
-    
-    /// Get entities of a specific type with efficient filtering
-    /// 
-    /// Uses the type index for O(1) access to entities of a specific type.
-
     
     /// Get available entity types in the codebase
     /// 

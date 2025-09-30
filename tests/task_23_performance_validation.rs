@@ -442,7 +442,7 @@ async fn test_jtbd_workflow_timing_requirements() {
 async fn test_memory_usage_monitoring() {
     println!("💾 Testing memory usage monitoring");
     
-    let baseline_validator = PerformanceValidator::new().await;
+    let _baseline_validator = PerformanceValidator::new().await;
     let baseline_memory = std::mem::size_of::<ParseltongueAIM>() * 1000; // Baseline estimate
     
     // Create validator with realistic codebase
@@ -450,7 +450,7 @@ async fn test_memory_usage_monitoring() {
     let test_code = test_validator.create_realistic_codebase(100);
     
     // Measure memory before ingestion
-    let pre_ingestion_memory = std::mem::size_of::<ParseltongueAIM>() * 1000;
+    let _pre_ingestion_memory = std::mem::size_of::<ParseltongueAIM>() * 1000;
     
     // Ingest codebase and measure memory after
     test_validator.ingest_codebase(&test_code).await
@@ -562,8 +562,8 @@ async fn test_comprehensive_system_integration() {
     let integration_time = integration_start.elapsed();
     
     // Validate integration results
-    assert!(entities.len() > 0, "Should discover entities");
-    assert!(functions.len() > 0, "Should discover functions");
+    assert!(!entities.is_empty(), "Should discover entities");
+    assert!(!functions.is_empty(), "Should discover functions");
     assert!(onboard_result.overview.total_entities > 0, "Onboard should find entities");
     assert!(!retrieved_result.is_null(), "Should retrieve stored results");
     

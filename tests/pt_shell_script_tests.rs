@@ -192,7 +192,7 @@ fn test_pt_onboard_execution() {
                 
                 // Should complete within reasonable time (checked by workflow)
                 assert!(stdout.contains("completed") || stdout.contains("finished") ||
-                        stdout.contains("done") || stdout.len() > 0,
+                        stdout.contains("done") || !stdout.is_empty(),
                         "Should indicate completion");
             } else {
                 println!("pt onboard execution failed (expected in RED phase): {}", stderr);

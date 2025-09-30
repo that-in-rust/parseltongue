@@ -1,3 +1,4 @@
+
 //! Performance Monitoring and Regression Detection
 //! 
 //! This module provides comprehensive performance monitoring capabilities
@@ -17,6 +18,23 @@ pub struct PerformanceBaseline {
     pub platform: String,
     pub rust_version: String,
     pub workload_metrics: HashMap<String, PerformanceMetrics>,
+}
+
+/// Parameters for metric regression checking
+#[derive(Debug)]
+pub struct MetricCheckParams<'a> {
+    pub workload: &'a str,
+    pub metric_name: &'a str,
+    pub baseline_value: u64,
+    pub current_value: u64,
+    pub tolerance_percent: f64,
+}
+
+/// Results container for regression checking
+#[derive(Debug)]
+pub struct RegressionCheckResults<'a> {
+    pub regressions: &'a mut Vec<PerformanceRegression>,
+    pub improvements: &'a mut Vec<PerformanceImprovement>,
 }
 
 /// Performance regression detector
@@ -96,44 +114,53 @@ impl PerformanceMonitor {
             let current_metrics = self.validator.validate_workload(&config);
             
             // Check for regressions in key metrics
+            let mut results = RegressionCheckResults {
+                regressions: &mut regressions,
+                improvements: &mut improvements,
+            };
+            
             self.check_metric_regression(
-                &mut regressions,
-                &mut improvements,
-                workload_name,
-                "node_upsert",
-                baseline_metrics.node_operations.upsert_time_us,
-                current_metrics.node_operations.upsert_time_us,
-                20.0, // 20% tolerance
+                &mut results,
+                &MetricCheckParams {
+                    workload: workload_name,
+                    metric_name: "node_upsert",
+                    baseline_value: baseline_metrics.node_operations.upsert_time_us,
+                    current_value: current_metrics.node_operations.upsert_time_us,
+                    tolerance_percent: 20.0, // 20% tolerance
+                },
             );
             
             self.check_metric_regression(
-                &mut regressions,
-                &mut improvements,
-                workload_name,
-                "blast_radius_query",
-                baseline_metrics.query_operations.blast_radius_time_us,
-                current_metrics.query_operations.blast_radius_time_us,
-                30.0, // 30% tolerance for queries
+                &mut results,
+                &MetricCheckParams {
+                    workload: workload_name,
+                    metric_name: "blast_radius_query",
+                    baseline_value: baseline_metrics.query_operations.blast_radius_time_us,
+                    current_value: current_metrics.query_operations.blast_radius_time_us,
+                    tolerance_percent: 30.0, // 30% tolerance for queries
+                },
             );
             
             self.check_metric_regression(
-                &mut regressions,
-                &mut improvements,
-                workload_name,
-                "file_update",
-                current_metrics.file_operations.update_time_ms * 1000, // Convert to μs
-                baseline_metrics.file_operations.update_time_ms * 1000,
-                25.0, // 25% tolerance
+                &mut results,
+                &MetricCheckParams {
+                    workload: workload_name,
+                    metric_name: "file_update",
+                    baseline_value: baseline_metrics.file_operations.update_time_ms * 1000, // Convert to μs
+                    current_value: current_metrics.file_operations.update_time_ms * 1000,
+                    tolerance_percent: 25.0, // 25% tolerance
+                },
             );
             
             self.check_metric_regression(
-                &mut regressions,
-                &mut improvements,
-                workload_name,
-                "memory_usage",
-                baseline_metrics.memory_usage.total_memory_mb as u64,
-                current_metrics.memory_usage.total_memory_mb as u64,
-                15.0, // 15% tolerance for memory
+                &mut results,
+                &MetricCheckParams {
+                    workload: workload_name,
+                    metric_name: "memory_usage",
+                    baseline_value: baseline_metrics.memory_usage.total_memory_mb as u64,
+                    current_value: current_metrics.memory_usage.total_memory_mb as u64,
+                    tolerance_percent: 15.0, // 15% tolerance for memory
+                },
             );
         }
         
@@ -150,35 +177,30 @@ impl PerformanceMonitor {
     
     fn check_metric_regression(
         &self,
-        regressions: &mut Vec<PerformanceRegression>,
-        improvements: &mut Vec<PerformanceImprovement>,
-        workload: &str,
-        metric_name: &str,
-        baseline_value: u64,
-        current_value: u64,
-        tolerance_percent: f64,
+        results: &mut RegressionCheckResults,
+        params: &MetricCheckParams,
     ) {
-        if baseline_value == 0 {
+        if params.baseline_value == 0 {
             return; // Skip zero baseline values
         }
         
-        let change_percent = ((current_value as f64 - baseline_value as f64) / baseline_value as f64) * 100.0;
+        let change_percent = ((params.current_value as f64 - params.baseline_value as f64) / params.baseline_value as f64) * 100.0;
         
-        if change_percent > tolerance_percent {
-            regressions.push(PerformanceRegression {
-                workload: workload.to_string(),
-                metric: metric_name.to_string(),
-                baseline_value,
-                current_value,
+        if change_percent > params.tolerance_percent {
+            results.regressions.push(PerformanceRegression {
+                workload: params.workload.to_string(),
+                metric: params.metric_name.to_string(),
+                baseline_value: params.baseline_value,
+                current_value: params.current_value,
                 change_percent,
-                tolerance_percent,
+                tolerance_percent: params.tolerance_percent,
             });
         } else if change_percent < -10.0 { // Significant improvement
-            improvements.push(PerformanceImprovement {
-                workload: workload.to_string(),
-                metric: metric_name.to_string(),
-                baseline_value,
-                current_value,
+            results.improvements.push(PerformanceImprovement {
+                workload: params.workload.to_string(),
+                metric: params.metric_name.to_string(),
+                baseline_value: params.baseline_value,
+                current_value: params.current_value,
                 improvement_percent: -change_percent,
             });
         }
@@ -215,7 +237,7 @@ impl PerformanceMonitor {
                     regression.tolerance_percent
                 ));
             }
-            report.push_str("\n");
+            report.push('\n');
         }
         
         if !regression_report.improvements.is_empty() {
@@ -230,7 +252,7 @@ impl PerformanceMonitor {
                     improvement.current_value
                 ));
             }
-            report.push_str("\n");
+            report.push('\n');
         }
         
         report.push_str("## Performance Contracts Status\n\n");

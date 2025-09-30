@@ -225,7 +225,7 @@ where
                 }
             };
             
-            grouped_queries.entry(group_key).or_insert_with(Vec::new).push((index, query));
+            grouped_queries.entry(group_key).or_default().push((index, query));
         }
         
         // Process each group concurrently
@@ -737,11 +737,11 @@ mod tests {
         
         // Test all DiscoveryEngine methods work correctly
         let entities = engine.list_all_entities(Some(EntityType::Function), 10).await.unwrap();
-        assert!(entities.len() > 0);
+        assert!(!entities.is_empty());
         assert!(entities.iter().all(|e| e.entity_type == EntityType::Function));
         
         let file_entities = engine.entities_in_file("src/main.rs").await.unwrap();
-        assert!(file_entities.len() > 0);
+        assert!(!file_entities.is_empty());
         
         let location = engine.where_defined("main").await.unwrap();
         assert!(location.is_some());
@@ -754,10 +754,10 @@ mod tests {
         assert_eq!(total_count, 6); // Test data has 6 entities
         
         let counts_by_type = engine.entity_count_by_type().await.unwrap();
-        assert!(counts_by_type.len() > 0);
+        assert!(!counts_by_type.is_empty());
         
         let file_paths = engine.all_file_paths().await.unwrap();
-        assert!(file_paths.len() > 0);
+        assert!(!file_paths.is_empty());
     }
     
     #[tokio::test]
@@ -798,7 +798,7 @@ mod tests {
         
         // Verify engine still works after invalidation
         let counts = engine.entity_count_by_type().await.unwrap();
-        assert!(counts.len() > 0);
+        assert!(!counts.is_empty());
     }
     
     #[tokio::test]

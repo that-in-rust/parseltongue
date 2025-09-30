@@ -7,7 +7,6 @@
 
 use parseltongue::{OptimizedISG, SigHash, NodeData, NodeKind, EdgeKind};
 use std::sync::Arc;
-use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 /// Cross-platform test data structure for serialization
@@ -32,7 +31,6 @@ struct GraphStructure {
 /// Test suite for cross-platform consistency
 struct CrossPlatformTestSuite {
     test_signatures: Vec<String>,
-    expected_results: HashMap<String, CrossPlatformTestData>,
 }
 
 impl CrossPlatformTestSuite {
@@ -72,7 +70,6 @@ impl CrossPlatformTestSuite {
                 "struct TestStruct_with_underscores".to_string(),
                 "trait TestTrait123".to_string(),
             ],
-            expected_results: HashMap::new(),
         }
     }
     

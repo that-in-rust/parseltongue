@@ -1,3 +1,4 @@
+
 //! Performance Validation Tests for Realistic Workloads
 //! 
 //! Validates all performance contracts with 100K+ LOC codebases:
@@ -128,6 +129,12 @@ pub struct RealisticDataGenerator {
     function_names: Vec<&'static str>,
     struct_names: Vec<&'static str>,
     trait_names: Vec<&'static str>,
+}
+
+impl Default for RealisticDataGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl RealisticDataGenerator {
@@ -381,6 +388,12 @@ impl RealisticDataGenerator {
 /// Performance validation test suite
 pub struct PerformanceValidator {
     generator: RealisticDataGenerator,
+}
+
+impl Default for PerformanceValidator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PerformanceValidator {
@@ -1125,19 +1138,19 @@ mod tests {
                         },
                         1 => {
                             // Test blast radius calculation
-                            if let Some(nodes) = isg_clone.find_by_name("create_0").get(0).copied() {
+                            if let Some(nodes) = isg_clone.find_by_name("create_0").first().copied() {
                                 let _ = isg_clone.calculate_blast_radius(nodes);
                             }
                         },
                         2 => {
                             // Test implementor search
-                            if let Some(nodes) = isg_clone.find_by_name("Clone_0").get(0).copied() {
+                            if let Some(nodes) = isg_clone.find_by_name("Clone_0").first().copied() {
                                 let _ = isg_clone.find_implementors(nodes);
                             }
                         },
                         _ => {
                             // Test caller search
-                            if let Some(nodes) = isg_clone.find_by_name("process_0").get(0).copied() {
+                            if let Some(nodes) = isg_clone.find_by_name("process_0").first().copied() {
                                 let _ = isg_clone.find_callers(nodes);
                             }
                         }

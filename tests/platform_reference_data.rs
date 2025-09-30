@@ -393,7 +393,7 @@ mod tests {
         
         for (signature, hash1) in &reference.reference_hashes {
             let hash2 = reference2.reference_hashes.get(signature)
-                .expect(&format!("Signature '{}' missing in second generation", signature));
+                .unwrap_or_else(|| panic!("Signature '{}' missing in second generation", signature));
             
             assert_eq!(hash1, hash2, 
                 "Hash inconsistency for '{}' between generations", signature);

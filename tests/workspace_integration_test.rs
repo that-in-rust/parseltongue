@@ -6,11 +6,9 @@
 //! - Workspace cleanup commands and stale analysis detection
 //! - Workspace isolation and state persistence
 
-use std::path::PathBuf;
 use tempfile::TempDir;
 use tokio::fs;
-use chrono::{DateTime, Utc};
-use serde_json;
+use chrono::Utc;
 use std::collections::HashMap;
 
 // Import the workspace manager directly
@@ -311,7 +309,7 @@ async fn test_workspace_complex_workflow_data() {
 
 #[tokio::test]
 async fn test_workspace_error_handling() {
-    let (mut manager, _temp_dir) = create_test_workspace().await;
+    let (manager, _temp_dir) = create_test_workspace().await;
     
     // Test error when trying to store without active session
     let test_data = HashMap::from([("test".to_string(), 1)]);

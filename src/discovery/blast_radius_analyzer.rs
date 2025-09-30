@@ -98,7 +98,7 @@ impl BlastRadiusAnalysis {
             summary.push_str(&format!("  {:?}: {} entities\n", group.relationship_type, group.entities.len()));
         }
         
-        summary.push_str("\n");
+        summary.push('\n');
         
         // Detailed breakdown
         if !self.production_impacts.is_empty() {
@@ -107,7 +107,7 @@ impl BlastRadiusAnalysis {
                 summary.push_str(&format!("  • {} ({}:{})\n", 
                     entity.name, entity.file_path, entity.line_number));
             }
-            summary.push_str("\n");
+            summary.push('\n');
         }
         
         if !self.test_impacts.is_empty() {
@@ -297,7 +297,7 @@ impl BlastRadiusAnalyzer {
         for (node, edge_kind) in impacts {
             let impacted_entity = self.node_to_impacted_entity(&node);
             groups.entry(edge_kind)
-                .or_insert_with(Vec::new)
+                .or_default()
                 .push(impacted_entity);
         }
         
@@ -577,7 +577,7 @@ mod tests {
         let percentage = analysis.production_impact_percentage();
         
         // Should be a valid percentage
-        assert!(percentage >= 0.0 && percentage <= 100.0);
+        assert!((0.0..=100.0).contains(&percentage));
         
         // If we have impacts, percentage should be meaningful
         if analysis.total_impact_count > 0 {

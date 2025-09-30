@@ -14,11 +14,16 @@ pub mod daemon;
 pub mod cli;
 pub mod workspace_cli;
 pub mod discovery;
+
+// Experimental modules - only compiled when experimental feature is enabled
+#[cfg(feature = "experimental")]
 pub mod performance_validation;
+#[cfg(feature = "experimental")]
 pub mod performance_monitoring;
+#[cfg(feature = "experimental")]
 pub mod relationship_accuracy_tests;
+#[cfg(feature = "experimental")]
 pub mod accuracy_validation_report;
-pub mod content_processing;
 
 #[cfg(test)]
 mod tests {

@@ -427,7 +427,7 @@ pub fn create_cli_error(
     let context = match &error {
         DiscoveryError::EntityNotFound { name } => {
             ErrorContext::new(operation)
-                .with_suggestion(format!("Try 'parseltongue list-entities --type functions' to see available functions"))
+                .with_suggestion("Try 'parseltongue list-entities --type functions' to see available functions".to_string())
                 .with_suggestion(format!("Search for similar names: 'parseltongue list-entities | grep {}'", name))
                 .with_related_command("parseltongue list-entities")
                 .with_related_command("parseltongue entities-in-file <file>")

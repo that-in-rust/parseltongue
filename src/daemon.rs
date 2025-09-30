@@ -105,12 +105,12 @@ impl RelationshipExtractor {
                 }
                 
                 // 4. Fallback to absolute path
-                return Some(absolute_hash);
+                Some(absolute_hash)
             }
             // Handle closure calls and other complex patterns
             _ => {
                 // For MVP, skip complex call patterns
-                return None;
+                None
             }
         }
     }
@@ -159,7 +159,7 @@ impl RelationshipExtractor {
             if path_segments.len() == 1 {
                 // Try common module patterns: models::Type, types::Type, etc.
                 let common_modules = ["models", "types", "entities", "domain"];
-                for module in &common_modules {
+                if let Some(module) = common_modules.first() {
                     let module_signature = format!("struct {}::{}", module, type_name);
                     let module_hash = SigHash::from_signature(&module_signature);
                     // For MVP, return the first common module match
@@ -182,7 +182,7 @@ impl RelationshipExtractor {
         }
         
         // 4. Fallback to absolute path
-        return Some(absolute_hash);
+        Some(absolute_hash)
     }
     
     /// Resolve struct expression to SigHash
@@ -251,6 +251,12 @@ pub struct IngestStats {
     pub nodes_created: usize,
 }
 
+impl Default for ParseltongueAIM {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ParseltongueAIM {
     pub fn new() -> Self {
         Self {
@@ -277,7 +283,7 @@ impl ParseltongueAIM {
         let mut current_content = String::new();
         
         for line in content.lines() {
-            if line.starts_with("FILE: ") {
+            if let Some(stripped) = line.strip_prefix("FILE: ") {
                 // Process previous file if it exists and is a Rust file
                 if !current_file.is_empty() && current_file.ends_with(".rs") {
                     self.parse_rust_file(&current_file, &current_content)?;
@@ -285,7 +291,7 @@ impl ParseltongueAIM {
                 }
                 
                 // Start new file
-                current_file = line[6..].trim().to_string();
+                current_file = stripped.trim().to_string();
                 current_content.clear();
             } else if line.starts_with("=") && line.chars().all(|c| c == '=') {
                 // Skip separator lines (e.g., "================================================")
@@ -504,7 +510,7 @@ impl ParseltongueAIM {
                             extractor.visit_signature(&method.sig);
                             
                             // Extract relationships from method body
-                            extractor.visit_impl_item_fn(&method);
+                            extractor.visit_impl_item_fn(method);
                             
                             // Add discovered relationships to ISG
                             for (from, to, kind) in extractor.relationships {

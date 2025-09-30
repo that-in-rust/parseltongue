@@ -1,3 +1,4 @@
+
 //! Accuracy Validation Report
 //! 
 //! Summary of relationship extraction accuracy validation results
@@ -104,6 +105,12 @@ pub struct OverallMetrics {
     pub tests_meeting_target: usize,
     pub total_tests: usize,
     pub target_achievement_rate: f64,
+}
+
+impl Default for AccuracyReport {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl AccuracyReport {
@@ -223,7 +230,7 @@ impl AccuracyReport {
             println!("  ⚠️  Only {:.0}% of test cases meet the accuracy target", self.overall_metrics.target_achievement_rate);
         }
         
-        if relationship_density >= 1.0 && relationship_density <= 3.0 {
+        if (1.0..=3.0).contains(&relationship_density) {
             println!("  ✅ Relationship density {:.2} is optimal for Rust codebases", relationship_density);
         } else if relationship_density >= 0.5 {
             println!("  ✅ Relationship density {:.2} is reasonable", relationship_density);

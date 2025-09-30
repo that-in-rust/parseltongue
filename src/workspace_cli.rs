@@ -112,7 +112,7 @@ pub async fn handle_workspace_command(args: WorkspaceArgs) -> Result<(), Workspa
         WorkspaceCommand::Store { workflow_type, data } => {
             // Parse JSON data
             let json_value: serde_json::Value = serde_json::from_str(&data)
-                .map_err(|e| WorkspaceError::Serialization(e))?;
+                .map_err(WorkspaceError::Serialization)?;
             
             manager.store_workflow_result(&workflow_type, &json_value).await?;
             println!("Stored workflow result for: {}", workflow_type);

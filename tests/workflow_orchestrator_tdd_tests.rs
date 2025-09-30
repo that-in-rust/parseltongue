@@ -4,7 +4,6 @@
 //! These tests define the contracts for workflow orchestration.
 
 use std::time::{Duration, Instant};
-use std::sync::Arc;
 
 // Import the types we need for testing
 // Note: We'll use conditional compilation to handle missing types during RED phase

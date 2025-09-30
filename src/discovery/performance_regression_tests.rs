@@ -1,3 +1,4 @@
+
 //! Performance regression tests for all critical discovery paths
 //! 
 //! These tests validate that performance contracts are maintained across
@@ -15,6 +16,12 @@ use std::sync::Arc;
 pub struct PerformanceRegressionTester {
     metrics: DiscoveryMetrics,
     discovery_engine: SimpleDiscoveryEngine,
+}
+
+impl Default for PerformanceRegressionTester {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PerformanceRegressionTester {
@@ -201,6 +208,12 @@ impl PerformanceRegressionTester {
 pub struct PerformanceTestResults {
     pub successes: Vec<(String, Duration)>,
     pub failures: Vec<(String, MetricsError)>,
+}
+
+impl Default for PerformanceTestResults {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl PerformanceTestResults {

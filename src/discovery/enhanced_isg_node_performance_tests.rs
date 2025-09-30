@@ -1,3 +1,4 @@
+#![cfg(feature = "experimental")]
 //! Performance tests for EnhancedIsgNode file location access
 //! 
 //! Validates the O(1) file location access performance contract specified

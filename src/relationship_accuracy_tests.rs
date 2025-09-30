@@ -1,3 +1,4 @@
+
 //! Relationship Extraction Accuracy Validation Tests
 //! 
 //! Tests relationship extraction accuracy with real Rust codebases
@@ -439,7 +440,7 @@ mod tests {
         
         // Validate reasonable relationship density for Rust code
         assert!(
-            density >= 0.3 && density <= 5.0,
+            (0.3..=5.0).contains(&density),
             "Relationship density {:.2} seems unrealistic",
             density
         );
@@ -549,7 +550,7 @@ mod tests {
         
         // Validate that we extracted some relationships despite complexity
         assert!(
-            extracted.len() >= 1,
+            !extracted.is_empty(),
             "Expected at least 1 relationship from edge cases, got {}",
             extracted.len()
         );
@@ -838,7 +839,7 @@ mod tests {
                 
                 // Validate reasonable relationship density
                 assert!(
-                    density >= 0.1 && density <= 10.0,
+                    (0.1..=10.0).contains(&density),
                     "Relationship density {:.2} seems unrealistic for {}",
                     density, description
                 );

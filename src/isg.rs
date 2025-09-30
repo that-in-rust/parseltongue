@@ -156,7 +156,7 @@ impl<'de> serde::Deserialize<'de> for NodeData {
             }
         }
 
-        const FIELDS: &'static [&'static str] = &["hash", "kind", "name", "signature", "file_path", "line"];
+        const FIELDS: &[&str] = &["hash", "kind", "name", "signature", "file_path", "line"];
         deserializer.deserialize_struct("NodeData", FIELDS, NodeDataVisitor)
     }
 }
@@ -252,13 +252,13 @@ impl OptimizedISG {
         let state = self.state.read();
         let mut output = String::new();
         
-        output.push_str(&format!("=== Interface Signature Graph ===\n"));
+        output.push_str("=== Interface Signature Graph ===\n");
         output.push_str(&format!("Nodes: {}, Edges: {}\n\n", 
             state.graph.node_count(), state.graph.edge_count()));
         
         // Print all nodes
         output.push_str("NODES:\n");
-        for (_hash, &node_idx) in &state.id_map {
+        for &node_idx in state.id_map.values() {
             if let Some(node) = state.graph.node_weight(node_idx) {
                 output.push_str(&format!("  {:?} -> {} ({:?})\n", 
                     node.hash, node.name, node.kind));
@@ -288,7 +288,7 @@ impl OptimizedISG {
         output.push_str("  node [shape=box, style=rounded];\n\n");
         
         // Add nodes with different colors for different types
-        for (_hash, &node_idx) in &state.id_map {
+        for &node_idx in state.id_map.values() {
             if let Some(node) = state.graph.node_weight(node_idx) {
                 let color = match node.kind {
                     NodeKind::Function => "lightblue",
@@ -300,7 +300,7 @@ impl OptimizedISG {
             }
         }
         
-        output.push_str("\n");
+        output.push('\n');
         
         // Add edges
         for edge_ref in state.graph.edge_references() {
@@ -417,7 +417,7 @@ impl OptimizedISG {
                 
                 // Add new name mapping
                 state.name_map.entry(node.name.clone())
-                    .or_insert_with(FxHashSet::default)
+                    .or_default()
                     .insert(node.hash);
             }
         } else {
@@ -427,7 +427,7 @@ impl OptimizedISG {
             
             // Add name mapping
             state.name_map.entry(node.name.clone())
-                .or_insert_with(FxHashSet::default)
+                .or_default()
                 .insert(node.hash);
         }
     }
@@ -1694,7 +1694,7 @@ mod tests {
         
         // Validate structure
         assert_eq!(web_data.nodes.len(), 6); // FuncA, FuncB, StructC, StructD, StructE, TraitT
-        assert!(web_data.edges.len() > 0); // Should have relationships
+        assert!(!web_data.edges.is_empty()); // Should have relationships
         assert_eq!(web_data.metadata.node_count, 6);
         assert!(web_data.metadata.edge_count > 0);
         

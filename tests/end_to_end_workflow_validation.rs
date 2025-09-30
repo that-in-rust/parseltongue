@@ -5,7 +5,7 @@
 //! 
 //! Requirements: Complete end-to-end workflow validation task
 
-use parseltongue::{ParseltongueAIM, OptimizedISG, SigHash, NodeData, NodeKind, EdgeKind, ISGError};
+use parseltongue::ParseltongueAIM;
 use std::fs;
 use std::path::Path;
 use std::time::Instant;
@@ -1234,7 +1234,7 @@ pub enum PasswordError {
         assert!(viz_time.as_millis() < 1000, "Visualization too slow for Sarah");
         
         // Validate Sarah gets actionable information
-        assert!(blast_radius.len() > 0, "Sarah needs to see impact");
+        assert!(!blast_radius.is_empty(), "Sarah needs to see impact");
         assert!(!context.is_empty(), "Sarah needs context for AI");
         assert!(html.contains(target_entity), "Visualization must focus on target");
         

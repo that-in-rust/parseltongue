@@ -15,7 +15,7 @@ use std::fs;
 fn test_onboard_command_interface() {
     // Test that parseltongue onboard command exists and accepts proper arguments
     let output = Command::new("cargo")
-        .args(&["run", "--", "onboard", "--help"])
+        .args(["run", "--", "onboard", "--help"])
         .output();
     
     match output {
@@ -44,7 +44,7 @@ fn test_onboard_command_interface() {
 #[test]
 fn test_feature_start_command_interface() {
     let output = Command::new("cargo")
-        .args(&["run", "--", "feature-start", "--help"])
+        .args(["run", "--", "feature-start", "--help"])
         .output();
     
     match output {
@@ -73,7 +73,7 @@ fn test_feature_start_command_interface() {
 #[test]
 fn test_debug_workflow_command_interface() {
     let output = Command::new("cargo")
-        .args(&["run", "--", "debug", "--help"])
+        .args(["run", "--", "debug", "--help"])
         .output();
     
     match output {
@@ -102,7 +102,7 @@ fn test_debug_workflow_command_interface() {
 #[test]
 fn test_refactor_check_command_interface() {
     let output = Command::new("cargo")
-        .args(&["run", "--", "refactor-check", "--help"])
+        .args(["run", "--", "refactor-check", "--help"])
         .output();
     
     match output {
@@ -140,7 +140,7 @@ fn test_onboard_workflow_execution_contract() {
     
     let start = Instant::now();
     let output = Command::new("cargo")
-        .args(&["run", "--", "onboard", test_dir])
+        .args(["run", "--", "onboard", test_dir])
         .output();
     let elapsed = start.elapsed();
     
@@ -180,7 +180,7 @@ fn test_onboard_workflow_execution_contract() {
 fn test_feature_start_workflow_execution_contract() {
     let start = Instant::now();
     let output = Command::new("cargo")
-        .args(&["run", "--", "feature-start", "main"])
+        .args(["run", "--", "feature-start", "main"])
         .output();
     let elapsed = start.elapsed();
     
@@ -215,7 +215,7 @@ fn test_feature_start_workflow_execution_contract() {
 fn test_debug_workflow_execution_contract() {
     let start = Instant::now();
     let output = Command::new("cargo")
-        .args(&["run", "--", "debug", "main"])
+        .args(["run", "--", "debug", "main"])
         .output();
     let elapsed = start.elapsed();
     
@@ -250,7 +250,7 @@ fn test_debug_workflow_execution_contract() {
 fn test_refactor_check_workflow_execution_contract() {
     let start = Instant::now();
     let output = Command::new("cargo")
-        .args(&["run", "--", "refactor-check", "main"])
+        .args(["run", "--", "refactor-check", "main"])
         .output();
     let elapsed = start.elapsed();
     
@@ -288,7 +288,7 @@ fn test_workflow_json_output_format() {
     
     for cmd in &commands {
         let output = Command::new("cargo")
-            .args(&["run", "--", cmd, "--help"])
+            .args(["run", "--", cmd, "--help"])
             .output();
         
         match output {
@@ -311,7 +311,7 @@ fn test_workflow_json_output_format() {
 fn test_workflow_error_handling() {
     // Test missing arguments
     let output = Command::new("cargo")
-        .args(&["run", "--", "onboard"])
+        .args(["run", "--", "onboard"])
         .output();
     
     match output {
@@ -332,7 +332,7 @@ fn test_workflow_error_handling() {
     
     // Test invalid entity names
     let output = Command::new("cargo")
-        .args(&["run", "--", "feature-start", ""])
+        .args(["run", "--", "feature-start", ""])
         .output();
     
     match output {
@@ -356,7 +356,7 @@ fn test_workflow_error_handling() {
 fn test_workflow_performance_monitoring() {
     // Test that workflows report their execution time
     let output = Command::new("cargo")
-        .args(&["run", "--", "onboard", "./src"])
+        .args(["run", "--", "onboard", "./src"])
         .output();
     
     match output {
@@ -382,7 +382,7 @@ fn test_workflow_performance_monitoring() {
 fn test_onboard_result_structure_contract() {
     // Test JSON output structure for onboard workflow
     let output = Command::new("cargo")
-        .args(&["run", "--", "onboard", "./src", "--format", "json"])
+        .args(["run", "--", "onboard", "./src", "--format", "json"])
         .output();
     
     match output {

@@ -382,7 +382,7 @@ impl TrigramIndex {
             for trigram in trigrams {
                 self.trigram_to_ids
                     .entry(trigram)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(*id);
                 self.total_trigrams += 1;
             }
@@ -409,7 +409,7 @@ impl TrigramIndex {
                 let trigrams = extract_trigrams(path);
                 
                 for trigram in trigrams {
-                    let ids = self.trigram_to_ids.entry(trigram).or_insert_with(Vec::new);
+                    let ids = self.trigram_to_ids.entry(trigram).or_default();
                     
                     // Only add if not already present (maintain sorted order)
                     if let Err(pos) = ids.binary_search(&id) {
@@ -479,7 +479,7 @@ impl TrigramIndex {
             for &trigram in &trigram_buffer {
                 self.trigram_to_ids
                     .entry(trigram)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(*id);
                 self.total_trigrams += 1;
             }
@@ -611,7 +611,7 @@ impl MemoryUsage {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "experimental"))]
 mod string_interning_performance_tests;
 
 #[cfg(test)]

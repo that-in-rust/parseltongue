@@ -253,7 +253,7 @@ mod performance_tests {
         ];
         
         // Each module has various entities
-        let entities_per_module = vec![5, 10, 50, 30, 20, 5, 25, 15, 10, 20, 15, 10, 8, 12, 6];
+        let entities_per_module = [5, 10, 50, 30, 20, 5, 25, 15, 10, 20, 15, 10, 8, 12, 6];
         
         let start = Instant::now();
         let mut total_entities = 0;

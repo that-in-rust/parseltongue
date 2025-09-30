@@ -1,3 +1,4 @@
+
 //! Performance metrics and monitoring for discovery operations
 //! 
 //! Provides comprehensive performance monitoring with Histogram and Counter metrics
@@ -189,7 +190,7 @@ impl Histogram {
         let total_nanos: u128 = sorted_samples.iter().map(|d| d.as_nanos()).sum();
         let mean = Duration::from_nanos((total_nanos / sorted_samples.len() as u128) as u64);
         
-        let median = if sorted_samples.len() % 2 == 0 {
+        let median = if sorted_samples.len().is_multiple_of(2) {
             let mid1 = sorted_samples[sorted_samples.len() / 2 - 1];
             let mid2 = sorted_samples[sorted_samples.len() / 2];
             Duration::from_nanos((mid1.as_nanos() + mid2.as_nanos()) as u64 / 2)
@@ -239,6 +240,12 @@ impl HistogramStats {
     pub fn percentile(&self, _percentile: f64) -> Duration {
         // For simplicity in tests, return max for high percentiles
         self.max
+    }
+}
+
+impl Default for DiscoveryMetrics {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -757,10 +764,8 @@ mod micro_benchmark_tests {
         // PERFORMANCE CONTRACT: String interning must be efficient
         let mut interner = FileInterner::new();
         
-        let test_paths = vec![
-            "src/main.rs", "src/lib.rs", "src/parser.rs", "src/utils.rs",
-            "tests/integration.rs", "benches/benchmark.rs",
-        ];
+        let test_paths = ["src/main.rs", "src/lib.rs", "src/parser.rs", "src/utils.rs",
+            "tests/integration.rs", "benches/benchmark.rs"];
         
         // Micro-benchmark: Interning performance
         let iterations = 1000;

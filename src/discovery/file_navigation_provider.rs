@@ -60,7 +60,7 @@ impl ISGFileNavigationProvider {
                 // Add entity to file index
                 self.file_index
                     .entry(file_id)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(sig_hash);
             }
         }

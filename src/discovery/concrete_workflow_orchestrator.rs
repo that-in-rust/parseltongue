@@ -45,10 +45,6 @@ impl ConcreteWorkflowOrchestrator {
     }
     
     /// Extract key modules from entities
-
-    
-
-    
     async fn identify_entry_points(&self, entities: &[EntityInfo]) -> Vec<EntryPoint> {
         let mut entry_points = Vec::new();
         
@@ -203,7 +199,7 @@ impl ConcreteWorkflowOrchestrator {
         // Convert to ModuleInfo
         modules.into_iter()
             .map(|(path, entities)| ModuleInfo {
-                name: path.split('/').last().unwrap_or("root").to_string(),
+                name: path.split('/').next_back().unwrap_or("root").to_string(),
                 purpose: format!("Contains {} entities", entities.len()),
                 key_entities: entities.into_iter().take(5).collect(),
                 dependencies: vec![], // TODO: Analyze dependencies
@@ -316,7 +312,7 @@ impl ConcreteWorkflowOrchestrator {
                     line_number: Some(24),
                     column: Some(10),
                 },
-                context: format!("Called within function context"),
+                context: "Called within function context".to_string(),
             }
         ]
     }
@@ -481,8 +477,8 @@ impl WorkflowOrchestrator for ConcreteWorkflowOrchestrator {
                 key_modules: self.extract_key_modules(&all_entities).await,
                 architecture_patterns,
             },
-            entry_points: entry_points,
-            key_contexts: key_contexts,
+            entry_points,
+            key_contexts,
             next_steps,
         })
     }

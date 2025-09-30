@@ -8,6 +8,10 @@ repository = "https://github.com/your-org/parseltongue"
 keywords = ["rust", "analysis", "discovery", "architecture", "codebase"]
 categories = ["development-tools", "command-line-utilities"]
 
+[features]
+default = []
+experimental = []
+
 [[bin]]
 name = "parseltongue_20250924231324"
 path = "src/main.rs"
@@ -21,7 +25,6 @@ thiserror = "1.0"
 
 # Rust parsing and file monitoring
 syn = { version = "2.0", features = ["full", "visit"] }
-quote = "1.0"
 notify = "6.0"
 
 # CLI and serialization

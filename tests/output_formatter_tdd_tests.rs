@@ -11,14 +11,13 @@ use chrono::Utc;
 use parseltongue::discovery::{
     OnboardingResult, FeaturePlanResult, DebugResult, RefactorResult,
     CodebaseOverview, EntryPoint, KeyContext, ImpactAnalysis, ScopeGuidance,
-    TestRecommendation, CallerTrace, UsageSite, ChangeScope, RiskAssessment,
+    TestRecommendation, ChangeScope, RiskAssessment,
     ChecklistItem, ReviewerGuidance, ModuleInfo, WorkflowRiskLevel as RiskLevel, 
     ComplexityLevel, ConfidenceLevel, Priority, FileLocation
 };
 
 // The OutputFormatter trait we need to implement
 // This will fail in RED phase until we create it
-use parseltongue::discovery::OutputFormatter;
 
 /// Test contract for OutputFormatter trait
 /// 
@@ -53,7 +52,7 @@ mod output_formatter_tests {
     // TDD RED PHASE: Test human format output contract
     #[test]
     fn test_human_format_onboarding_result() {
-        let result = create_test_onboarding_result();
+        let _result = create_test_onboarding_result();
         
         // This will fail until we implement HumanFormatter
         // let formatter = HumanFormatter::new();
@@ -70,7 +69,7 @@ mod output_formatter_tests {
 
     #[test]
     fn test_human_format_feature_plan_result() {
-        let result = create_test_feature_plan_result();
+        let _result = create_test_feature_plan_result();
         
         // Contract: Human format should show impact analysis and scope guidance
         // let formatter = HumanFormatter::new();
@@ -86,7 +85,7 @@ mod output_formatter_tests {
 
     #[test]
     fn test_human_format_debug_result() {
-        let result = create_test_debug_result();
+        let _result = create_test_debug_result();
         
         // Contract: Human format should show caller traces and usage sites
         // let formatter = HumanFormatter::new();
@@ -102,7 +101,7 @@ mod output_formatter_tests {
 
     #[test]
     fn test_human_format_refactor_result() {
-        let result = create_test_refactor_result();
+        let _result = create_test_refactor_result();
         
         // Contract: Human format should show risk assessment and checklist
         // let formatter = HumanFormatter::new();
@@ -119,7 +118,7 @@ mod output_formatter_tests {
     // TDD RED PHASE: Test JSON format output contract
     #[test]
     fn test_json_format_onboarding_result() {
-        let result = create_test_onboarding_result();
+        let _result = create_test_onboarding_result();
         
         // Contract: JSON format should produce valid, structured JSON
         // let formatter = JsonFormatter::new();
@@ -136,7 +135,7 @@ mod output_formatter_tests {
 
     #[test]
     fn test_json_format_feature_plan_result() {
-        let result = create_test_feature_plan_result();
+        let _result = create_test_feature_plan_result();
         
         // Contract: JSON format should include all analysis data
         // let formatter = JsonFormatter::new();
@@ -152,7 +151,7 @@ mod output_formatter_tests {
     // TDD RED PHASE: Test PR summary format contract
     #[test]
     fn test_pr_summary_format_onboarding_result() {
-        let result = create_test_onboarding_result();
+        let _result = create_test_onboarding_result();
         
         // Contract: PR summary should be markdown with architectural context
         // let formatter = PrSummaryFormatter::new();
@@ -169,7 +168,7 @@ mod output_formatter_tests {
 
     #[test]
     fn test_pr_summary_format_feature_plan_result() {
-        let result = create_test_feature_plan_result();
+        let _result = create_test_feature_plan_result();
         
         // Contract: PR summary should include risk assessment and scope
         // let formatter = PrSummaryFormatter::new();
@@ -185,7 +184,7 @@ mod output_formatter_tests {
 
     #[test]
     fn test_pr_summary_format_refactor_result() {
-        let result = create_test_refactor_result();
+        let _result = create_test_refactor_result();
         
         // Contract: PR summary should emphasize safety and review guidance
         // let formatter = PrSummaryFormatter::new();
@@ -202,7 +201,7 @@ mod output_formatter_tests {
     // TDD RED PHASE: Test CI/CD integration format contract
     #[test]
     fn test_ci_format_onboarding_result() {
-        let result = create_test_onboarding_result();
+        let _result = create_test_onboarding_result();
         
         // Contract: CI format should provide actionable recommendations with risk levels
         // let formatter = CiFormatter::new();
@@ -218,7 +217,7 @@ mod output_formatter_tests {
 
     #[test]
     fn test_ci_format_feature_plan_result() {
-        let result = create_test_feature_plan_result();
+        let _result = create_test_feature_plan_result();
         
         // Contract: CI format should set risk level and provide gates
         // let formatter = CiFormatter::new();
@@ -234,7 +233,7 @@ mod output_formatter_tests {
 
     #[test]
     fn test_ci_format_refactor_result() {
-        let result = create_test_refactor_result();
+        let _result = create_test_refactor_result();
         
         // Contract: CI format should enforce safety gates
         // let formatter = CiFormatter::new();
@@ -250,7 +249,7 @@ mod output_formatter_tests {
     // TDD RED PHASE: Test formatting consistency across all formats
     #[test]
     fn test_formatting_consistency_contract() {
-        let onboard_result = create_test_onboarding_result();
+        let _onboard_result = create_test_onboarding_result();
         
         // Contract: All formatters should handle the same data consistently
         // let human_formatter = HumanFormatter::new();
@@ -270,7 +269,7 @@ mod output_formatter_tests {
     // TDD RED PHASE: Test copy-pastable output contract
     #[test]
     fn test_copy_pastable_output_contract() {
-        let result = create_test_onboarding_result();
+        let _result = create_test_onboarding_result();
         
         // Contract: Human format should be copy-pastable to terminal/docs
         // let formatter = HumanFormatter::new();
@@ -288,7 +287,7 @@ mod output_formatter_tests {
     // TDD RED PHASE: Test performance contracts for formatting
     #[test]
     fn test_formatting_performance_contract() {
-        let result = create_test_onboarding_result();
+        let _result = create_test_onboarding_result();
         
         // Contract: Formatting should complete within 100ms
         // let formatter = HumanFormatter::new();
@@ -436,7 +435,7 @@ mod output_formatter_tests {
 /// - FormattingError::InvalidFormat for unsupported output formats
 #[cfg(test)]
 mod output_formatter_error_tests {
-    use super::*;
+    
 
     #[test]
     fn test_formatting_error_types_contract() {
@@ -485,7 +484,7 @@ mod output_formatter_error_tests {
 /// - Performance should meet CLI responsiveness requirements (<100ms)
 #[cfg(test)]
 mod output_formatter_integration_tests {
-    use super::*;
+    
 
     #[test]
     fn test_cli_integration_contract() {

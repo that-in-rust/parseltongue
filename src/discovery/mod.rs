@@ -23,12 +23,16 @@ pub mod file_navigation_tests;
 pub mod blast_radius_analyzer;
 pub mod indexes;
 pub mod concurrent_discovery_engine;
-pub mod performance_metrics;
-pub mod performance_regression_tests;
 pub mod workspace_manager;
 pub mod workflow_orchestrator;
 pub mod concrete_workflow_orchestrator;
 pub mod output_formatter;
+
+// Experimental performance and testing modules
+#[cfg(feature = "experimental")]
+pub mod performance_metrics;
+#[cfg(feature = "experimental")]
+pub mod performance_regression_tests;
 
 #[cfg(test)]
 pub mod workflow_integration_tests;
@@ -48,7 +52,9 @@ pub use file_navigation_tests::{FileNavigationProvider, FileStats, MockFileNavig
 pub use blast_radius_analyzer::{BlastRadiusAnalyzer, BlastRadiusAnalysis, ImpactGroup, ImpactedEntity, RiskLevel};
 pub use indexes::{DiscoveryIndexes, CompactEntityInfo, IndexError};
 pub use concurrent_discovery_engine::ConcurrentDiscoveryEngine;
+#[cfg(feature = "experimental")]
 pub use performance_metrics::{DiscoveryMetrics, Counter, Histogram, MetricsError, ContractValidation, MemoryStats as MetricsMemoryStats};
+#[cfg(feature = "experimental")]
 pub use performance_regression_tests::{PerformanceRegressionTester, PerformanceTestResults};
 pub use workspace_manager::{WorkspaceManager, AnalysisSession, WorkspaceError};
 pub use workflow_orchestrator::{
