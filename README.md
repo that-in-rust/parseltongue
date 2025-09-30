@@ -517,7 +517,6 @@ chmod +x your_project/scripts/*.sh
 ```
 ```
 
----
 
 ## Validated Performance Contracts
 
