@@ -597,7 +597,7 @@ flowchart TD
 
 ## Architecture: Discovery-First Design
 
-```mermaid
+``` mermaid
 %%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e1f5fe', 'primaryTextColor':'#01579b', 'lineColor':'#0277bd', 'fontFamily':'Arial', 'fontSize':'13px'}, 'flowchart': {'nodeSpacing': 80, 'rankSpacing': 90, 'wrappingWidth': 140}}}%%
 flowchart TD
     %% User Workflows Layer
