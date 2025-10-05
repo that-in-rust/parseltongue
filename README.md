@@ -1,10 +1,10 @@
 # 🐍 Parseltongue
 
-**Rust-only architectural intelligence daemon** providing deterministic, graph-based code analysis with sub-millisecond query performance.
+A code analysis tool for Rust codebases. Parse once, query forever.
 
-## 🚀 See It In Action (30 Seconds)
+## See It In Action
 
-**From Rust code to beautiful GitHub diagrams instantly:**
+From Rust code to GitHub diagrams:
 
 ```rust
 // src/lib.rs
@@ -29,7 +29,7 @@ fn main() {
 }
 ```
 
-**One command → GitHub-compatible diagram:**
+One command generates a diagram:
 
 ```bash
 parseltongue ingest code.txt && parseltongue debug --mermaid
@@ -45,18 +45,18 @@ flowchart TD
     User -.-> Display
 ```
 
-**That's it!** No LLM required, no config files, no complex setup. Just instant architectural understanding.
+That's it. No LLM required, no config files, no complex setup.
 
-## 🏆 **Real-World Showcase: Tokio Codebase Analysis**
+## Real-World Example: Tokio Codebase
 
-**Parseltongue analyzed the complete Tokio async runtime** - 151,302 lines of production Rust code - in record time:
+Parseltongue analyzed the Tokio async runtime (151,302 lines of code):
 
-| Metric | Target | **Achieved** | Improvement |
-|--------|---------|-------------|-------------|
-| **Ingestion Time** | <30s | **0.24s** | **125x faster** |
-| **Entities Discovered** | - | **2,576** | **Comprehensive** |
-| **Query Performance** | <1ms | **1μs** | **1000x faster** |
-| **Lines Processed** | - | **151,302** | **Enterprise scale** |
+| Metric | Result |
+|--------|--------|
+| Ingestion Time | 0.24s |
+| Entities Found | 2,576 |
+| Query Performance | 1μs |
+| Lines Processed | 151,302 |
 
 ```bash
 # Tokio → Architecture Diagram (0.24s)
@@ -64,13 +64,13 @@ flowchart TD
 ./target/release/parseltongue debug --mermaid > tokio-diagram.md
 ```
 
-**Result**: 2,686-line Mermaid diagram showing Tokio's complete architecture, generated automatically.
+Generated a 2,686-line Mermaid diagram showing Tokio's architecture.
 
-📖 **[View Complete Case Study →](TOKIO-CASE-STUDY.md)**
+[View case study →](TOKIO-CASE-STUDY.md)
 
-## 🎯 The Problem We Solve
+## The Problem
 
-**The Discovery Bottleneck**: Finding your way around a new Rust codebase takes forever, while answering questions about it should be instant.
+Finding your way around a new Rust codebase takes time. Answering questions about it should be fast.
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e1f5fe', 'primaryTextColor':'#01579b', 'lineColor':'#0277bd', 'fontFamily':'Arial', 'fontSize':'14px'}}}%%
@@ -110,12 +110,12 @@ flowchart TD
     class K,L,M,N impact
 ```
 
-**Our Solution**: Parse once, query forever. Build an Interface Signature Graph that gives you:
-- **30-second complete entity discovery** (vs 5+ minutes before)
-- **Instant architectural impact analysis** with quantified risk levels
-- **Sub-millisecond deterministic queries** for any entity
+Build an Interface Signature Graph to:
+- Discover entities quickly
+- See architectural impact
+- Run sub-millisecond queries
 
-## 🎯 How You'll Use It
+## How You'll Use It
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e8f5e8', 'primaryTextColor':'#2e7d32', 'lineColor':'#4caf50', 'fontFamily':'Arial', 'fontSize':'13px'}, 'flowchart': {'nodeSpacing': 60, 'rankSpacing': 80, 'wrappingWidth': 140}}}%%
@@ -176,9 +176,9 @@ flowchart TD
     class E1,E2,E3 perf
 ```
 
-**The vibe**: Instead of hours of manual code exploration, get instant answers and make confident decisions.
+Instead of hours of manual code exploration, get quick answers and make decisions.
 
-## 💎 Why It Works
+## How It Works
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e8f5e8', 'primaryTextColor':'#2e7d32', 'lineColor':'#4caf50', 'fontFamily':'Arial', 'fontSize':'14px'}, 'flowchart': {'nodeSpacing': 75, 'rankSpacing': 75, 'wrappingWidth': 150}}}%%
@@ -236,24 +236,23 @@ flowchart TD
     class H,I,J,K implementation
 ```
 
-**Simple layers**: You get instant value (top) through smart tools (middle) built on solid engineering (bottom).
+You get value through tools built on engineering.
 
-## 🚀 What You Get
+## What You Get
 
-### Core Superpowers
-- **Ingest code in seconds** → Parse entire codebases instantly
-- **Ask questions instantly** → "Who uses this?" "What implements this?"
-- **See blast radius** → Know exactly what your changes will affect
-- **Generate visuals** → Beautiful architecture diagrams
-- **Export for AI** → Perfect context for LLM assistance
+- Parse code in seconds
+- Ask questions about your code
+- See what changes affect
+- Generate architecture diagrams
+- Export context for AI tools
 
-### Performance Promise
-- **Queries**: < 50μs (that's microseconds!)
-- **Ingestion**: < 5 seconds for large projects
-- **Memory**: Efficient graph storage
-- **Updates**: Real-time file monitoring < 12ms
+### Performance
+- Queries: < 50μs
+- Ingestion: < 5 seconds for large projects
+- Memory: Efficient graph storage
+- File monitoring: < 12ms updates
 
-## 📦 Installation
+## Installation
 
 ```bash
 git clone <repository>
@@ -261,7 +260,7 @@ cd parseltongue
 cargo build --release
 ```
 
-## 🚀 30-Second Demo
+## Demo
 
 See the system in action with the built-in example:
 ```bash
@@ -270,39 +269,39 @@ cargo run --example visualize_isg
 ```
 
 This demonstrates:
-- ✅ Code ingestion from `example_dump.txt`
-- ✅ ISG structure creation (4 nodes, 1 edge)
-- ✅ Graph queries (what-implements, blast-radius)
-- ✅ LLM context generation
-- ✅ Graphviz DOT export for visualization
+- Code ingestion from `example_dump.txt`
+- ISG structure creation (4 nodes, 1 edge)
+- Graph queries (what-implements, blast-radius)
+- Context generation
+- Graphviz DOT export
 
-## 🎯 Quick Start
+## Quick Start
 
-Try it out in 5 minutes:
+Try it out:
 
 ```bash
-# 1️⃣ Parse your code
+# Parse your code
 parseltongue ingest example_dump.txt
 
-# 2️⃣ Ask questions
+# Ask questions
 parseltongue query what-implements Display
 parseltongue query blast-radius main
 parseltongue generate-context User
 
-# 3️⃣ See the architecture
+# See the architecture
 parseltongue debug --graph
 parseltongue debug --dot > architecture.dot
 ```
 
-### What Each Command Does
-- `ingest` → Parses your code into a smart graph
-- `query what-implements` → Shows what implements a trait
-- `query blast-radius` → What will be affected by changes
-- `generate-context` → All the details about a specific thing
-- `debug --graph` → Shows the whole architecture
-- `debug --dot` → Export to Graphviz for pretty pictures
+### Commands
+- `ingest` - Parses code into a graph
+- `query what-implements` - Shows trait implementations
+- `query blast-radius` - Shows what changes affect
+- `generate-context` - Details about an entity
+- `debug --graph` - Shows architecture
+- `debug --dot` - Exports to Graphviz
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e8f5e8', 'primaryTextColor':'#2e7d32', 'lineColor':'#4caf50', 'fontFamily':'Arial', 'fontSize':'14px'}, 'flowchart': {'nodeSpacing': 75, 'rankSpacing': 75, 'wrappingWidth': 150}}}%%
@@ -376,9 +375,9 @@ flowchart TD
 - **CLI Interface**: Complete command-line interface with clap
 - **Persistence Layer**: JSON serialization with crash recovery
 
-### Validated Performance Contracts
+### Performance
 
-All performance targets are validated against real-world usage:
+Performance tested on real codebases:
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e8f5e8', 'primaryTextColor':'#2e7d32', 'lineColor':'#4caf50', 'fontFamily':'Arial', 'fontSize':'13px'}, 'flowchart': {'nodeSpacing': 70, 'rankSpacing': 70, 'wrappingWidth': 130}}}%%
@@ -442,7 +441,7 @@ flowchart TD
     class J,K,L summary
 ```
 
-**Performance Guarantee**: Every contract is validated against real codebases. We don't just claim performance - we prove it with actual measurements.
+Performance is measured on real codebases, not just claimed.
 
 ### Technical Stack
 - **Language**: Rust (100%)
@@ -453,9 +452,7 @@ flowchart TD
 - **CLI**: clap with derive macros
 - **Serialization**: serde with JSON format
 
-## 🧪 Testing
-
-The project maintains 97.5% test coverage with comprehensive TDD approach:
+## Testing
 
 ```bash
 # Run all tests
@@ -473,20 +470,17 @@ cargo test --lib cli      # CLI interface tests
 - **Performance Tests**: Timing constraint validation
 - **Concurrency Tests**: Thread safety verification
 
-## 📊 Performance Validation
-
-All performance contracts are automatically validated:
+## Performance Numbers
 
 ```bash
-# Performance test results
-Node operations: ~6μs ✅
-Simple queries: <500μs ✅
-Complex queries: <1ms ✅
-File updates: <12ms ✅
-Persistence: <500ms ✅
+Node operations: ~6μs
+Simple queries: <500μs
+Complex queries: <1ms
+File updates: <12ms
+Persistence: <500ms
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 - `RUST_LOG`: Set logging level (debug, info, warn, error)
@@ -516,7 +510,7 @@ Separators like `====` are automatically ignored.
 - **Partial Processing**: Continues analysis even with some file errors
 - **Error Reporting**: Clear error messages for debugging
 
-## 🎯 Real Examples
+## Examples
 
 ### Find trait implementations
 ```bash
@@ -541,30 +535,30 @@ parseltongue debug --graph
 parseltongue debug --dot > graph.dot
 ```
 
-## 💡 Who Uses It
+## Who Uses It
 
-- **Developers** → Navigate complex codebases instantly
-- **AI Assistants** → Get perfect context about your code
-- **Teams** → Onboard new members faster
-- **Architects** → Document and review designs
+- Developers navigating codebases
+- AI assistants needing code context
+- Teams onboarding members
+- Architects documenting systems
 
-## 🚀 Status
+## Status
 
-**Production Ready** ✅
-40/40 tests passing • Microsecond performance • Real-world tested
+Production ready
+53 tests passing • Microsecond performance • Tested on real codebases
 
-## 🛠️ Contributing
+## Contributing
 
-We do TDD here: RED → GREEN → REFACTOR
+TDD approach: RED → GREEN → REFACTOR
 
-## 📄 License
+## License
 
 MIT
 
-## 🙏 Built With
+## Built With
 
-Rust ecosystem ❤️ • petgraph • syn • clap • serde
+Rust, petgraph, syn, clap, serde
 
 ---
 
-**Chat with your Rust codebase** 🐍⚡
+Chat with your Rust codebase 🐍
