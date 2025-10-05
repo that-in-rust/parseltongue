@@ -96,6 +96,7 @@ parseltongue debug --mermaid
 ✅ **File Path Tracking:** Shows source location for each entity
 ✅ **Relationship Visualization:** Dashed arrows for trait implementations
 ✅ **Performance:** Sub-millisecond transformation contracts met
+📝 **Scale Note:** This example shows small-to-medium diagram rendering; very large diagrams (2,500+ nodes) may have browser limitations
 
 ---
 

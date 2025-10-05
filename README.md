@@ -34,7 +34,8 @@ One command generates diagrams:
 ```bash
 parseltongue ingest code.txt && parseltongue debug --mermaid
 # Creates: ISGMermaidYYYYMMDDHHSS.md and ISGMermaidYYYYMMDDHHSS.html
-# Supports large diagrams (20MB+ content) with optimized rendering
+# Supports large diagram generation (20MB+ content) with optimized rendering
+# Note: Very large diagrams (2,500+ nodes) may have browser rendering limitations
 ```
 
 ```mermaid
@@ -67,6 +68,7 @@ Parseltongue analyzed the Tokio async runtime (151,302 lines of code):
 ```
 
 Generated timestamped `.md` and `.html` files with optimized large-diagram support.
+*Note: The Tokio diagram contains 2,574 nodes and may exceed browser rendering capabilities in some browsers.*
 
 [View case study →](TOKIO-CASE-STUDY.md) | [See example diagram →](examples/diagrams/tokio-architecture-diagram.html)
 
@@ -292,7 +294,7 @@ parseltongue generate-context User
 
 # See the architecture
 parseltongue debug --graph
-parseltongue debug --mermaid  # Creates timestamped .md and .html files (optimized for large diagrams)
+parseltongue debug --mermaid  # Creates timestamped .md and .html files (optimized for large diagram generation; very large diagrams may have browser rendering limitations)
 parseltongue debug --dot > architecture.dot
 ```
 
@@ -302,7 +304,7 @@ parseltongue debug --dot > architecture.dot
 - `query blast-radius` - Shows what changes affect
 - `generate-context` - Details about an entity
 - `debug --graph` - Shows architecture
-- `debug --mermaid` - Creates timestamped .md and .html files (supports large diagrams)
+- `debug --mermaid` - Creates timestamped .md and .html files (supports large diagram generation; very large diagrams may have browser rendering limitations)
 - `debug --dot` - Exports to Graphviz
 
 ## Architecture
@@ -536,7 +538,7 @@ parseltongue generate-context EntityName --format json > context.json
 ### Make diagrams
 ```bash
 parseltongue debug --graph
-parseltongue debug --mermaid  # Creates timestamped .md and .html files (optimized for large diagrams)
+parseltongue debug --mermaid  # Creates timestamped .md and .html files (optimized for large diagram generation; very large diagrams may have browser rendering limitations)
 parseltongue debug --dot > graph.dot
 ```
 

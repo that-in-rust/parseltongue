@@ -78,11 +78,12 @@ Scale: 2,576 nodes, 106 edges
 
 ### Mermaid Architecture Diagram
 - GitHub-compatible Mermaid with proper code block formatting
-- Self-contained HTML with optimized large-diagram rendering
+- Self-contained HTML with optimized large-diagram generation (20MB+ content support)
 - Optimized spacing for better large graph layout
 - Timestamped files for organized workflow
 - Hierarchical layout showing crate relationships
 - **Interactive nodes** with file locations and types
+- *Note: The 2,574-node diagram may exceed browser rendering capabilities in some browsers*
 
 ### Diagram Highlights
 ```mermaid
@@ -98,6 +99,7 @@ flowchart TD
 ```
 
 [View complete Tokio architecture diagram →](examples/diagrams/tokio-architecture-diagram.html)
+*Note: Contains 2,574 nodes; may have rendering limitations in some browsers*
 
 ---
 
@@ -159,6 +161,7 @@ cargo build --release
 
 # 3. Generate Mermaid diagram (creates timestamped .md and .html files)
 ./target/release/parseltongue debug --mermaid
+# Note: Large diagrams generated successfully; browser rendering may vary by diagram size
 
 # 4. Execute queries
 ./target/release/parseltongue query what-implements TraitName
