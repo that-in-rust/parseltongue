@@ -137,10 +137,10 @@ flowchart TD
     %% Capability Layer - How we deliver
     subgraph "⚙️ Capability Layer: How We Deliver"
         direction TB
-        D["📋 Simple Entity<br/>Listing<br/><i>list-entities command</i>"]
-        E["📁 File-Centric<br/>Navigation<br/><i>entities-in-file, where-defined</i>"]
+        D["🔍 Graph Queries<br/><i>what-implements, blast-radius</i>"]
+        E["🎯 Context<br/>Generation<br/><i>generate-context command</i>"]
         F["💥 Readable Blast<br/>Radius<br/><i>Human names, not hashes</i>"]
-        G["🎭 Workflow<br/>Orchestration<br/><i>Shell script toolkit</i>"]
+        G["🎨 Visualization<br/>Export<br/><i>debug --graph, --dot</i>"]
     end
 
     %% Implementation Layer - Technical foundation
@@ -160,9 +160,9 @@ flowchart TD
 
     %% Implementation connections
     D --> H
-    E --> H
-    F --> I
-    G --> J
+    E --> I
+    F --> J
+    G --> K
 
     %% Foundation connections
     H --> K
@@ -213,84 +213,68 @@ This demonstrates:
 - ✅ LLM context generation
 - ✅ Graphviz DOT export for visualization
 
-## 🎯 Quick Start: Complete Developer Workflows
+## 🎯 Quick Start: Core Workflows
 
-Get results in minutes, not hours. Each workflow solves a complete job-to-be-done.
+Get results in minutes, not hours. Each workflow uses currently available commands.
 
-### 🚀 Workflow 1: Understand Unfamiliar Codebase (<15 minutes)
+### 🚀 Workflow 1: Analyze Codebase Structure (<5 minutes)
 ```bash
 # Step 1: Ingest the codebase (30 seconds)
 parseltongue ingest code_dump.txt
 
-# Step 2: Get architecture overview (2 minutes)
-parseltongue list-entities --type struct
-parseltongue list-entities --type trait
-parseltongue list-entities --type function
-
-# Step 3: Explore key relationships (10 minutes)
+# Step 2: Explore key relationships (2 minutes)
 parseltongue query what-implements Display
 parseltongue query blast-radius main
 parseltongue generate-context User
 
-# Result: Complete understanding of codebase structure and key entities
+# Step 3: Visualize the architecture (2 minutes)
+parseltongue debug --graph
+parseltongue debug --dot > architecture.dot
+
+# Result: Complete understanding of codebase structure and key relationships
 ```
 
-### 🎯 Workflow 2: Plan Feature Changes (<5 minutes)
+### 🎯 Workflow 2: Plan Feature Changes (<3 minutes)
 ```bash
 # Step 1: Analyze impact of your target entity (1 minute)
 parseltongue query blast-radius UserStruct
 parseltongue generate-context UserStruct --format json
 
-# Step 2: Identify risks and dependencies (2 minutes)
+# Step 2: Identify risks and dependencies (1 minute)
 parseltongue query what-implements Trait
 parseltongue query find-cycles
 
-# Step 3: Generate review checklist (2 minutes)
-parseltongue list-entities --type function --limit 20
+# Step 3: Generate review materials (1 minute)
 parseltongue debug --graph
+parseltongue generate-context TargetEntity --format json
 
 # Result: Risk assessment and complete change plan
 ```
 
-### 🐛 Workflow 3: Debug Without Breaking Things (<3 minutes)
+### 🐛 Workflow 3: Debug Entity Issues (<2 minutes)
 ```bash
-# Step 1: Trace function usage (1 minute)
+# Step 1: Analyze problematic entity (1 minute)
 parseltongue generate-context ProblemFunction
-parseltongue list-entities --type function | grep ProblemFunction
-
-# Step 2: Analyze caller impact (1 minute)
-parseltongue query blast-radius ProblemFunction
-parseltongue entities-in-file src/problem_file.rs
-
-# Step 3: Plan minimal fix (1 minute)
 parseltongue generate-context ProblemFunction --format json
 
-# Result: Surgical fix scope with zero collateral damage
-```
-
-### 🔧 Workflow 4: Refactor Safely (<3 minutes)
-```bash
-# Step 1: Assess refactoring risk (1 minute)
-parseltongue query blast-radius EntityToRefactor
+# Step 2: Check impact and dependencies (1 minute)
+parseltongue query blast-radius ProblemFunction
 parseltongue query what-implements RelatedTrait
 
-# Step 2: Generate reviewer guidance (1 minute)
-parseltongue generate-context EntityToRefactor --format json
-
-# Step 3: Create change checklist (1 minute)
-parseltongue debug --dot > refactor_scope.dot
-
-# Result: Complete refactoring plan with quantified risk levels
+# Result: Complete context for debugging with minimal risk
 ```
 
-### 📁 File-Based Discovery (Works with any workflow)
+### 🔧 Workflow 4: Architecture Documentation (<2 minutes)
 ```bash
-# Find entities in specific files
-parseltongue entities-in-file src/lib.rs
-parseltongue where-defined UserStruct
+# Step 1: Generate graph visualizations (1 minute)
+parseltongue debug --graph
+parseltongue debug --dot > current_architecture.dot
 
-# Monitor live changes
-parseltongue daemon --watch src/
+# Step 2: Analyze key relationships (1 minute)
+parseltongue query what-implements ImportantTrait
+parseltongue query find-cycles
+
+# Result: Complete architecture documentation and dependency analysis
 ```
 
 ## 🏗️ Architecture
