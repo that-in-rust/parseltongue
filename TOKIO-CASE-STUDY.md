@@ -84,6 +84,8 @@ Scale: 2,576 nodes, 106 edges
 - Hierarchical layout showing crate relationships
 - **Interactive nodes** with file locations and types
 
+[View interactive diagram →](examples/diagrams/tokio-architecture-diagram.html) | [View markdown version →](examples/diagrams/tokio-architecture-diagram.md)
+
 ### Diagram Highlights
 ```mermaid
 flowchart TD
