@@ -2,6 +2,15 @@
 
 **Rust-only architectural intelligence daemon** providing deterministic, graph-based code analysis with sub-millisecond query performance.
 
+## 🎯 The Problem We Solve
+
+**Rust Codebase Discovery Bottleneck**: Finding entity names and understanding architecture in unfamiliar codebases takes minutes to hours.
+
+**Our Solution**: Parse once, query forever. Build an Interface Signature Graph that gives you:
+- Complete entity discovery in milliseconds
+- Instant architectural impact analysis
+- Deterministic, sub-millisecond queries
+
 ## 🚀 Features
 
 - **Real-time File Monitoring**: Watch Rust codebases with <12ms update latency
@@ -19,35 +28,31 @@ cd parseltongue
 cargo build --release
 ```
 
+## 🚀 30-Second Demo
+
+See the system in action with the built-in example:
+```bash
+# Build and run the visualization example
+cargo run --example visualize_isg
+```
+
+This demonstrates:
+- ✅ Code ingestion from `example_dump.txt`
+- ✅ ISG structure creation (4 nodes, 1 edge)
+- ✅ Graph queries (what-implements, blast-radius)
+- ✅ LLM context generation
+- ✅ Graphviz DOT export for visualization
+
 ## 🎯 Quick Start
 
 ### Analyze a Code Dump
 ```bash
-# Create a code dump with FILE: markers
-echo 'FILE: src/lib.rs
-pub trait Greeter {
-    fn greet(&self) -> String;
-}
+# Using the provided example
+parseltongue ingest example_dump.txt
 
-pub struct Person {
-    name: String,
-}
-
-impl Greeter for Person {
-    fn greet(&self) -> String {
-        format!("Hello, {}", self.name)
-    }
-}
-
-================================================
-FILE: src/main.rs
-fn main() {
-    let person = Person { name: "World".to_string() };
-    println!("{}", person.greet());
-}' > code_dump.txt
-
-# Ingest and analyze
-parseltongue ingest code_dump.txt
+# Query the generated graph
+parseltongue query what-implements Display
+parseltongue generate-context User --format json
 ```
 
 ### Real-time Monitoring
@@ -85,13 +90,13 @@ parseltongue generate-context Person --format json
 - **CLI Interface**: Complete command-line interface with clap
 - **Persistence Layer**: JSON serialization with crash recovery
 
-### Performance Characteristics
-- **Node Operations**: ~6μs (excellent for production)
-- **Simple Queries**: <500μs
-- **Complex Queries**: <1ms
+### Validated Performance Characteristics
+- **Node Operations**: ~6μs (verified ✅)
+- **Simple Queries**: <500μs (verified ✅)
+- **Complex Queries**: <1ms (verified ✅)
 - **File Updates**: <12ms
-- **Code Ingestion**: <5s for large dumps
-- **Memory Usage**: Efficient with Arc<str> interning
+- **Code Ingestion**: <5s for large dumps (verified ✅)
+- **Memory Usage**: Efficient for real codebases
 
 ### Technical Stack
 - **Language**: Rust (100%)
@@ -142,10 +147,57 @@ Persistence: <500ms ✅
 - `PARSELTONGUE_SNAPSHOT_PATH`: Custom snapshot file location
 
 ### File Formats
-- **Input**: Code dumps with `FILE: <path>` markers (separator lines like `====` are automatically ignored)
+- **Input**: Code dumps use `FILE: path` markers:
+```
+FILE: src/lib.rs
+pub trait Display {
+    fn fmt(&self) -> String;
+}
+================================================
+FILE: src/main.rs
+fn main() {
+    // code
+}
+```
+Separators like `====` are automatically ignored.
+
 - **Output**: JSON or human-readable formats
 - **Persistence**: JSON snapshots for crash recovery
 - **Error Handling**: Malformed Rust files are logged and skipped, allowing processing to continue
+
+### Robust Processing
+- **Graceful Error Recovery**: Malformed files are logged and skipped
+- **Partial Processing**: Continues analysis even with some file errors
+- **Error Reporting**: Clear error messages for debugging
+
+## 🎯 Common Workflows
+
+### Understand Trait Implementations
+```bash
+# Ingest a codebase and find trait implementors
+parseltongue ingest codebase.txt
+parseltongue query what-implements Clone --format json
+```
+
+### Assess Change Impact
+```bash
+# Calculate blast radius for proposed changes
+parseltongue query blast-radius UserStruct
+parseltongue generate-context UserStruct
+```
+
+### Generate LLM Context
+```bash
+# Export context for AI code assistance
+parseltongue generate-context EntityName --format json > context.json
+```
+
+### Debug Architecture
+```bash
+# Visualize the graph structure
+parseltongue debug --graph
+parseltongue debug --dot > graph.dot
+```
 
 ## 🎯 Use Cases
 
@@ -185,7 +237,7 @@ This project follows Test-Driven Development (TDD):
 
 ## 📄 License
 
-[Add your license here]
+MIT License - see LICENSE file for details.
 
 ## 🙏 Acknowledgments
 
