@@ -84,6 +84,72 @@ parseltongue generate-context Person --format json
 
 ## 🏗️ Architecture
 
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e8f5e8', 'primaryTextColor':'#2e7d32', 'lineColor':'#4caf50', 'fontFamily':'Arial', 'fontSize':'14px'}, 'flowchart': {'nodeSpacing': 75, 'rankSpacing': 75, 'wrappingWidth': 150}}}%%
+flowchart TD
+    %% Input Layer
+    subgraph "📥 Input Layer"
+        direction LR
+        A1["📄 Code Dumps<br/><i>FILE: markers</i>"]
+        A2["📁 Live Files<br/><i>File monitoring</i>"]
+        A3["⚡ CLI Commands<br/><i>Interactive queries</i>"]
+    end
+
+    %% Core Processing
+    subgraph "⚙️ Core Processing"
+        direction TB
+        B1["🧠 syn Parser<br/><i>Rust AST analysis</i>"]
+        B1 --> B2["🏗️ OptimizedISG<br/><i>Graph construction</i>"]
+        B2 --> B3["🔍 Query Engine<br/><i>Sub-millisecond lookups</i>"]
+    end
+
+    %% Storage & Persistence
+    subgraph "💾 Storage Layer"
+        direction LR
+        C1["📊 In-Memory Graph<br/><i>StableDiGraph + RwLock</i>"]
+        C2["💿 JSON Snapshots<br/><i>Crash recovery</i>"]
+        C3["🎯 Index Maps<br/><i>O(1) hash lookups</i>"]
+    end
+
+    %% Output Interfaces
+    subgraph "📤 Output Interfaces"
+        direction LR
+        D1["📋 CLI Results<br/><i>Human & JSON formats</i>"]
+        D2["🎨 Graphviz DOT<br/><i>Visualization export</i>"]
+        D3["🤖 LLM Context<br/><i>Structured JSON</i>"]
+    end
+
+    %% Connections
+    A1 --> B1
+    A2 --> B1
+    A3 --> B3
+
+    B1 --> B2
+    B2 --> B3
+
+    B2 --> C1
+    B2 --> C2
+    B2 --> C3
+
+    B3 --> D1
+    B3 --> D2
+    B3 --> D3
+
+    C1 -.-> B3
+    C2 -.-> B2
+
+    %% Styling
+    classDef input fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#0d47a1
+    classDef core fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#1b5e20
+    classDef storage fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100
+    classDef output fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#880e4f
+
+    class A1,A2,A3 input
+    class B1,B2,B3 core
+    class C1,C2,C3 storage
+    class D1,D2,D3 output
+```
+
 ### Core Components
 - **OptimizedISG**: High-performance Interface Signature Graph using petgraph + parking_lot
 - **ParseltongueAIM**: Main daemon with file monitoring and code parsing
@@ -91,6 +157,39 @@ parseltongue generate-context Person --format json
 - **Persistence Layer**: JSON serialization with crash recovery
 
 ### Validated Performance Characteristics
+
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#f3e5f5', 'primaryTextColor':'#7b1fa2', 'lineColor':'#9c27b0', 'fontFamily':'Arial', 'fontSize':'12px'}, 'flowchart': {'nodeSpacing': 50, 'rankSpacing': 60, 'wrappingWidth': 120}}}%%
+flowchart LR
+    %% Performance Tiers
+    subgraph "⚡ Microsecond Operations"
+        direction TB
+        P1["🏗️ Node Ops<br/><b>~6μs</b><br/>Graph construction"]
+        P2["🔍 Simple Queries<br/><b>&lt;500μs</b><br/>Entity lookups"]
+        P3["📊 Complex Queries<br/><b>&lt;1ms</b><br/>Blast radius"]
+    end
+
+    subgraph "📁 File Operations"
+        direction TB
+        P4["📝 File Updates<br/><b>&lt;12ms</b><br/>Real-time monitoring"]
+        P5["📥 Code Ingestion<br/><b>&lt;5s</b><br/>Large codebases"]
+    end
+
+    subgraph "💾 Memory Efficiency"
+        direction TB
+        P6["🎯 Compact Storage<br/><b>Arc&lt;str&gt;</b><br/>String interning"]
+    end
+
+    %% Styling
+    classDef micro fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#1b5e20
+    classDef file fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#0d47a1
+    classDef memory fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#e65100
+
+    class P1,P2,P3 micro
+    class P4,P5 file
+    class P6 memory
+```
+
 - **Node Operations**: ~6μs (verified ✅)
 - **Simple Queries**: <500μs (verified ✅)
 - **Complex Queries**: <1ms (verified ✅)
@@ -172,6 +271,51 @@ Separators like `====` are automatically ignored.
 
 ## 🎯 Common Workflows
 
+```mermaid
+%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e1f5fe', 'primaryTextColor':'#01579b', 'lineColor':'#0277bd', 'fontFamily':'Arial', 'fontSize':'13px'}, 'flowchart': {'nodeSpacing': 60, 'rankSpacing': 80, 'wrappingWidth': 140}}}%%
+flowchart TD
+    %% Workflow 1: Trait Analysis
+    subgraph "🔍 Trait Implementation Analysis"
+        direction TB
+        W1A["📄 Ingest Codebase<br/><i>parseltongue ingest code.txt</i>"]
+        W1A --> W1B["🎯 Query Implementors<br/><i>query what-implements Trait</i>"]
+        W1B --> W1C["📊 Get Results<br/><i>JSON or human format</i>"]
+    end
+
+    %% Workflow 2: Impact Analysis
+    subgraph "💥 Change Impact Analysis"
+        direction TB
+        W2A["🎯 Select Entity<br/><i>UserStruct, Function</i>"]
+        W2A --> W2B["📈 Calculate Blast Radius<br/><i>query blast-radius Entity</i>"]
+        W2B --> W2C["📋 Generate Context<br/><i>generate-context Entity</i>"]
+    end
+
+    %% Workflow 3: LLM Integration
+    subgraph "🤖 LLM Context Generation"
+        direction TB
+        W3A["📋 Analyze Entity<br/><i>Function, Struct, Trait</i>"]
+        W3A --> W3B["📄 Export JSON Context<br/><i>--format json</i>"]
+        W3B --> W3C["🔗 Send to LLM<br/><i>Zero-hallucination context</i>"]
+    end
+
+    %% Workflow 4: Visualization
+    subgraph "🎨 Graph Visualization"
+        direction TB
+        W4A["🔍 Debug Graph<br/><i>debug --graph</i>"]
+        W4A --> W4B["📐 Export DOT Format<br/><i>debug --dot</i>"]
+        W4B --> W4C["🎯 Generate Visualization<br/><i>Graphviz + DOT</i>"]
+    end
+
+    %% Styling
+    classDef workflow fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+    classDef process fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#0d47a1
+    classDef output fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100
+
+    class W1A,W2A,W3A,W4A workflow
+    class W1B,W2B,W3B,W4B process
+    class W1C,W2C,W3C,W4C output
+```
+
 ### Understand Trait Implementations
 ```bash
 # Ingest a codebase and find trait implementors
@@ -238,6 +382,11 @@ This project follows Test-Driven Development (TDD):
 ## 📄 License
 
 MIT License - see LICENSE file for details.
+
+## 📊 Documentation
+
+- **Comprehensive Mermaid Reference**: See [docs/mermaid-reference.md](docs/mermaid-reference.md) for expert-level Mermaid diagram creation guidelines
+- **Architecture Analysis**: Detailed project evolution analysis in [analysis/](analysis/) directory
 
 ## 🙏 Acknowledgments
 
