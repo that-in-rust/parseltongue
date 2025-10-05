@@ -1,4 +1,4 @@
-# Parseltongue AIM Daemon
+# 🐍 Parseltongue
 
 **Rust-only architectural intelligence daemon** providing deterministic, graph-based code analysis with sub-millisecond query performance.
 
@@ -49,79 +49,70 @@ flowchart TD
 - **Instant architectural impact analysis** with quantified risk levels
 - **Sub-millisecond deterministic queries** for any entity
 
-## 🎯 Complete Developer Workflows
+## 🎯 How You'll Use It
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e8f5e8', 'primaryTextColor':'#2e7d32', 'lineColor':'#4caf50', 'fontFamily':'Arial', 'fontSize':'13px'}, 'flowchart': {'nodeSpacing': 60, 'rankSpacing': 80, 'wrappingWidth': 140}}}%%
 flowchart TD
-    %% JTBD 1: Onboarding
-    subgraph "🎯 JTBD 1: Understand Unfamiliar Codebase"
+    %% Use Case 1: Onboarding
+    subgraph "🚀 Onboard to New Codebase"
         direction TB
-        A1["🚀 pt onboard<br/><i>Target: &lt;15 minutes</i>"]
-        A1 --> A2["🏗️ Architecture Overview<br/><i>Entity types & counts</i>"]
-        A2 --> A3["🗺️ Key Routes & Contexts<br/><i>Entry points & patterns</i>"]
-        A3 --> A4["✅ Ready to Develop<br/><i>Confident navigation</i>"]
+        A1["📄 Parse code<br/><i>parseltongue ingest</i>"]
+        A1 --> A2["🎯 Ask questions<br/><i>what-implements, blast-radius</i>"]
+        A2 --> A3["🏗️ See architecture<br/><i>debug --graph</i>"]
+        A3 --> A4["✅ Ready to code<br/><i>Confident navigation</i>"]
     end
 
-    %% JTBD 2: Feature Planning
-    subgraph "🎯 JTBD 2: Plan Feature Without Breaking Things"
+    %% Use Case 2: Feature Planning
+    subgraph "💻 Plan Changes Safely"
         direction TB
-        B1["🎯 pt feature-start EntityName<br/><i>Target: &lt;5 minutes</i>"]
-        B1 --> B2["📊 Impact Analysis<br/><i>Blast radius calculation</i>"]
-        B2 --> B3["⚠️ Risk Assessment<br/><i>Low/Medium/High/Critical</i>"]
-        B3 --> B4["🧪 Test Strategy<br/><i>Coverage recommendations</i>"]
+        B1["🎯 Pick your target<br/><i>Entity to change</i>"]
+        B1 --> B2["📈 Check impact<br/><i>blast-radius</i>"]
+        B2 --> B3["⚠️ Assess risks<br/><i>dependencies & callers</i>"]
+        B3 --> B4["🧪 Make changes<br/><i>With confidence</i>"]
     end
 
-    %% JTBD 3: Debugging
-    subgraph "🎯 JTBD 3: Debug Without Creating New Issues"
+    %% Use Case 3: Debugging
+    subgraph "🐛 Debug Without Fear"
         direction TB
-        C1["🐛 pt debug FunctionName<br/><i>Target: &lt;3 minutes</i>"]
-        C1 --> C2["📞 Caller Traces<br/><i>Who calls this function</i>"]
-        C2 --> C3["📍 Usage Sites<br/><i>Where it's used</i>"]
-        C3 --> C4["🎯 Minimal Change Scope<br/><i>Surgical fixes only</i>"]
+        C1["🔍 Find problem<br/><i>Function/struct</i>"]
+        C1 --> C2["📞 See who calls it<br/><i>generate-context</i>"]
+        C2 --> C3["📍 Understand scope<br/><i>Blast radius</i>"]
+        C3 --> C4["🎯 Fix precisely<br/><i>No collateral damage</i>"]
     end
 
-    %% JTBD 4: Refactoring
-    subgraph "🎯 JTBD 4: Refactor Safely"
+    %% Use Case 4: Documentation
+    subgraph "📚 Document Architecture"
         direction TB
-        D1["🔧 pt refactor-check EntityName<br/><i>Target: &lt;3 minutes</i>"]
-        D1 --> D2["📈 Risk Categorization<br/><i>Quantified impact levels</i>"]
-        D2 --> D3["📋 Change Checklist<br/><i>Step-by-step guidance</i>"]
-        D3 --> D4["👥 Reviewer Guidance<br/><i>What to focus on</i>"]
+        D1["🏗️ Get structure<br/><i>debug --graph</i>"]
+        D1 --> D2["🎨 Create visuals<br/><i>debug --dot</i>"]
+        D2 --> D3["📋 Generate docs<br/><i>generate-context</i>"]
+        D3 --> D4["👥 Share with team<br/><i>Clear diagrams</i>"]
     end
 
-    %% Success metrics
-    subgraph "📊 Workflow Success Metrics"
+    %% Performance note
+    subgraph "⚡ All queries < 50μs"
         direction LR
-        E1["Onboarding: 88s ✅<br/><i>Axum framework</i>"]
-        E2["Feature Planning: <5min ✅<br/><i>Impact analysis</i>"]
-        E3["Debug Analysis: <3min ✅<br/><i>Caller traces</i>"]
-        E4["Refactor Safety: 95% ✅<br/><i>No regressions</i>"]
+        E1["🚀 Instant answers"]
+        E2["💨 Fast iteration"]
+        E3["🎯 Stay in flow"]
     end
-
-    %% Connect workflows to metrics
-    A4 -.-> E1
-    B4 -.-> E2
-    C4 -.-> E3
-    D4 -.-> E4
 
     %% Styling
-    classDef workflow fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+    classDef usecase fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
     classDef process fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#0d47a1
     classDef outcome fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100
-    classDef metrics fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
+    classDef perf fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
 
-    class A1,B1,C1,D1 workflow
+    class A1,B1,C1,D1 usecase
     class A2,A3,B2,B3,C2,C3,D2,D3 process
     class A4,B4,C4,D4 outcome
-    class E1,E2,E3,E4 metrics
+    class E1,E2,E3 perf
 ```
 
-**The Breakthrough**: Complete developer workflows, not just individual commands. Each workflow solves an entire job-to-be-done in minutes, not hours.
+**The vibe**: Instead of hours of manual code exploration, get instant answers and make confident decisions.
 
-## 💎 Discovery-First Value (Minto Pyramid)
-
-We invert the traditional technical hierarchy to deliver immediate user value:
+## 💎 Why It Works
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e8f5e8', 'primaryTextColor':'#2e7d32', 'lineColor':'#4caf50', 'fontFamily':'Arial', 'fontSize':'14px'}, 'flowchart': {'nodeSpacing': 75, 'rankSpacing': 75, 'wrappingWidth': 150}}}%%
@@ -179,16 +170,22 @@ flowchart TD
     class H,I,J,K implementation
 ```
 
-**Value Promise → Capability → Implementation**: Every feature delivers immediate user value (PMF layer) through clear capabilities, built on a robust technical foundation.
+**Simple layers**: You get instant value (top) through smart tools (middle) built on solid engineering (bottom).
 
-## 🚀 Core Capabilities
+## 🚀 What You Get
 
-- **Real-time File Monitoring**: Watch Rust codebases with <12ms update latency
-- **Code Dump Analysis**: Process large code dumps in <5 seconds
-- **Graph-based Queries**: Sub-millisecond architectural queries
-- **LLM Integration**: Generate structured context for AI code assistance
-- **High Performance**: 6μs node operations, concurrent-safe architecture
-- **Production Ready**: Comprehensive error handling and crash recovery
+### Core Superpowers
+- **Ingest code in seconds** → Parse entire codebases instantly
+- **Ask questions instantly** → "Who uses this?" "What implements this?"
+- **See blast radius** → Know exactly what your changes will affect
+- **Generate visuals** → Beautiful architecture diagrams
+- **Export for AI** → Perfect context for LLM assistance
+
+### Performance Promise
+- **Queries**: < 50μs (that's microseconds!)
+- **Ingestion**: < 5 seconds for large projects
+- **Memory**: Efficient graph storage
+- **Updates**: Real-time file monitoring < 12ms
 
 ## 📦 Installation
 
@@ -213,69 +210,31 @@ This demonstrates:
 - ✅ LLM context generation
 - ✅ Graphviz DOT export for visualization
 
-## 🎯 Quick Start: Core Workflows
+## 🎯 Quick Start
 
-Get results in minutes, not hours. Each workflow uses currently available commands.
+Try it out in 5 minutes:
 
-### 🚀 Workflow 1: Analyze Codebase Structure (<5 minutes)
 ```bash
-# Step 1: Ingest the codebase (30 seconds)
-parseltongue ingest code_dump.txt
+# 1️⃣ Parse your code
+parseltongue ingest example_dump.txt
 
-# Step 2: Explore key relationships (2 minutes)
+# 2️⃣ Ask questions
 parseltongue query what-implements Display
 parseltongue query blast-radius main
 parseltongue generate-context User
 
-# Step 3: Visualize the architecture (2 minutes)
+# 3️⃣ See the architecture
 parseltongue debug --graph
 parseltongue debug --dot > architecture.dot
-
-# Result: Complete understanding of codebase structure and key relationships
 ```
 
-### 🎯 Workflow 2: Plan Feature Changes (<3 minutes)
-```bash
-# Step 1: Analyze impact of your target entity (1 minute)
-parseltongue query blast-radius UserStruct
-parseltongue generate-context UserStruct --format json
-
-# Step 2: Identify risks and dependencies (1 minute)
-parseltongue query what-implements Trait
-parseltongue query find-cycles
-
-# Step 3: Generate review materials (1 minute)
-parseltongue debug --graph
-parseltongue generate-context TargetEntity --format json
-
-# Result: Risk assessment and complete change plan
-```
-
-### 🐛 Workflow 3: Debug Entity Issues (<2 minutes)
-```bash
-# Step 1: Analyze problematic entity (1 minute)
-parseltongue generate-context ProblemFunction
-parseltongue generate-context ProblemFunction --format json
-
-# Step 2: Check impact and dependencies (1 minute)
-parseltongue query blast-radius ProblemFunction
-parseltongue query what-implements RelatedTrait
-
-# Result: Complete context for debugging with minimal risk
-```
-
-### 🔧 Workflow 4: Architecture Documentation (<2 minutes)
-```bash
-# Step 1: Generate graph visualizations (1 minute)
-parseltongue debug --graph
-parseltongue debug --dot > current_architecture.dot
-
-# Step 2: Analyze key relationships (1 minute)
-parseltongue query what-implements ImportantTrait
-parseltongue query find-cycles
-
-# Result: Complete architecture documentation and dependency analysis
-```
+### What Each Command Does
+- `ingest` → Parses your code into a smart graph
+- `query what-implements` → Shows what implements a trait
+- `query blast-radius` → What will be affected by changes
+- `generate-context` → All the details about a specific thing
+- `debug --graph` → Shows the whole architecture
+- `debug --dot` → Export to Graphviz for pretty pictures
 
 ## 🏗️ Architecture
 
@@ -491,135 +450,55 @@ Separators like `====` are automatically ignored.
 - **Partial Processing**: Continues analysis even with some file errors
 - **Error Reporting**: Clear error messages for debugging
 
-## 🎯 Common Workflows
+## 🎯 Real Examples
 
-```mermaid
-%%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e1f5fe', 'primaryTextColor':'#01579b', 'lineColor':'#0277bd', 'fontFamily':'Arial', 'fontSize':'13px'}, 'flowchart': {'nodeSpacing': 60, 'rankSpacing': 80, 'wrappingWidth': 140}}}%%
-flowchart TD
-    %% Workflow 1: Trait Analysis
-    subgraph "🔍 Trait Implementation Analysis"
-        direction TB
-        W1A["📄 Ingest Codebase<br/><i>parseltongue ingest code.txt</i>"]
-        W1A --> W1B["🎯 Query Implementors<br/><i>query what-implements Trait</i>"]
-        W1B --> W1C["📊 Get Results<br/><i>JSON or human format</i>"]
-    end
-
-    %% Workflow 2: Impact Analysis
-    subgraph "💥 Change Impact Analysis"
-        direction TB
-        W2A["🎯 Select Entity<br/><i>UserStruct, Function</i>"]
-        W2A --> W2B["📈 Calculate Blast Radius<br/><i>query blast-radius Entity</i>"]
-        W2B --> W2C["📋 Generate Context<br/><i>generate-context Entity</i>"]
-    end
-
-    %% Workflow 3: LLM Integration
-    subgraph "🤖 LLM Context Generation"
-        direction TB
-        W3A["📋 Analyze Entity<br/><i>Function, Struct, Trait</i>"]
-        W3A --> W3B["📄 Export JSON Context<br/><i>--format json</i>"]
-        W3B --> W3C["🔗 Send to LLM<br/><i>Zero-hallucination context</i>"]
-    end
-
-    %% Workflow 4: Visualization
-    subgraph "🎨 Graph Visualization"
-        direction TB
-        W4A["🔍 Debug Graph<br/><i>debug --graph</i>"]
-        W4A --> W4B["📐 Export DOT Format<br/><i>debug --dot</i>"]
-        W4B --> W4C["🎯 Generate Visualization<br/><i>Graphviz + DOT</i>"]
-    end
-
-    %% Styling
-    classDef workflow fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
-    classDef process fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#0d47a1
-    classDef output fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100
-
-    class W1A,W2A,W3A,W4A workflow
-    class W1B,W2B,W3B,W4B process
-    class W1C,W2C,W3C,W4C output
-```
-
-### Understand Trait Implementations
+### Find trait implementations
 ```bash
-# Ingest a codebase and find trait implementors
 parseltongue ingest codebase.txt
 parseltongue query what-implements Clone --format json
 ```
 
-### Assess Change Impact
+### Check change impact
 ```bash
-# Calculate blast radius for proposed changes
 parseltongue query blast-radius UserStruct
 parseltongue generate-context UserStruct
 ```
 
-### Generate LLM Context
+### Export for AI
 ```bash
-# Export context for AI code assistance
 parseltongue generate-context EntityName --format json > context.json
 ```
 
-### Debug Architecture
+### Make diagrams
 ```bash
-# Visualize the graph structure
 parseltongue debug --graph
 parseltongue debug --dot > graph.dot
 ```
 
-## 🎯 Use Cases
+## 💡 Who Uses It
 
-### For Developers
-- **Code Navigation**: Understand complex Rust codebases quickly
-- **Impact Analysis**: Assess blast radius of proposed changes
-- **Architecture Review**: Validate trait implementations and dependencies
-- **Refactoring**: Safe code restructuring with dependency analysis
-- **Robust Processing**: Handles malformed files gracefully without stopping analysis
+- **Developers** → Navigate complex codebases instantly
+- **AI Assistants** → Get perfect context about your code
+- **Teams** → Onboard new members faster
+- **Architects** → Document and review designs
 
-### For AI/LLM Integration
-- **Context Generation**: Provide accurate architectural context to AI tools
-- **Code Assistance**: Enable AI to understand project structure
-- **Documentation**: Generate architectural summaries automatically
-
-### For Teams
-- **Code Reviews**: Architectural impact assessment
-- **Onboarding**: Help new team members understand codebase structure
-- **Technical Debt**: Identify circular dependencies and architectural issues
-
-## 🚦 Status
+## 🚀 Status
 
 **Production Ready** ✅
-- All MVP requirements completed
-- Comprehensive test coverage (40/40 tests passing)
-- Performance validated against all constraints
-- Error handling and edge cases covered
-- Real-world usage tested
-- Resilient parsing with graceful error recovery
+40/40 tests passing • Microsecond performance • Real-world tested
 
-## 🤝 Contributing
+## 🛠️ Contributing
 
-This project follows Test-Driven Development (TDD):
-1. Write failing tests first (RED)
-2. Implement minimal functionality (GREEN)
-3. Refactor and optimize (REFACTOR)
+We do TDD here: RED → GREEN → REFACTOR
 
 ## 📄 License
 
-MIT License - see LICENSE file for details.
+MIT
 
-## 📊 Documentation
+## 🙏 Built With
 
-- **Comprehensive Mermaid Reference**: See [docs/mermaid-reference.md](docs/mermaid-reference.md) for expert-level Mermaid diagram creation guidelines
-- **Architecture Analysis**: Detailed project evolution analysis in [analysis/](analysis/) directory
-
-## 🙏 Acknowledgments
-
-Built with the excellent Rust ecosystem:
-- [petgraph](https://github.com/petgraph/petgraph) - Graph data structure library
-- [parking_lot](https://github.com/Amanieu/parking_lot) - High-performance synchronization primitives
-- [syn](https://github.com/dtolnay/syn) - Rust syntax tree parsing
-- [notify](https://github.com/notify-rs/notify) - Cross-platform file system notifications
-- [clap](https://github.com/clap-rs/clap) - Command line argument parser
-- [serde](https://github.com/serde-rs/serde) - Serialization framework
+Rust ecosystem ❤️ • petgraph • syn • clap • serde
 
 ---
 
-**Parseltongue AIM Daemon** - Deterministic architectural intelligence for Rust codebases 🐍⚡
+**Chat with your Rust codebase** 🐍⚡
