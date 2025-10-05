@@ -228,3 +228,8 @@ graph.dot
 *.dump
 parseltongue_snapshot.json
 data/_refTestDataAsLibraryTxt/
+
+# Generated diagram files (timestamped)
+ISGMermaid*.md
+ISGMermaid*.html
+tokio-architecture-diagram.md

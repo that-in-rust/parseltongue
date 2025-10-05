@@ -7,6 +7,7 @@ use crate::isg::ISGError;
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 use std::time::Instant;
+use chrono::Utc;
 
 #[derive(Parser)]
 #[command(name = "parseltongue")]
@@ -289,7 +290,26 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 println!("{}", daemon.isg.export_dot());
             } else if mermaid {
                 // Export current ISG to Mermaid format
-                println!("{}", crate::mermaid_export::export_isg_to_mermaid(&daemon.isg));
+                let mermaid_content = crate::mermaid_export::export_isg_to_mermaid(&daemon.isg);
+
+                // Check if output is being redirected to a file
+                if !atty::is(atty::Stream::Stdout) {
+                    // File redirect detected - generate both .md and .html files
+                    let timestamp = Utc::now().format("%Y%m%d%H%M%S");
+                    let md_file = format!("ISGMermaid{}.md", timestamp);
+                    let html_file = format!("ISGMermaid{}.html", timestamp);
+
+                    // Create .md with proper markdown wrapper
+                    crate::mermaid_export::create_markdown_file(&md_file, &mermaid_content);
+
+                    // Create .html with embedded Mermaid.js
+                    crate::mermaid_export::create_html_file(&html_file, &mermaid_content);
+
+                    eprintln!("Generated: {} and {}", md_file, html_file);
+                } else {
+                    // Console output - keep current behavior
+                    println!("{}", mermaid_content);
+                }
             } else {
                 println!("Use --graph to see ISG structure, --dot for Graphviz export, --mermaid for GitHub export, or --sample for learning example");
             }

@@ -24,6 +24,7 @@ use std::fmt::Write;
 use std::sync::Arc;
 use petgraph::visit::IntoEdgeReferences;
 use petgraph::visit::EdgeRef;
+use std::fs;
 
 /// Main export function - transforms ISG to Mermaid flowchart
 ///
@@ -69,6 +70,78 @@ pub fn export_isg_to_mermaid(isg: &OptimizedISG) -> String {
     }
 
     output
+}
+
+/// Creates a markdown file with proper Mermaid code block formatting
+///
+/// # Preconditions
+/// - mermaid_content contains valid Mermaid syntax
+/// - filename is a valid path
+///
+/// # Postconditions
+/// - File created with proper markdown code block wrapper
+/// - GitHub-compatible format for diagram rendering
+pub fn create_markdown_file(filename: &str, mermaid_content: &str) {
+    let markdown = format!(
+        "# ISG Architecture Diagram\n\n```mermaid\n{}\n```",
+        mermaid_content
+    );
+
+    fs::write(filename, markdown).unwrap_or_else(|e| {
+        eprintln!("Failed to create markdown file {}: {}", filename, e);
+    });
+}
+
+/// Creates an HTML file with embedded Mermaid.js for immediate viewing
+///
+/// # Preconditions
+/// - mermaid_content contains valid Mermaid syntax
+/// - filename is a valid path
+///
+/// # Postconditions
+/// - Self-contained HTML file created
+/// - Diagram renders immediately in any modern browser
+/// - No external dependencies except CDN-hosted Mermaid.js
+pub fn create_html_file(filename: &str, mermaid_content: &str) {
+    let html = format!(r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISG Architecture Diagram</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }}
+        .mermaid {{
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }}
+        h1 {{
+            color: #333;
+            text-align: center;
+        }}
+    </style>
+</head>
+<body>
+    <h1>ISG Architecture Diagram</h1>
+    <div class="mermaid">
+{}
+    </div>
+    <script>
+        mermaid.initialize({{ startOnLoad: true }});
+    </script>
+</body>
+</html>"#, mermaid_content);
+
+    fs::write(filename, html).unwrap_or_else(|e| {
+        eprintln!("Failed to create HTML file {}: {}", filename, e);
+    });
 }
 
 /// Renders a single node with Mermaid syntax and type-specific styling

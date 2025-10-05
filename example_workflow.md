@@ -78,8 +78,8 @@ parseltongue ingest example_test_dump.txt
 # Step 2: View ISG structure (optional)
 parseltongue debug --graph
 
-# Step 3: Export to Mermaid diagram
-parseltongue debug --mermaid > architecture.md
+# Step 3: Export to Mermaid diagram (creates timestamped .md and .html files)
+parseltongue debug --mermaid
 ```
 
 ### Performance
