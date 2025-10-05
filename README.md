@@ -4,34 +4,34 @@
 
 ## 🎯 The Problem We Solve
 
-**The Discovery Bottleneck**: Finding entity names and understanding architecture in unfamiliar Rust codebases takes minutes to hours, creating a 300,000:1 inefficiency ratio between discovery time and query execution.
+**The Discovery Bottleneck**: Finding your way around a new Rust codebase takes forever, while answering questions about it should be instant.
 
 ```mermaid
 %%{init: {'theme':'base', 'themeVariables': {'primaryColor':'#e1f5fe', 'primaryTextColor':'#01579b', 'lineColor':'#0277bd', 'fontFamily':'Arial', 'fontSize':'14px'}}}%%
 flowchart TD
     subgraph "❌ The Discovery Bottleneck"
         direction TB
-        A["🔍 New Codebase<br/>Unknown entities"]
-        A --> B["⏱️ 5+ Minutes<br/>Finding entity names"]
-        B --> C["⚡ 1 Microsecond<br/>Query execution"]
-        C --> D["🔄 Repeat for<br/>Every entity"]
-        D --> E["😤 Frustration<br/>300,000:1 ratio"]
+        A["🔍 New Codebase<br/>Where to start?"]
+        A --> B["⏱️ Hours exploring<br/>Finding what you need"]
+        B --> C["⚡ Queries take<br/>Microseconds"]
+        C --> D["🔄 Context switching<br/>Kills focus"]
+        D --> E["😤 Frustration<br/>Slow progress"]
     end
 
     subgraph "✅ Parseltongue Solution"
         direction TB
         F["🔍 New Codebase<br/>Same complexity"]
-        F --> G["🚀 30 Seconds<br/>Complete entity discovery"]
-        G --> H["⚡ Instant Analysis<br/>& Planning"]
-        H --> I["💪 Confident<br/>Development"]
-        I --> J["🎯 10x Faster<br/>Developer workflows"]
+        F --> G["🚀 Quick overview<br/>See the structure"]
+        G --> H["⚡ Ask questions<br/>Get instant answers"]
+        H --> I["💪 Code with confidence<br/>Know what affects what"]
+        I --> J["🎯 Stay in flow<br/>No more rabbit holes"]
     end
 
     %% Performance comparison
-    subgraph "📊 Performance Impact"
+    subgraph "📊 Before & After"
         direction LR
-        K["Before: 5+ min discovery"] --> L["After: 30s discovery"]
-        M["300,000:1 inefficiency"] --> N["1:1 optimal ratio"]
+        K["Before: Hours exploring"] --> L["After: Minutes understanding"]
+        M["Context switching"] --> N["Stay in flow"]
     end
 
     %% Styling
