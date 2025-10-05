@@ -68,9 +68,7 @@ Parseltongue analyzed the Tokio async runtime (151,302 lines of code):
 
 Generated timestamped `.md` and `.html` files with optimized large-diagram support.
 
-[View example diagram →](examples/diagrams/tokio-architecture-diagram.html)
-
-[View case study →](TOKIO-CASE-STUDY.md)
+[View case study →](TOKIO-CASE-STUDY.md) | [See example diagram →](examples/diagrams/tokio-architecture-diagram.html)
 
 ## The Problem
 
