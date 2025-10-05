@@ -221,3 +221,10 @@ out/
 
 # Dependency cache
 .cargo/
+
+# Parseltongue-specific
+visualize_isg
+graph.dot
+*.dump
+parseltongue_snapshot.json
+data/_refTestDataAsLibraryTxt/

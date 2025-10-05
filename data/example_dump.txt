@@ -1,0 +1,27 @@
+FILE: src/lib.rs
+pub struct User {
+    pub name: String,
+    pub age: u32,
+}
+
+pub trait Display {
+    fn fmt(&self) -> String;
+}
+
+impl Display for User {
+    fn fmt(&self) -> String {
+        format!("{} (age {})", self.name, self.age)
+    }
+}
+
+pub fn create_user(name: String, age: u32) -> User {
+    User { name, age }
+}
+
+FILE: src/main.rs
+use crate::*;
+
+fn main() {
+    let user = create_user("Alice".to_string(), 30);
+    println!("{}", user.fmt());
+}
