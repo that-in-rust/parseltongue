@@ -229,7 +229,10 @@ graph.dot
 parseltongue_snapshot.json
 data/_refTestDataAsLibraryTxt/
 
-# Generated diagram files (timestamped)
+# Generated diagram files (timestamped) - exclude from root only
 ISGMermaid*.md
 ISGMermaid*.html
 tokio-architecture-diagram.md
+
+# But allow examples folder
+!examples/diagrams/
