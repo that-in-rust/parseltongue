@@ -47,6 +47,27 @@ flowchart TD
 
 **That's it!** No LLM required, no config files, no complex setup. Just instant architectural understanding.
 
+## 🏆 **Real-World Showcase: Tokio Codebase Analysis**
+
+**Parseltongue analyzed the complete Tokio async runtime** - 151,302 lines of production Rust code - in record time:
+
+| Metric | Target | **Achieved** | Improvement |
+|--------|---------|-------------|-------------|
+| **Ingestion Time** | <30s | **0.24s** | **125x faster** |
+| **Entities Discovered** | - | **2,576** | **Comprehensive** |
+| **Query Performance** | <1ms | **1μs** | **1000x faster** |
+| **Lines Processed** | - | **151,302** | **Enterprise scale** |
+
+```bash
+# Tokio → Architecture Diagram (0.24s)
+./target/release/parseltongue ingest tokio-codebase.txt && \
+./target/release/parseltongue debug --mermaid > tokio-diagram.md
+```
+
+**Result**: 2,686-line Mermaid diagram showing Tokio's complete architecture, generated automatically.
+
+📖 **[View Complete Case Study →](TOKIO-CASE-STUDY.md)**
+
 ## 🎯 The Problem We Solve
 
 **The Discovery Bottleneck**: Finding your way around a new Rust codebase takes forever, while answering questions about it should be instant.
