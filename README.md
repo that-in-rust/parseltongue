@@ -41,6 +41,7 @@ flowchart TD
     User["📦 User<br/>(Struct)<br/><i>src/lib.rs</i>"]
     main["🔧 main<br/>(Function)<br/><i>src/main.rs</i>"]
 
+    main --> User
     User -.-> Display
 ```
 

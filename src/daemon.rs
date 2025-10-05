@@ -3,6 +3,7 @@
 //! Handles live file monitoring (<12ms updates) and code dump ingestion (<5s for 2.1MB)
 
 use crate::isg::{OptimizedISG, NodeData, NodeKind, SigHash, ISGError};
+use crate::call_graph::CallGraphVisitor;
 use notify::RecommendedWatcher;
 use petgraph::visit::{EdgeRef, IntoEdgeReferences};
 use std::path::Path;
@@ -94,11 +95,11 @@ impl ParseltongueAIM {
         
         let file_path_arc: Arc<str> = Arc::from(file_path);
         
-        for item in syntax_tree.items {
+        for item in &syntax_tree.items {
             match item {
-                Item::Fn(ItemFn { sig, .. }) => {
-                    let name = sig.ident.to_string();
-                    let signature = format!("fn {}", quote::quote!(#sig));
+                Item::Fn(item_fn) => {
+                    let name = item_fn.sig.ident.to_string();
+                    let signature = format!("fn {}", quote::quote!(#item_fn.sig));
                     let hash = SigHash::from_signature(&signature);
                     
                     let node = NodeData {
@@ -113,8 +114,8 @@ impl ParseltongueAIM {
                     self.isg.upsert_node(node);
                 }
                 
-                Item::Struct(ItemStruct { ident, .. }) => {
-                    let name = ident.to_string();
+                Item::Struct(item_struct) => {
+                    let name = item_struct.ident.to_string();
                     let signature = format!("struct {}", name);
                     let hash = SigHash::from_signature(&signature);
                     
@@ -130,8 +131,8 @@ impl ParseltongueAIM {
                     self.isg.upsert_node(node);
                 }
                 
-                Item::Trait(ItemTrait { ident, .. }) => {
-                    let name = ident.to_string();
+                Item::Trait(item_trait) => {
+                    let name = item_trait.ident.to_string();
                     let signature = format!("trait {}", name);
                     let hash = SigHash::from_signature(&signature);
                     
@@ -147,10 +148,10 @@ impl ParseltongueAIM {
                     self.isg.upsert_node(node);
                 }
                 
-                Item::Impl(ItemImpl { trait_, self_ty, .. }) => {
+                Item::Impl(item_impl) => {
                     // Handle trait implementations
-                    if let Some((_, trait_path, _)) = trait_ {
-                        if let syn::Type::Path(type_path) = self_ty.as_ref() {
+                    if let Some((_, trait_path, _)) = &item_impl.trait_ {
+                        if let syn::Type::Path(type_path) = item_impl.self_ty.as_ref() {
                             if let (Some(struct_name), Some(trait_name)) = (
                                 type_path.path.segments.last().map(|s| s.ident.to_string()),
                                 trait_path.segments.last().map(|s| s.ident.to_string())
@@ -175,7 +176,29 @@ impl ParseltongueAIM {
                 }
             }
         }
-        
+
+        // Phase 2: Call Graph Analysis
+        // Create a CallGraphVisitor to detect function calls within the parsed syntax tree
+        let mut call_visitor = CallGraphVisitor::new(&self.isg, file_path.to_string());
+
+        // Re-iterate through the items to analyze function bodies for calls
+        for item in &syntax_tree.items {
+            match item {
+                Item::Fn(item_fn) => {
+                    call_visitor.analyze_function(item_fn);
+                }
+                _ => {
+                    // Call graph analysis focuses on functions only
+                }
+            }
+        }
+
+        // Log call graph statistics (optional for debugging)
+        if call_visitor.stats.calls_detected > 0 || call_visitor.stats.method_calls_detected > 0 {
+            println!("🔗 Call analysis in {}: {} calls, {} method calls detected",
+                file_path, call_visitor.stats.calls_detected, call_visitor.stats.method_calls_detected);
+        }
+
         Ok(())
     }
 

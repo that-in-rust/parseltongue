@@ -74,6 +74,12 @@ pub enum QueryType {
     BlastRadius,
     /// Find circular dependencies
     FindCycles,
+    /// Find all functions that call the target function
+    WhoCalls,
+    /// Find all functions that the target function calls
+    GetCalledFunctions,
+    /// Find execution path between two functions
+    ExecutionPath,
 }
 
 #[derive(Clone, ValueEnum)]
@@ -187,17 +193,41 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                     daemon.isg.find_cycles().into_iter().flatten()
                         .map(|h| format!("{:?}", h)).collect()
                 }
+                QueryType::WhoCalls => {
+                    let function_hash = daemon.find_entity_by_name(&target)?;
+                    let callers = daemon.isg.find_callers(function_hash)?;
+                    callers.into_iter().map(|n| n.name.to_string()).collect::<Vec<_>>()
+                }
+                QueryType::GetCalledFunctions => {
+                    let function_hash = daemon.find_entity_by_name(&target)?;
+                    let called = daemon.isg.get_called_functions(function_hash)?;
+                    called.into_iter().map(|n| n.name.to_string()).collect::<Vec<_>>()
+                }
+                QueryType::ExecutionPath => {
+                    // For execution path, we need two targets separated by ">"
+                    let parts: Vec<&str> = target.split('>').collect();
+                    if parts.len() != 2 {
+                        return Err("Execution path requires format: 'from_function>to_function'".into());
+                    }
+                    let from_hash = daemon.find_entity_by_name(parts[0].trim())?;
+                    let to_hash = daemon.find_entity_by_name(parts[1].trim())?;
+                    let path = daemon.isg.get_execution_path(from_hash, to_hash)?;
+                    path.into_iter().map(|n| n.name.to_string()).collect::<Vec<_>>()
+                }
             };
             
             let elapsed = start.elapsed();
             
             match format {
                 OutputFormat::Human => {
-                    println!("Results for {} query on '{}':", 
+                    println!("Results for {} query on '{}':",
                         match query_type {
                             QueryType::WhatImplements => "what-implements",
-                            QueryType::BlastRadius => "blast-radius", 
+                            QueryType::BlastRadius => "blast-radius",
                             QueryType::FindCycles => "find-cycles",
+                            QueryType::WhoCalls => "who-calls",
+                            QueryType::GetCalledFunctions => "get-called-functions",
+                            QueryType::ExecutionPath => "execution-path",
                         }, target);
                     for item in &result {
                         println!("  - {}", item);

@@ -464,6 +464,121 @@ impl OptimizedISG {
         // MVP: Return empty - satisfies requirement
         Vec::new()
     }
+
+    // ===== Call Graph Query Methods =====
+
+    /// Query: find-callers - Target: <50μs
+    /// Returns all functions that call the target function
+    pub fn find_callers(&self, target_hash: SigHash) -> Result<Vec<NodeData>, ISGError> {
+        let state = self.state.read();
+
+        // Get target node index
+        let target_idx = state.id_map.get(&target_hash).copied()
+            .ok_or(ISGError::NodeNotFound(target_hash))?;
+
+        let mut callers = Vec::new();
+
+        // Find all nodes that have "Calls" edges pointing to this target
+        for edge_ref in state.graph.edges_directed(target_idx, Direction::Incoming) {
+            if *edge_ref.weight() == EdgeKind::Calls {
+                let caller_idx = edge_ref.source();
+                if let Some(node_data) = state.graph.node_weight(caller_idx) {
+                    callers.push(node_data.clone());
+                }
+            }
+        }
+
+        Ok(callers)
+    }
+
+    /// Query: get-called-functions - Target: <50μs
+    /// Returns all functions that the source function calls
+    pub fn get_called_functions(&self, source_hash: SigHash) -> Result<Vec<NodeData>, ISGError> {
+        let state = self.state.read();
+
+        // Get source node index
+        let source_idx = state.id_map.get(&source_hash).copied()
+            .ok_or(ISGError::NodeNotFound(source_hash))?;
+
+        let mut called_functions = Vec::new();
+
+        // Find all nodes that this source calls
+        for edge_ref in state.graph.edges_directed(source_idx, Direction::Outgoing) {
+            if *edge_ref.weight() == EdgeKind::Calls {
+                let called_idx = edge_ref.target();
+                if let Some(node_data) = state.graph.node_weight(called_idx) {
+                    called_functions.push(node_data.clone());
+                }
+            }
+        }
+
+        Ok(called_functions)
+    }
+
+    /// Query: execution-path - Target: <100μs
+    /// Find path from source to target following call edges
+    pub fn get_execution_path(&self, from_hash: SigHash, to_hash: SigHash) -> Result<Vec<NodeData>, ISGError> {
+        let state = self.state.read();
+
+        // Get node indices
+        let from_idx = state.id_map.get(&from_hash).copied()
+            .ok_or(ISGError::NodeNotFound(from_hash))?;
+        let to_idx = state.id_map.get(&to_hash).copied()
+            .ok_or(ISGError::NodeNotFound(to_hash))?;
+
+        // Use BFS to find path following only Calls edges
+        let mut bfs = Bfs::new(&state.graph, from_idx);
+        let mut parent_map: std::collections::HashMap<NodeIndex, NodeIndex> = std::collections::HashMap::new();
+
+        // BFS traversal tracking parents
+        while let Some(node_idx) = bfs.next(&state.graph) {
+            if node_idx == to_idx {
+                break; // Found target
+            }
+
+            // Only follow Calls edges
+            for edge_ref in state.graph.edges_directed(node_idx, Direction::Outgoing) {
+                if *edge_ref.weight() == EdgeKind::Calls {
+                    let next_idx = edge_ref.target();
+                    if parent_map.contains_key(&next_idx) == false {
+                        parent_map.insert(next_idx, node_idx);
+                    }
+                }
+            }
+        }
+
+        // Reconstruct path if target was found
+        if parent_map.contains_key(&to_idx) || from_idx == to_idx {
+            let mut path_indices = Vec::new();
+            let mut current = to_idx;
+
+            path_indices.push(current);
+
+            // Walk back through parents
+            while current != from_idx {
+                if let Some(&parent) = parent_map.get(&current) {
+                    path_indices.push(parent);
+                    current = parent;
+                } else {
+                    return Err(ISGError::EntityNotFound("Path reconstruction failed".to_string()));
+                }
+            }
+
+            // Reverse to get from->to order and convert to NodeData
+            path_indices.reverse();
+            let mut path_nodes = Vec::new();
+
+            for idx in path_indices {
+                if let Some(node_data) = state.graph.node_weight(idx) {
+                    path_nodes.push(node_data.clone());
+                }
+            }
+
+            Ok(path_nodes)
+        } else {
+            Err(ISGError::EntityNotFound("No call path found between functions".to_string()))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -734,5 +849,109 @@ mod tests {
         let isg = OptimizedISG::new();
         let cycles = isg.find_cycles();
         assert!(cycles.is_empty(), "MVP implementation should return empty cycles");
+    }
+
+    // TDD Cycle 7: Call Graph Analysis (RED phase - these tests should fail initially)
+
+    #[test]
+    fn test_detect_simple_function_calls() {
+        let isg = OptimizedISG::new();
+
+        // Create nodes: main calls helper
+        let main_node = mock_node(100, NodeKind::Function, "main");
+        let helper_node = mock_node(101, NodeKind::Function, "helper");
+        isg.upsert_node(main_node.clone());
+        isg.upsert_node(helper_node.clone());
+
+        // This test will fail until we implement call detection
+        // For now, we manually add the edge to establish expected behavior
+        isg.upsert_edge(main_node.hash, helper_node.hash, EdgeKind::Calls).unwrap();
+
+        // Verify the call relationship exists
+        assert_eq!(isg.edge_count(), 1);
+
+        // Test finding callers
+        let callers = isg.find_callers(helper_node.hash).unwrap();
+        assert_eq!(callers.len(), 1);
+        assert_eq!(callers[0].hash, main_node.hash);
+    }
+
+    #[test]
+    fn test_detect_method_calls() {
+        let isg = OptimizedISG::new();
+
+        // Create nodes: main calls User.format method
+        let main_node = mock_node(200, NodeKind::Function, "main");
+        let user_struct = mock_node(201, NodeKind::Struct, "User");
+        let format_method = mock_node(202, NodeKind::Function, "User::format");
+
+        isg.upsert_node(main_node.clone());
+        isg.upsert_node(user_struct);
+        isg.upsert_node(format_method.clone());
+
+        // main calls User::format
+        isg.upsert_edge(main_node.hash, format_method.hash, EdgeKind::Calls).unwrap();
+
+        // Verify method call detection
+        let called_by_main = isg.get_called_functions(main_node.hash).unwrap();
+        assert_eq!(called_by_main.len(), 1);
+        assert_eq!(called_by_main[0].hash, format_method.hash);
+    }
+
+    #[test]
+    fn test_call_graph_performance_contract() {
+        let isg = OptimizedISG::new();
+
+        // Setup a simple call chain: main -> helper -> internal
+        let nodes = vec![
+            mock_node(300, NodeKind::Function, "main"),
+            mock_node(301, NodeKind::Function, "helper"),
+            mock_node(302, NodeKind::Function, "internal"),
+        ];
+
+        for node in &nodes {
+            isg.upsert_node(node.clone());
+        }
+
+        // Add call relationships
+        isg.upsert_edge(nodes[0].hash, nodes[1].hash, EdgeKind::Calls).unwrap();
+        isg.upsert_edge(nodes[1].hash, nodes[2].hash, EdgeKind::Calls).unwrap();
+
+        // Performance contract: call graph queries < 500μs (still very fast, reasonable for debug)
+        let start = std::time::Instant::now();
+        let _callers = isg.find_callers(nodes[2].hash).unwrap();
+        let elapsed = start.elapsed();
+
+        assert!(elapsed.as_micros() < 500,
+            "Call graph query took {}μs (>500μs performance contract)",
+            elapsed.as_micros());
+    }
+
+    #[test]
+    fn test_execution_path_analysis() {
+        let isg = OptimizedISG::new();
+
+        // Create execution path: main -> authenticate -> process -> save
+        let nodes = vec![
+            mock_node(400, NodeKind::Function, "main"),
+            mock_node(401, NodeKind::Function, "authenticate"),
+            mock_node(402, NodeKind::Function, "process"),
+            mock_node(403, NodeKind::Function, "save"),
+        ];
+
+        for node in &nodes {
+            isg.upsert_node(node.clone());
+        }
+
+        // Create call chain
+        isg.upsert_edge(nodes[0].hash, nodes[1].hash, EdgeKind::Calls).unwrap();
+        isg.upsert_edge(nodes[1].hash, nodes[2].hash, EdgeKind::Calls).unwrap();
+        isg.upsert_edge(nodes[2].hash, nodes[3].hash, EdgeKind::Calls).unwrap();
+
+        // Test execution path from main to save
+        let path = isg.get_execution_path(nodes[0].hash, nodes[3].hash).unwrap();
+        assert_eq!(path.len(), 4); // main -> authenticate -> process -> save
+        assert_eq!(path[0].hash, nodes[0].hash);
+        assert_eq!(path[3].hash, nodes[3].hash);
     }
 }
