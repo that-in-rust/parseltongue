@@ -57,6 +57,9 @@ pub enum Commands {
         /// Export to DOT format for Graphviz
         #[arg(long)]
         dot: bool,
+        /// Export to Mermaid format for GitHub
+        #[arg(long)]
+        mermaid: bool,
         /// Create sample data for learning
         #[arg(long)]
         sample: bool,
@@ -229,18 +232,24 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             println!("{}", context);
         }
         
-        Commands::Debug { graph, dot, sample } => {
+        Commands::Debug { graph, dot, mermaid, sample } => {
             if sample {
                 // Create and show sample ISG for learning
                 let sample_isg = crate::isg::OptimizedISG::create_sample();
                 println!("=== SAMPLE ISG FOR LEARNING ===\n");
                 println!("This shows a simple Rust program structure:\n");
                 println!("{}", sample_isg.debug_print());
-                
+
                 if dot {
                     println!("\n=== DOT FORMAT (for Graphviz) ===");
                     println!("Copy this to a .dot file and run: dot -Tpng graph.dot -o graph.png\n");
                     println!("{}", sample_isg.export_dot());
+                }
+
+                if mermaid {
+                    println!("\n=== MERMAID FORMAT (for GitHub) ===");
+                    println!("Copy this to a .md file and view in GitHub:\n");
+                    println!("{}", crate::mermaid_export::export_isg_to_mermaid(&sample_isg));
                 }
             } else if graph {
                 // Show current ISG structure
@@ -248,8 +257,11 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             } else if dot {
                 // Export current ISG to DOT format
                 println!("{}", daemon.isg.export_dot());
+            } else if mermaid {
+                // Export current ISG to Mermaid format
+                println!("{}", crate::mermaid_export::export_isg_to_mermaid(&daemon.isg));
             } else {
-                println!("Use --graph to see ISG structure, --dot for Graphviz export, or --sample for learning example");
+                println!("Use --graph to see ISG structure, --dot for Graphviz export, --mermaid for GitHub export, or --sample for learning example");
             }
         }
     }

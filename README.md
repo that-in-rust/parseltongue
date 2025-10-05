@@ -2,6 +2,50 @@
 
 **Rust-only architectural intelligence daemon** providing deterministic, graph-based code analysis with sub-millisecond query performance.
 
+## 🚀 See It In Action (30 Seconds)
+
+**From Rust code to beautiful GitHub diagrams instantly:**
+
+```rust
+// src/lib.rs
+pub struct User {
+    name: String,
+}
+
+pub trait Display {
+    fn format(&self) -> String;
+}
+
+impl Display for User {
+    fn format(&self) -> String {
+        format!("User: {}", self.name)
+    }
+}
+
+// src/main.rs
+fn main() {
+    let user = User { name: "Alice".to_string() };
+    println!("{}", user.format());
+}
+```
+
+**One command → GitHub-compatible diagram:**
+
+```bash
+parseltongue ingest code.txt && parseltongue debug --mermaid
+```
+
+```mermaid
+flowchart TD
+    Display["🎯 Display<br/>(Trait)<br/><i>src/lib.rs</i>"]
+    User["📦 User<br/>(Struct)<br/><i>src/lib.rs</i>"]
+    main["🔧 main<br/>(Function)<br/><i>src/main.rs</i>"]
+
+    User -.-> Display
+```
+
+**That's it!** No LLM required, no config files, no complex setup. Just instant architectural understanding.
+
 ## 🎯 The Problem We Solve
 
 **The Discovery Bottleneck**: Finding your way around a new Rust codebase takes forever, while answering questions about it should be instant.

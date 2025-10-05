@@ -1,0 +1,20 @@
+FILE: src/lib.rs
+pub struct User {
+    name: String,
+}
+
+pub trait Display {
+    fn format(&self) -> String;
+}
+
+impl Display for User {
+    fn format(&self) -> String {
+        format!("User: {}", self.name)
+    }
+}
+================================================
+FILE: src/main.rs
+fn main() {
+    let user = User { name: "Alice".to_string() };
+    println!("{}", user.format());
+}
