@@ -139,7 +139,6 @@ pub fn create_html_file(filename: &str, mermaid_content: &str) {
             maxTextSize: 20000000,
             securityLevel: 'loose',
             flowchart: {{
-                defaultRenderer: 'elk',
                 nodeSpacing: 15,
                 rankSpacing: 30,
                 useMaxWidth: true
