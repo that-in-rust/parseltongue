@@ -1,2 +1,0 @@
-✓ Loaded snapshot: 2574 nodes, 106 edges (1ms)
-Generated: ISGMermaid20251005194846.md and ISGMermaid20251005194846.html

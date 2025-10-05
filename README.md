@@ -34,6 +34,7 @@ One command generates diagrams:
 ```bash
 parseltongue ingest code.txt && parseltongue debug --mermaid
 # Creates: ISGMermaidYYYYMMDDHHSS.md and ISGMermaidYYYYMMDDHHSS.html
+# Supports large diagrams (20MB+ content) with optimized rendering
 ```
 
 ```mermaid
@@ -65,7 +66,7 @@ Parseltongue analyzed the Tokio async runtime (151,302 lines of code):
 ./target/release/parseltongue debug --mermaid
 ```
 
-Generated timestamped `.md` and `.html` files showing Tokio's architecture.
+Generated timestamped `.md` and `.html` files with optimized large-diagram support.
 
 [View case study →](TOKIO-CASE-STUDY.md)
 
@@ -291,7 +292,7 @@ parseltongue generate-context User
 
 # See the architecture
 parseltongue debug --graph
-parseltongue debug --mermaid  # Creates timestamped .md and .html files
+parseltongue debug --mermaid  # Creates timestamped .md and .html files (optimized for large diagrams)
 parseltongue debug --dot > architecture.dot
 ```
 
@@ -301,7 +302,7 @@ parseltongue debug --dot > architecture.dot
 - `query blast-radius` - Shows what changes affect
 - `generate-context` - Details about an entity
 - `debug --graph` - Shows architecture
-- `debug --mermaid` - Creates timestamped .md and .html diagram files
+- `debug --mermaid` - Creates timestamped .md and .html files (supports large diagrams)
 - `debug --dot` - Exports to Graphviz
 
 ## Architecture
@@ -535,7 +536,7 @@ parseltongue generate-context EntityName --format json > context.json
 ### Make diagrams
 ```bash
 parseltongue debug --graph
-parseltongue debug --mermaid  # Creates timestamped .md and .html files
+parseltongue debug --mermaid  # Creates timestamped .md and .html files (optimized for large diagrams)
 parseltongue debug --dot > graph.dot
 ```
 

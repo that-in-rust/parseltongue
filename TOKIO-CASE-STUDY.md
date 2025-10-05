@@ -78,7 +78,8 @@ Scale: 2,576 nodes, 106 edges
 
 ### Mermaid Architecture Diagram
 - GitHub-compatible Mermaid with proper code block formatting
-- Self-contained HTML for immediate visualization
+- Self-contained HTML with optimized large-diagram rendering
+- ELK renderer for better layout of complex graphs
 - Timestamped files for organized workflow
 - Hierarchical layout showing crate relationships
 - **Interactive nodes** with file locations and types
@@ -192,7 +193,7 @@ Tokio case study validates Parseltongue's approach: architectural analysis for a
 
 ## Generated Artifacts
 
-- Timestamped Mermaid files (.md and .html) with complete architecture
+- Timestamped Mermaid files (.md and .html) with optimized large-diagram rendering
 - Tokio ISG Snapshot - 2,576 nodes, 106 edges
 - Performance Metrics - Real-world validation data
 - Architecture Insights - Technical patterns discovered

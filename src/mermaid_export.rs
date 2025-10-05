@@ -134,7 +134,19 @@ pub fn create_html_file(filename: &str, mermaid_content: &str) {
 {}
     </div>
     <script>
-        mermaid.initialize({{ startOnLoad: true }});
+        mermaid.initialize({{
+            startOnLoad: true,
+            maxTextSize: 20000000,
+            securityLevel: 'loose',
+            flowchart: {{
+                defaultRenderer: 'elk',
+                nodeSpacing: 15,
+                rankSpacing: 30,
+                useMaxWidth: true
+            }},
+            theme: 'neutral',
+            logLevel: 'error'
+        }});
     </script>
 </body>
 </html>"#, mermaid_content);
