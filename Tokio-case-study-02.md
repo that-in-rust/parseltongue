@@ -46,8 +46,8 @@ The test file contained the complete Tokio repository structure:
 
 ```
 Total Files Processed: 717
-Total ISG Nodes: 2,576
-Total Structural Edges: 137
+Total ISG Nodes: 2,571
+Total Structural Edges: 105
 Processing Performance: 0.22s (4,300 files/second equivalent)
 ```
 
@@ -64,10 +64,15 @@ Processing Performance: 0.22s (4,300 files/second equivalent)
 
 **Results:**
 ```
-✓ Parsed test file: 717 files (0ms)
-✓ Built ISG: 2576 nodes, 137 edges (218ms)
-✓ Saved snapshot: .parseltongue/snapshot.json (3ms)
-✓ Generated statistics: .parseltongue/stats.json (1ms)
+✓ Loaded snapshot: 4 nodes, 1 edges (0ms)
+✓ Ingestion complete:
+  Files processed: 717
+  Nodes created: 2571
+  Total nodes in ISG: 2571
+  Total edges in ISG: 105
+  Time: 0.22s
+✓ Saved snapshot: 2571 nodes, 105 edges (1ms)
+✓ Snapshot saved for future queries
 ```
 
 **Validation:** ✅ **SUCCESS** - All files processed successfully with excellent performance.
@@ -128,27 +133,35 @@ Query completed in 6μs
 
 **Results:**
 ```
+✓ Loaded snapshot: 2571 nodes, 105 edges (1ms)
+✅ Dual export completed in 2.766625ms: tokio-analysis.html (HTML), tokio-analysis.md (MD)
 ✓ Dual export completed:
-  HTML: tokio-analysis.html (2.2MB, self-contained, no CORS issues)
-  MD:   tokio-analysis.md (top-level overview with statistics)
-  Nodes: 2576
-  Edges: 137
+  HTML: tokio-analysis.html (self-contained, no CORS)
+  MD:   tokio-analysis.md (top-level overview)
+  Nodes: 2571
+  Edges: 105
   Time: 2ms
-  HTML Features: Interactive, zoom/pan/search, works immediately
+  HTML Features: Interactive, zoom/pan/search
   MD Features: Architecture overview + statistics
+✅ Performance contract satisfied (<5s)
+✅ HTML size optimized (2.2MB)
+🎯 Ready for GitHub download and immediate use!
 ```
 
 **Validation:** ✅ **EXCELLENCE** - Sub-10ms export performance with dual format generation.
 
 **Generated Files Analysis:**
 
-1. **Interactive HTML (tokio-analysis.html)**: 2.2MB self-contained visualization with Cytoscape + ELK
+1. **Interactive HTML (tokio-analysis.html)**: 2.2MB self-contained visualization with Cytoscape + breadthfirst layout
 2. **Markdown Overview (tokio-analysis.md)**: Architecture statistics with top-level insights
 3. **Zero CORS Issues**: HTML works immediately when downloaded from GitHub
+4. **Actual Files Created**:
+   - `tokio-analysis.html` (2,246,907 bytes)
+   - `tokio-analysis.md` (352 bytes)
 
 **HTML Features Validated:**
 - Cytoscape.js for graph rendering (self-contained, no external dependencies)
-- ELK.js for automatic layout
+- Breadthfirst layout for reliable visualization (simplified from ELK)
 - Interactive search and filtering capabilities
 - Zoom and pan functionality
 - Cross-browser compatibility
@@ -240,14 +253,14 @@ tokio-test/src/     (9 major modules)
 The hierarchical visualization strategy successfully solved the original rendering problem:
 
 **Before (Problem):**
-- 2,576 nodes in single diagram → Browser crashes
+- 2,571 nodes in single diagram → Browser crashes
 - GitHub Mermaid rendering limits exceeded
 - Information overload prevented analysis
 
 **After (Solution):**
 - Level 1: 4 entry points + 15 directories → Instant understanding
 - Level 2-3: Progressive detail through 839 lines → Comprehensive exploration
-- Complete Data: 1.8MB JSON for programmatic access → Full analysis capability
+- Complete Data: 2.2MB HTML for programmatic access → Full analysis capability
 
 ### 4.2 User Experience Validation
 
@@ -275,7 +288,7 @@ The hierarchical visualization strategy successfully solved the original renderi
 
 **Browser Performance:** ✅ **VALIDATED**
 - HTML file loads and renders smoothly
-- Interactive features responsive with 2,576 nodes
+- Interactive features responsive with 2,571 nodes
 - Memory usage reasonable for large graphs
 
 **Export Reliability:** ✅ **VALIDATED**
@@ -306,8 +319,8 @@ The hierarchical visualization strategy successfully solved the original renderi
 - No crashes or panics in edge cases
 
 **Data Integrity:** ✅ **VALIDATED**
-- All 2,576 nodes processed and indexed
-- 137 structural edges correctly identified
+- All 2,571 nodes processed and indexed
+- 105 structural edges correctly identified
 - Cross-references maintained across exports
 
 **Recovery Capabilities:** ✅ **VALIDATED**
@@ -318,7 +331,7 @@ The hierarchical visualization strategy successfully solved the original renderi
 ### 5.3 Scalability Testing
 
 **Large Dataset Handling:** ✅ **VALIDATED**
-- 2,576 nodes processed without memory issues
+- 2,571 nodes processed without memory issues
 - Hierarchical scaling prevents rendering problems
 - Performance remains linear with dataset size
 
@@ -351,6 +364,7 @@ The hierarchical visualization strategy successfully solved the original renderi
 ✅ Automated analysis and insights
 ✅ Trait ecosystem mapping (18+17 implementers)
 ✅ 30-second architectural understanding
+✅ Actual files generated: tokio-analysis.html (2.2MB), tokio-analysis.md
 ```
 
 ### 6.2 Tool Comparison
@@ -358,7 +372,7 @@ The hierarchical visualization strategy successfully solved the original renderi
 | Feature | Parseltongue | Manual Analysis | Other Tools |
 |---------|--------------|-----------------|-------------|
 | Processing Speed | 0.22s | Hours-Days | Variable |
-| Completeness | 2,576 nodes | Incomplete | Variable |
+| Completeness | 2,571 nodes | Incomplete | Variable |
 | Accuracy | 100% | Human error prone | Variable |
 | Visualization | Interactive + Static | Text diagrams | Limited |
 | GitHub Integration | Native | Manual | Limited |
@@ -467,8 +481,8 @@ The hierarchical visualization strategy successfully solved the original renderi
 
 **Code Coverage:** ✅ **COMPREHENSIVE**
 - 717 files processed from Tokio codebase
-- 2,576 ISG nodes generated
-- 137 structural relationships identified
+- 2,571 ISG nodes generated
+- 105 structural relationships identified
 
 **Accuracy Rate:** ✅ **VALIDATED**
 - 100% successful file processing
@@ -502,9 +516,11 @@ The hierarchical visualization strategy successfully solved the original renderi
 
 2. **Async Trait Ecosystem:** Comprehensive async I/O coverage with 18 AsyncRead and 17 AsyncWrite implementers demonstrates mature async ecosystem design.
 
-3. **Parseltongue Capabilities:** Successfully processed large-scale codebase (2,576 nodes) with excellent performance (0.22s ingestion, 2ms exports) and bullet-proof reliability.
+3. **Parseltongue Capabilities:** Successfully processed large-scale codebase (2,571 nodes) with excellent performance (0.22s ingestion, 2ms exports) and bullet-proof reliability.
 
 4. **Visualization Strategy Validation:** Progressive disclosure approach completely solves large diagram rendering problems while maintaining comprehensive analysis capabilities.
+
+5. **Generated Files:** Successfully created tokio-analysis.html (2.2MB interactive) and tokio-analysis.md (352 bytes overview) for immediate download and use.
 
 ### 10.3 Final Validation
 
@@ -514,9 +530,10 @@ This comprehensive end-to-end analysis demonstrates that Parseltongue successful
 
 - ✅ **Reliability:** Zero errors in processing 717 files
 - ✅ **Performance:** All operations exceed performance contracts
-- ✅ **Scalability:** Linear performance with 2,576+ nodes
+- ✅ **Scalability:** Linear performance with 2,571+ nodes
 - ✅ **Usability:** Clear hierarchical visualizations that render everywhere
 - ✅ **Completeness:** Full architectural visibility and query capabilities
+- ✅ **Generated Output:** Working HTML (2.2MB) + MD (352 bytes) files ready for GitHub
 
 The Tokio case study validates Parseltongue as a production-ready tool for understanding, analyzing, and documenting large-scale Rust codebases.
 
