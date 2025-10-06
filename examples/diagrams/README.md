@@ -29,7 +29,9 @@ parseltongue export html --output my-architecture.html
 
 For large codebases (500+ nodes):
 - Use the CLI queries directly: `parseltongue query what-implements TraitName`
-- Use hierarchical exports when available in future versions
+- Use hierarchical exports: `parseltongue export mermaid --hierarchy --output my-architecture.md`
+- View interactive HTML: `parseltongue export html --hierarchy --output my-architecture.html`
+- See working example: [Tokio hierarchical analysis →](../../analysis/tokio-hierarchical/)
 - Focus on specific modules rather than entire codebase
 
 ## Performance Notes
