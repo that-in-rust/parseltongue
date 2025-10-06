@@ -50,6 +50,15 @@ pub enum Commands {
         #[arg(long, default_value = "human")]
         format: OutputFormat,
     },
+    /// Export ISG diagram to various formats
+    Export {
+        /// Export format
+        #[arg(value_enum)]
+        format: ExportFormat,
+        /// Output file path (optional, auto-generated if not provided)
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
     /// Debug and visualization commands
     Debug {
         /// Show graph structure
@@ -89,6 +98,14 @@ pub enum OutputFormat {
     Human,
     /// JSON output for LLM consumption
     Json,
+}
+
+#[derive(Debug, Clone, ValueEnum)]
+pub enum ExportFormat {
+    /// GitHub-compatible Mermaid markdown
+    Mermaid,
+    /// Interactive HTML with Cytoscape + ELK
+    Html,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -258,11 +275,69 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             if entity.trim().is_empty() {
                 return Err("Entity name cannot be empty".into());
             }
-            
+
             let context = generate_context(&daemon, &entity, format.clone())?;
             println!("{}", context);
         }
-        
+
+        Commands::Export { format, output } => {
+            let start = Instant::now();
+
+            match format {
+                ExportFormat::Mermaid => {
+                    let mermaid_content = crate::mermaid_export::export_isg_to_mermaid(&daemon.isg);
+
+                    let output_path = match output {
+                        Some(path) => path,
+                        None => {
+                            let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
+                            PathBuf::from(format!("ISG_Architecture_{}.md", timestamp))
+                        }
+                    };
+
+                    crate::mermaid_export::create_markdown_file(&output_path.to_string_lossy(), &mermaid_content);
+                    let elapsed = start.elapsed();
+
+                    println!("✓ Exported ISG to Mermaid markdown:");
+                    println!("  File: {}", output_path.display());
+                    println!("  Nodes: {}", daemon.isg.node_count());
+                    println!("  Edges: {}", daemon.isg.edge_count());
+                    println!("  Time: {}ms", elapsed.as_millis());
+
+                    // Validate <1ms performance contract
+                    if elapsed.as_millis() >= 1 {
+                        eprintln!("⚠️  Export took {}ms (>=1ms contract violated)", elapsed.as_millis());
+                    }
+                }
+                ExportFormat::Html => {
+                    let html_content = crate::html_export::export_isg_to_interactive_html(&daemon.isg);
+
+                    let output_path = match output {
+                        Some(path) => path,
+                        None => {
+                            let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
+                            PathBuf::from(format!("ISG_Architecture_{}.html", timestamp))
+                        }
+                    };
+
+                    crate::html_export::create_interactive_html_file(&output_path.to_string_lossy(), &html_content);
+                    let elapsed = start.elapsed();
+
+                    println!("✓ Exported ISG to interactive HTML:");
+                    println!("  File: {}", output_path.display());
+                    println!("  Nodes: {}", daemon.isg.node_count());
+                    println!("  Edges: {}", daemon.isg.edge_count());
+                    println!("  Time: {}ms", elapsed.as_millis());
+                    println!("  Features: Cytoscape + ELK layout, zoom/pan, search");
+
+                    // Validate <500ms performance contract
+                    if elapsed.as_millis() >= 500 {
+                        eprintln!("⚠️  Export took {}ms (>=500ms contract violated)", elapsed.as_millis());
+                    }
+                }
+            }
+        }
+
         Commands::Debug { graph, dot, mermaid, sample } => {
             if sample {
                 // Create and show sample ISG for learning

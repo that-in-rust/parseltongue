@@ -13,6 +13,7 @@ pub mod isg;
 pub mod daemon;
 pub mod cli;
 pub mod mermaid_export;
+pub mod html_export;
 pub mod call_graph;
 
 #[cfg(test)]
