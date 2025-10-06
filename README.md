@@ -87,6 +87,15 @@ Parseltongue analyzed the Tokio async runtime (717 files, 2,576 nodes):
 - ✅ **Hierarchical progressive disclosure** for large-scale visualization
 - ✅ **Bullet-proof reliability** - all performance contracts exceeded
 
+**⚠️ Chrome Security Note:** Local HTML files require special launch:
+```bash
+# For Chrome/Chromium - allow local file access
+chrome --allow-file-access-from-files /path/to/tokio-interactive.html
+
+# Or use a simple local server
+python3 -m http.server 8000  # then open http://localhost:8000/tokio-interactive.html
+```
+
 **Architecture Insights Discovered:**
 - Modular structure: runtime, util, stream, test, macro components
 - Complete async I/O ecosystem with symmetric read/write capabilities

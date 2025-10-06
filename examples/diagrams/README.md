@@ -34,6 +34,12 @@ For large codebases (500+ nodes):
 - See working example: [Tokio hierarchical analysis →](../../analysis/tokio-hierarchical/)
 - Focus on specific modules rather than entire codebase
 
+**⚠️ Chrome Users:** HTML files need special launch:
+```bash
+chrome --allow-file-access-from-files my-architecture.html
+# or use local server: python3 -m http.server 8000
+```
+
 ## Performance Notes
 
 - Small diagrams (< 100 nodes): Render perfectly in GitHub and browsers
