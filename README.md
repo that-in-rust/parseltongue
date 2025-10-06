@@ -32,10 +32,10 @@ fn main() {
 One command generates diagrams:
 
 ```bash
-parseltongue ingest code.txt && parseltongue debug --mermaid
-# Creates: ISGMermaidYYYYMMDDHHSS.md and ISGMermaidYYYYMMDDHHSS.html
-# Supports large diagram generation (20MB+ content) with optimized rendering
-# Note: Very large diagrams (2,500+ nodes) may have browser rendering limitations
+parseltongue ingest code.txt && parseltongue export mermaid
+# Creates GitHub-compatible Mermaid markdown that renders properly
+# NEW: Interactive HTML export with Cytoscape + ELK for large graphs
+parseltongue export html  # Handles 2,500+ nodes smoothly
 ```
 
 ```mermaid
@@ -64,13 +64,14 @@ Parseltongue analyzed the Tokio async runtime (151,302 lines of code):
 ```bash
 # Tokio → Architecture Diagram (0.24s)
 ./target/release/parseltongue ingest tokio-codebase.txt && \
-./target/release/parseltongue debug --mermaid
+./target/release/parseltongue export mermaid --output tokio.md
+./target/release/parseltongue export html --output tokio.html
 ```
 
-Generated timestamped `.md` and `.html` files with optimized large-diagram support.
-*Note: The Tokio diagram contains 2,574 nodes and may exceed browser rendering capabilities in some browsers.*
+Generated optimized diagrams that render properly in GitHub and browsers.
+The Tokio diagram contains 2,574 nodes and renders smoothly with the new HTML exporter.
 
-[View case study →](TOKIO-CASE-STUDY.md) | [See example diagram →](examples/diagrams/tokio-architecture-diagram.html)
+[View case study →](TOKIO-CASE-STUDY.md)
 
 ## The Problem
 
@@ -248,6 +249,8 @@ You get value through tools built on engineering.
 - Ask questions about your code
 - See what changes affect
 - Generate architecture diagrams
+- Export to GitHub-compatible Mermaid markdown
+- Export to interactive HTML with zoom/pan/search
 - Export context for AI tools
 
 ### Performance
@@ -292,9 +295,12 @@ parseltongue query what-implements Display
 parseltongue query blast-radius main
 parseltongue generate-context User
 
-# See the architecture
+# Export diagrams (NEW!)
+parseltongue export mermaid --output my_architecture.md
+parseltongue export html --output my_architecture.html
+
+# Debug commands
 parseltongue debug --graph
-parseltongue debug --mermaid  # Creates timestamped .md and .html files (optimized for large diagram generation; very large diagrams may have browser rendering limitations)
 parseltongue debug --dot > architecture.dot
 ```
 
@@ -303,8 +309,9 @@ parseltongue debug --dot > architecture.dot
 - `query what-implements` - Shows trait implementations
 - `query blast-radius` - Shows what changes affect
 - `generate-context` - Details about an entity
+- `export mermaid` - Creates GitHub-compatible Mermaid markdown
+- `export html` - Creates interactive HTML with Cytoscape + ELK
 - `debug --graph` - Shows architecture
-- `debug --mermaid` - Creates timestamped .md and .html files (supports large diagram generation; very large diagrams may have browser rendering limitations)
 - `debug --dot` - Exports to Graphviz
 
 ## Architecture
@@ -537,8 +544,9 @@ parseltongue generate-context EntityName --format json > context.json
 
 ### Make diagrams
 ```bash
+parseltongue export mermaid --output architecture.md  # GitHub-compatible
+parseltongue export html --output architecture.html   # Interactive with zoom/pan
 parseltongue debug --graph
-parseltongue debug --mermaid  # Creates timestamped .md and .html files (optimized for large diagram generation; very large diagrams may have browser rendering limitations)
 parseltongue debug --dot > graph.dot
 ```
 
@@ -552,7 +560,8 @@ parseltongue debug --dot > graph.dot
 ## Status
 
 Production ready
-53 tests passing • Microsecond performance • Tested on real codebases
+59 tests passing • Microsecond performance • Tested on real codebases
+NEW: Export functionality with Mermaid + HTML visualization
 
 ## Contributing
 
