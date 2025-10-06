@@ -50,6 +50,14 @@ flowchart TD
 
 That's it. No LLM required, no config files, no complex setup.
 
+## 🎨 Live Examples
+
+See the export functionality in action with real-world codebases:
+
+- **[Tokio Architecture →](examples/diagrams/)** - Interactive HTML (2,575 nodes) + GitHub Mermaid
+- **Performance Demo** - 5ms HTML export, 1ms Mermaid export
+- **Features** - Zoom/pan, search, tooltips, keyboard shortcuts
+
 ## Real-World Example: Tokio Codebase
 
 Parseltongue analyzed the Tokio async runtime (151,302 lines of code):
@@ -71,7 +79,7 @@ Parseltongue analyzed the Tokio async runtime (151,302 lines of code):
 Generated optimized diagrams that render properly in GitHub and browsers.
 The Tokio diagram contains 2,574 nodes and renders smoothly with the new HTML exporter.
 
-[View case study →](TOKIO-CASE-STUDY.md)
+[View case study →](TOKIO-CASE-STUDY.md) | [See examples →](examples/diagrams/)
 
 ## The Problem
 
@@ -251,6 +259,7 @@ You get value through tools built on engineering.
 - Generate architecture diagrams
 - Export to GitHub-compatible Mermaid markdown
 - Export to interactive HTML with zoom/pan/search
+- **🎨 Interactive diagrams** - Try the [examples](examples/diagrams/)
 - Export context for AI tools
 
 ### Performance
