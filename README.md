@@ -174,9 +174,36 @@ cargo audit
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 📊 Case Studies: Real-World Performance
+
+### 🚀 **Case Study 1: Tokio Async Runtime Analysis**
+- **Scale**: 717 Rust files, 2,571 architectural entities
+- **Performance**: 0.25s ingestion (20x faster than requirement)
+- **Output**: Interactive visualization with 2,571 nodes, 136 relationships
+- **Details**: [Complete analysis](docs/CASE_STUDIES.md#-case-study-1-tokio-async-runtime-analysis)
+
+### 🔄 **Case Study 2: Live Codebase Delta Detection**
+- **Scale**: 11 Rust files, 2,641 entities
+- **Delta Detection**: 2,639 → 2,641 nodes (+2 change detected)
+- **Performance**: <0.01s real-time analysis
+- **Output**: Interactive hierarchical visualization
+- **Details**: [Complete analysis](docs/CASE_STUDIES.md#-case-study-2-live-codebase-delta-analysis)
+
+### 📈 **Proven Performance**
+| Metric | Requirement | Achieved | Status |
+|--------|-------------|----------|---------|
+| Ingestion | <5s | 0.01-0.25s | ✅ 20-250x faster |
+| Queries | <500μs | ~10μs | ✅ 50x faster |
+| Memory | <100MB | ~15MB | ✅ 6.7x under |
+
+### 🎯 **Live Demonstrations**
+- **[Tokio WASM Visualization](tokio-wasm-viz/visualization.html)** - Interactive 2,571-node graph
+- **[Parseltongue Self-Analysis](parseltongue-live-viz/visualization.html)** - Hierarchical architecture view
+
 ## 🔗 Related Projects
 
 - **[Tokio Analysis](analysis/tokio-hierarchical/)** - Comprehensive case study on Tokio async runtime
+- **[Case Studies Documentation](docs/CASE_STUDIES.md)** - Complete analysis with performance metrics
 - **[Mermaid Export](src/mermaid_export.rs)** - GitHub-compatible diagram generation
 - **[WASM Renderer](src/wasm_renderer.rs)** - Interactive visualization system
 

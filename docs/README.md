@@ -36,6 +36,13 @@ See `../analysis/` for analysis journals:
 - `isgJournaRS20251005.md` - Core Rust files analysis (5,567 lines)
 - `journal20251005.md` - Documentation changes analysis (119,195 lines)
 
+## Case Studies & Analysis
+
+- `CASE_STUDIES.md` - Comprehensive real-world performance analysis
+  - **Tokio Async Runtime**: 717 files, 2,571 nodes analysis
+  - **Live Delta Detection**: Real-time architectural change tracking
+  - **Performance Metrics**: 20-250x faster than requirements
+
 ## Visualization Documentation
 
 - `mermaid-reference.md` - Complete Mermaid diagram guidelines
