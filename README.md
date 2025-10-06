@@ -178,7 +178,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### 🚀 **Case Study 1: Tokio Async Runtime Analysis**
 - **Scale**: 717 Rust files, 2,571 architectural entities
-- **Performance**: 0.25s ingestion (20x faster than requirement)
+- **Performance**: 0.25s ingestion time
 - **Output**: Interactive visualization with 2,571 nodes, 136 relationships
 - **Details**: [Complete analysis](docs/CASE_STUDIES.md#-case-study-1-tokio-async-runtime-analysis)
 
@@ -189,12 +189,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Output**: Interactive hierarchical visualization
 - **Details**: [Complete analysis](docs/CASE_STUDIES.md#-case-study-2-live-codebase-delta-analysis)
 
-### 📈 **Proven Performance**
-| Metric | Requirement | Achieved | Status |
-|--------|-------------|----------|---------|
-| Ingestion | <5s | 0.01-0.25s | ✅ 20-250x faster |
-| Queries | <500μs | ~10μs | ✅ 50x faster |
-| Memory | <100MB | ~15MB | ✅ 6.7x under |
+### 📈 **Performance Metrics**
+| Operation | Processing Time |
+|-----------|-----------------|
+| Large-scale ingestion (717 files) | 0.25s |
+| Live codebase analysis (11 files) | <0.01s |
+| Graph queries | ~10μs |
+| Memory usage | ~15MB |
 
 ### 🎯 **Live Demonstrations**
 - **[Tokio WASM Visualization](tokio-wasm-viz/visualization.html)** - Interactive 2,571-node graph

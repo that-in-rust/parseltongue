@@ -41,7 +41,7 @@ See `../analysis/` for analysis journals:
 - `CASE_STUDIES.md` - Comprehensive real-world performance analysis
   - **Tokio Async Runtime**: 717 files, 2,571 nodes analysis
   - **Live Delta Detection**: Real-time architectural change tracking
-  - **Performance Metrics**: 20-250x faster than requirements
+  - **Performance Metrics**: Sub-0.25s processing for large codebases
 
 ## Visualization Documentation
 
