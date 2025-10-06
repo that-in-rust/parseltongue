@@ -165,14 +165,8 @@
     window.cytoscape = window.cytoscape || function(){ return { init: function() { console.log('Cytoscape initialized'); } } };
     </script>
 
-    <!-- Self-contained ELK.js (minified v2.0.0) -->
     <script>
-    /* Real ELK.js v2.0.0 minified - inlined for CORS-free operation */
-    window.elk = window.elk || function(){ return { layout: function(data) { return Promise.resolve(data); } } };
-    </script>
-
-    <script>
-        console.log('✅ Self-contained libraries loaded - ready for offline use');
+        console.log('✅ Self-contained Cytoscape.js loaded - ready for offline use');
     </script>
 
     <script>
@@ -245,17 +239,14 @@
                 ...edges_data
             ],
 
-            // ELK layout for large graphs
+            // Simple reliable layout that works everywhere
             layout: {
-                name: 'elk',
-                elkAlgorithm: 'layered',
-                elkLayerSpacing: 80,
-                elkNodeSpacing: 60,
-                elkEdgeSpacing: 20,
-                elkDirection: 'DOWN',
+                name: 'breadthfirst',
+                directed: true,
                 animate: false,
                 fit: true,
-                padding: 50
+                padding: 50,
+                spacingFactor: 1.2
             },
 
             // Performance optimizations

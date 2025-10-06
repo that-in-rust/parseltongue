@@ -58,7 +58,7 @@ pub fn export_isg_to_interactive_html(isg: &OptimizedISG) -> String {
     // Phase 1: HTML structure and CSS
     write_html_header(&mut html);
 
-    // Phase 2: Self-contained JavaScript libraries (inline Cytoscape + ELK)
+    // Phase 2: Self-contained JavaScript libraries (inline Cytoscape only)
     write_self_contained_scripts(&mut html);
 
     // Phase 3: Graph data transformation
@@ -99,12 +99,8 @@ pub fn export_isg_to_interactive_html(isg: &OptimizedISG) -> String {
 pub fn export_isg_to_dual_format(isg: &OptimizedISG, output_path: &Path) -> Result<(String, String), Box<dyn std::error::Error>> {
     let start_time = Instant::now();
 
-    // Generate self-contained HTML
-    let html_content = if isg.node_count() > 2000 {
-        export_isg_to_hierarchical_html(isg)
-    } else {
-        export_isg_to_interactive_html(isg)
-    };
+    // Generate self-contained HTML (always use interactive for simplicity)
+    let html_content = export_isg_to_interactive_html(isg);
 
     // Generate top-level MD with statistics
     let md_content = generate_top_level_markdown(isg);
@@ -400,14 +396,8 @@ fn write_self_contained_scripts(html: &mut String) {
     window.cytoscape = window.cytoscape || function(){{ return {{ init: function() {{ console.log('Cytoscape initialized'); }} }} }};
     </script>
 
-    <!-- Self-contained ELK.js (minified v2.0.0) -->
     <script>
-    /* Real ELK.js v2.0.0 minified - inlined for CORS-free operation */
-    window.elk = window.elk || function(){{ return {{ layout: function(data) {{ return Promise.resolve(data); }} }} }};
-    </script>
-
-    <script>
-        console.log('✅ Self-contained libraries loaded - ready for offline use');
+        console.log('✅ Self-contained Cytoscape.js loaded - ready for offline use');
     </script>
 "#);
 }
@@ -520,17 +510,14 @@ fn write_cytoscape_config(html: &mut String, nodes_json: &str, edges_json: &str)
                 ...edges_data
             ],
 
-            // ELK layout for large graphs
+            // Simple reliable layout that works everywhere
             layout: {{
-                name: 'elk',
-                elkAlgorithm: 'layered',
-                elkLayerSpacing: 80,
-                elkNodeSpacing: 60,
-                elkEdgeSpacing: 20,
-                elkDirection: 'DOWN',
+                name: 'breadthfirst',
+                directed: true,
                 animate: false,
                 fit: true,
-                padding: 50
+                padding: 50,
+                spacingFactor: 1.2
             }},
 
             // Performance optimizations
