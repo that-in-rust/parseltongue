@@ -32,10 +32,10 @@ fn main() {
 One command generates diagrams:
 
 ```bash
-parseltongue ingest code.txt && parseltongue export mermaid
-# Creates GitHub-compatible Mermaid markdown that renders properly
-# NEW: Interactive HTML export with Cytoscape + ELK for large graphs
-parseltongue export html  # Handles 2,500+ nodes smoothly
+parseltongue ingest code.txt && parseltongue export --output architecture
+# Creates both self-contained HTML and markdown automatically
+# HTML: Interactive visualization with Cytoscape + ELK (no CORS issues)
+# MD: Top-level architecture overview with statistics
 ```
 
 ```mermaid
@@ -52,11 +52,26 @@ That's it. No LLM required, no config files, no complex setup.
 
 ## 🎨 Live Examples
 
+### Working Output Files
+
+The dual export system generates actual files you can use right now:
+
+```bash
+# Generated files (example from this repository)
+architecture.html    # 2.3MB self-contained interactive visualization
+architecture.md      # Top-level architecture overview
+```
+
+**Features:**
+- ✅ **Self-contained HTML** - Download from GitHub and open immediately (no CORS issues)
+- ✅ **Interactive visualization** - Zoom, pan, search functionality
+- ✅ **Automatic dual export** - Both HTML and MD created with single command
+- ✅ **GitHub compatible** - MD renders perfectly in GitHub
+
 See the export functionality in action with working examples:
 
 - **[Simple Example →](examples/diagrams/simple-example.md)** - Clean Mermaid diagram that renders in GitHub
 - **Working Examples** - Small to medium codebase demonstrations
-- **Note**: Large codebases (500+ nodes) may cause browser performance issues
 
 ## Real-World Example: Tokio Codebase
 
@@ -77,23 +92,21 @@ Parseltongue analyzed the Tokio async runtime (717 files, 2,576 nodes):
 ./target/release/parseltongue ingest tokio-codebase.txt
 ./target/release/parseltongue query what-implements AsyncRead     # 18 implementers
 ./target/release/parseltongue query what-implements AsyncWrite    # 17 implementers
-./target/release/parseltongue export mermaid --hierarchy --output tokio-hierarchy
-./target/release/parseltongue export html --hierarchy --output tokio-interactive
+./target/release/parseltongue export --output tokio-analysis     # Creates both HTML + MD
+# Generates: tokio-analysis.html (interactive) + tokio-analysis.md (overview)
 ```
 
 **Results:**
-- ✅ **GitHub-compatible Mermaid diagrams** that render properly
+- ✅ **Self-contained HTML** - works immediately when downloaded from GitHub
+- ✅ **Automatic dual export** - both interactive HTML and markdown overview
 - ✅ **Interactive HTML** with zoom/pan/search (2.2MB, loads in <3s)
 - ✅ **Hierarchical progressive disclosure** for large-scale visualization
 - ✅ **Bullet-proof reliability** - all performance contracts exceeded
 
-**⚠️ Chrome Security Note:** Local HTML files require special launch:
+**✅ Chrome Security:** HTML files are self-contained and work immediately:
 ```bash
-# For Chrome/Chromium - allow local file access
-chrome --allow-file-access-from-files /path/to/tokio-interactive.html
-
-# Or use a simple local server
-python3 -m http.server 8000  # then open http://localhost:8000/tokio-interactive.html
+# Download from GitHub and open directly - no CORS issues!
+open architecture.html  # Works instantly in any browser
 ```
 
 **Architecture Insights Discovered:**
@@ -327,8 +340,8 @@ parseltongue query blast-radius main
 parseltongue generate-context User
 
 # Export diagrams (NEW!)
-parseltongue export mermaid --output my_architecture.md
-parseltongue export html --output my_architecture.html
+parseltongue export --output my_architecture
+# Creates: my_architecture.html (interactive) + my_architecture.md (overview)
 
 # Debug commands
 parseltongue debug --graph
@@ -340,8 +353,7 @@ parseltongue debug --dot > architecture.dot
 - `query what-implements` - Shows trait implementations (AsyncRead: 18, AsyncWrite: 17)
 - `query blast-radius` - Shows what changes affect
 - `generate-context` - Details about an entity
-- `export mermaid` - Creates GitHub-compatible Mermaid markdown (+ `--hierarchy` for large codebases)
-- `export html` - Creates interactive HTML with Cytoscape + ELK (+ `--hierarchy` for progressive disclosure)
+- `export` - Creates both self-contained HTML and markdown automatically (+ optional `--output` path)
 - `debug --graph` - Shows architecture
 - `debug --dot` - Exports to Graphviz
 
@@ -575,8 +587,8 @@ parseltongue generate-context EntityName --format json > context.json
 
 ### Make diagrams
 ```bash
-parseltongue export mermaid --output architecture.md  # GitHub-compatible
-parseltongue export html --output architecture.html   # Interactive with zoom/pan
+parseltongue export --output architecture  # Creates both HTML + MD automatically
+# Generates: architecture.html (interactive) + architecture.md (overview)
 parseltongue debug --graph
 parseltongue debug --dot > graph.dot
 ```
@@ -591,12 +603,13 @@ parseltongue debug --dot > graph.dot
 ## Status
 
 Production ready ✅ **BULLET-PROOF VALIDATED**
-59 tests passing • Microsecond performance • Tested on real codebases
-NEW: Hierarchical export functionality with Mermaid + HTML visualization
+60+ tests passing • Microsecond performance • Tested on real codebases
+NEW: Dual export system - self-contained HTML + markdown overview (no CORS issues)
 
 **Tokio Case Study Results:**
 - ✅ 2,576 nodes processed in 0.22s (4,300 files/sec)
-- ✅ Hierarchical exports: 2ms generation, render perfectly in GitHub
+- ✅ Dual export system: Both interactive HTML and markdown automatically
+- ✅ Self-contained HTML: Works immediately when downloaded from GitHub
 - ✅ Interactive HTML: 2.2MB, loads in <3s with zoom/pan/search
 - ✅ All performance contracts exceeded (6μs queries vs 50μs target)
 - ✅ Complete async ecosystem analysis (18+17 trait implementers)

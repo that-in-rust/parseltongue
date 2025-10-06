@@ -214,6 +214,7 @@ const fn node_kind_icon(kind: &NodeKind) -> &'static str {
         NodeKind::Function => "🔧",
         NodeKind::Struct => "📦",
         NodeKind::Trait => "🎯",
+        NodeKind::Impl => "⚙️",
     }
 }
 

@@ -33,6 +33,7 @@ pub enum NodeKind {
     Function,
     Struct,
     Trait,
+    Impl,
 }
 
 impl std::fmt::Display for NodeKind {
@@ -41,6 +42,7 @@ impl std::fmt::Display for NodeKind {
             NodeKind::Function => write!(f, "Function"),
             NodeKind::Struct => write!(f, "Struct"),
             NodeKind::Trait => write!(f, "Trait"),
+            NodeKind::Impl => write!(f, "Impl"),
         }
     }
 }
@@ -431,8 +433,9 @@ impl OptimizedISG {
             if let Some(node) = state.graph.node_weight(node_idx) {
                 let color = match node.kind {
                     NodeKind::Function => "lightblue",
-                    NodeKind::Struct => "lightgreen", 
+                    NodeKind::Struct => "lightgreen",
                     NodeKind::Trait => "lightyellow",
+                    NodeKind::Impl => "lightgray",
                 };
                 output.push_str(&format!("  \"{}\" [label=\"{}\\n({:?})\" fillcolor={} style=filled];\n", 
                     node.name, node.name, node.kind, color));
@@ -751,6 +754,36 @@ impl OptimizedISG {
             Ok(path_nodes)
         } else {
             Err(ISGError::EntityNotFound("No call path found between functions".to_string()))
+        }
+    }
+
+    /// Find entity by name
+    pub fn find_entity_by_name(&self, name: &str) -> Result<SigHash, ISGError> {
+        let state = self.state.read();
+
+        for (hash, &node_idx) in &state.id_map {
+            if let Some(node_data) = state.graph.node_weight(node_idx) {
+                if node_data.name.as_ref() == name {
+                    return Ok(*hash);
+                }
+            }
+        }
+
+        Err(ISGError::EntityNotFound(format!("Entity '{}' not found", name)))
+    }
+
+    /// Get entity data by hash
+    pub fn get_entity_data(&self, entity_hash: SigHash) -> Result<NodeData, ISGError> {
+        let state = self.state.read();
+
+        if let Some(&node_idx) = state.id_map.get(&entity_hash) {
+            if let Some(node_data) = state.graph.node_weight(node_idx) {
+                Ok(node_data.clone())
+            } else {
+                Err(ISGError::EntityNotFound("Node data not found".to_string()))
+            }
+        } else {
+            Err(ISGError::EntityNotFound("Entity hash not found".to_string()))
         }
     }
 }

@@ -467,6 +467,11 @@ impl ParseltongueAIM {
         
         Ok(())
     }
+
+    /// Get entity data for context generation
+    pub fn get_entity_data(&self, entity_hash: SigHash) -> Result<NodeData, ISGError> {
+        self.isg.get_entity_data(entity_hash)
+    }
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
