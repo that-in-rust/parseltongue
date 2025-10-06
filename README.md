@@ -52,12 +52,11 @@ That's it. No LLM required, no config files, no complex setup.
 
 ## 🎨 Live Examples
 
-See the export functionality in action with real-world codebases:
+See the export functionality in action with working examples:
 
-- **[Tokio Hierarchical Exports →](examples/diagrams/tokio-hierarchy/index.md)** - Progressive disclosure Mermaid (2,576 nodes)
-- **[Tokio Interactive HTML →](examples/diagrams/)** - Interactive zoom/pan/search with Cytoscape + ELK
-- **Performance Demo** - 2ms generation, <3s load time for 2,576 nodes
-- **Features** - Hierarchical levels, GitHub-compatible rendering, enterprise-grade visualization
+- **[Simple Example →](examples/diagrams/simple-example.md)** - Clean Mermaid diagram that renders in GitHub
+- **Working Examples** - Small to medium codebase demonstrations
+- **Note**: Large codebases (500+ nodes) may cause browser performance issues
 
 ## Real-World Example: Tokio Codebase
 
@@ -93,7 +92,7 @@ Parseltongue analyzed the Tokio async runtime (717 files, 2,576 nodes):
 - Complete async I/O ecosystem with symmetric read/write capabilities
 - Comprehensive testing infrastructure across all modules
 
-[View comprehensive case study →](Tokio-case-study-02.md) | [See hierarchical examples →](examples/diagrams/tokio-hierarchy/) | [Interactive demo →](tokio-interactive.html) (download to view)
+[View comprehensive case study →](Tokio-case-study-02.md) | [See working examples →](examples/diagrams/)
 
 ## The Problem
 
