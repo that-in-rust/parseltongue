@@ -58,4 +58,4 @@ flowchart TD
 
 ---
 
-*📊 Next Level: [Detailed Exploration](explore.md) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*
+*📊 Next Level: [Detailed Exploration](explore.md) | 🌐 Interactive HTML: [View Online](tokio-interactive.html) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*

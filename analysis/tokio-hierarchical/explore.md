@@ -1,7 +1,7 @@
 # Detailed Architecture - Levels 2-3 (1,000ft view)
 
 This view shows the detailed module structure and key relationships.
-*⬅️ Back to: [Overview](index.md) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*
+*⬅️ Back to: [Overview](index.md) | 🌐 Interactive HTML: [View Online](tokio-interactive.html) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*
 
 ```mermaid
 flowchart TD
@@ -836,4 +836,4 @@ flowchart TD
 
 ---
 
-*⬅️ Back to: [Overview](index.md) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*
+*⬅️ Back to: [Overview](index.md) | 🌐 Interactive HTML: [View Online](tokio-interactive.html) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*
