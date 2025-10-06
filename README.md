@@ -93,7 +93,7 @@ Parseltongue analyzed the Tokio async runtime (717 files, 2,576 nodes):
 - Complete async I/O ecosystem with symmetric read/write capabilities
 - Comprehensive testing infrastructure across all modules
 
-[View comprehensive case study →](Tokio-case-study-02.md) | [See hierarchical examples →](examples/diagrams/tokio-hierarchy/) | [Interactive demo →](examples/diagrams/tokio-interactive)
+[View comprehensive case study →](Tokio-case-study-02.md) | [See hierarchical examples →](examples/diagrams/tokio-hierarchy/) | [Interactive demo →](tokio-interactive.html) (download to view)
 
 ## The Problem
 
