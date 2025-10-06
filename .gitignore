@@ -189,8 +189,6 @@ data/_refTestDataAsLibraryTxt/
 # Generated diagram files (exclude from root only)
 ISGMermaid*.md
 ISGMermaid*.html
-*.html
-*.md
 
 # But allow examples folder
 !examples/diagrams/
