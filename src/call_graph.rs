@@ -3,9 +3,9 @@
 //! Implements AST visitor pattern to detect function calls and method calls in Rust code
 //! using syn crate for parsing and analysis.
 
-use crate::isg::{OptimizedISG, NodeKind, SigHash, EdgeKind};
+use crate::isg::{OptimizedISG, SigHash, EdgeKind};
 use syn::visit::Visit;
-use syn::{ItemFn, ExprCall, ExprMethodCall, ItemImpl, Path, Ident, Expr};
+use syn::{ItemFn, ExprCall, ExprMethodCall, ItemImpl, Path, Ident};
 use std::collections::HashMap;
 
 /// CallGraphVisitor - Traverses Rust AST to detect function calls
@@ -26,6 +26,7 @@ pub struct CallGraphVisitor<'a> {
     current_function: Option<SigHash>,
 
     /// Current file path (for node creation)
+    #[allow(dead_code)]
     current_file: String,
 
     /// Statistics about call detection
@@ -82,6 +83,7 @@ impl<'a> CallGraphVisitor<'a> {
     }
 
     /// Extract method signature for methods in impl blocks
+    #[allow(dead_code)]
     fn extract_method_signature(&self, method_name: &Ident, _item_impl: &ItemImpl) -> String {
         // Simplified implementation - in production would extract proper type context
         format!("method_{}", method_name)
@@ -172,7 +174,7 @@ mod tests {
     #[test]
     fn test_function_signature_extraction() {
         let isg = OptimizedISG::new();
-        let mut visitor = CallGraphVisitor::new(&isg, "test.rs".to_string());
+        let visitor = CallGraphVisitor::new(&isg, "test.rs".to_string());
 
         // Create a mock function for testing
         let code = r#"

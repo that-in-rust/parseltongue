@@ -19,7 +19,7 @@
 //! - Proper node styling with icons and file paths
 //! - Special character sanitization for node identifiers
 
-use crate::isg::{OptimizedISG, NodeData, NodeKind, EdgeKind, FileHierarchyAnalysis, DirectoryInfo};
+use crate::isg::{OptimizedISG, NodeData, NodeKind, EdgeKind, FileHierarchyAnalysis};
 use std::fmt::Write;
 use std::sync::Arc;
 use petgraph::visit::IntoEdgeReferences;
@@ -288,7 +288,7 @@ fn create_overview_mermaid(hierarchy: &FileHierarchyAnalysis) -> String {
 
     // Add entry points as distinct nodes
     for (i, entry_point) in hierarchy.entry_points.iter().take(5).enumerate() {
-        let safe_name = sanitize_identifier(&entry_point.name);
+        let _safe_name = sanitize_identifier(&entry_point.name);
         let file_display = extract_filename_display(&entry_point.file_path);
 
         output.push_str(&format!(
@@ -382,7 +382,7 @@ fn create_detailed_mermaid(hierarchy: &FileHierarchyAnalysis) -> String {
             for (node_idx, node) in nodes_to_show.enumerate() {
                 if node_counter >= 200 { break; }
 
-                let safe_name = sanitize_identifier(&node.name);
+                let _safe_name = sanitize_identifier(&node.name);
                 let file_display = extract_filename_display(&node.file_path);
                 let icon = node_kind_icon(&node.kind);
 

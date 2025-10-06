@@ -16,23 +16,23 @@ Parseltongue is a tool that:
 We'll work with two datasets:
 
 ### 1. Large Code Dump (Tokio Axum)
-- **File**: `tokio-rs-axum-8a5edab282632443.txt`
-- **Size**: 1.6MB (1,645,043 bytes)
-- **Lines**: 54,830 lines
-- **Content**: Complete Axum web framework codebase
+- **File**: Available in test data (see examples/ directory)
+- **Size**: ~1.6MB typical for large Rust codebases
+- **Lines**: 50,000+ lines
+- **Content**: Complete Rust framework codebase
 
 ### 2. Current Parseltongue Codebase
-- **Location**: `~/Desktop/GitHub202410/parseltongue/src`
-- **Size**: 84KB
-- **Rust Files**: 7 files
-- **Total Lines**: 1,940 lines of Rust code
+- **Location**: `./src`
+- **Size**: ~500KB
+- **Rust Files**: 12+ files
+- **Total Lines**: 3,000+ lines of Rust code
 
 ## 🚀 Getting Started
 
 ### Step 1: Build the Project
 
 ```bash
-cd ~/Desktop/GitHub202410/parseltongue
+cd parseltongue
 cargo build --release
 ```
 
@@ -55,39 +55,56 @@ Commands:
   daemon            Start daemon monitoring .rs files
   query             Execute graph queries
   generate-context  Generate LLM context for entity
+  export            Export ISG diagram to Mermaid Markdown
+  export-wasm       Export ISG diagram to WASM visualization
+  debug             Debug and visualization commands
   help              Print this message or the help of the given subcommand(s)
 ```
 
 ## 📋 Use Case 1: Processing Large Code Dump (Axum)
 
-### Step 1: Examine the Code Dump
+### Step 1: Create Sample Data
 
-Let's first look at the structure of our test data:
+Let's create sample Rust code for testing:
 
 ```bash
-# Check file size and line count
-ls -lh _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt
-wc -l _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt
+# Create a simple test file
+cat > sample_rust.txt << 'EOF'
+FILE: src/main.rs
+fn main() {
+    println!("Hello, world!");
+}
 
-# Preview the format (first 20 lines)
-head -20 _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt
+FILE: src/lib.rs
+pub struct User {
+    name: String,
+    age: u32,
+}
+
+impl User {
+    pub fn new(name: String, age: u32) -> Self {
+        Self { name, age }
+    }
+}
+
+pub trait Display {
+    fn fmt(&self) -> String;
+}
+
+impl Display for User {
+    fn fmt(&self) -> String {
+        format!("User({}, {})", self.name, self.age)
+    }
+}
+EOF
 ```
-
-**Note**: The parser automatically handles separator lines (like `====`) that may appear between file sections, so your code dumps can include visual separators for readability.
 
 ### Step 2: Ingest the Code Dump
 
-Now let's process this 1.6MB file and see how Parseltongue handles it:
+Now let's process this sample data:
 
 ```bash
-./target/release/parseltongue ingest _refTestDataAsLibraryTxt/tokio-rs-axum-8a5edab282632443.txt
-```
-
-**Note**: The large Axum codebase contains complex Rust syntax that may cause parsing errors. For demonstration, let's use a smaller test file:
-
-```bash
-# Create a test file with simpler content
-./target/release/parseltongue ingest test_axum_format.txt
+./target/release/parseltongue ingest sample_rust.txt
 ```
 
 **Expected Output:**
@@ -102,25 +119,48 @@ Once ingested, you can query the graph:
 
 ```bash
 # Find all trait implementors (human-readable)
-./target/release/parseltongue query what-implements Clone
+./target/release/parseltongue query what-implements Display
 
 # Get blast radius analysis (JSON format for LLM)
-./target/release/parseltongue query blast-radius Router --format json
+./target/release/parseltongue query blast-radius User --format json
 
 # Find circular dependencies
-./target/release/parseltongue query find-cycles Service
+./target/release/parseltongue query find-cycles User
+
+# Find who calls a function
+./target/release/parseltongue query who-calls new
+
+# Get execution path between functions
+./target/release/parseltongue query execution-path "main>new"
 ```
 
-### Step 4: Generate LLM Context
+### Step 4: Generate Visualizations
+
+Create different types of visualizations:
+
+```bash
+# Generate Mermaid diagram (GitHub-compatible)
+./target/release/parseltongue export --output architecture.md
+
+# Generate interactive WASM visualization
+./target/release/parseltongue export-wasm --output viz/ --layout forcedirected
+
+# Generate different layout algorithms
+./target/release/parseltongue export-wasm --layout breadthfirst   # Fast, simple
+./target/release/parseltongue export-wasm --layout hierarchical    # Good for DAGs
+./target/release/parseltongue export-wasm --layout circular        # Small graphs
+```
+
+### Step 5: Generate LLM Context
 
 Create comprehensive context for AI development:
 
 ```bash
 # Human-readable context
-./target/release/parseltongue generate-context Router
+./target/release/parseltongue generate-context User
 
 # JSON format for LLM consumption
-./target/release/parseltongue generate-context Handler --format json
+./target/release/parseltongue generate-context User --format json
 ```
 
 ## 📋 Use Case 2: Live Monitoring Current Codebase
@@ -264,9 +304,9 @@ Error: Parse error: Failed to parse Rust code: expected `!`
 
 #### Entity Not Found Errors
 ```
-Error: Node with SigHash SigHash(0) not found
+Error: Entity 'SomeEntity' not found in the graph
 ```
-**Current Status**: The entity lookup functionality is implemented but may have issues with hash generation or name matching. This is a known issue being addressed.
+**Solution**: Make sure the entity exists in the ingested codebase. Check spelling and that the code was properly processed.
 
 #### Performance Warnings
 ```
@@ -279,7 +319,7 @@ These are warnings, not errors. The operation completed successfully but exceede
 ```bash
 # Make sure you're in the right directory
 pwd
-ls -la _refTestDataAsLibraryTxt/
+ls -la sample_rust.txt
 ```
 
 #### Compilation Errors
@@ -306,13 +346,17 @@ cargo build --release
 
 ```bash
 # Process dump, then query specific entities
-./target/release/parseltongue ingest large_codebase.txt
-./target/release/parseltongue query blast-radius MyStruct --format json > analysis.json
+./target/release/parseltongue ingest sample_rust.txt
+./target/release/parseltongue query blast-radius User --format json > analysis.json
 
 # Generate context for multiple entities
-for entity in Router Handler Service; do
+for entity in User Display new; do
   ./target/release/parseltongue generate-context $entity --format json > "${entity}_context.json"
 done
+
+# Generate all visualization types
+./target/release/parseltongue export --output architecture.md
+./target/release/parseltongue export-wasm --layout forcedirected --output interactive/
 ```
 
 ### Performance Monitoring
@@ -342,7 +386,8 @@ After completing this onboarding:
 
 - **Main README**: Complete feature documentation
 - **Implementation Notes**: Technical implementation details
-- **Spec Documentation**: `.kiro/specs/parseltongue-aim-daemon/README.md`
+- **Steering Documents**: Architecture principles and guidelines
+- **Mermaid Reference**: Diagram generation standards
 - **Performance Constraints**: All timing requirements and monitoring
 
 Welcome to Parseltongue! You're now ready to analyze Rust codebases with architectural intelligence.

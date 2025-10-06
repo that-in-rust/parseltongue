@@ -4,7 +4,7 @@ Documentation for the Parseltongue project.
 
 ## Core Documentation
 
-- `README.md` (root) - Main project documentation
+- `../README.md` (root) - Main project documentation
 - `ONBOARDING_GUIDE.md` - Getting started guide
 - `ISG_EXPLAINED.md` - Interface Signature Graph explanation
 
@@ -28,13 +28,18 @@ Documentation for the Parseltongue project.
 
 ## Case Studies
 
-- `Tokio-case-study-02.md` - Comprehensive end-to-end analysis of Tokio async runtime (2,576 nodes)
+- `../analysis/tokio-hierarchical/` - Comprehensive analysis of Tokio async runtime (2,576 nodes)
 
 ## Analysis Archives
 
 See `../analysis/` for analysis journals:
 - `isgJournaRS20251005.md` - Core Rust files analysis (5,567 lines)
 - `journal20251005.md` - Documentation changes analysis (119,195 lines)
+
+## Visualization Documentation
+
+- `mermaid-reference.md` - Complete Mermaid diagram guidelines
+- `html-viewer/README.md` - Interactive WASM visualization guide
 
 ## Strategy Documents
 

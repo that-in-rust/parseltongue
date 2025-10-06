@@ -58,8 +58,9 @@ flowchart TD
 # Parse the codebase
 parseltongue ingest simple-code.txt
 
-# Export to GitHub-compatible Mermaid
-parseltongue export mermaid --output simple-example.md
+# Export to both HTML and markdown automatically
+parseltongue export --output simple-example
+# Creates: simple-example.html (interactive) + simple-example.md (overview)
 ```
 
 ## What This Shows

@@ -3,9 +3,8 @@
 //! Provides command-line interface with performance monitoring and JSON/human output
 
 use crate::daemon::ParseltongueAIM;
-use crate::isg::ISGError;
 use clap::{Parser, Subcommand, ValueEnum};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::Instant;
 use chrono::Utc;
 
@@ -50,12 +49,20 @@ pub enum Commands {
         #[arg(long, default_value = "human")]
         format: OutputFormat,
     },
-    /// Export ISG diagram to both interactive HTML and Markdown
+    /// Export ISG diagram to Mermaid Markdown
     Export {
         /// Output file path (optional, auto-generated if not provided)
-        /// Creates both filename.html and filename.md
         #[arg(short, long)]
         output: Option<PathBuf>,
+    },
+    /// Export ISG diagram to WASM visualization
+    ExportWasm {
+        /// Output directory (optional, creates 'wasm_output' if not provided)
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+        /// Layout algorithm to use
+        #[arg(long, default_value = "breadthfirst")]
+        layout: String,
     },
     /// Debug and visualization commands
     Debug {
@@ -272,8 +279,6 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
         Commands::Export { output } => {
             let start = Instant::now();
-
-            // Dual export: both HTML and MD generated automatically
             let output_path = match output {
                 Some(path) => path,
                 None => {
@@ -281,42 +286,69 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                     PathBuf::from(format!("ISG_Architecture_{}", timestamp))
                 }
             };
+            let mermaid_content = crate::mermaid_export::export_isg_to_mermaid(&daemon.isg);
 
-            match crate::html_export::export_isg_to_dual_format(&daemon.isg, &output_path) {
-                Ok((html_content, md_content)) => {
-                    let elapsed = start.elapsed();
+      let elapsed = start.elapsed();
 
-                    println!("✓ Dual export completed:");
-                    println!("  HTML: {}.html (self-contained, no CORS)", output_path.display());
-                    println!("  MD:   {}.md (top-level overview)", output_path.display());
-                    println!("  Nodes: {}", daemon.isg.node_count());
-                    println!("  Edges: {}", daemon.isg.edge_count());
-                    println!("  Time: {}ms", elapsed.as_millis());
-                    println!("  HTML Features: Interactive, zoom/pan/search");
-                    println!("  MD Features: Architecture overview + statistics");
+      // Write MD file with extension
+      let md_path = output_path.with_extension("md");
+      std::fs::write(&md_path, mermaid_content)?;
 
-                    // Validate performance contracts
-                    if elapsed.as_millis() >= 5000 {
-                        eprintln!("⚠️  Dual export took {}ms (>=5s contract violated)", elapsed.as_millis());
-                    } else {
-                        println!("✅ Performance contract satisfied (<5s)");
-                    }
+      println!("✓ Mermaid export completed:");
+      println!("  MD:   {} (GitHub compatible)", md_path.display());
+      println!("  Nodes: {}", daemon.isg.node_count());
+      println!("  Edges: {}", daemon.isg.edge_count());
+      println!("  Time: {:.2}s", elapsed.as_secs_f64());
 
-                    // File size validation for HTML
-                    let html_size = html_content.len();
-                    if html_size > 5_000_000 {
-                        eprintln!("⚠️  HTML file is {:.1}MB (>5MB size concern)", html_size as f64 / 1_000_000.0);
-                    } else {
-                        println!("✅ HTML size optimized ({:.1}MB)", html_size as f64 / 1_000_000.0);
-                    }
+      // Save snapshot for persistence
+      if let Err(e) = daemon.save_snapshot(snapshot_path) {
+          eprintln!("⚠️  Could not save snapshot: {}", e);
+      }
 
-                    println!("🎯 Ready for GitHub download and immediate use!");
-                }
-                Err(e) => {
-                    eprintln!("❌ Export failed: {}", e);
-                    std::process::exit(1);
-                }
+      println!("✓ File created successfully");
+        }
+
+        Commands::ExportWasm { output, layout } => {
+            let start = Instant::now();
+            let output_dir = match output {
+                Some(path) => path,
+                None => PathBuf::from("wasm_output"),
+            };
+
+            // Create output directory if it doesn't exist
+            std::fs::create_dir_all(&output_dir)?;
+
+            // Serialize ISG to JSON
+            let isg_json = serde_json::to_string_pretty(&daemon.isg)?;
+
+            // Write ISG JSON file
+            let isg_path = output_dir.join("isg_data.json");
+            std::fs::write(&isg_path, isg_json)?;
+
+            // Generate WASM visualization files
+            let wasm_content = crate::wasm_renderer::generate_wasm_visualization(&daemon.isg, &layout)?;
+
+            // Write WASM HTML file
+            let html_path = output_dir.join("visualization.html");
+            std::fs::write(&html_path, wasm_content)?;
+
+            let elapsed = start.elapsed();
+
+            println!("✓ WASM export completed:");
+            println!("  Output directory: {}", output_dir.display());
+            println!("  ISG JSON: {}", isg_path.display());
+            println!("  HTML Visualization: {}", html_path.display());
+            println!("  Layout algorithm: {}", layout);
+            println!("  Nodes: {}", daemon.isg.node_count());
+            println!("  Edges: {}", daemon.isg.edge_count());
+            println!("  Time: {:.2}s", elapsed.as_secs_f64());
+
+            // Save snapshot for persistence
+            if let Err(e) = daemon.save_snapshot(snapshot_path) {
+                eprintln!("⚠️  Could not save snapshot: {}", e);
             }
+
+            println!("✓ Open {} in your browser to view the visualization", html_path.display());
         }
 
         Commands::Debug { graph, dot, mermaid, sample } => {

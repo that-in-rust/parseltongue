@@ -28,8 +28,11 @@ parseltongue daemon --watch <directory>
 #### 3. Query Commands
 ```bash
 parseltongue query what-implements <trait> [--format json]
-parseltongue query blast-radius <entity> [--format json]  
+parseltongue query blast-radius <entity> [--format json]
 parseltongue query find-cycles <entity> [--format json]
+parseltongue query who-calls <function> [--format json]
+parseltongue query get-called-functions <function> [--format json]
+parseltongue query execution-path <from> <to> [--format json]
 ```
 - **Performance**: <500μs simple queries, <1ms complex (monitored and warned)
 - **Output Formats**: Human-readable with metrics, JSON with metadata
@@ -42,6 +45,23 @@ parseltongue generate-context <entity> [--format json]
 - **Functionality**: 2-hop dependency analysis for LLM consumption
 - **Output**: Target entity, dependencies, callers with full metadata
 - **Performance**: Execution time tracking and reporting
+
+#### 5. Mermaid Export
+```bash
+parseltongue export [--output <path>]
+```
+- **Functionality**: Generate GitHub-compatible Mermaid diagrams
+- **Output**: Markdown file with embedded Mermaid diagram
+- **Features**: Automatic timestamp, node/edge counts, performance metrics
+
+#### 6. WASM Export
+```bash
+parseltongue export-wasm [--output <dir>] [--layout <algorithm>]
+```
+- **Functionality**: Generate interactive WASM visualizations
+- **Layout Algorithms**: breadthfirst, forcedirected, hierarchical, circular
+- **Output**: HTML file with JavaScript rendering, JSON data file
+- **Features**: Zoom/pan controls, real-time interaction, multiple layouts
 
 ### Key Features
 
@@ -127,11 +147,13 @@ parseltongue generate-context <entity> [--format json]
 ## Summary
 
 The CLI implementation is **complete and functional** with:
-- ✅ All 4 command types implemented
+- ✅ All 6+ command types implemented (ingest, daemon, query, generate-context, export, export-wasm, debug)
 - ✅ Performance monitoring integrated
-- ✅ Dual output formats (human/JSON)
+- ✅ Multiple output formats (human/JSON/HTML/Mermaid)
 - ✅ Comprehensive error handling
 - ✅ Full daemon integration
+- ✅ Interactive WASM visualizations with 4 layout algorithms
+- ✅ GitHub-compatible Mermaid diagram generation
 - ✅ Test coverage for all components
 
-The implementation follows Rust best practices with proper error handling, performance monitoring, and clean architecture integration. All MVP requirements are met with automatic constraint validation and clear user feedback.
+The implementation follows Rust best practices with proper error handling, performance monitoring, and clean architecture integration. All MVP requirements are met with automatic constraint validation and clear user feedback, plus advanced visualization capabilities.

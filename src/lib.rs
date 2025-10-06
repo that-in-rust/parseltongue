@@ -13,8 +13,13 @@ pub mod isg;
 pub mod daemon;
 pub mod cli;
 pub mod mermaid_export;
-pub mod html_export;
 pub mod call_graph;
+pub mod wasm_core;
+pub mod wasm_renderer;
+pub mod wasm_bindings;
+
+#[cfg(test)]
+mod wasm_tests;
 
 #[cfg(test)]
 mod tests {

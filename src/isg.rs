@@ -12,6 +12,7 @@ use petgraph::visit::{Bfs, EdgeRef, IntoEdgeReferences};
 use std::collections::HashSet;
 use std::sync::Arc;
 use thiserror::Error;
+use serde::{Serialize, Deserialize};
 
 // Strong typing for unique identifier (collision-free)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
@@ -21,10 +22,14 @@ impl SigHash {
     pub fn from_signature(signature: &str) -> Self {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
-        
+
         let mut hasher = DefaultHasher::new();
         signature.hash(&mut hasher);
         Self(hasher.finish())
+    }
+
+    pub fn new(name: &str) -> Self {
+        Self::from_signature(name)
     }
 }
 
@@ -366,7 +371,7 @@ impl OptimizedISG {
         let state = self.state.read();
         let mut entry_points = Vec::new();
 
-        for (_hash, &node_idx) in &state.id_map {
+        for (hash, &node_idx) in &state.id_map {
             if let Some(node) = state.graph.node_weight(node_idx) {
                 let file_name = self.extract_filename(&node.file_path);
 
@@ -785,6 +790,91 @@ impl OptimizedISG {
         } else {
             Err(ISGError::EntityNotFound("Entity hash not found".to_string()))
         }
+    }
+}
+
+// ===== Serialization Support for WASM =====
+
+/// Serializable representation of OptimizedISG for WASM
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SerializableISG {
+    pub nodes: Vec<NodeData>,
+    pub edges: Vec<(SigHash, SigHash, EdgeKind)>,
+}
+
+impl From<&OptimizedISG> for SerializableISG {
+    fn from(isg: &OptimizedISG) -> Self {
+        let state = isg.state.read();
+
+        let nodes: Vec<NodeData> = state.graph.node_weights().cloned().collect();
+        let edges: Vec<(SigHash, SigHash, EdgeKind)> = state.graph.edge_indices()
+            .filter_map(|edge_idx| {
+                if let Some((source, target, edge_kind)) = state.graph.edge_endpoints(edge_idx)
+                    .and_then(|(s, t)| state.graph.edge_weight(edge_idx).map(|w| (s, t, w))) {
+                    if let (Some(source_node), Some(target_node)) = (
+                        state.graph.node_weight(source),
+                        state.graph.node_weight(target)
+                    ) {
+                        return Some((source_node.hash, target_node.hash, *edge_kind));
+                    }
+                }
+                None
+            })
+            .collect();
+
+        SerializableISG { nodes, edges }
+    }
+}
+
+impl From<SerializableISG> for OptimizedISG {
+    fn from(serializable: SerializableISG) -> Self {
+        let isg = OptimizedISG::new();
+        {
+            let mut state = isg.state.write();
+
+            // Clear existing data
+            state.graph.clear();
+            state.id_map.clear();
+
+            // Add nodes
+            for node in serializable.nodes {
+                let node_idx = state.graph.add_node(node.clone());
+                state.id_map.insert(node.hash, node_idx);
+            }
+
+            // Add edges
+            for (source_hash, target_hash, edge_kind) in serializable.edges {
+                if let (Some(&source_idx), Some(&target_idx)) = (
+                    state.id_map.get(&source_hash),
+                    state.id_map.get(&target_hash)
+                ) {
+                    state.graph.add_edge(source_idx, target_idx, edge_kind);
+                }
+            }
+        } // state is dropped here, releasing the borrow
+
+        isg
+    }
+}
+
+// Implement serialization for OptimizedISG by converting to/from SerializableISG
+impl serde::Serialize for OptimizedISG {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let serializable = SerializableISG::from(self);
+        serializable.serialize(serializer)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for OptimizedISG {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let serializable = SerializableISG::deserialize(deserializer)?;
+        Ok(OptimizedISG::from(serializable))
     }
 }
 

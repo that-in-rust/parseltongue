@@ -82,7 +82,6 @@ impl ParseltongueAIM {
     /// Parse Rust file using syn crate
     fn parse_rust_file(&mut self, file_path: &str, code: &str) -> Result<(), ISGError> {
         use syn::{Item, ItemFn, ItemStruct, ItemTrait, ItemImpl};
-        use std::sync::Arc;
         
         let syntax_tree = match syn::parse_file(code) {
             Ok(tree) => tree,
