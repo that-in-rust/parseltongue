@@ -35,6 +35,16 @@ pub enum NodeKind {
     Trait,
 }
 
+impl std::fmt::Display for NodeKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NodeKind::Function => write!(f, "Function"),
+            NodeKind::Struct => write!(f, "Struct"),
+            NodeKind::Trait => write!(f, "Trait"),
+        }
+    }
+}
+
 // Memory-optimized node data with Arc<str> interning
 // Custom serialization needed for Arc<str>
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -182,6 +192,107 @@ pub enum ISGError {
     InvalidInput(String),
 }
 
+/// File hierarchy analysis for progressive disclosure visualization
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct FileHierarchyAnalysis {
+    /// Nodes organized by directory depth (0 = root, 1 = src/, etc.)
+    pub levels: Vec<DirectoryLevel>,
+    /// Total number of levels in the hierarchy
+    pub max_depth: usize,
+    /// Entry points for control flow analysis
+    pub entry_points: Vec<NodeData>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DirectoryLevel {
+    /// Depth level (0 = root)
+    pub depth: usize,
+    /// Directories at this depth level
+    pub directories: Vec<DirectoryInfo>,
+    /// Total nodes at this level
+    pub node_count: usize,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct DirectoryInfo {
+    /// Directory path (e.g., "src", "src/utils")
+    pub path: String,
+    /// Nodes in this directory
+    pub nodes: Vec<NodeData>,
+    /// Node count in this directory
+    pub node_count: usize,
+}
+
+impl FileHierarchyAnalysis {
+    pub fn new() -> Self {
+        Self {
+            levels: Vec::new(),
+            max_depth: 0,
+            entry_points: Vec::new(),
+        }
+    }
+
+    pub fn add_node_at_depth(&mut self, depth: usize, directory: String, node: NodeData) {
+        // Ensure we have enough levels
+        while self.levels.len() <= depth {
+            self.levels.push(DirectoryLevel {
+                depth: self.levels.len(),
+                directories: Vec::new(),
+                node_count: 0,
+            });
+        }
+
+        // Find or create directory at this level
+        let level = &mut self.levels[depth];
+        let dir_info = level.directories.iter_mut()
+            .find(|d| d.path == directory);
+
+        if let Some(dir_info) = dir_info {
+            dir_info.nodes.push(node);
+        } else {
+            level.directories.push(DirectoryInfo {
+                path: directory,
+                nodes: vec![node],
+                node_count: 0,
+            });
+        }
+
+        // Update counts
+        level.node_count += 1;
+        for dir in &mut level.directories {
+            dir.node_count = dir.nodes.len();
+        }
+
+        self.max_depth = self.max_depth.max(depth);
+    }
+
+    /// Get limited view for pyramid level (max 3 levels)
+    pub fn get_pyramid_view(&self, levels: usize) -> Vec<&DirectoryLevel> {
+        if levels >= self.levels.len() {
+            return self.levels.iter().collect();
+        }
+
+        // Sample levels to fit within requested number
+        let step = if self.levels.len() <= levels {
+            1
+        } else {
+            (self.levels.len() - 1) / (levels - 1)
+        };
+
+        let mut selected_levels = Vec::new();
+        for i in 0..levels {
+            let level_index = if i == levels - 1 {
+                self.levels.len() - 1 // Always include the deepest level
+            } else {
+                (i * step).min(self.levels.len() - 1)
+            };
+            selected_levels.push(&self.levels[level_index]);
+        }
+
+        selected_levels
+    }
+}
+
 // Internal mutable state protected by single RwLock
 pub(crate) struct ISGState {
     // StableDiGraph ensures indices remain valid upon deletion
@@ -212,6 +323,69 @@ impl OptimizedISG {
         }
     }
 
+    /// Analyze file structure hierarchy for progressive disclosure
+    pub fn analyze_file_hierarchy(&self) -> FileHierarchyAnalysis {
+        let state = self.state.read();
+        let mut analysis = FileHierarchyAnalysis::new();
+
+        // Group nodes by directory depth
+        for &node_idx in state.id_map.values() {
+            if let Some(node) = state.graph.node_weight(node_idx) {
+                let depth = self.calculate_directory_depth(&node.file_path);
+                let directory = self.extract_directory(&node.file_path);
+
+                analysis.add_node_at_depth(depth, directory, node.clone());
+            }
+        }
+
+        // Collect entry points for control flow analysis
+        analysis.entry_points = self.get_entry_points();
+
+        analysis
+    }
+
+    /// Calculate directory depth from file path
+    fn calculate_directory_depth(&self, file_path: &str) -> usize {
+        // Count directory levels, excluding the filename itself
+        file_path.split('/').count().saturating_sub(2)
+    }
+
+    /// Extract directory path from file path
+    fn extract_directory(&self, file_path: &str) -> String {
+        if let Some(last_slash) = file_path.rfind('/') {
+            file_path[..last_slash].to_string()
+        } else {
+            ".".to_string() // Root directory
+        }
+    }
+
+    /// Get entry points for control flow analysis (main functions, lib.rs, etc.)
+    pub fn get_entry_points(&self) -> Vec<NodeData> {
+        let state = self.state.read();
+        let mut entry_points = Vec::new();
+
+        for (_hash, &node_idx) in &state.id_map {
+            if let Some(node) = state.graph.node_weight(node_idx) {
+                let file_name = self.extract_filename(&node.file_path);
+
+                // Identify common entry point patterns
+                if node.name.as_ref() == "main"
+                    || file_name == "main.rs"
+                    || file_name == "lib.rs"
+                    || (node.kind == NodeKind::Function && file_name.starts_with("bin/")) {
+                    entry_points.push(node.clone());
+                }
+            }
+        }
+
+        entry_points
+    }
+
+    /// Extract filename from full path
+    fn extract_filename<'a>(&self, file_path: &'a str) -> &'a str {
+        file_path.split('/').last().unwrap_or(file_path)
+    }
+
     /// Debug visualization: Print human-readable graph representation
     pub fn debug_print(&self) -> String {
         let state = self.state.read();
@@ -225,7 +399,7 @@ impl OptimizedISG {
         output.push_str("NODES:\n");
         for (hash, &node_idx) in &state.id_map {
             if let Some(node) = state.graph.node_weight(node_idx) {
-                output.push_str(&format!("  {:?} -> {} ({:?})\n", 
+                output.push_str(&format!("  {:?} -> {} ({:?})\n",
                     hash, node.name, node.kind));
                 output.push_str(&format!("    Signature: {}\n", node.signature));
                 output.push_str(&format!("    File: {}:{}\n", node.file_path, node.line));

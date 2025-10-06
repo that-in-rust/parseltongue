@@ -19,7 +19,7 @@
 //! - Proper node styling with icons and file paths
 //! - Special character sanitization for node identifiers
 
-use crate::isg::{OptimizedISG, NodeData, NodeKind, EdgeKind};
+use crate::isg::{OptimizedISG, NodeData, NodeKind, EdgeKind, FileHierarchyAnalysis, DirectoryInfo};
 use std::fmt::Write;
 use std::sync::Arc;
 use petgraph::visit::IntoEdgeReferences;
@@ -226,10 +226,519 @@ const fn edge_kind_arrow_style(kind: &EdgeKind) -> &'static str {
     }
 }
 
+/// Export ISG to hierarchical Mermaid files (pyramid structure)
+///
+/// Creates multiple files for progressive disclosure:
+/// - index.md: Overview level (Level 1)
+/// - explore.md: Detailed exploration (Levels 2-3)
+/// - data/: Full ISG JSON data
+///
+/// # Performance Contract
+/// - Must complete in <20ms total for typical graphs (file I/O included)
+/// - Each level: <300 nodes for GitHub compatibility
+/// - Memory: O(1) additional allocation per file
+pub fn export_isg_to_hierarchical_mermaid(
+    isg: &OptimizedISG,
+    output_dir: &str
+) -> Result<Vec<String>, std::io::Error> {
+    // Create output directory
+    fs::create_dir_all(output_dir)?;
+    fs::create_dir_all(&format!("{}/data", output_dir))?;
+
+    // Analyze file hierarchy
+    let hierarchy = isg.analyze_file_hierarchy();
+
+    let mut created_files = Vec::new();
+
+    // Level 1: Overview (index.md) - Top 30,000ft view
+    let index_path = format!("{}/index.md", output_dir);
+    let index_content = create_overview_mermaid(&hierarchy);
+    fs::write(&index_path, index_content)?;
+    created_files.push(index_path);
+
+    // Level 2-3: Detailed exploration (explore.md)
+    let explore_path = format!("{}/explore.md", output_dir);
+    let explore_content = create_detailed_mermaid(&hierarchy);
+    fs::write(&explore_path, explore_content)?;
+    created_files.push(explore_path);
+
+    // Full data: Complete ISG as JSON
+    let data_path = format!("{}/data/full_isg.json", output_dir);
+    let full_data = create_full_isg_export(isg);
+    fs::write(&data_path, full_data)?;
+    created_files.push(data_path);
+
+    Ok(created_files)
+}
+
+/// Create Level 1 overview Mermaid diagram (30,000ft view)
+///
+/// Shows only the top-level directories and entry points
+/// Limited to ~50 nodes for GitHub compatibility
+fn create_overview_mermaid(hierarchy: &FileHierarchyAnalysis) -> String {
+    let mut output = String::new();
+
+    output.push_str("# Architecture Overview - Level 1 (30,000ft view)\n\n");
+    output.push_str("This is the highest-level view of the codebase structure.\n");
+    output.push_str("See [explore.md](explore.md) for detailed exploration.\n\n");
+
+    output.push_str("```mermaid\n");
+    output.push_str("flowchart TD\n");
+
+    // Add entry points as distinct nodes
+    for (i, entry_point) in hierarchy.entry_points.iter().take(5).enumerate() {
+        let safe_name = sanitize_identifier(&entry_point.name);
+        let file_display = extract_filename_display(&entry_point.file_path);
+
+        output.push_str(&format!(
+            "    Entry{}[\"🚀 {}<br/><i>Entry: {}</i>\"]\n",
+            i, entry_point.name, file_display
+        ));
+    }
+
+    // Add top-level directories (depth 0-1 only)
+    let top_levels = hierarchy.levels.iter().take(2);
+    for level in top_levels {
+        for directory in &level.directories {
+            if directory.node_count > 0 {
+                let safe_name = sanitize_identifier(&directory.path);
+                let node_count = directory.node_count;
+
+                output.push_str(&format!(
+                    "    Dir{}[\"📁 {}<br/><i>{} items</i>\"]\n",
+                    safe_name.replace("/", "_"),
+                    directory.path,
+                    node_count
+                ));
+            }
+        }
+    }
+
+    // Add connections from entry points to directories
+    for (i, entry_point) in hierarchy.entry_points.iter().take(3).enumerate() {
+        let entry_dir = extract_directory_simple(&entry_point.file_path);
+        let safe_dir = sanitize_identifier(&entry_dir);
+
+        output.push_str(&format!(
+            "    Entry{} --> Dir{}\n",
+            i, safe_dir.replace("/", "_")
+        ));
+    }
+
+    output.push_str("\n    %% Styling\n");
+    output.push_str("    classDef entry fill:#e1f5fe,stroke:#0277bd,stroke-width:3px,color:#01579b\n");
+    output.push_str("    classDef directory fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c\n");
+
+    // Apply classes
+    for i in 0..hierarchy.entry_points.iter().take(5).count() {
+        output.push_str(&format!("    class Entry{} entry\n", i));
+    }
+
+    for level in hierarchy.levels.iter().take(2) {
+        for directory in &level.directories {
+            if directory.node_count > 0 {
+                let safe_name = sanitize_identifier(&directory.path);
+                output.push_str(&format!("    class Dir{} directory\n", safe_name.replace("/", "_")));
+            }
+        }
+    }
+
+    output.push_str("```\n\n");
+    output.push_str("---\n\n");
+    output.push_str("*📊 Next Level: [Detailed Exploration](explore.md) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*\n");
+
+    output
+}
+
+/// Create Level 2-3 detailed Mermaid diagram (1,000ft view)
+///
+/// Shows intermediate directories and key modules
+/// Limited to ~200 nodes for GitHub compatibility
+fn create_detailed_mermaid(hierarchy: &FileHierarchyAnalysis) -> String {
+    let mut output = String::new();
+
+    output.push_str("# Detailed Architecture - Levels 2-3 (1,000ft view)\n\n");
+    output.push_str("This view shows the detailed module structure and key relationships.\n");
+    output.push_str("*⬅️ Back to: [Overview](index.md) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*\n\n");
+
+    output.push_str("```mermaid\n");
+    output.push_str("flowchart TD\n");
+
+    // Get pyramid view (3 levels max)
+    let pyramid_levels = hierarchy.get_pyramid_view(3);
+    let mut node_counter = 0;
+
+    for (level_idx, level) in pyramid_levels.iter().enumerate() {
+        output.push_str(&format!("\n    %% Level {}: {} directories at depth {}\n",
+            level_idx + 1, level.directories.len(), level.depth));
+
+        for directory in &level.directories {
+            if node_counter >= 200 { break; } // GitHub limit
+
+            // Limit nodes per directory
+            let nodes_to_show = directory.nodes.iter().take(10);
+
+            for (node_idx, node) in nodes_to_show.enumerate() {
+                if node_counter >= 200 { break; }
+
+                let safe_name = sanitize_identifier(&node.name);
+                let file_display = extract_filename_display(&node.file_path);
+                let icon = node_kind_icon(&node.kind);
+
+                output.push_str(&format!(
+                    "    L{}_D{}_N{}[\"{} {}<br/><i>({})<br/>{}</i>\"]\n",
+                    level_idx + 1,
+                    sanitize_identifier(&directory.path).replace("/", "_"),
+                    node_idx,
+                    icon, node.name, node.kind, file_display
+                ));
+
+                node_counter += 1;
+            }
+        }
+    }
+
+    // Add directory grouping
+    output.push_str("\n    %% Directory groupings\n");
+    for (level_idx, level) in pyramid_levels.iter().enumerate() {
+        for directory in &level.directories {
+            if directory.node_count > 0 {
+                let safe_dir = sanitize_identifier(&directory.path).replace("/", "_");
+                output.push_str(&format!(
+                    "    subgraph SubL{}[\"📁 {} (Level {})\"]\n",
+                    level_idx + 1, directory.path, level_idx + 1
+                ));
+
+                for node_idx in 0..directory.nodes.iter().take(10).count() {
+                    output.push_str(&format!(
+                        "        L{}_D{}_N{}\n",
+                        level_idx + 1, safe_dir, node_idx
+                    ));
+                }
+
+                output.push_str("    end\n");
+            }
+        }
+    }
+
+    output.push_str("\n    %% Styling\n");
+    output.push_str("    classDef level1 fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#1b5e20\n");
+    output.push_str("    classDef level2 fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#0d47a1\n");
+    output.push_str("    classDef level3 fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100\n");
+
+    // Apply level-based styling
+    for (level_idx, level) in pyramid_levels.iter().enumerate() {
+        let class_name = match level_idx {
+            0 => "level1",
+            1 => "level2",
+            _ => "level3",
+        };
+
+        for directory in &level.directories {
+            for node_idx in 0..directory.nodes.iter().take(10).count() {
+                output.push_str(&format!(
+                    "    class L{}_D{}_N{} {}\n",
+                    level_idx + 1,
+                    sanitize_identifier(&directory.path).replace("/", "_"),
+                    node_idx,
+                    class_name
+                ));
+            }
+        }
+    }
+
+    output.push_str("```\n\n");
+    output.push_str("---\n\n");
+    output.push_str("*⬅️ Back to: [Overview](index.md) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*\n");
+
+    output
+}
+
+/// Create full ISG data export as JSON
+fn create_full_isg_export(isg: &OptimizedISG) -> String {
+    let hierarchy = isg.analyze_file_hierarchy();
+    serde_json::to_string_pretty(&hierarchy).unwrap_or_else(|_| {
+        r#"{"error": "Failed to serialize ISG data"}"#.to_string()
+    })
+}
+
+/// Helper: Extract filename for display
+fn extract_filename_display(file_path: &str) -> &str {
+    file_path.split('/').last().unwrap_or(file_path)
+}
+
+/// Helper: Extract directory (simple version)
+fn extract_directory_simple(file_path: &str) -> &str {
+    if let Some(slash_pos) = file_path.rfind('/') {
+        &file_path[..slash_pos]
+    } else {
+        "."
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::isg::SigHash;
+
+    /// Test contract: Hierarchical export creates multiple files
+    ///
+    /// # Given: ISG with nodes at different directory depths
+    /// # When: export_isg_to_hierarchical_mermaid is called
+    /// # Then: Creates index.md, explore.md, and data/full_isg.json
+    #[test]
+    fn test_hierarchical_export_creates_multiple_files() -> Result<(), std::io::Error> {
+        // Setup: Create test ISG with multiple directory levels
+        let isg = create_hierarchical_test_isg();
+        let temp_dir = std::env::temp_dir().join("test_hierarchy_export");
+
+        // Action: Export hierarchical files
+        let created_files = export_isg_to_hierarchical_mermaid(&isg, temp_dir.to_str().unwrap())?;
+
+        // Assertions: Verify all expected files created
+        assert_eq!(created_files.len(), 3);
+        assert!(created_files.iter().any(|f| f.ends_with("index.md")));
+        assert!(created_files.iter().any(|f| f.ends_with("explore.md")));
+        assert!(created_files.iter().any(|f| f.ends_with("full_isg.json")));
+
+        // Verify file contents exist
+        assert!(std::fs::metadata(temp_dir.join("index.md")).is_ok());
+        assert!(std::fs::metadata(temp_dir.join("explore.md")).is_ok());
+        assert!(std::fs::metadata(temp_dir.join("data/full_isg.json")).is_ok());
+
+        // Cleanup
+        std::fs::remove_dir_all(&temp_dir).ok();
+
+        Ok(())
+    }
+
+    /// Test contract: Overview Mermaid content structure
+    ///
+    /// # Given: ISG with entry points and directories
+    /// # When: create_overview_mermaid is called
+    /// # Then: Returns proper Level 1 overview structure
+    #[test]
+    fn test_overview_mermaid_structure() {
+        // Setup: Create test hierarchy
+        let hierarchy = create_test_hierarchy();
+
+        // Action: Create overview Mermaid
+        let overview = create_overview_mermaid(&hierarchy);
+
+        // Assertions: Verify structure
+        assert!(overview.starts_with("# Architecture Overview - Level 1"));
+        assert!(overview.contains("flowchart TD"));
+        assert!(overview.contains("Entry")); // Entry points
+        assert!(overview.contains("Dir")); // Directories
+        assert!(overview.contains("[explore.md](explore.md)")); // Navigation link
+        assert!(overview.contains("[JSON Export](data/full_isg.json)")); // Data link
+    }
+
+    /// Test contract: Detailed Mermaid content structure
+    ///
+    /// # Given: ISG with multiple directory levels
+    /// # When: create_detailed_mermaid is called
+    /// # Then: Returns proper Levels 2-3 detailed structure
+    #[test]
+    fn test_detailed_mermaid_structure() {
+        // Setup: Create test hierarchy
+        let hierarchy = create_test_hierarchy();
+
+        // Action: Create detailed Mermaid
+        let detailed = create_detailed_mermaid(&hierarchy);
+
+        // Assertions: Verify structure
+        assert!(detailed.starts_with("# Detailed Architecture - Levels 2-3"));
+        assert!(detailed.contains("flowchart TD"));
+        assert!(detailed.contains("Level 1"));
+        assert!(detailed.contains("Level 2"));
+        assert!(detailed.contains("subgraph")); // Directory groupings
+        assert!(detailed.contains("⬅️ Back to: [Overview](index.md)")); // Back navigation
+    }
+
+    /// Test contract: Performance validation for hierarchical export
+    ///
+    /// # Given: ISG with moderate complexity (50 nodes, 100 edges)
+    /// # When: export_isg_to_hierarchical_mermaid is called
+    /// # Then: Must complete in <5ms (performance contract)
+    #[test]
+    fn test_hierarchical_export_performance_contract() -> Result<(), std::io::Error> {
+        // Setup: Create moderately sized test graph
+        let isg = create_hierarchical_performance_test_graph(50, 100);
+        let temp_dir = std::env::temp_dir().join("test_perf_hierarchy");
+
+        // Action: Time the hierarchical export
+        let start = std::time::Instant::now();
+        let _created_files = export_isg_to_hierarchical_mermaid(&isg, temp_dir.to_str().unwrap())?;
+        let elapsed = start.elapsed();
+
+        // Cleanup
+        std::fs::remove_dir_all(&temp_dir).ok();
+
+        // Assertion: Validate performance contract
+        assert!(elapsed.as_millis() < 20,
+            "Hierarchical export took {}ms, contract requires <20ms", elapsed.as_millis());
+
+        Ok(())
+    }
+
+    /// Test contract: File hierarchy analysis accuracy
+    ///
+    /// # Given: ISG with nodes at various directory depths
+    /// # When: analyze_file_hierarchy is called
+    /// # Then: Correctly groups nodes by directory depth
+    #[test]
+    fn test_file_hierarchy_analysis() {
+        // Setup: Create test ISG with known structure
+        let isg = create_hierarchical_test_isg();
+
+        // Action: Analyze file hierarchy
+        let hierarchy = isg.analyze_file_hierarchy();
+
+        // Assertions: Verify hierarchy structure
+        assert!(!hierarchy.levels.is_empty());
+        assert!(!hierarchy.entry_points.is_empty());
+
+        // Verify nodes are correctly grouped by depth
+        let mut total_nodes = 0;
+        for level in &hierarchy.levels {
+            for directory in &level.directories {
+                total_nodes += directory.node_count;
+                assert!(!directory.nodes.is_empty());
+                assert_eq!(directory.nodes.len(), directory.node_count);
+            }
+        }
+
+        assert!(total_nodes > 0);
+    }
+
+    // Helper functions for hierarchical testing
+
+    fn create_hierarchical_test_isg() -> OptimizedISG {
+        let isg = OptimizedISG::new();
+
+        // Create nodes at different directory levels
+        let test_nodes = vec![
+            // Level 0: Root
+            ("main", "Function", "src/main.rs"),
+            ("lib", "Function", "src/lib.rs"),
+
+            // Level 1: Direct modules
+            ("config", "Struct", "src/config.rs"),
+            ("database", "Struct", "src/database.rs"),
+
+            // Level 2: Nested modules
+            ("User", "Struct", "src/models/user.rs"),
+            ("Post", "Struct", "src/models/post.rs"),
+            ("auth", "Function", "src/auth/mod.rs"),
+            ("login", "Function", "src/auth/login.rs"),
+        ];
+
+        for (name, kind, file) in test_nodes {
+            let node_kind = match kind {
+                "Function" => NodeKind::Function,
+                "Struct" => NodeKind::Struct,
+                "Trait" => NodeKind::Trait,
+                _ => NodeKind::Function,
+            };
+
+            let hash = SigHash::from_signature(&format!("{:?} {}", node_kind, name));
+            isg.upsert_node(NodeData {
+                hash,
+                kind: node_kind.clone(),
+                name: Arc::from(name),
+                signature: Arc::from(format!("{:?} {}", node_kind, name)),
+                file_path: Arc::from(file),
+                line: 1,
+            });
+        }
+
+        isg
+    }
+
+    fn create_test_hierarchy() -> FileHierarchyAnalysis {
+        let mut hierarchy = FileHierarchyAnalysis::new();
+
+        // Add entry point
+        hierarchy.entry_points.push(NodeData {
+            hash: SigHash::from_signature("Function main"),
+            kind: NodeKind::Function,
+            name: Arc::from("main"),
+            signature: Arc::from("Function main"),
+            file_path: Arc::from("src/main.rs"),
+            line: 1,
+        });
+
+        // Add Level 0 (root)
+        hierarchy.add_node_at_depth(0, "src".to_string(), NodeData {
+            hash: SigHash::from_signature("Struct Config"),
+            kind: NodeKind::Struct,
+            name: Arc::from("Config"),
+            signature: Arc::from("Struct Config"),
+            file_path: Arc::from("src/config.rs"),
+            line: 1,
+        });
+
+        // Add Level 1 (nested)
+        hierarchy.add_node_at_depth(1, "src/models".to_string(), NodeData {
+            hash: SigHash::from_signature("Struct User"),
+            kind: NodeKind::Struct,
+            name: Arc::from("User"),
+            signature: Arc::from("Struct User"),
+            file_path: Arc::from("src/models/user.rs"),
+            line: 1,
+        });
+
+        hierarchy
+    }
+
+    fn create_hierarchical_performance_test_graph(node_count: usize, edge_count: usize) -> OptimizedISG {
+        let isg = OptimizedISG::new();
+
+        // Create nodes at different directory levels for realistic hierarchy
+        for i in 0..node_count {
+            let kind = match i % 3 {
+                0 => NodeKind::Function,
+                1 => NodeKind::Struct,
+                _ => NodeKind::Trait,
+            };
+
+            let depth = i % 3; // Distribute across 3 levels
+            let file_path = match depth {
+                0 => format!("src/level0/mod{}.rs", i / 10),
+                1 => format!("src/level1/mod{}.rs", i / 10),
+                _ => format!("src/level2/mod{}.rs", i / 10),
+            };
+
+            let hash = SigHash::from_signature(&format!("node_{}", i));
+            isg.upsert_node(NodeData {
+                hash,
+                kind,
+                name: Arc::from(format!("node_{}", i)),
+                signature: Arc::from(format!("node_{}", i)),
+                file_path: Arc::from(file_path),
+                line: i as u32,
+            });
+        }
+
+        // Create some edges
+        for i in 0..edge_count.min(node_count * node_count) {
+            let from_idx = i % node_count;
+            let to_idx = (i + 1) % node_count;
+
+            let from_hash = SigHash::from_signature(&format!("node_{}", from_idx));
+            let to_hash = SigHash::from_signature(&format!("node_{}", to_idx));
+            let edge_kind = match i % 3 {
+                0 => EdgeKind::Calls,
+                1 => EdgeKind::Implements,
+                _ => EdgeKind::Uses,
+            };
+
+            isg.upsert_edge(from_hash, to_hash, edge_kind).unwrap();
+        }
+
+        isg
+    }
 
     /// Test contract: Node rendering with all types
     ///

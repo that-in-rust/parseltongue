@@ -5,7 +5,7 @@
 use crate::daemon::ParseltongueAIM;
 use crate::isg::ISGError;
 use clap::{Parser, Subcommand, ValueEnum};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 use chrono::Utc;
 
@@ -58,6 +58,9 @@ pub enum Commands {
         /// Output file path (optional, auto-generated if not provided)
         #[arg(short, long)]
         output: Option<PathBuf>,
+        /// Export as hierarchical pyramid structure (progressive disclosure)
+        #[arg(long)]
+        hierarchy: bool,
     },
     /// Debug and visualization commands
     Debug {
@@ -280,59 +283,129 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             println!("{}", context);
         }
 
-        Commands::Export { format, output } => {
+        Commands::Export { format, output, hierarchy } => {
             let start = Instant::now();
 
             match format {
                 ExportFormat::Mermaid => {
-                    let mermaid_content = crate::mermaid_export::export_isg_to_mermaid(&daemon.isg);
+                    if hierarchy {
+                        // Hierarchical export - creates multiple files
+                        let output_dir = match output {
+                            Some(path) => {
+                                if path.extension().is_some() {
+                                    // Remove extension if user provided a filename
+                                    path.parent().unwrap_or_else(|| Path::new(".")).to_path_buf()
+                                } else {
+                                    path
+                                }
+                            },
+                            None => {
+                                let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
+                                PathBuf::from(format!("ISG_Hierarchy_{}", timestamp))
+                            }
+                        };
 
-                    let output_path = match output {
-                        Some(path) => path,
-                        None => {
-                            let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
-                            PathBuf::from(format!("ISG_Architecture_{}.md", timestamp))
+                        let created_files = crate::mermaid_export::export_isg_to_hierarchical_mermaid(
+                            &daemon.isg,
+                            &output_dir.to_string_lossy()
+                        )?;
+
+                        let elapsed = start.elapsed();
+
+                        println!("✓ Exported ISG to hierarchical Mermaid files:");
+                        println!("  Directory: {}", output_dir.display());
+                        println!("  Files created: {}", created_files.len());
+                        for file in &created_files {
+                            println!("    - {}", file);
                         }
-                    };
+                        println!("  Total nodes: {}", daemon.isg.node_count());
+                        println!("  Total edges: {}", daemon.isg.edge_count());
+                        println!("  Time: {}ms", elapsed.as_millis());
 
-                    crate::mermaid_export::create_markdown_file(&output_path.to_string_lossy(), &mermaid_content);
-                    let elapsed = start.elapsed();
+                        // Validate <20ms performance contract for hierarchy (file I/O is slower)
+                        if elapsed.as_millis() >= 20 {
+                            eprintln!("⚠️  Hierarchical export took {}ms (>=20ms contract violated)", elapsed.as_millis());
+                        }
+                    } else {
+                        // Single file export
+                        let mermaid_content = crate::mermaid_export::export_isg_to_mermaid(&daemon.isg);
 
-                    println!("✓ Exported ISG to Mermaid markdown:");
-                    println!("  File: {}", output_path.display());
-                    println!("  Nodes: {}", daemon.isg.node_count());
-                    println!("  Edges: {}", daemon.isg.edge_count());
-                    println!("  Time: {}ms", elapsed.as_millis());
+                        let output_path = match output {
+                            Some(path) => path,
+                            None => {
+                                let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
+                                PathBuf::from(format!("ISG_Architecture_{}.md", timestamp))
+                            }
+                        };
 
-                    // Validate <1ms performance contract
-                    if elapsed.as_millis() >= 1 {
-                        eprintln!("⚠️  Export took {}ms (>=1ms contract violated)", elapsed.as_millis());
+                        crate::mermaid_export::create_markdown_file(&output_path.to_string_lossy(), &mermaid_content);
+                        let elapsed = start.elapsed();
+
+                        println!("✓ Exported ISG to Mermaid markdown:");
+                        println!("  File: {}", output_path.display());
+                        println!("  Nodes: {}", daemon.isg.node_count());
+                        println!("  Edges: {}", daemon.isg.edge_count());
+                        println!("  Time: {}ms", elapsed.as_millis());
+
+                        // Validate <1ms performance contract
+                        if elapsed.as_millis() >= 1 {
+                            eprintln!("⚠️  Export took {}ms (>=1ms contract violated)", elapsed.as_millis());
+                        }
                     }
                 }
                 ExportFormat::Html => {
-                    let html_content = crate::html_export::export_isg_to_interactive_html(&daemon.isg);
+                    if hierarchy {
+                        // Hierarchical HTML export - progressive disclosure
+                        let html_content = crate::html_export::export_isg_to_hierarchical_html(&daemon.isg);
 
-                    let output_path = match output {
-                        Some(path) => path,
-                        None => {
-                            let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
-                            PathBuf::from(format!("ISG_Architecture_{}.html", timestamp))
+                        let output_path = match output {
+                            Some(path) => path,
+                            None => {
+                                let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
+                                PathBuf::from(format!("ISG_Hierarchy_{}.html", timestamp))
+                            }
+                        };
+
+                        crate::html_export::create_interactive_html_file(&output_path.to_string_lossy(), &html_content);
+                        let elapsed = start.elapsed();
+
+                        println!("✓ Exported ISG to hierarchical interactive HTML:");
+                        println!("  File: {}", output_path.display());
+                        println!("  Total nodes: {}", daemon.isg.node_count());
+                        println!("  Total edges: {}", daemon.isg.edge_count());
+                        println!("  Time: {}ms", elapsed.as_millis());
+                        println!("  Features: Progressive disclosure, level switching, search, navigation");
+
+                        // Validate <500ms performance contract for hierarchical
+                        if elapsed.as_millis() >= 500 {
+                            eprintln!("⚠️  Hierarchical HTML export took {}ms (>=500ms contract violated)", elapsed.as_millis());
                         }
-                    };
+                    } else {
+                        // Single HTML export - traditional interactive view
+                        let html_content = crate::html_export::export_isg_to_interactive_html(&daemon.isg);
 
-                    crate::html_export::create_interactive_html_file(&output_path.to_string_lossy(), &html_content);
-                    let elapsed = start.elapsed();
+                        let output_path = match output {
+                            Some(path) => path,
+                            None => {
+                                let timestamp = Utc::now().format("%Y%m%d_%H%M%S");
+                                PathBuf::from(format!("ISG_Architecture_{}.html", timestamp))
+                            }
+                        };
 
-                    println!("✓ Exported ISG to interactive HTML:");
-                    println!("  File: {}", output_path.display());
-                    println!("  Nodes: {}", daemon.isg.node_count());
-                    println!("  Edges: {}", daemon.isg.edge_count());
-                    println!("  Time: {}ms", elapsed.as_millis());
-                    println!("  Features: Cytoscape + ELK layout, zoom/pan, search");
+                        crate::html_export::create_interactive_html_file(&output_path.to_string_lossy(), &html_content);
+                        let elapsed = start.elapsed();
 
-                    // Validate <500ms performance contract
-                    if elapsed.as_millis() >= 500 {
-                        eprintln!("⚠️  Export took {}ms (>=500ms contract violated)", elapsed.as_millis());
+                        println!("✓ Exported ISG to interactive HTML:");
+                        println!("  File: {}", output_path.display());
+                        println!("  Nodes: {}", daemon.isg.node_count());
+                        println!("  Edges: {}", daemon.isg.edge_count());
+                        println!("  Time: {}ms", elapsed.as_millis());
+                        println!("  Features: Cytoscape + ELK layout, zoom/pan, search");
+
+                        // Validate <500ms performance contract
+                        if elapsed.as_millis() >= 500 {
+                            eprintln!("⚠️  Export took {}ms (>=500ms contract violated)", elapsed.as_millis());
+                        }
                     }
                 }
             }

@@ -26,8 +26,16 @@ Documentation for the Parseltongue project.
 - `SPEC_UPDATE_SUMMARY.md` - Specification updates
 - `STEERING_COMPLIANCE_ANALYSIS.md` - Steering compliance analysis
 
+## Case Studies
+
+- `Tokio-case-study-02.md` - Comprehensive end-to-end analysis of Tokio async runtime (2,576 nodes)
+
 ## Analysis Archives
 
 See `../analysis/` for analysis journals:
 - `isgJournaRS20251005.md` - Core Rust files analysis (5,567 lines)
 - `journal20251005.md` - Documentation changes analysis (119,195 lines)
+
+## Strategy Documents
+
+- `diagramIdeation20251004.md` - Visualization strategy ideation with 7 persona analysis and 6 approaches

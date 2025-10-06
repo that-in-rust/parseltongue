@@ -21,7 +21,7 @@
 //! - Node search and highlighting functionality
 //! - Responsive design with proper mobile support
 
-use crate::isg::{OptimizedISG, NodeData, NodeKind, EdgeKind};
+use crate::isg::{OptimizedISG, NodeData, NodeKind, EdgeKind, FileHierarchyAnalysis};
 use std::fmt::Write;
 use std::fs;
 use std::sync::Arc;
@@ -69,6 +69,67 @@ pub fn export_isg_to_interactive_html(isg: &OptimizedISG) -> String {
   
     // Phase 6: Performance monitoring
     write_performance_footer(&mut html, start_time);
+
+    html
+}
+
+/// Export ISG to hierarchical interactive HTML with progressive disclosure
+///
+/// Creates a single HTML file with interactive level switching, search, and navigation
+/// for large codebases with 2,000+ nodes.
+///
+/// # Preconditions
+/// - ISG graph is in valid state with consistent node/edge relationships
+/// - File hierarchy analysis available for progressive disclosure
+///
+/// # Postconditions
+/// - Returns single HTML file with interactive progressive disclosure
+/// - Level switching between Overview (30,000ft), Detailed (1,000ft), and Complete views
+/// - Search functionality with highlighting
+/// - Performance: <500ms generation time, <3s load time for 2,000+ nodes
+///
+/// # Error Conditions
+/// - Cannot fail (HTML generation is infallible)
+/// - Graceful degradation for browsers without JavaScript
+/// - Performance degrades gracefully for extremely large graphs
+///
+/// # Performance Contract
+/// - Must complete in <500ms for graphs with ≤2000 nodes
+/// - Interactive level switching <100ms
+/// - Search functionality <50ms response time
+pub fn export_isg_to_hierarchical_html(isg: &OptimizedISG) -> String {
+    let start_time = Instant::now();
+
+    // Analyze file hierarchy for progressive disclosure
+    let hierarchy = isg.analyze_file_hierarchy();
+
+    let mut html = String::with_capacity(128 * 1024); // Pre-allocate 128KB for hierarchical content
+
+    // Phase 1: Enhanced HTML structure with level controls
+    write_hierarchical_html_header(&mut html, &hierarchy);
+
+    // Phase 2: JavaScript libraries (Cytoscape + ELK)
+    write_script_includes(&mut html);
+
+    // Phase 3: Hierarchical data preparation
+    let (overview_nodes, overview_edges) = generate_overview_graph(&hierarchy);
+    let (detailed_nodes, detailed_edges) = generate_detailed_graph(&hierarchy);
+    let (complete_nodes, complete_edges) = generate_complete_graph(isg);
+
+    // Phase 4: Progressive disclosure interface
+    write_progressive_disclosure_interface(&mut html, &hierarchy);
+
+    // Phase 5: Level-specific graph configurations
+    write_level_graph_configs(&mut html,
+        &overview_nodes, &overview_edges,
+        &detailed_nodes, &detailed_edges,
+        &complete_nodes, &complete_edges);
+
+    // Phase 6: Search and navigation functionality
+    write_search_functionality(&mut html, &hierarchy);
+
+    // Phase 7: Performance monitoring and analytics
+    write_hierarchical_performance_footer(&mut html, start_time, &hierarchy);
 
     html
 }
@@ -893,6 +954,1077 @@ mod tests {
             SigHash::from_signature("struct TestStruct"),
             EdgeKind::Uses
         ).unwrap();
+
+        isg
+    }
+
+// ===== Hierarchical HTML Export Helper Functions =====
+
+/// Writes enhanced HTML header with progressive disclosure controls
+fn write_hierarchical_html_header(html: &mut String, hierarchy: &FileHierarchyAnalysis) {
+    let _ = write!(html, r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive ISG Architecture - Progressive Disclosure</title>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }}
+
+        #header {{
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }}
+
+        .header-content {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 100%;
+        }}
+
+        .title {{
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }}
+
+        .level-controls {{
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }}
+
+        .level-button {{
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f8f9fa;
+            color: #6c757d;
+            position: relative;
+        }}
+
+        .level-button.active {{
+            background: #007bff;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }}
+
+        .level-button:hover:not(.active) {{
+            background: #e9ecef;
+            transform: translateY(-1px);
+        }}
+
+        .level-info {{
+            font-size: 11px;
+            color: #6c757d;
+            margin-left: 8px;
+        }}
+
+        .search-container {{
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }}
+
+        #searchInput {{
+            padding: 6px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 12px;
+            width: 200px;
+            transition: all 0.2s ease;
+        }}
+
+        #searchInput:focus {{
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+        }}
+
+        .stats {{
+            display: flex;
+            gap: 16px;
+            font-size: 11px;
+            color: #6c757d;
+        }}
+
+        .stat {{
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }}
+
+        #cy {{
+            flex: 1;
+            width: 100%;
+            background: white;
+            position: relative;
+        }}
+
+        .loading {{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            color: #6c757d;
+            display: none;
+        }}
+
+        .performance-info {{
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: monospace;
+        }}
+
+        .hierarchy-info {{
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            max-width: 200px;
+        }}
+
+        @media (max-width: 768px) {{
+            .header-content {{
+                flex-direction: column;
+                gap: 10px;
+            }}
+
+            .level-controls {{
+                flex-wrap: wrap;
+                justify-content: center;
+            }}
+
+            #searchInput {{
+                width: 150px;
+            }}
+
+            .stats {{
+                flex-wrap: wrap;
+                justify-content: center;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div class="header-content">
+            <div class="title">
+                🏗️ ISG Architecture Explorer
+            </div>
+
+            <div class="level-controls">
+                <button class="level-button active" data-level="overview">
+                    Overview (30,000ft)
+                </button>
+                <button class="level-button" data-level="detailed">
+                    Detailed (1,000ft)
+                </button>
+                <button class="level-button" data-level="complete">
+                    Complete
+                </button>
+                <span class="level-info">Levels: {}, Max Depth: {}</span>
+            </div>
+
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search nodes..." />
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    📊 <span id="nodeCount">0</span> nodes
+                </div>
+                <div class="stat">
+                    🔗 <span id="edgeCount">0</span> edges
+                </div>
+                <div class="stat">
+                    ⚡ <span id="renderTime">0ms</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="cy">
+        <div class="loading">Loading graph...</div>
+        <div class="performance-info" id="performanceInfo"></div>
+        <div class="hierarchy-info" id="hierarchyInfo"></div>
+    </div>
+"#,
+            hierarchy.levels.len(),
+            hierarchy.max_depth
+        );
+    }
+
+    /// Generates overview graph (Level 1: 30,000ft view)
+    fn generate_overview_graph(hierarchy: &FileHierarchyAnalysis) -> (String, String) {
+        let mut nodes = Vec::new();
+        let mut edges = Vec::new();
+
+        // Add entry points
+        for (i, entry_point) in hierarchy.entry_points.iter().take(5).enumerate() {
+            let safe_id = format!("entry_{}", i);
+            nodes.push(format!(r#"{{
+                data: {{
+                    id: "{}",
+                    label: "🚀 {}",
+                    type: "entry_point",
+                    file: "{}",
+                    kind: "{}"
+                }},
+                classes: "entry-point"
+            }}"#,
+                safe_id,
+                sanitize_for_html(&entry_point.name),
+                sanitize_for_html(&entry_point.file_path),
+                format!("{:?}", entry_point.kind)
+            ));
+        }
+
+        // Add top-level directories only
+        for level in hierarchy.levels.iter().take(2) {
+            for directory in &level.directories {
+                if directory.node_count > 0 {
+                    let safe_id = sanitize_for_html(&directory.path).replace("/", "_");
+                    nodes.push(format!(r#"{{
+                        data: {{
+                            id: "{}",
+                            label: "📁 {} ({} items)",
+                            type: "directory",
+                            path: "{}",
+                            node_count: {}
+                        }},
+                        classes: "directory level-{}"
+                    }}"#,
+                        safe_id,
+                        sanitize_for_html(&directory.path),
+                        directory.node_count,
+                        sanitize_for_html(&directory.path),
+                        directory.node_count,
+                        level.depth
+                    ));
+                }
+            }
+        }
+
+        // Add connections from entry points to directories
+        for (i, entry_point) in hierarchy.entry_points.iter().take(3).enumerate() {
+            let entry_dir = extract_directory_simple(&entry_point.file_path);
+            let safe_dir = sanitize_for_html(&entry_dir).replace("/", "_");
+
+            edges.push(format!(r#"{{
+                data: {{
+                    source: "entry_{}",
+                    target: "{}",
+                    type: "entry_to_directory"
+                }}
+            }}"#, i, safe_dir));
+        }
+
+        (format!("[{}]", nodes.join(",")), format!("[{}]", edges.join(",")))
+    }
+
+    /// Generates detailed graph (Levels 2-3: 1,000ft view)
+    fn generate_detailed_graph(hierarchy: &FileHierarchyAnalysis) -> (String, String) {
+        let mut nodes = Vec::new();
+        let mut edges = Vec::new();
+        let pyramid_levels = hierarchy.get_pyramid_view(3);
+        let mut node_counter = 0;
+
+        for (level_idx, level) in pyramid_levels.iter().enumerate() {
+            for directory in &level.directories {
+                if node_counter >= 200 { break; } // Limit for performance
+
+                for (node_idx, node) in directory.nodes.iter().take(10).enumerate() {
+                    if node_counter >= 200 { break; }
+
+                    let safe_id = format!("L{}_D{}_N{}",
+                        level_idx + 1,
+                        sanitize_for_html(&directory.path).replace("/", "_"),
+                        node_idx
+                    );
+
+                    let icon = match node.kind {
+                        NodeKind::Function => "🔧",
+                        NodeKind::Struct => "📦",
+                        NodeKind::Trait => "🎯",
+                    };
+
+                    nodes.push(format!(r#"{{
+                        data: {{
+                            id: "{}",
+                            label: "{} {}",
+                            type: "{}",
+                            name: "{}",
+                            file: "{}",
+                            kind: "{}",
+                            directory: "{}",
+                            level: {}
+                        }},
+                        classes: "node level-{} {}"
+                    }}"#,
+                        safe_id,
+                        icon,
+                        sanitize_for_html(&node.name),
+                        format!("{:?}", node.kind).to_lowercase(),
+                        sanitize_for_html(&node.name),
+                        sanitize_for_html(&node.file_path),
+                        format!("{:?}", node.kind),
+                        sanitize_for_html(&directory.path),
+                        level_idx + 1,
+                        level_idx + 1,
+                        format!("{:?}", node.kind).to_lowercase()
+                    ));
+
+                    node_counter += 1;
+                }
+            }
+        }
+
+        (format!("[{}]", nodes.join(",")), format!("[{}]", edges.join(",")))
+    }
+
+    /// Generates complete graph with all nodes
+    fn generate_complete_graph(isg: &OptimizedISG) -> (String, String) {
+        let nodes_json = generate_nodes_json(isg);
+        let edges_json = generate_edges_json(isg);
+        (nodes_json, edges_json)
+    }
+
+    /// Writes progressive disclosure interface controls
+    fn write_progressive_disclosure_interface(html: &mut String, hierarchy: &FileHierarchyAnalysis) {
+        let _ = write!(html, r#"
+    <script>
+        // Progressive Disclosure State Management
+        const GRAPH_LEVELS = {{
+            overview: {{
+                name: "Overview (30,000ft)",
+                description: "Entry points and top-level directories",
+                maxNodes: 50
+            }},
+            detailed: {{
+                name: "Detailed (1,000ft)",
+                description: "Key modules and important relationships",
+                maxNodes: 200
+            }},
+            complete: {{
+                name: "Complete",
+                description: "All nodes and relationships",
+                maxNodes: Infinity
+            }}
+        }};
+
+        let currentLevel = 'overview';
+        let graphs = {{}};
+        let cy = null;
+
+        // Initialize level switching
+        function initializeLevelSwitching() {{
+            document.querySelectorAll('.level-button').forEach(button => {{
+                button.addEventListener('click', function() {{
+                    const level = this.dataset.level;
+                    switchToLevel(level);
+                }});
+            }});
+        }}
+
+        // Switch between graph levels
+        function switchToLevel(level) {{
+            if (level === currentLevel) return;
+
+            // Update UI
+            document.querySelectorAll('.level-button').forEach(btn => {{
+                btn.classList.remove('active');
+            }});
+            document.querySelector(`[data-level="${{level}}"]`).classList.add('active');
+
+            // Show loading
+            document.querySelector('.loading').style.display = 'block';
+
+            // Switch graph with performance tracking
+            const startTime = performance.now();
+            setTimeout(() => {{
+                loadGraph(level);
+                const endTime = performance.now();
+                updatePerformanceInfo(level, endTime - startTime);
+            }}, 50);
+        }}
+    </script>
+"#);
+    }
+
+    /// Writes level-specific graph configurations
+    fn write_level_graph_configs(
+        html: &mut String,
+        overview_nodes: &str, overview_edges: &str,
+        detailed_nodes: &str, detailed_edges: &str,
+        complete_nodes: &str, complete_edges: &str
+    ) {
+        let _ = write!(html, r#"
+    <script>
+        // Graph data for different levels
+        graphs.overview = {{
+            nodes: {overview_nodes},
+            edges: {overview_edges}
+        }};
+
+        graphs.detailed = {{
+            nodes: {detailed_nodes},
+            edges: {detailed_edges}
+        }};
+
+        graphs.complete = {{
+            nodes: {complete_nodes},
+            edges: {complete_edges}
+        }};
+
+        // Load graph for specific level
+        function loadGraph(level) {{
+            const graphData = graphs[level];
+            const levelConfig = GRAPH_LEVELS[level];
+
+            if (!cy) {{
+                // Initialize Cytoscape
+                cy = cytoscape({{
+                    container: document.getElementById('cy'),
+
+                    elements: graphData,
+
+                    style: getLevelStyles(level),
+
+                    layout: {{
+                        name: 'elk',
+                        elk: {{
+                            algorithm: 'layered',
+                            layering: {{
+                                strategy: 'INTERACTIVE'
+                            }},
+                            spacing: {{
+                                componentComponent: '40',
+                                edgeNode: '20',
+                                edgeEdge: '10',
+                                nodeNodeBetweenLayers: '30'
+                            }}
+                        }},
+
+                        fit: true,
+                        padding: 20
+                    }},
+
+                    // Interaction options
+                    userZoomingEnabled: true,
+                    userPanningEnabled: true,
+                    boxSelectionEnabled: false,
+
+                    // Performance options
+                    textureOnViewport: level === 'complete',
+                    hideEdgesOnViewport: level === 'complete',
+                    hideLabelsOnViewport: level === 'complete',
+
+                    // Rendering options
+                    pixelRatio: 1,
+
+                    ready: function() {{
+                        document.querySelector('.loading').style.display = 'none';
+                        updateStats(level);
+                        initializeSearch();
+                    }}
+                }});
+            }} else {{
+                // Update existing graph
+                cy.json({{
+                    elements: graphData,
+                    style: getLevelStyles(level)
+                }});
+
+                cy.layout({{
+                    name: 'elk',
+                    elk: {{
+                        algorithm: 'layered',
+                        layering: {{
+                            strategy: 'INTERACTIVE'
+                        }}
+                    }},
+                    fit: true,
+                    padding: 20
+                }}).run(() => {{
+                    document.querySelector('.loading').style.display = 'none';
+                    updateStats(level);
+                }});
+            }}
+        }}
+
+        // Get styles based on level
+        function getLevelStyles(level) {{
+            const baseStyles = [
+                {{
+                    selector: 'node',
+                    style: {{
+                        'background-color': '#e3f2fd',
+                        'border-color': '#1976d2',
+                        'border-width': '2px',
+                        'width': level === 'overview' ? '60px' : level === 'detailed' ? '50px' : '40px',
+                        'height': level === 'overview' ? '60px' : level === 'detailed' ? '50px' : '40px',
+                        'shape': 'roundrectangle',
+                        'text-halign': 'center',
+                        'text-valign': 'center',
+                        'color': '#0d47a1',
+                        'font-size': level === 'overview' ? '14px' : level === 'detailed' ? '12px' : '10px',
+                        'text-wrap': 'wrap',
+                        'text-max-width': '80px',
+                        'label': 'data(label)',
+                        'text-margin-y': level === 'overview' ? '-5px' : '-3px',
+                        'overlay-opacity': 0,
+                        'overlay-padding': '5px',
+                        'z-index': 10
+                    }}
+                }},
+                {{
+                    selector: 'node.entry-point',
+                    style: {{
+                        'background-color': '#e8f5e8',
+                        'border-color': '#2e7d32',
+                        'width': '70px',
+                        'height': '70px',
+                        'shape': 'round-diamond',
+                        'color': '#1b5e20',
+                        'font-weight': 'bold',
+                        'z-index': 20
+                    }}
+                }},
+                {{
+                    selector: 'node.directory',
+                    style: {{
+                        'background-color': '#f3e5f5',
+                        'border-color': '#7b1fa2',
+                        'shape': 'round-rectangle',
+                        'color': '#4a148c',
+                        'z-index': 15
+                    }}
+                }},
+                {{
+                    selector: 'node.function',
+                    style: {{
+                        'background-color': '#e3f2fd',
+                        'border-color': '#1976d2'
+                    }}
+                }},
+                {{
+                    selector: 'node.struct',
+                    style: {{
+                        'background-color': '#e8f5e8',
+                        'border-color': '#2e7d32'
+                    }}
+                }},
+                {{
+                    selector: 'node.trait',
+                    style: {{
+                        'background-color': '#fff3e0',
+                        'border-color': '#ef6c00'
+                    }}
+                }},
+                {{
+                    selector: 'edge',
+                    style: {{
+                        'width': '2px',
+                        'line-color': '#666',
+                        'target-arrow-color': '#666',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier',
+                        'opacity': 0.7
+                    }}
+                }},
+                {{
+                    selector: 'edge[type="entry_to_directory"]',
+                    style: {{
+                        'width': '3px',
+                        'line-color': '#2e7d32',
+                        'target-arrow-color': '#2e7d32',
+                        'line-style': 'dashed'
+                    }}
+                }},
+                {{
+                    selector: 'node.highlighted',
+                    style: {{
+                        'background-color': '#ffeb3b',
+                        'border-color': '#f57c00',
+                        'border-width': '4px',
+                        'z-index': 100
+                    }}
+                }},
+                {{
+                    selector: 'node.dimmed',
+                    style: {{
+                        'opacity': 0.3
+                    }}
+                }},
+                {{
+                    selector: 'edge.dimmed',
+                    style: {{
+                        'opacity': 0.1
+                    }}
+                }}
+            ];
+
+            // Level-specific adjustments
+            if (level === 'overview') {{
+                baseStyles.push({{
+                    selector: 'node',
+                    style: {{
+                        'font-size': '14px',
+                        'text-max-width': '100px'
+                    }}
+                }});
+            }} else if (level === 'complete') {{
+                baseStyles.push({{
+                    selector: 'node',
+                    style: {{
+                        'font-size': '10px',
+                        'text-max-width': '60px',
+                        'width': '30px',
+                        'height': '30px'
+                    }}
+                }});
+            }}
+
+            return baseStyles;
+        }}
+    </script>
+"#);
+    }
+
+    /// Writes search and navigation functionality
+    fn write_search_functionality(html: &mut String, hierarchy: &FileHierarchyAnalysis) {
+        let _ = write!(html, r#"
+    <script>
+        // Search functionality
+        function initializeSearch() {{
+            const searchInput = document.getElementById('searchInput');
+            let searchTimeout;
+
+            searchInput.addEventListener('input', function(e) {{
+                clearTimeout(searchTimeout);
+                const query = e.target.value.trim();
+
+                searchTimeout = setTimeout(() => {{
+                    performSearch(query);
+                }}, 300);
+            }});
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {{
+                if (e.key === 'f' && !e.ctrlKey && !e.metaKey && document.activeElement !== searchInput) {{
+                    e.preventDefault();
+                    searchInput.focus();
+                }} else if (e.key === 'Escape') {{
+                    searchInput.value = '';
+                    searchInput.blur();
+                    clearSearch();
+                }} else if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {{
+                    e.preventDefault();
+                    resetView();
+                }} else if (e.key === 'l' && !e.ctrlKey && !e.metaKey) {{
+                    e.preventDefault();
+                    toggleLabels();
+                }}
+            }});
+        }}
+
+        function performSearch(query) {{
+            if (!cy || !query) {{
+                clearSearch();
+                return;
+            }}
+
+            const lowerQuery = query.toLowerCase();
+            let matchCount = 0;
+
+            // Clear previous search
+            cy.nodes().removeClass('highlighted dimmed');
+            cy.edges().removeClass('highlighted dimmed');
+
+            // Find matching nodes
+            const matchingNodes = cy.nodes().filter(node => {{
+                const label = node.data('label').toLowerCase();
+                const name = (node.data('name') || '').toLowerCase();
+                const file = (node.data('file') || '').toLowerCase();
+                const kind = (node.data('kind') || '').toLowerCase();
+                const directory = (node.data('directory') || '').toLowerCase();
+
+                return label.includes(lowerQuery) ||
+                       name.includes(lowerQuery) ||
+                       file.includes(lowerQuery) ||
+                       kind.includes(lowerQuery) ||
+                       directory.includes(lowerQuery);
+            }});
+
+            // Highlight matches and dim non-matches
+            if (matchingNodes.length > 0) {{
+                matchingNodes.addClass('highlighted');
+                cy.nodes().difference(matchingNodes).addClass('dimmed');
+
+                // Highlight connected edges
+                matchingNodes.connectedEdges().addClass('highlighted');
+                cy.edges().difference(matchingNodes.connectedEdges()).addClass('dimmed');
+
+                matchCount = matchingNodes.length;
+
+                // Fit to show matches if reasonable number
+                if (matchCount <= 20) {{
+                    cy.elements('.highlighted').fit({{
+                        padding: 50
+                    }});
+                }}
+            }} else {{
+                // No matches found
+                showMessage('No matches found for: ' + query);
+            }}
+
+            updateSearchInfo(matchCount, query);
+        }}
+
+        function clearSearch() {{
+            if (!cy) return;
+
+            cy.nodes().removeClass('highlighted dimmed');
+            cy.edges().removeClass('highlighted dimmed');
+            updateSearchInfo(0, '');
+        }}
+
+        function resetView() {{
+            if (!cy) return;
+
+            cy.fit({{
+                padding: 20
+            }});
+            clearSearch();
+        }}
+
+        function toggleLabels() {{
+            if (!cy) return;
+
+            const currentOpacity = cy.style().get('text-opacity');
+            const newOpacity = currentOpacity === 0 ? 1 : 0;
+
+            cy.style().set('text-opacity', newOpacity);
+        }}
+
+        function updateSearchInfo(matchCount, query) {{
+            const info = document.getElementById('hierarchyInfo');
+            if (matchCount > 0) {{
+                info.innerHTML = `🔍 Found ${matchCount} matches for "${query}"`;
+            }} else if (query) {{
+                info.innerHTML = `🔍 No matches for "${query}"`;
+            }} else {{
+                updateHierarchyInfo();
+            }}
+        }}
+
+        function showMessage(message) {{
+            const info = document.getElementById('hierarchyInfo');
+            info.innerHTML = `💬 ${message}`;
+            setTimeout(() => updateHierarchyInfo(), 3000);
+        }}
+    </script>
+"#);
+    }
+
+    /// Writes performance monitoring footer
+    fn write_hierarchical_performance_footer(html: &mut String, start_time: std::time::Instant, hierarchy: &FileHierarchyAnalysis) {
+        let generation_time = start_time.elapsed().as_millis();
+
+        let _ = write!(html, r#"
+    <script>
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {{
+            initializeLevelSwitching();
+
+            // Load initial level
+            loadGraph('overview');
+
+            // Show generation performance
+            updatePerformanceInfo('generation', {});
+
+            // Update hierarchy info
+            updateHierarchyInfo();
+        }});
+
+        // Update statistics display
+        function updateStats(level) {{
+            const graphData = graphs[level];
+            document.getElementById('nodeCount').textContent = graphData.nodes.length;
+            document.getElementById('edgeCount').textContent = graphData.edges.length;
+        }}
+
+        // Update performance information
+        function updatePerformanceInfo(operation, timing) {{
+            const info = document.getElementById('performanceInfo');
+            const generationTime = {};
+
+            if (operation === 'generation') {{
+                generationTime = {generationTime}ms;
+            }} else {{
+                generationTime = timing.toFixed(1) + 'ms';
+            }}
+
+            info.innerHTML = `⚡ Generation: ${generationTime}`;
+        }}
+
+        // Update hierarchy information
+        function updateHierarchyInfo() {{
+            const info = document.getElementById('hierarchyInfo');
+            info.innerHTML = `📊 {} levels, {} max depth<br>
+                           🚀 {} entry points<br>
+                           💡 Click nodes to see details`;
+        }}
+    </script>
+</body>
+</html>
+"#,
+            generation_time,
+            hierarchy.levels.len(),
+            hierarchy.max_depth,
+            hierarchy.entry_points.len()
+        );
+    }
+
+    /// Helper: Extract directory (simple version)
+    fn extract_directory_simple(file_path: &str) -> &str {
+        if let Some(slash_pos) = file_path.rfind('/') {
+            &file_path[..slash_pos]
+        } else {
+            "."
+        }
+    }
+
+    /// Helper: Sanitize string for HTML
+    fn sanitize_for_html(input: &str) -> String {
+        input.replace('\\', "\\\\")
+             .replace('"', "\\\"")
+             .replace('\n', "\\n")
+             .replace('\r', "\\r")
+             .replace('\t', "\\t")
+    }
+
+    /// Test contract: Hierarchical HTML export creates interactive progressive disclosure
+    ///
+    /// # Given: ISG with nodes at different directory depths
+    /// # When: export_isg_to_hierarchical_html is called
+    /// # Then: Returns HTML with level switching, search, and navigation
+    #[test]
+    fn test_hierarchical_html_export_structure() {
+        // Setup: Create test ISG with hierarchy
+        let isg = create_hierarchical_test_isg();
+
+        // Action: Export hierarchical HTML
+        let html = export_isg_to_hierarchical_html(&isg);
+
+        // Assertions: Verify structure and features
+        assert!(html.contains("ISG Architecture Explorer"));
+        assert!(html.contains("Overview (30,000ft)"));
+        assert!(html.contains("Detailed (1,000ft)"));
+        assert!(html.contains("Complete"));
+        assert!(html.contains("level-button"));
+        assert!(html.contains("searchInput"));
+        assert!(html.contains("initializeLevelSwitching"));
+        assert!(html.contains("performSearch"));
+        assert!(html.contains("Cytoscape"));
+        assert!(html.contains("ELK"));
+    }
+
+    /// Test contract: Performance validation for hierarchical HTML export
+    ///
+    /// # Given: ISG with moderate complexity (100 nodes, 200 edges)
+    /// # When: export_isg_to_hierarchical_html is called
+    /// # Then: Must complete in <500ms (performance contract)
+    #[test]
+    fn test_hierarchical_html_export_performance_contract() {
+        // Setup: Create moderately sized test graph
+        let isg = create_performance_test_graph_for_html(100, 200);
+
+        // Action: Time the hierarchical HTML export
+        let start = std::time::Instant::now();
+        let _html = export_isg_to_hierarchical_html(&isg);
+        let elapsed = start.elapsed();
+
+        // Assertion: Validate performance contract
+        assert!(elapsed.as_millis() < 500,
+            "Hierarchical HTML export took {}ms, contract requires <500ms", elapsed.as_millis());
+    }
+
+    /// Test contract: Overview graph generation accuracy
+    ///
+    /// # Given: ISG with entry points and directories
+    /// # When: generate_overview_graph is called
+    /// # Then: Returns correct overview graph with entry points and directories
+    #[test]
+    fn test_overview_graph_generation() {
+        // Setup: Create test hierarchy
+        let hierarchy = create_test_hierarchy();
+
+        // Action: Generate overview graph
+        let (nodes_json, edges_json) = generate_overview_graph(&hierarchy);
+
+        // Assertions: Verify structure
+        assert!(nodes_json.contains("entry_point"));
+        assert!(nodes_json.contains("directory"));
+        assert!(nodes_json.contains("🚀"));
+        assert!(nodes_json.contains("📁"));
+        assert!(nodes_json.starts_with("["));
+        assert!(nodes_json.ends_with("]"));
+        assert!(edges_json.starts_with("["));
+        assert!(edges_json.ends_with("]"));
+    }
+
+    /// Test contract: HTML sanitization for security
+    ///
+    /// # Given: Node names with problematic characters
+    /// # When: sanitize_for_html is called
+    /// # Then: Properly escapes characters for HTML safety
+    #[test]
+    fn test_html_sanitization() {
+        // Test various problematic characters
+        let test_cases = vec![
+            ("normal_name", "normal_name"),
+            ("name with spaces", "name with spaces"),
+            ("name-with-dashes", "name-with-dashes"),
+            ("name_with_underscores", "name_with_underscores"),
+            ("name\"with\"quotes", "name\\\"with\\\"quotes"),
+            ("name\nwith\nnewlines", "name\\nwith\\nnewlines"),
+            ("name\twith\ttabs", "name\\twith\\ttabs"),
+            ("name\\with\\backslashes", "name\\\\with\\\\backslashes"),
+        ];
+
+        for (input, expected) in test_cases {
+            let sanitized = sanitize_for_html(input);
+            assert_eq!(sanitized, expected);
+        }
+    }
+
+    // Helper functions for HTML testing
+
+    fn create_hierarchical_test_isg() -> OptimizedISG {
+        let isg = OptimizedISG::new();
+
+        // Create nodes at different directory levels for HTML testing
+        let test_nodes = vec![
+            // Level 0: Root
+            ("main", "Function", "src/main.rs"),
+            ("lib", "Function", "src/lib.rs"),
+
+            // Level 1: Direct modules
+            ("config", "Struct", "src/config.rs"),
+            ("database", "Struct", "src/database.rs"),
+
+            // Level 2: Nested modules
+            ("User", "Struct", "src/models/user.rs"),
+            ("Post", "Struct", "src/models/post.rs"),
+            ("auth", "Function", "src/auth/mod.rs"),
+            ("login", "Function", "src/auth/login.rs"),
+        ];
+
+        for (name, kind, file) in test_nodes {
+            let node_kind = match kind {
+                "Function" => NodeKind::Function,
+                "Struct" => NodeKind::Struct,
+                "Trait" => NodeKind::Trait,
+                _ => NodeKind::Function,
+            };
+
+            let hash = SigHash::from_signature(&format!("{:?} {}", node_kind, name));
+            isg.upsert_node(NodeData {
+                hash,
+                kind: node_kind.clone(),
+                name: Arc::from(name),
+                signature: Arc::from(format!("{:?} {}", node_kind, name)),
+                file_path: Arc::from(file),
+                line: 1,
+            });
+        }
+
+        isg
+    }
+
+    fn create_performance_test_graph_for_html(node_count: usize, edge_count: usize) -> OptimizedISG {
+        let isg = OptimizedISG::new();
+
+        // Create nodes at different directory levels for realistic HTML hierarchy
+        for i in 0..node_count {
+            let kind = match i % 3 {
+                0 => NodeKind::Function,
+                1 => NodeKind::Struct,
+                _ => NodeKind::Trait,
+            };
+
+            let depth = i % 3; // Distribute across 3 levels
+            let file_path = match depth {
+                0 => format!("src/level0/mod{}.rs", i / 10),
+                1 => format!("src/level1/mod{}.rs", i / 10),
+                _ => format!("src/level2/mod{}.rs", i / 10),
+            };
+
+            let hash = SigHash::from_signature(&format!("node_{}", i));
+            isg.upsert_node(NodeData {
+                hash,
+                kind,
+                name: Arc::from(format!("node_{}", i)),
+                signature: Arc::from(format!("node_{}", i)),
+                file_path: Arc::from(file_path),
+                line: i as u32,
+            });
+        }
+
+        // Create some edges
+        for i in 0..edge_count.min(node_count * node_count) {
+            let from_idx = i % node_count;
+            let to_idx = (i + 1) % node_count;
+
+            let from_hash = SigHash::from_signature(&format!("node_{}", from_idx));
+            let to_hash = SigHash::from_signature(&format!("node_{}", to_idx));
+            let edge_kind = match i % 3 {
+                0 => EdgeKind::Calls,
+                1 => EdgeKind::Implements,
+                _ => EdgeKind::Uses,
+            };
+
+            isg.upsert_edge(from_hash, to_hash, edge_kind).unwrap();
+        }
 
         isg
     }
