@@ -20567,6 +20567,566 @@
       "signature": "fn # [tokio :: test] async fn framed_half () -> std :: io :: Result < () > { let a_soc = Arc :: new (UdpSocket :: bind (\"127.0.0.1:0\") . await ?) ; let b_soc = a_soc . clone () ; let a_addr = a_soc . local_addr () ? ; let b_addr = b_soc . local_addr () ? ; let mut a = UdpFramed :: new (a_soc , ByteCodec) ; let mut b = UdpFramed :: new (b_soc , LinesCodec :: new ()) ; let msg = b\"1\\r\\n2\\r\\n3\\r\\n\" . to_vec () ; a . send ((& msg , b_addr)) . await ? ; let msg = b\"4\\r\\n5\\r\\n6\\r\\n\" . to_vec () ; a . send ((& msg , b_addr)) . await ? ; assert_eq ! (b . next () . await . unwrap () . unwrap () , (\"1\" . to_string () , a_addr)) ; assert_eq ! (b . next () . await . unwrap () . unwrap () , (\"2\" . to_string () , a_addr)) ; assert_eq ! (b . next () . await . unwrap () . unwrap () , (\"3\" . to_string () , a_addr)) ; assert_eq ! (b . next () . await . unwrap () . unwrap () , (\"4\" . to_string () , a_addr)) ; assert_eq ! (b . next () . await . unwrap () . unwrap () , (\"5\" . to_string () , a_addr)) ; assert_eq ! (b . next () . await . unwrap () . unwrap () , (\"6\" . to_string () , a_addr)) ; Ok (()) } . sig",
       "file_path": "tokio-util/tests/udp.rs",
       "line": 0
+    },
+    {
+      "hash": 9604399367204012535,
+      "kind": "Function",
+      "name": "main",
+      "signature": "fn # [tokio :: main] async fn main () { let cli = Cli :: parse () ; match ParseltongueAIM :: run (cli) . await { Ok (_) => println ! (\"✓ Operation completed successfully\") , Err (e) => { eprintln ! (\"❌ Error: {}\" , e) ; process :: exit (1) ; } } } . sig",
+      "file_path": "src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 15188369384231084434,
+      "kind": "Struct",
+      "name": "SigHash",
+      "signature": "struct SigHash",
+      "file_path": "src/isg.rs",
+      "line": 0
+    },
+    {
+      "hash": 1279591825488223493,
+      "kind": "Struct",
+      "name": "NodeData",
+      "signature": "struct NodeData",
+      "file_path": "src/isg.rs",
+      "line": 0
+    },
+    {
+      "hash": 14712434853901696580,
+      "kind": "Struct",
+      "name": "FileHierarchyAnalysis",
+      "signature": "struct FileHierarchyAnalysis",
+      "file_path": "src/isg.rs",
+      "line": 0
+    },
+    {
+      "hash": 12179542220667456706,
+      "kind": "Struct",
+      "name": "DirectoryLevel",
+      "signature": "struct DirectoryLevel",
+      "file_path": "src/isg.rs",
+      "line": 0
+    },
+    {
+      "hash": 492918479161383442,
+      "kind": "Struct",
+      "name": "DirectoryInfo",
+      "signature": "struct DirectoryInfo",
+      "file_path": "src/isg.rs",
+      "line": 0
+    },
+    {
+      "hash": 9849128336027414638,
+      "kind": "Struct",
+      "name": "ISGState",
+      "signature": "struct ISGState",
+      "file_path": "src/isg.rs",
+      "line": 0
+    },
+    {
+      "hash": 14995187003828542853,
+      "kind": "Struct",
+      "name": "OptimizedISG",
+      "signature": "struct OptimizedISG",
+      "file_path": "src/isg.rs",
+      "line": 0
+    },
+    {
+      "hash": 11475202991086279627,
+      "kind": "Struct",
+      "name": "SerializableISG",
+      "signature": "struct SerializableISG",
+      "file_path": "src/isg.rs",
+      "line": 0
+    },
+    {
+      "hash": 11766104091341359121,
+      "kind": "Function",
+      "name": "hello",
+      "signature": "fn pub fn hello () -> String { \"Hello, world!\" . to_string () } . sig",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 12609706117808157429,
+      "kind": "Struct",
+      "name": "TestStruct",
+      "signature": "struct TestStruct",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 17509557053841477744,
+      "kind": "Trait",
+      "name": "TestTrait",
+      "signature": "trait TestTrait",
+      "file_path": "src/lib.rs",
+      "line": 0
+    },
+    {
+      "hash": 6678400734806799469,
+      "kind": "Function",
+      "name": "main",
+      "signature": "fn fn main () { println ! (\"{}\" , hello ()) ; } . sig",
+      "file_path": "src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 7823229690525869477,
+      "kind": "Struct",
+      "name": "Cli",
+      "signature": "struct Cli",
+      "file_path": "src/cli.rs",
+      "line": 0
+    },
+    {
+      "hash": 3708148279070580078,
+      "kind": "Struct",
+      "name": "LlmContext",
+      "signature": "struct LlmContext",
+      "file_path": "src/cli.rs",
+      "line": 0
+    },
+    {
+      "hash": 5103869059717666807,
+      "kind": "Function",
+      "name": "run",
+      "signature": "fn pub fn run (cli : Cli) -> Result < () , Box < dyn std :: error :: Error > > { let mut daemon = ParseltongueAIM :: new () ; let snapshot_path = std :: path :: Path :: new (\"parseltongue_snapshot.json\") ; if let Err (e) = daemon . load_snapshot (snapshot_path) { eprintln ! (\"⚠️  Could not load snapshot: {}\" , e) ; } match cli . command { Commands :: Ingest { file } => { if ! file . exists () { return Err (format ! (\"File not found: {}\" , file . display ()) . into ()) ; } let start = Instant :: now () ; let stats = daemon . ingest_code_dump (& file) ? ; let elapsed = start . elapsed () ; println ! (\"✓ Ingestion complete:\") ; println ! (\"  Files processed: {}\" , stats . files_processed) ; println ! (\"  Nodes created: {}\" , stats . nodes_created) ; println ! (\"  Total nodes in ISG: {}\" , daemon . isg . node_count ()) ; println ! (\"  Total edges in ISG: {}\" , daemon . isg . edge_count ()) ; println ! (\"  Time: {:.2}s\" , elapsed . as_secs_f64 ()) ; if elapsed . as_secs () > 5 { eprintln ! (\"⚠️  Ingestion took {:.2}s (>5s constraint violated)\" , elapsed . as_secs_f64 ()) ; } let snapshot_path = std :: path :: Path :: new (\"parseltongue_snapshot.json\") ; if let Err (e) = daemon . save_snapshot (snapshot_path) { eprintln ! (\"⚠️  Could not save snapshot: {}\" , e) ; } else { println ! (\"✓ Snapshot saved for future queries\") ; } } Commands :: Daemon { watch } => { if ! watch . exists () { return Err (format ! (\"Directory not found: {}\" , watch . display ()) . into ()) ; } if ! watch . is_dir () { return Err (format ! (\"Path is not a directory: {}\" , watch . display ()) . into ()) ; } daemon . start_daemon (& watch) ? ; } Commands :: Query { query_type , target , format } => { if target . trim () . is_empty () { return Err (\"Target entity name cannot be empty\" . into ()) ; } let start = Instant :: now () ; let result = match query_type { QueryType :: WhatImplements => { let trait_hash = daemon . find_entity_by_name (& target) ? ; let implementors = daemon . isg . find_implementors (trait_hash) ? ; implementors . into_iter () . map (| n | n . name . to_string ()) . collect :: < Vec < _ > > () } QueryType :: BlastRadius => { let entity_hash = daemon . find_entity_by_name (& target) ? ; let radius = daemon . isg . calculate_blast_radius (entity_hash) ? ; radius . into_iter () . map (| h | format ! (\"{:?}\" , h)) . collect () } QueryType :: FindCycles => { daemon . isg . find_cycles () . into_iter () . flatten () . map (| h | format ! (\"{:?}\" , h)) . collect () } QueryType :: WhoCalls => { let function_hash = daemon . find_entity_by_name (& target) ? ; let callers = daemon . isg . find_callers (function_hash) ? ; callers . into_iter () . map (| n | n . name . to_string ()) . collect :: < Vec < _ > > () } QueryType :: GetCalledFunctions => { let function_hash = daemon . find_entity_by_name (& target) ? ; let called = daemon . isg . get_called_functions (function_hash) ? ; called . into_iter () . map (| n | n . name . to_string ()) . collect :: < Vec < _ > > () } QueryType :: ExecutionPath => { let parts : Vec < & str > = target . split ('>') . collect () ; if parts . len () != 2 { return Err (\"Execution path requires format: 'from_function>to_function'\" . into ()) ; } let from_hash = daemon . find_entity_by_name (parts [0] . trim ()) ? ; let to_hash = daemon . find_entity_by_name (parts [1] . trim ()) ? ; let path = daemon . isg . get_execution_path (from_hash , to_hash) ? ; path . into_iter () . map (| n | n . name . to_string ()) . collect :: < Vec < _ > > () } } ; let elapsed = start . elapsed () ; match format { OutputFormat :: Human => { println ! (\"Results for {} query on '{}':\" , match query_type { QueryType :: WhatImplements => \"what-implements\" , QueryType :: BlastRadius => \"blast-radius\" , QueryType :: FindCycles => \"find-cycles\" , QueryType :: WhoCalls => \"who-calls\" , QueryType :: GetCalledFunctions => \"get-called-functions\" , QueryType :: ExecutionPath => \"execution-path\" , } , target) ; for item in & result { println ! (\"  - {}\" , item) ; } println ! (\"\\nQuery completed in {}μs\" , elapsed . as_micros ()) ; if elapsed . as_micros () > 2000 { eprintln ! (\"⚠️  Query took {}μs (>2ms constraint)\" , elapsed . as_micros ()) ; } } OutputFormat :: Json => { let output = serde_json :: json ! ({ \"query_type\" : format ! (\"{:?}\" , query_type) , \"target\" : target , \"results\" : result , \"execution_time_us\" : elapsed . as_micros () , \"node_count\" : daemon . isg . node_count () , \"edge_count\" : daemon . isg . edge_count () }) ; println ! (\"{}\" , serde_json :: to_string_pretty (& output) ?) ; } } } Commands :: GenerateContext { entity , format } => { if entity . trim () . is_empty () { return Err (\"Entity name cannot be empty\" . into ()) ; } let context = generate_context (& daemon , & entity , format . clone ()) ? ; println ! (\"{}\" , context) ; } Commands :: Export { output } => { let start = Instant :: now () ; let output_path = match output { Some (path) => path , None => { let timestamp = Utc :: now () . format (\"%Y%m%d_%H%M%S\") ; PathBuf :: from (format ! (\"ISG_Architecture_{}\" , timestamp)) } } ; let mermaid_content = crate :: mermaid_export :: export_isg_to_mermaid (& daemon . isg) ; let elapsed = start . elapsed () ; let md_path = output_path . with_extension (\"md\") ; std :: fs :: write (& md_path , mermaid_content) ? ; println ! (\"✓ Mermaid export completed:\") ; println ! (\"  MD:   {} (GitHub compatible)\" , md_path . display ()) ; println ! (\"  Nodes: {}\" , daemon . isg . node_count ()) ; println ! (\"  Edges: {}\" , daemon . isg . edge_count ()) ; println ! (\"  Time: {:.2}s\" , elapsed . as_secs_f64 ()) ; if let Err (e) = daemon . save_snapshot (snapshot_path) { eprintln ! (\"⚠️  Could not save snapshot: {}\" , e) ; } println ! (\"✓ File created successfully\") ; } Commands :: ExportWasm { output , layout } => { let start = Instant :: now () ; let output_dir = match output { Some (path) => path , None => PathBuf :: from (\"wasm_output\") , } ; std :: fs :: create_dir_all (& output_dir) ? ; let isg_json = serde_json :: to_string_pretty (& daemon . isg) ? ; let isg_path = output_dir . join (\"isg_data.json\") ; std :: fs :: write (& isg_path , isg_json) ? ; let wasm_content = crate :: wasm_renderer :: generate_wasm_visualization (& daemon . isg , & layout) ? ; let html_path = output_dir . join (\"visualization.html\") ; std :: fs :: write (& html_path , wasm_content) ? ; let elapsed = start . elapsed () ; println ! (\"✓ WASM export completed:\") ; println ! (\"  Output directory: {}\" , output_dir . display ()) ; println ! (\"  ISG JSON: {}\" , isg_path . display ()) ; println ! (\"  HTML Visualization: {}\" , html_path . display ()) ; println ! (\"  Layout algorithm: {}\" , layout) ; println ! (\"  Nodes: {}\" , daemon . isg . node_count ()) ; println ! (\"  Edges: {}\" , daemon . isg . edge_count ()) ; println ! (\"  Time: {:.2}s\" , elapsed . as_secs_f64 ()) ; if let Err (e) = daemon . save_snapshot (snapshot_path) { eprintln ! (\"⚠️  Could not save snapshot: {}\" , e) ; } println ! (\"✓ Open {} in your browser to view the visualization\" , html_path . display ()) ; } Commands :: Debug { graph , dot , mermaid , sample } => { if sample { let sample_isg = crate :: isg :: OptimizedISG :: create_sample () ; println ! (\"=== SAMPLE ISG FOR LEARNING ===\\n\") ; println ! (\"This shows a simple Rust program structure:\\n\") ; println ! (\"{}\" , sample_isg . debug_print ()) ; if dot { println ! (\"\\n=== DOT FORMAT (for Graphviz) ===\") ; println ! (\"Copy this to a .dot file and run: dot -Tpng graph.dot -o graph.png\\n\") ; println ! (\"{}\" , sample_isg . export_dot ()) ; } if mermaid { println ! (\"\\n=== MERMAID FORMAT (for GitHub) ===\") ; println ! (\"Copy this to a .md file and view in GitHub:\\n\") ; println ! (\"{}\" , crate :: mermaid_export :: export_isg_to_mermaid (& sample_isg)) ; } } else if graph { println ! (\"=== CURRENT ISG STRUCTURE ===\\n\") ; println ! (\"{}\" , daemon . isg . debug_print ()) ; } else if dot { let dot_content = daemon . isg . export_dot () ; println ! (\"=== DOT FORMAT (for Graphviz) ===\") ; println ! (\"Copy this to a .dot file and run: dot -Tpng graph.dot -o graph.png\\n\") ; println ! (\"{}\" , dot_content) ; } else if mermaid { let mermaid_content = crate :: mermaid_export :: export_isg_to_mermaid (& daemon . isg) ; println ! (\"=== MERMAID FORMAT (for GitHub) ===\") ; println ! (\"Copy this to a .md file and view in GitHub:\\n\") ; println ! (\"{}\" , mermaid_content) ; } else { println ! (\"Debug commands require --graph, --dot, --mermaid, or --sample flag\") ; } } } Ok (()) } . sig",
+      "file_path": "src/cli.rs",
+      "line": 0
+    },
+    {
+      "hash": 15544107206415128695,
+      "kind": "Function",
+      "name": "generate_context",
+      "signature": "fn # [doc = \" Generate context for LLM consumption\"] fn generate_context (daemon : & ParseltongueAIM , entity : & str , format : OutputFormat) -> Result < String , Box < dyn std :: error :: Error > > { if let Ok (entity_hash) = daemon . find_entity_by_name (entity) { let dependencies = daemon . get_dependencies (entity_hash) ; let callers = daemon . get_callers (entity_hash) ; let context = LlmContext { target : daemon . get_entity_data (entity_hash) ? , dependencies , callers , } ; match format { OutputFormat :: Human => Ok (format ! (\"Entity: {}\\nDependencies: {}\\nCallers: {}\" , entity , context . dependencies . len () , context . callers . len ())) , OutputFormat :: Json => Ok (serde_json :: to_string_pretty (& context) ?) , } } else { Err (format ! (\"Entity '{}' not found\" , entity) . into ()) } } . sig",
+      "file_path": "src/cli.rs",
+      "line": 0
+    },
+    {
+      "hash": 12756450742833375526,
+      "kind": "Function",
+      "name": "export_isg_to_mermaid",
+      "signature": "fn # [doc = \" Main export function - transforms ISG to Mermaid flowchart\"] # [doc = \"\"] # [doc = \" # Preconditions\"] # [doc = \" - ISG graph is in valid state with consistent node/edge relationships\"] # [doc = \"\"] # [doc = \" # Postconditions\"] # [doc = \" - Returns valid Mermaid flowchart syntax\"] # [doc = \" - All nodes rendered with proper styling and file paths\"] # [doc = \" - All edges rendered with appropriate arrow styles\"] # [doc = \" - Output is GitHub-compatible\"] # [doc = \"\"] # [doc = \" # Error Conditions\"] # [doc = \" - Cannot fail (String concatenation is infallible)\"] # [doc = \" - Malformed node names are sanitized automatically\"] # [doc = \"\"] # [doc = \" # Performance Contract\"] # [doc = \" - Must complete in <1ms for graphs with ≤100 nodes\"] # [doc = \" - Memory usage: O(1) additional allocation\"] pub fn export_isg_to_mermaid (isg : & OptimizedISG) -> String { let mut output = String :: new () ; output . push_str (\"flowchart TD\\n\") ; let state = isg . state . read () ; for (_hash , & node_idx) in & state . id_map { if let Some (node) = state . graph . node_weight (node_idx) { render_node (& mut output , node) ; } } output . push ('\\n') ; for edge_ref in state . graph . edge_references () { let source = & state . graph [edge_ref . source ()] ; let target = & state . graph [edge_ref . target ()] ; render_edge (& mut output , source , target , edge_ref . weight ()) ; } output } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 11744915813008663577,
+      "kind": "Function",
+      "name": "create_markdown_file",
+      "signature": "fn # [doc = \" Creates a markdown file with proper Mermaid code block formatting\"] # [doc = \"\"] # [doc = \" # Preconditions\"] # [doc = \" - mermaid_content contains valid Mermaid syntax\"] # [doc = \" - filename is a valid path\"] # [doc = \"\"] # [doc = \" # Postconditions\"] # [doc = \" - File created with proper markdown code block wrapper\"] # [doc = \" - GitHub-compatible format for diagram rendering\"] pub fn create_markdown_file (filename : & str , mermaid_content : & str) { let markdown = format ! (\"# ISG Architecture Diagram\\n\\n```mermaid\\n{}\\n```\" , mermaid_content) ; fs :: write (filename , markdown) . unwrap_or_else (| e | { eprintln ! (\"Failed to create markdown file {}: {}\" , filename , e) ; }) ; } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 3667070905138528860,
+      "kind": "Function",
+      "name": "create_html_file",
+      "signature": "fn # [doc = \" Creates an HTML file with embedded Mermaid.js for immediate viewing\"] # [doc = \"\"] # [doc = \" # Preconditions\"] # [doc = \" - mermaid_content contains valid Mermaid syntax\"] # [doc = \" - filename is a valid path\"] # [doc = \"\"] # [doc = \" # Postconditions\"] # [doc = \" - Self-contained HTML file created\"] # [doc = \" - Diagram renders immediately in any modern browser\"] # [doc = \" - No external dependencies except CDN-hosted Mermaid.js\"] pub fn create_html_file (filename : & str , mermaid_content : & str) { let html = format ! (r#\"<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>ISG Architecture Diagram</title>\n    <script src=\"https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js\"></script>\n    <style>\n        body {{\n            font-family: Arial, sans-serif;\n            margin: 40px;\n            background-color: #f5f5f5;\n        }}\n        .mermaid {{\n            background-color: white;\n            padding: 20px;\n            border-radius: 8px;\n            box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n        }}\n        h1 {{\n            color: #333;\n            text-align: center;\n        }}\n    </style>\n</head>\n<body>\n    <h1>ISG Architecture Diagram</h1>\n    <div class=\"mermaid\">\n{}\n    </div>\n    <script>\n        mermaid.initialize({{\n            startOnLoad: true,\n            maxTextSize: 20000000,\n            securityLevel: 'loose',\n            flowchart: {{\n                nodeSpacing: 15,\n                rankSpacing: 30,\n                useMaxWidth: true\n            }},\n            theme: 'neutral',\n            logLevel: 'error'\n        }});\n    </script>\n</body>\n</html>\"# , mermaid_content) ; fs :: write (filename , html) . unwrap_or_else (| e | { eprintln ! (\"Failed to create HTML file {}: {}\" , filename , e) ; }) ; } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 8025931382189594064,
+      "kind": "Function",
+      "name": "render_node",
+      "signature": "fn # [doc = \" Renders a single node with Mermaid syntax and type-specific styling\"] # [doc = \"\"] # [doc = \" # Node Styling Strategy\"] # [doc = \" - **Functions**: 🔧 gear icon, lightblue background\"] # [doc = \" - **Structs**: 📦 package icon, lightgreen background\"] # [doc = \" - **Traits**: 🎯 target icon, lightyellow background\"] # [doc = \"\"] # [doc = \" # Name Sanitization\"] # [doc = \" - Replaces hyphens with underscores for valid Mermaid identifiers\"] # [doc = \" - Preserves original name in display label\"] fn render_node (output : & mut String , node : & NodeData) { let safe_name = sanitize_identifier (& node . name) ; let icon = node_kind_icon (& node . kind) ; let _ = write ! (output , \"    {}[\\\"{} {}<br/>({:?})<br/><i>{}</i>\\\"]\\n\" , safe_name , icon , node . name , node . kind , node . file_path) ; } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 2540370969800769532,
+      "kind": "Function",
+      "name": "render_edge",
+      "signature": "fn # [doc = \" Renders a single edge with relationship-specific arrow styling\"] # [doc = \"\"] # [doc = \" # Edge Styling Strategy\"] # [doc = \" - **Calls**: Solid arrow (-->) for direct invocations\"] # [doc = \" - **Implements**: Dashed arrow (-.->) for trait implementations\"] # [doc = \" - **Uses**: Dotted arrow (-..->) for dependencies\"] fn render_edge (output : & mut String , source : & NodeData , target : & NodeData , edge_kind : & EdgeKind) { let safe_source = sanitize_identifier (& source . name) ; let safe_target = sanitize_identifier (& target . name) ; let arrow_style = edge_kind_arrow_style (edge_kind) ; let _ = write ! (output , \"    {} {} {}\\n\" , safe_source , arrow_style , safe_target) ; } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 6032559051283827771,
+      "kind": "Function",
+      "name": "sanitize_identifier",
+      "signature": "fn # [doc = \" Sanitizes node names for valid Mermaid identifiers\"] # [doc = \"\"] # [doc = \" # Sanitization Rules\"] # [doc = \" - Replaces hyphens (-) with underscores (_)\"] # [doc = \" - Could be extended for other special cases if needed\"] # [doc = \" - Preserves original name for display purposes\"] fn sanitize_identifier (name : & str) -> String { name . replace ('-' , \"_\") } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 5204471291929200994,
+      "kind": "Function",
+      "name": "node_kind_icon",
+      "signature": "fn # [doc = \" Returns appropriate icon for each node kind\"] const fn node_kind_icon (kind : & NodeKind) -> & 'static str { match kind { NodeKind :: Function => \"🔧\" , NodeKind :: Struct => \"📦\" , NodeKind :: Trait => \"🎯\" , NodeKind :: Impl => \"⚙️\" , } } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 4289425142701716733,
+      "kind": "Function",
+      "name": "edge_kind_arrow_style",
+      "signature": "fn # [doc = \" Returns appropriate arrow style for each edge kind\"] const fn edge_kind_arrow_style (kind : & EdgeKind) -> & 'static str { match kind { EdgeKind :: Calls => \"-->\" , EdgeKind :: Implements => \"-.->\" , EdgeKind :: Uses => \"-..->\" , } } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 9770852136273477852,
+      "kind": "Function",
+      "name": "export_isg_to_hierarchical_mermaid",
+      "signature": "fn # [doc = \" Export ISG to hierarchical Mermaid files (pyramid structure)\"] # [doc = \"\"] # [doc = \" Creates multiple files for progressive disclosure:\"] # [doc = \" - index.md: Overview level (Level 1)\"] # [doc = \" - explore.md: Detailed exploration (Levels 2-3)\"] # [doc = \" - data/: Full ISG JSON data\"] # [doc = \"\"] # [doc = \" # Performance Contract\"] # [doc = \" - Must complete in <20ms total for typical graphs (file I/O included)\"] # [doc = \" - Each level: <300 nodes for GitHub compatibility\"] # [doc = \" - Memory: O(1) additional allocation per file\"] pub fn export_isg_to_hierarchical_mermaid (isg : & OptimizedISG , output_dir : & str) -> Result < Vec < String > , std :: io :: Error > { fs :: create_dir_all (output_dir) ? ; fs :: create_dir_all (& format ! (\"{}/data\" , output_dir)) ? ; let hierarchy = isg . analyze_file_hierarchy () ; let mut created_files = Vec :: new () ; let index_path = format ! (\"{}/index.md\" , output_dir) ; let index_content = create_overview_mermaid (& hierarchy) ; fs :: write (& index_path , index_content) ? ; created_files . push (index_path) ; let explore_path = format ! (\"{}/explore.md\" , output_dir) ; let explore_content = create_detailed_mermaid (& hierarchy) ; fs :: write (& explore_path , explore_content) ? ; created_files . push (explore_path) ; let data_path = format ! (\"{}/data/full_isg.json\" , output_dir) ; let full_data = create_full_isg_export (isg) ; fs :: write (& data_path , full_data) ? ; created_files . push (data_path) ; Ok (created_files) } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 6499373019075885101,
+      "kind": "Function",
+      "name": "create_overview_mermaid",
+      "signature": "fn # [doc = \" Create Level 1 overview Mermaid diagram (30,000ft view)\"] # [doc = \"\"] # [doc = \" Shows only the top-level directories and entry points\"] # [doc = \" Limited to ~50 nodes for GitHub compatibility\"] fn create_overview_mermaid (hierarchy : & FileHierarchyAnalysis) -> String { let mut output = String :: new () ; output . push_str (\"# Architecture Overview - Level 1 (30,000ft view)\\n\\n\") ; output . push_str (\"This is the highest-level view of the codebase structure.\\n\") ; output . push_str (\"See [explore.md](explore.md) for detailed exploration.\\n\\n\") ; output . push_str (\"```mermaid\\n\") ; output . push_str (\"flowchart TD\\n\") ; for (i , entry_point) in hierarchy . entry_points . iter () . take (5) . enumerate () { let _safe_name = sanitize_identifier (& entry_point . name) ; let file_display = extract_filename_display (& entry_point . file_path) ; output . push_str (& format ! (\"    Entry{}[\\\"🚀 {}<br/><i>Entry: {}</i>\\\"]\\n\" , i , entry_point . name , file_display)) ; } let top_levels = hierarchy . levels . iter () . take (2) ; for level in top_levels { for directory in & level . directories { if directory . node_count > 0 { let safe_name = sanitize_identifier (& directory . path) ; let node_count = directory . node_count ; output . push_str (& format ! (\"    Dir{}[\\\"📁 {}<br/><i>{} items</i>\\\"]\\n\" , safe_name . replace (\"/\" , \"_\") , directory . path , node_count)) ; } } } for (i , entry_point) in hierarchy . entry_points . iter () . take (3) . enumerate () { let entry_dir = extract_directory_simple (& entry_point . file_path) ; let safe_dir = sanitize_identifier (& entry_dir) ; output . push_str (& format ! (\"    Entry{} --> Dir{}\\n\" , i , safe_dir . replace (\"/\" , \"_\"))) ; } output . push_str (\"\\n    %% Styling\\n\") ; output . push_str (\"    classDef entry fill:#e1f5fe,stroke:#0277bd,stroke-width:3px,color:#01579b\\n\") ; output . push_str (\"    classDef directory fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c\\n\") ; for i in 0 .. hierarchy . entry_points . iter () . take (5) . count () { output . push_str (& format ! (\"    class Entry{} entry\\n\" , i)) ; } for level in hierarchy . levels . iter () . take (2) { for directory in & level . directories { if directory . node_count > 0 { let safe_name = sanitize_identifier (& directory . path) ; output . push_str (& format ! (\"    class Dir{} directory\\n\" , safe_name . replace (\"/\" , \"_\"))) ; } } } output . push_str (\"```\\n\\n\") ; output . push_str (\"---\\n\\n\") ; output . push_str (\"*📊 Next Level: [Detailed Exploration](explore.md) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*\\n\") ; output } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 827872261360962138,
+      "kind": "Function",
+      "name": "create_detailed_mermaid",
+      "signature": "fn # [doc = \" Create Level 2-3 detailed Mermaid diagram (1,000ft view)\"] # [doc = \"\"] # [doc = \" Shows intermediate directories and key modules\"] # [doc = \" Limited to ~200 nodes for GitHub compatibility\"] fn create_detailed_mermaid (hierarchy : & FileHierarchyAnalysis) -> String { let mut output = String :: new () ; output . push_str (\"# Detailed Architecture - Levels 2-3 (1,000ft view)\\n\\n\") ; output . push_str (\"This view shows the detailed module structure and key relationships.\\n\") ; output . push_str (\"*⬅️ Back to: [Overview](index.md) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*\\n\\n\") ; output . push_str (\"```mermaid\\n\") ; output . push_str (\"flowchart TD\\n\") ; let pyramid_levels = hierarchy . get_pyramid_view (3) ; let mut node_counter = 0 ; for (level_idx , level) in pyramid_levels . iter () . enumerate () { output . push_str (& format ! (\"\\n    %% Level {}: {} directories at depth {}\\n\" , level_idx + 1 , level . directories . len () , level . depth)) ; for directory in & level . directories { if node_counter >= 200 { break ; } let nodes_to_show = directory . nodes . iter () . take (10) ; for (node_idx , node) in nodes_to_show . enumerate () { if node_counter >= 200 { break ; } let _safe_name = sanitize_identifier (& node . name) ; let file_display = extract_filename_display (& node . file_path) ; let icon = node_kind_icon (& node . kind) ; output . push_str (& format ! (\"    L{}_D{}_N{}[\\\"{} {}<br/><i>({})<br/>{}</i>\\\"]\\n\" , level_idx + 1 , sanitize_identifier (& directory . path) . replace (\"/\" , \"_\") , node_idx , icon , node . name , node . kind , file_display)) ; node_counter += 1 ; } } } output . push_str (\"\\n    %% Directory groupings\\n\") ; for (level_idx , level) in pyramid_levels . iter () . enumerate () { for directory in & level . directories { if directory . node_count > 0 { let safe_dir = sanitize_identifier (& directory . path) . replace (\"/\" , \"_\") ; output . push_str (& format ! (\"    subgraph SubL{}[\\\"📁 {} (Level {})\\\"]\\n\" , level_idx + 1 , directory . path , level_idx + 1)) ; for node_idx in 0 .. directory . nodes . iter () . take (10) . count () { output . push_str (& format ! (\"        L{}_D{}_N{}\\n\" , level_idx + 1 , safe_dir , node_idx)) ; } output . push_str (\"    end\\n\") ; } } } output . push_str (\"\\n    %% Styling\\n\") ; output . push_str (\"    classDef level1 fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#1b5e20\\n\") ; output . push_str (\"    classDef level2 fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#0d47a1\\n\") ; output . push_str (\"    classDef level3 fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100\\n\") ; for (level_idx , level) in pyramid_levels . iter () . enumerate () { let class_name = match level_idx { 0 => \"level1\" , 1 => \"level2\" , _ => \"level3\" , } ; for directory in & level . directories { for node_idx in 0 .. directory . nodes . iter () . take (10) . count () { output . push_str (& format ! (\"    class L{}_D{}_N{} {}\\n\" , level_idx + 1 , sanitize_identifier (& directory . path) . replace (\"/\" , \"_\") , node_idx , class_name)) ; } } } output . push_str (\"```\\n\\n\") ; output . push_str (\"---\\n\\n\") ; output . push_str (\"*⬅️ Back to: [Overview](index.md) | 🗂️ Full Data: [JSON Export](data/full_isg.json)*\\n\") ; output } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 12799584005085685740,
+      "kind": "Function",
+      "name": "create_full_isg_export",
+      "signature": "fn # [doc = \" Create full ISG data export as JSON\"] fn create_full_isg_export (isg : & OptimizedISG) -> String { let hierarchy = isg . analyze_file_hierarchy () ; serde_json :: to_string_pretty (& hierarchy) . unwrap_or_else (| _ | { r#\"{\"error\": \"Failed to serialize ISG data\"}\"# . to_string () }) } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 5651903669727529959,
+      "kind": "Function",
+      "name": "extract_filename_display",
+      "signature": "fn # [doc = \" Helper: Extract filename for display\"] fn extract_filename_display (file_path : & str) -> & str { file_path . split ('/') . last () . unwrap_or (file_path) } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 3398216338735498814,
+      "kind": "Function",
+      "name": "extract_directory_simple",
+      "signature": "fn # [doc = \" Helper: Extract directory (simple version)\"] fn extract_directory_simple (file_path : & str) -> & str { if let Some (slash_pos) = file_path . rfind ('/') { & file_path [.. slash_pos] } else { \".\" } } . sig",
+      "file_path": "src/mermaid_export.rs",
+      "line": 0
+    },
+    {
+      "hash": 10424209687738881594,
+      "kind": "Struct",
+      "name": "WASMGraph",
+      "signature": "struct WASMGraph",
+      "file_path": "src/wasm_core.rs",
+      "line": 0
+    },
+    {
+      "hash": 2166365451308853902,
+      "kind": "Struct",
+      "name": "WASMNode",
+      "signature": "struct WASMNode",
+      "file_path": "src/wasm_core.rs",
+      "line": 0
+    },
+    {
+      "hash": 1496521460142557828,
+      "kind": "Struct",
+      "name": "WASMEdge",
+      "signature": "struct WASMEdge",
+      "file_path": "src/wasm_core.rs",
+      "line": 0
+    },
+    {
+      "hash": 4406624512610840696,
+      "kind": "Struct",
+      "name": "WASMLayout",
+      "signature": "struct WASMLayout",
+      "file_path": "src/wasm_core.rs",
+      "line": 0
+    },
+    {
+      "hash": 15429166121818643050,
+      "kind": "Struct",
+      "name": "WASMCoreEngine",
+      "signature": "struct WASMCoreEngine",
+      "file_path": "src/wasm_core.rs",
+      "line": 0
+    },
+    {
+      "hash": 4809768463891545903,
+      "kind": "Struct",
+      "name": "WASMMetrics",
+      "signature": "struct WASMMetrics",
+      "file_path": "src/wasm_core.rs",
+      "line": 0
+    },
+    {
+      "hash": 7312749663845545932,
+      "kind": "Struct",
+      "name": "RenderConfig",
+      "signature": "struct RenderConfig",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 15340070189941390496,
+      "kind": "Struct",
+      "name": "NodeStyle",
+      "signature": "struct NodeStyle",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 610305301482815300,
+      "kind": "Struct",
+      "name": "EdgeStyle",
+      "signature": "struct EdgeStyle",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 15742463544243585699,
+      "kind": "Struct",
+      "name": "AnimationConfig",
+      "signature": "struct AnimationConfig",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 9635368847538905734,
+      "kind": "Struct",
+      "name": "RenderedScene",
+      "signature": "struct RenderedScene",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 3371644819481658384,
+      "kind": "Struct",
+      "name": "RenderedNode",
+      "signature": "struct RenderedNode",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 2183848240757519723,
+      "kind": "Struct",
+      "name": "RenderedEdge",
+      "signature": "struct RenderedEdge",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 5196824448813716305,
+      "kind": "Struct",
+      "name": "SceneMetadata",
+      "signature": "struct SceneMetadata",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 1212603838580896165,
+      "kind": "Struct",
+      "name": "WASMRenderer",
+      "signature": "struct WASMRenderer",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 6649121370784087271,
+      "kind": "Struct",
+      "name": "RenderMetrics",
+      "signature": "struct RenderMetrics",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 9725371263414228127,
+      "kind": "Function",
+      "name": "generate_wasm_visualization",
+      "signature": "fn # [doc = \" Generate complete WASM visualization HTML file\"] pub fn generate_wasm_visualization (isg : & crate :: isg :: OptimizedISG , layout_str : & str) -> Result < String , Box < dyn std :: error :: Error > > { let layout_algorithm = match layout_str { \"breadthfirst\" | \"breadth_first\" => LayoutAlgorithm :: BreadthFirst , \"forcedirected\" | \"force_directed\" => LayoutAlgorithm :: ForceDirected , \"hierarchical\" => LayoutAlgorithm :: Hierarchical , \"circular\" => LayoutAlgorithm :: Circular , _ => LayoutAlgorithm :: BreadthFirst , } ; let wasm_graph = convert_isg_to_wasm_graph (isg) ? ; let html_content = format ! (r#\"\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Parseltongue WASM Visualization</title>\n    <style>\n        body {{\n            margin: 0;\n            padding: 20px;\n            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n            background: #f5f5f5;\n        }}\n        .container {{\n            max-width: 1200px;\n            margin: 0 auto;\n            background: white;\n            border-radius: 8px;\n            box-shadow: 0 2px 10px rgba(0,0,0,0.1);\n            overflow: hidden;\n        }}\n        .header {{\n            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n            color: white;\n            padding: 20px;\n            text-align: center;\n        }}\n        .controls {{\n            padding: 15px;\n            border-bottom: 1px solid #eee;\n            display: flex;\n            gap: 10px;\n            align-items: center;\n            flex-wrap: wrap;\n        }}\n        .controls button {{\n            padding: 8px 16px;\n            border: none;\n            border-radius: 4px;\n            background: #667eea;\n            color: white;\n            cursor: pointer;\n            font-size: 14px;\n            transition: background 0.2s;\n        }}\n        .controls button:hover {{\n            background: #5a6fd8;\n        }}\n        .controls select {{\n            padding: 6px 12px;\n            border: 1px solid #ddd;\n            border-radius: 4px;\n            font-size: 14px;\n        }}\n        .stats {{\n            margin-left: auto;\n            font-size: 12px;\n            color: #666;\n        }}\n        #canvas {{\n            display: block;\n            cursor: grab;\n            touch-action: none;\n        }}\n        #canvas:active {{\n            cursor: grabbing;\n        }}\n        .info {{\n            padding: 15px;\n            background: #f8f9fa;\n            font-size: 14px;\n            color: #666;\n            text-align: center;\n        }}\n        .loading {{\n            text-align: center;\n            padding: 50px;\n            font-size: 18px;\n            color: #666;\n        }}\n        .error {{\n            text-align: center;\n            padding: 50px;\n            font-size: 18px;\n            color: #dc3545;\n        }}\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <h1>🐍 Parseltongue WASM Visualization</h1>\n            <p>Interactive Rust Code Architecture Visualization</p>\n        </div>\n\n        <div class=\"controls\">\n            <button onclick=\"zoomIn()\">🔍 Zoom In</button>\n            <button onclick=\"zoomOut()\">🔍 Zoom Out</button>\n            <button onclick=\"resetZoom()\">🔄 Reset</button>\n            <button onclick=\"togglePan()\">✋ Pan</button>\n            <select id=\"layoutSelect\" onchange=\"changeLayout()\">\n                <option value=\"breadthfirst\" {}>Breadth-First</option>\n                <option value=\"forcedirected\" {}>Force-Directed</option>\n                <option value=\"hierarchical\" {}>Hierarchical</option>\n                <option value=\"circular\" {}>Circular</option>\n            </select>\n            <div class=\"stats\">\n                <span id=\"nodeCount\">Nodes: {}</span> |\n                <span id=\"edgeCount\">Edges: {}</span> |\n                <span id=\"renderTime\">Render: 0ms</span>\n            </div>\n        </div>\n\n        <canvas id=\"canvas\" width=\"1200\" height=\"800\"></canvas>\n\n        <div class=\"info\">\n            <strong>Controls:</strong> Scroll to zoom • Drag to pan • Click nodes for details • Double-click to reset view\n        </div>\n    </div>\n\n    <script>\n        // Global state\n        let wasmModule = null;\n        let graphData = null;\n        let currentLayout = '{}';\n        let zoom = 1.0;\n        let panX = 0;\n        let panY = 0;\n        let isPanning = false;\n        let lastMouseX = 0;\n        let lastMouseY = 0;\n\n        // Canvas setup\n        const canvas = document.getElementById('canvas');\n        const ctx = canvas.getContext('2d');\n\n        // Load WASM graph data\n        const graphData = {};\n\n        // Initialize WASM module\n        async function initWasm() {{\n            try {{\n                console.log('Initializing WASM module...');\n\n                // For now, we'll render using JavaScript instead of WASM\n                // This provides a fallback that demonstrates the visualization\n                renderGraph();\n                updateStats();\n\n            }} catch (error) {{\n                console.error('Failed to initialize WASM:', error);\n                showError('Failed to initialize visualization: ' + error.message);\n            }}\n        }}\n\n        // Render graph using JavaScript (fallback)\n        function renderGraph() {{\n            if (!graphData) return;\n\n            const startRender = performance.now();\n\n            // Clear canvas\n            ctx.clearRect(0, 0, canvas.width, canvas.height);\n\n            // Apply transformations\n            ctx.save();\n            ctx.translate(panX, panY);\n            ctx.scale(zoom, zoom);\n\n            // Get nodes from WASMGraph data\n            let nodes = (graphData.nodes || []).map(node => ({{\n                ...node,\n                x: Math.random() * 800 + 200,\n                y: Math.random() * 600 + 100\n            }}));\n\n            // Simple layout based on selected algorithm\n            applyLayout(nodes, currentLayout);\n\n            // Draw edges\n            ctx.strokeStyle = '#ddd';\n            ctx.lineWidth = 2;\n            (graphData.edges || []).forEach(edge => {{\n                const fromNode = nodes.find(n => n.id === edge.source);\n                const toNode = nodes.find(n => n.id === edge.target);\n                if (fromNode && toNode) {{\n                    ctx.beginPath();\n                    ctx.moveTo(fromNode.x, fromNode.y);\n                    ctx.lineTo(toNode.x, toNode.y);\n                    ctx.stroke();\n                }}\n            }});\n\n            // Draw nodes\n            nodes.forEach(node => {{\n                const radius = 20;\n\n                // Node circle\n                ctx.beginPath();\n                ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);\n\n                // Color by node type\n                const colors = {{\n                    'function': '#667eea',\n                    'struct': '#48bb78',\n                    'trait': '#ed8936',\n                    'impl': '#9f7aea'\n                }};\n\n                ctx.fillStyle = colors[node.node_type] || '#718096';\n                ctx.fill();\n\n                // Node border\n                ctx.strokeStyle = '#2d3748';\n                ctx.lineWidth = 2;\n                ctx.stroke();\n\n                // Node label\n                ctx.fillStyle = '#2d3748';\n                ctx.font = '12px monospace';\n                ctx.textAlign = 'center';\n                ctx.textBaseline = 'middle';\n\n                // Truncate long names\n                let label = node.name || node.id;\n                if (label.length > 15) {{\n                    label = label.substring(0, 12) + '...';\n                }}\n\n                ctx.fillText(label, node.x, node.y + radius + 15);\n            }});\n\n            ctx.restore();\n\n            const renderTime = performance.now() - startRender;\n            document.getElementById('renderTime').textContent = `Render: ${{renderTime.toFixed(1)}}ms`;\n        }}\n\n        // Apply layout algorithm\n        function applyLayout(nodes, layout) {{\n            const width = 1200;\n            const height = 800;\n            const centerX = width / 2;\n            const centerY = height / 2;\n\n            switch (layout) {{\n                case 'breadthfirst':\n                    // Simple grid layout\n                    const cols = Math.ceil(Math.sqrt(nodes.length));\n                    nodes.forEach((node, i) => {{\n                        node.x = (i % cols) * 100 + 100;\n                        node.y = Math.floor(i / cols) * 100 + 100;\n                    }});\n                    break;\n\n                case 'circular':\n                    // Circular layout\n                    const radius = Math.min(width, height) * 0.3;\n                    nodes.forEach((node, i) => {{\n                        const angle = (i / nodes.length) * 2 * Math.PI;\n                        node.x = centerX + radius * Math.cos(angle);\n                        node.y = centerY + radius * Math.sin(angle);\n                    }});\n                    break;\n\n                case 'hierarchical':\n                    // Simple hierarchical layout\n                    const levels = {{}};\n                    nodes.forEach(node => {{\n                        const level = node.depth || 0;\n                        if (!levels[level]) levels[level] = [];\n                        levels[level].push(node);\n                    }});\n\n                    Object.entries(levels).forEach(([level, levelNodes]) => {{\n                        const y = parseInt(level) * 120 + 100;\n                        const spacing = width / (levelNodes.length + 1);\n                        levelNodes.forEach((node, i) => {{\n                            node.x = spacing * (i + 1);\n                            node.y = y;\n                        }});\n                    }});\n                    break;\n\n                case 'forcedirected':\n                    // Simple force-directed layout\n                    nodes.forEach(node => {{\n                        node.x = Math.random() * width;\n                        node.y = Math.random() * height;\n                    }});\n\n                    // Basic physics simulation\n                    for (let iter = 0; iter < 50; iter++) {{\n                        // Repulsive forces\n                        nodes.forEach((n1, i) => {{\n                            nodes.forEach((n2, j) => {{\n                                if (i !== j) {{\n                                    const dx = n2.x - n1.x;\n                                    const dy = n2.y - n1.y;\n                                    const dist = Math.sqrt(dx * dx + dy * dy) + 0.1;\n                                    const force = 1000 / (dist * dist);\n                                    n1.x -= (dx / dist) * force;\n                                    n1.y -= (dy / dist) * force;\n                                }}\n                            }});\n                        }});\n\n                        // Attractive forces for connected nodes\n                        (graphData.edges || []).forEach(edge => {{\n                            const fromNode = nodes.find(n => n.id === edge.source);\n                            const toNode = nodes.find(n => n.id === edge.target);\n                            if (fromNode && toNode) {{\n                                const dx = toNode.x - fromNode.x;\n                                const dy = toNode.y - fromNode.y;\n                                const dist = Math.sqrt(dx * dx + dy * dy);\n                                const force = dist * 0.01;\n                                fromNode.x += (dx / dist) * force;\n                                fromNode.y += (dy / dist) * force;\n                                toNode.x -= (dx / dist) * force;\n                                toNode.y -= (dy / dist) * force;\n                            }}\n                        }});\n                    }}\n                    break;\n\n                default:\n                    // Random layout\n                    nodes.forEach(node => {{\n                        node.x = Math.random() * (width - 200) + 100;\n                        node.y = Math.random() * (height - 200) + 100;\n                    }});\n            }}\n        }}\n\n        // Update statistics\n        function updateStats() {{\n            const nodeCount = (graphData.nodes || []).length;\n            const edgeCount = (graphData.edges || []).length;\n            document.getElementById('nodeCount').textContent = `Nodes: ${{nodeCount}}`;\n            document.getElementById('edgeCount').textContent = `Edges: ${{edgeCount}}`;\n        }}\n\n        // Control functions\n        function zoomIn() {{\n            zoom = Math.min(zoom * 1.2, 5.0);\n            renderGraph();\n        }}\n\n        function zoomOut() {{\n            zoom = Math.max(zoom / 1.2, 0.2);\n            renderGraph();\n        }}\n\n        function resetZoom() {{\n            zoom = 1.0;\n            panX = 0;\n            panY = 0;\n            renderGraph();\n        }}\n\n        function togglePan() {{\n            isPanning = !isPanning;\n            canvas.style.cursor = isPanning ? 'grab' : 'default';\n        }}\n\n        function changeLayout() {{\n            const select = document.getElementById('layoutSelect');\n            currentLayout = select.value;\n            renderGraph();\n        }}\n\n        function showError(message) {{\n            document.body.innerHTML = `<div class=\"error\">${{message}}</div>`;\n        }}\n\n        // Mouse controls\n        canvas.addEventListener('wheel', (e) => {{\n            e.preventDefault();\n            const delta = e.deltaY > 0 ? 0.9 : 1.1;\n            zoom *= delta;\n            zoom = Math.max(0.2, Math.min(5.0, zoom));\n            renderGraph();\n        }});\n\n        canvas.addEventListener('mousedown', (e) => {{\n            isPanning = true;\n            lastMouseX = e.clientX;\n            lastMouseY = e.clientY;\n            canvas.style.cursor = 'grabbing';\n        }});\n\n        canvas.addEventListener('mousemove', (e) => {{\n            if (isPanning) {{\n                const dx = e.clientX - lastMouseX;\n                const dy = e.clientY - lastMouseY;\n                panX += dx;\n                panY += dy;\n                lastMouseX = e.clientX;\n                lastMouseY = e.clientY;\n                renderGraph();\n            }}\n        }});\n\n        canvas.addEventListener('mouseup', () => {{\n            isPanning = false;\n            canvas.style.cursor = 'grab';\n        }});\n\n        canvas.addEventListener('mouseleave', () => {{\n            isPanning = false;\n            canvas.style.cursor = 'grab';\n        }});\n\n        canvas.addEventListener('dblclick', () => {{\n            resetZoom();\n        }});\n\n        // Initialize on load\n        window.addEventListener('load', initWasm);\n\n        // Handle window resize\n        window.addEventListener('resize', () => {{\n            renderGraph();\n        }});\n    </script>\n</body>\n</html>\n    \"# , if layout_algorithm == LayoutAlgorithm :: BreadthFirst { \"selected\" } else { \"\" } , if layout_algorithm == LayoutAlgorithm :: ForceDirected { \"selected\" } else { \"\" } , if layout_algorithm == LayoutAlgorithm :: Hierarchical { \"selected\" } else { \"\" } , if layout_algorithm == LayoutAlgorithm :: Circular { \"selected\" } else { \"\" } , serde_json :: to_string (& wasm_graph) ?, layout_str , isg . node_count () , isg . edge_count ()) ; Ok (html_content) } . sig",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 8880078094143377564,
+      "kind": "Function",
+      "name": "convert_isg_to_wasm_graph",
+      "signature": "fn # [doc = \" Convert ISG to WASMGraph format for visualization\"] fn convert_isg_to_wasm_graph (isg : & crate :: isg :: OptimizedISG) -> Result < WASMGraph , Box < dyn std :: error :: Error > > { let mut nodes = Vec :: new () ; let mut edges = Vec :: new () ; let mut node_map = HashMap :: new () ; let state = isg . state . read () ; for (node_hash , & node_index) in & state . id_map { if let Some (node_data) = state . graph . node_weight (node_index) { let wasm_node = WASMNode { id : format ! (\"{:?}\" , node_hash) , name : node_data . name . to_string () , node_type : match node_data . kind { crate :: isg :: NodeKind :: Function => WASMNodeType :: Function , crate :: isg :: NodeKind :: Struct => WASMNodeType :: Struct , crate :: isg :: NodeKind :: Trait => WASMNodeType :: Trait , crate :: isg :: NodeKind :: Impl => WASMNodeType :: Impl , } , position : None , metadata : { let mut meta = HashMap :: new () ; meta . insert (\"file\" . to_string () , node_data . file_path . to_string ()) ; meta . insert (\"line\" . to_string () , node_data . line . to_string ()) ; meta . insert (\"signature\" . to_string () , node_data . signature . to_string ()) ; meta . insert (\"kind\" . to_string () , format ! (\"{}\" , node_data . kind)) ; meta } , } ; node_map . insert (* node_hash , nodes . len ()) ; nodes . push (wasm_node) ; } } for edge in state . graph . edge_references () { let from_index = edge . source () ; let to_index = edge . target () ; let from_hash = state . id_map . iter () . find (| (_ , & idx) | idx == from_index) . map (| (hash , _) | * hash) ; let to_hash = state . id_map . iter () . find (| (_ , & idx) | idx == to_index) . map (| (hash , _) | * hash) ; if let (Some (from_hash) , Some (to_hash)) = (from_hash , to_hash) { let wasm_edge = WASMEdge { source : format ! (\"{:?}\" , from_hash) , target : format ! (\"{:?}\" , to_hash) , edge_type : match edge . weight () { crate :: isg :: EdgeKind :: Calls => WASMEdgeType :: Calls , crate :: isg :: EdgeKind :: Implements => WASMEdgeType :: Implements , crate :: isg :: EdgeKind :: Uses => WASMEdgeType :: DependsOn , } , label : None , } ; edges . push (wasm_edge) ; } } let layout = WASMLayout { algorithm : \"manual\" . to_string () , dimensions : (1200.0 , 800.0) , computed : false , } ; Ok (WASMGraph { nodes , edges , layout , }) } . sig",
+      "file_path": "src/wasm_renderer.rs",
+      "line": 0
+    },
+    {
+      "hash": 4920924698725256391,
+      "kind": "Function",
+      "name": "main",
+      "signature": "fn # [cfg (feature = \"console_error_panic_hook\")] # [wasm_bindgen (start)] pub fn main () { console_error_panic_hook :: set_once () ; } . sig",
+      "file_path": "src/wasm_bindings.rs",
+      "line": 0
+    },
+    {
+      "hash": 14500793427258328830,
+      "kind": "Struct",
+      "name": "WASMVisualization",
+      "signature": "struct WASMVisualization",
+      "file_path": "src/wasm_bindings.rs",
+      "line": 0
+    },
+    {
+      "hash": 11765716018278112387,
+      "kind": "Function",
+      "name": "wasm_version",
+      "signature": "fn # [doc = \" Utility functions for JavaScript interop\"] # [wasm_bindgen] pub fn wasm_version () -> String { env ! (\"CARGO_PKG_VERSION\") . to_string () } . sig",
+      "file_path": "src/wasm_bindings.rs",
+      "line": 0
+    },
+    {
+      "hash": 14764749111007667427,
+      "kind": "Function",
+      "name": "wasm_build_info",
+      "signature": "fn # [wasm_bindgen] pub fn wasm_build_info () -> JsValue { let info = serde_json :: json ! ({ \"version\" : env ! (\"CARGO_PKG_VERSION\") , \"name\" : env ! (\"CARGO_PKG_NAME\") , \"description\" : env ! (\"CARGO_PKG_DESCRIPTION\") , \"build_timestamp\" : std :: time :: SystemTime :: now () . duration_since (std :: time :: UNIX_EPOCH) . unwrap () . as_secs () }) ; JsValue :: from_str (& serde_json :: to_string (& info) . unwrap_or_default ()) } . sig",
+      "file_path": "src/wasm_bindings.rs",
+      "line": 0
+    },
+    {
+      "hash": 75376537099924871,
+      "kind": "Function",
+      "name": "console_log",
+      "signature": "fn # [wasm_bindgen] pub fn console_log (msg : & str) { log (msg) ; } . sig",
+      "file_path": "src/wasm_bindings.rs",
+      "line": 0
+    },
+    {
+      "hash": 8091309078849058606,
+      "kind": "Function",
+      "name": "console_error",
+      "signature": "fn # [wasm_bindgen] pub fn console_error (msg : & str) { error (msg) ; } . sig",
+      "file_path": "src/wasm_bindings.rs",
+      "line": 0
+    },
+    {
+      "hash": 8958371630240559823,
+      "kind": "Function",
+      "name": "console_warn",
+      "signature": "fn # [wasm_bindgen] pub fn console_warn (msg : & str) { warn (msg) ; } . sig",
+      "file_path": "src/wasm_bindings.rs",
+      "line": 0
+    },
+    {
+      "hash": 5415605848675329887,
+      "kind": "Struct",
+      "name": "PerformanceTimer",
+      "signature": "struct PerformanceTimer",
+      "file_path": "src/wasm_bindings.rs",
+      "line": 0
+    },
+    {
+      "hash": 1312475769103193454,
+      "kind": "Function",
+      "name": "get_memory_usage",
+      "signature": "fn # [wasm_bindgen] pub fn get_memory_usage () -> JsValue { let _memory = wasm_bindgen :: memory () ; let usage = serde_json :: json ! ({ \"wasm_memory_available\" : true , \"note\" : \"Memory usage tracking simplified for compatibility\" }) ; JsValue :: from_str (& serde_json :: to_string (& usage) . unwrap_or_default ()) } . sig",
+      "file_path": "src/wasm_bindings.rs",
+      "line": 0
+    },
+    {
+      "hash": 10628149096033607294,
+      "kind": "Function",
+      "name": "test_stub_wasm_core_engine_exists",
+      "signature": "fn # [wasm_bindgen_test] fn test_stub_wasm_core_engine_exists () { let _engine = WASMCoreEngine :: new () ; } . sig",
+      "file_path": "src/wasm_tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 2398281390193239341,
+      "kind": "Function",
+      "name": "test_stub_wasm_renderer_exists",
+      "signature": "fn # [wasm_bindgen_test] fn test_stub_wasm_renderer_exists () { let _renderer = WASMRenderer :: new () ; } . sig",
+      "file_path": "src/wasm_tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 4922407596104202412,
+      "kind": "Function",
+      "name": "test_stub_wasm_visualization_exists",
+      "signature": "fn # [wasm_bindgen_test] fn test_stub_wasm_visualization_exists () { let _viz = WASMVisualization :: new () ; } . sig",
+      "file_path": "src/wasm_tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 15559781080015176687,
+      "kind": "Function",
+      "name": "test_stub_graph_structures_exist",
+      "signature": "fn # [wasm_bindgen_test] fn test_stub_graph_structures_exist () { let _graph = WASMGraph { nodes : Vec :: new () , edges : Vec :: new () , layout : Default :: default () , } ; let _node = WASMNode { id : \"test\" . to_string () , name : \"test\" . to_string () , node_type : WASMNodeType :: Struct , position : None , metadata : HashMap :: new () , } ; let _edge = WASMEdge { source : \"source\" . to_string () , target : \"target\" . to_string () , edge_type : WASMEdgeType :: DependsOn , label : None , } ; } . sig",
+      "file_path": "src/wasm_tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 1312369286411742737,
+      "kind": "Function",
+      "name": "test_basic_wasm_visualization_creation",
+      "signature": "fn # [wasm_bindgen_test] fn test_basic_wasm_visualization_creation () { let mut viz = WASMVisualization :: new () . unwrap () ; let stats = viz . get_graph_stats () ; assert ! (! stats . is_undefined () , \"Should return valid stats\") ; let metrics = viz . get_metrics () ; assert ! (! metrics . is_undefined () , \"Should return valid metrics\") ; viz . clear () ; } . sig",
+      "file_path": "src/wasm_tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 6906503157070503451,
+      "kind": "Function",
+      "name": "test_basic_layout_algorithms",
+      "signature": "fn # [wasm_bindgen_test] fn test_basic_layout_algorithms () { let renderer = WASMRenderer :: new () ; let config = renderer . config () ; assert ! (config . layout_algorithm == LayoutAlgorithm :: BreadthFirst) ; } . sig",
+      "file_path": "src/wasm_tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 3087607632416905935,
+      "kind": "Function",
+      "name": "test_basic_wasm_engine_metrics",
+      "signature": "fn # [wasm_bindgen_test] fn test_basic_wasm_engine_metrics () { let engine = WASMCoreEngine :: new () ; let metrics = engine . metrics () ; assert ! (metrics . load_time_ms >= 0.0 , \"Load time should be tracked\") ; assert ! (metrics . memory_usage_bytes >= 0 , \"Memory usage should be tracked\") ; } . sig",
+      "file_path": "src/wasm_tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 7669331502592562560,
+      "kind": "Function",
+      "name": "test_basic_renderer_config",
+      "signature": "fn # [wasm_bindgen_test] fn test_basic_renderer_config () { let renderer = WASMRenderer :: new () ; let config = renderer . config () ; assert ! (config . canvas_size . 0 > 0 , \"Canvas width should be positive\") ; assert ! (config . canvas_size . 1 > 0 , \"Canvas height should be positive\") ; assert ! (matches ! (config . layout_algorithm , LayoutAlgorithm :: BreadthFirst)) ; } . sig",
+      "file_path": "src/wasm_tests.rs",
+      "line": 0
+    },
+    {
+      "hash": 5081651287301228558,
+      "kind": "Struct",
+      "name": "CallGraphVisitor",
+      "signature": "struct CallGraphVisitor",
+      "file_path": "src/call_graph.rs",
+      "line": 0
+    },
+    {
+      "hash": 39226418424016576,
+      "kind": "Struct",
+      "name": "CallGraphStats",
+      "signature": "struct CallGraphStats",
+      "file_path": "src/call_graph.rs",
+      "line": 0
+    },
+    {
+      "hash": 17297939971506813414,
+      "kind": "Function",
+      "name": "main",
+      "signature": "fn fn main () { let cli = Cli :: parse () ; if let Err (e) = parseltongue :: cli :: run (cli) { eprintln ! (\"Error: {}\" , e) ; process :: exit (1) ; } } . sig",
+      "file_path": "src/main.rs",
+      "line": 0
+    },
+    {
+      "hash": 2956331138332328924,
+      "kind": "Function",
+      "name": "showcase_parseltongue_analysis",
+      "signature": "fn # [doc = \" Demo function added for case study - shows delta in ISG\"] fn showcase_parseltongue_analysis () { println ! (\"🐍 Parseltongue: Analyzing architectural intelligence...\") ; println ! (\"✓ Processed files: 717 (Tokio case study)\") ; println ! (\"✓ Nodes created: 2,571\") ; println ! (\"✓ Edges discovered: 136\") ; println ! (\"✓ Performance: <0.25s ingestion time\") ; } . sig",
+      "file_path": "src/main.rs",
+      "line": 0
     }
   ],
   "edges": [
