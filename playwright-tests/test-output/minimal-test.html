@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Visualization</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .controls { margin: 20px 0; }
+        canvas { border: 1px solid #ccc; }
+        .stats { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Parseltongue WASM Visualization</h1>
+    <div class="controls">
+        <button onclick="zoomIn()">🔍 Zoom In</button>
+        <button onclick="zoomOut()">🔍 Zoom Out</button>
+        <button onclick="resetZoom()">🔄 Reset</button>
+        <select id="layoutSelect" onchange="changeLayout()">
+            <option value="breadthfirst" selected>Breadth-First</option>
+            <option value="forcedirected">Force-Directed</option>
+            <option value="hierarchical">Hierarchical</option>
+            <option value="circular">Circular</option>
+        </select>
+    </div>
+    <div class="stats">
+        <span id="nodeCount">Nodes: 5</span> |
+        <span id="edgeCount">Edges: 4</span> |
+        <span id="renderTime">Render: 10ms</span>
+    </div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <script>
+        let graphData = {
+            "nodes": [
+                {"id": "1", "name": "test1", "node_type": "function"},
+                {"id": "2", "name": "test2", "node_type": "struct"},
+                {"id": "3", "name": "test3", "node_type": "trait"},
+                {"id": "4", "name": "test4", "node_type": "impl"},
+                {"id": "5", "name": "test5", "node_type": "function"}
+            ],
+            "edges": [
+                {"source": "1", "target": "2"},
+                {"source": "2", "target": "3"},
+                {"source": "3", "target": "4"},
+                {"source": "4", "target": "5"}
+            ]
+        };
+
+        function renderGraph() {
+            console.log('Rendering graph with', graphData.nodes.length, 'nodes');
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Simple test rendering
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#667eea';
+            ctx.font = '16px Arial';
+            ctx.fillText('Test Visualization - ' + graphData.nodes.length + ' nodes', 50, 50);
+        }
+
+        function zoomIn() { console.log('Zoom in'); renderGraph(); }
+        function zoomOut() { console.log('Zoom out'); renderGraph(); }
+        function resetZoom() { console.log('Reset zoom'); renderGraph(); }
+        function changeLayout() { console.log('Change layout'); renderGraph(); }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            renderGraph();
+            document.getElementById('renderTime').textContent = 'Render: 15ms';
+        });
+    </script>
+</body>
+</html>

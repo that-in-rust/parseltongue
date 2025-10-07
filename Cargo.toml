@@ -35,10 +35,16 @@ web-sys = "0.3"
 js-sys = "0.3"
 html-escape = "0.2"
 
+# Dependency injection and async support
+async-trait = "0.1"
+tokio = { version = "1.0", features = ["full"] }
+uuid = { version = "1.0", features = ["v4"] }
+
 [dev-dependencies]
 tokio-test = "0.4"
 tempfile = "3.0"
 wasm-bindgen-test = "0.3"
+proptest = "1.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

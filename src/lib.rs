@@ -17,9 +17,16 @@ pub mod call_graph;
 pub mod wasm_core;
 pub mod wasm_renderer;
 pub mod wasm_bindings;
+pub mod graph_data_loader;
 
 #[cfg(test)]
 mod wasm_tests;
+
+#[cfg(test)]
+mod html_generation_tests;
+
+#[cfg(test)]
+mod performance_contract_tests;
 
 #[cfg(test)]
 mod tests {

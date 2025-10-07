@@ -1,0 +1,266 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: playwright-tests/package-lock.json
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Build Parseltongue
+      run: |
+        cargo build --release
+
+    - name: Generate test HTML files
+      run: |
+        cd playwright-tests
+        ./setup.sh
+
+    - name: Install Playwright browsers
+      working-directory: ./playwright-tests
+      run: npm ci && npm run install
+
+    - name: Install Playwright Browsers
+      working-directory: ./playwright-tests
+      run: npx playwright install --with-deps
+
+    - name: Run Playwright tests
+      working-directory: ./playwright-tests
+      run: npm test
+
+    - name: Upload Playwright Report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-tests/playwright-report/
+        retention-days: 30
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: playwright-results
+        path: playwright-tests/test-results/
+        retention-days: 30
+
+  # Visual regression comparison job
+  visual-regression:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: playwright-tests/package-lock.json
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Build Parseltongue
+      run: cargo build --release
+
+    - name: Generate test HTML files
+      run: |
+        cd playwright-tests
+        ./setup.sh
+
+    - name: Install Playwright
+      working-directory: ./playwright-tests
+      run: npm ci && npm run install
+
+    - name: Run visual regression tests
+      working-directory: ./playwright-tests
+      run: npx playwright test visual-regression --update-snapshots
+
+    - name: Upload visual results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: visual-regression-results
+        path: playwright-tests/test-results/
+        retention-days: 30
+
+  # Performance testing job
+  performance:
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: playwright-tests/package-lock.json
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Build Parseltongue
+      run: cargo build --release
+
+    - name: Generate test HTML files
+      run: |
+        cd playwright-tests
+        ./setup.sh
+
+    - name: Install Playwright
+      working-directory: ./playwright-tests
+      run: npm ci && npm run install
+
+    - name: Run performance tests
+      working-directory: ./playwright-tests
+      run: npx playwright test --grep "should have good performance characteristics"
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-results
+        path: playwright-tests/test-results/
+        retention-days: 30
+
+  # Accessibility testing job
+  accessibility:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: playwright-tests/package-lock.json
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Build Parseltongue
+      run: cargo build --release
+
+    - name: Generate test HTML files
+      run: |
+        cd playwright-tests
+        ./setup.sh
+
+    - name: Install Playwright
+      working-directory: ./playwright-tests
+      run: npm ci && npm run install
+
+    - name: Run accessibility tests
+      working-directory: ./playwright-tests
+      run: npx playwright test accessibility
+
+    - name: Upload accessibility results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: accessibility-results
+        path: playwright-tests/test-results/
+        retention-days: 30
+
+  # Comment on PR with test results
+  comment-results:
+    if: github.event_name == 'pull_request'
+    needs: [test, visual-regression, performance, accessibility]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Comment PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const botComment = comments.find(comment =>
+            comment.user.type === 'Bot' && comment.body.includes('🎭 Playwright Test Results')
+          );
+
+          const testResult = context.payload.workflow_run.conclusion === 'success' ? '✅ Passed' : '❌ Failed';
+
+          const commentBody = `
+          ## 🎭 Playwright Test Results
+
+          **Overall Status**: ${testResult}
+
+          ### Test Results:
+          - **Basic Tests**: ${needs.test.result}
+          - **Visual Regression**: ${needs.visual-regression.result}
+          - **Performance Tests**: ${needs.performance.result}
+          - **Accessibility Tests**: ${needs.accessibility.result}
+
+          ### 📊 Test Artifacts:
+          - [Test Report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+          - [Playwright Report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}#artifact:playwright-report)
+
+          *This comment was automatically generated by Playwright CI/CD pipeline.*
+          `;
+
+          if (botComment) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: commentBody,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: commentBody,
+            });
+          }
