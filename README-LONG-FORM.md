@@ -7,6 +7,7 @@
 **Rust Codebase Discovery Bottleneck**: Finding entity names and understanding architecture in unfamiliar codebases takes minutes to hours.
 
 **Our Solution**: Parse once, query forever. Build an Interface Signature Graph that gives you:
+
 - Complete entity discovery in milliseconds
 - Instant architectural impact analysis
 - Deterministic, sub-millisecond queries
@@ -164,6 +165,7 @@ cargo run --example visualize_isg
 ```
 
 This demonstrates:
+
 - ✅ Code ingestion from `example_dump.txt`
 - ✅ ISG structure creation (4 nodes, 1 edge)
 - ✅ Graph queries (what-implements, blast-radius)
@@ -190,19 +192,6 @@ parseltongue generate-context User --format json
 parseltongue daemon --watch src/
 ```
 
-### Query Architecture
-
-```bash
-# Find all implementors of a trait
-parseltongue query what-implements Greeter
-
-# Calculate blast radius of changes
-parseltongue query blast-radius Person
-
-# Find circular dependencies
-parseltongue query find-cycles
-```
-
 ### Generate LLM Context
 
 ```bash
@@ -216,6 +205,7 @@ parseltongue generate-context Person --format json
 ## 🎯 Common Workflows
 
 ### Understand Trait Implementations
+
 ```bash
 # Ingest a codebase and find trait implementors
 parseltongue ingest codebase.txt
@@ -223,6 +213,7 @@ parseltongue query what-implements Clone --format json
 ```
 
 ### Assess Change Impact
+
 ```bash
 # Calculate blast radius for proposed changes
 parseltongue query blast-radius UserStruct
@@ -230,12 +221,14 @@ parseltongue generate-context UserStruct
 ```
 
 ### Generate LLM Context
+
 ```bash
 # Export context for AI code assistance
 parseltongue generate-context EntityName --format json > context.json
 ```
 
 ### Debug Architecture
+
 ```bash
 # Visualize the graph structure
 parseltongue debug --graph
@@ -315,6 +308,7 @@ Separators like `====` are automatically ignored.
 ## 🚦 Status
 
 **Production Ready** ✅
+
 - All MVP requirements completed
 - Comprehensive test coverage (40/40 tests passing)
 - Performance validated against all constraints

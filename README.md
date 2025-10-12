@@ -67,6 +67,19 @@ flowchart TD
     class W1C,W2C,W3C,W4C output
 ```
 
+### Query Architecture
+
+```bash
+# Find all implementors of a trait
+parseltongue query what-implements Greeter
+
+# Calculate blast radius of changes
+parseltongue query blast-radius Person
+
+# Find circular dependencies
+parseltongue query find-cycles
+```
+
 ## 🎯 Use Cases
 
 ### For Developers
