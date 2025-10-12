@@ -13,6 +13,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 use thiserror::Error;
 use serde::{Serialize, Deserialize};
+use crate::language_traits::{EntityKind, Entity};
 
 // Strong typing for unique identifier (collision-free)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
@@ -33,31 +34,12 @@ impl SigHash {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub enum NodeKind {
-    Function,
-    Struct,
-    Trait,
-    Impl,
-}
-
-impl std::fmt::Display for NodeKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            NodeKind::Function => write!(f, "Function"),
-            NodeKind::Struct => write!(f, "Struct"),
-            NodeKind::Trait => write!(f, "Trait"),
-            NodeKind::Impl => write!(f, "Impl"),
-        }
-    }
-}
-
 // Memory-optimized node data with Arc<str> interning
 // Custom serialization needed for Arc<str>
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NodeData {
     pub hash: SigHash,
-    pub kind: NodeKind,
+    pub kind: EntityKind,
     pub name: Arc<str>,
     pub signature: Arc<str>,
     pub file_path: Arc<str>,

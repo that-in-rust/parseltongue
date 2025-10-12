@@ -19,7 +19,8 @@
 //! - Proper node styling with icons and file paths
 //! - Special character sanitization for node identifiers
 
-use crate::isg::{OptimizedISG, NodeData, NodeKind, EdgeKind, FileHierarchyAnalysis};
+use crate::isg::{OptimizedISG, NodeData, EdgeKind, FileHierarchyAnalysis};
+use crate::language_traits::EntityKind;
 use std::fmt::Write;
 use std::sync::Arc;
 use petgraph::visit::IntoEdgeReferences;

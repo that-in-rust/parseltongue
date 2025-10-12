@@ -2,7 +2,10 @@
 //! 
 //! Handles live file monitoring (<12ms updates) and code dump ingestion (<5s for 2.1MB)
 
-use crate::isg::{OptimizedISG, NodeData, NodeKind, SigHash, ISGError};
+use crate::isg::{OptimizedISG, NodeData, SigHash, ISGError};
+use crate::language_traits::{EntityKind, ParserRegistry};
+use crate::parsers::python::PythonParser;
+use crate::parsers::rust::RustParser;
 use crate::call_graph::CallGraphVisitor;
 use notify::RecommendedWatcher;
 use petgraph::visit::{EdgeRef, IntoEdgeReferences};
@@ -13,6 +16,7 @@ use std::time::Instant;
 
 pub struct ParseltongueAIM {
     pub isg: OptimizedISG,
+    parser_registry: ParserRegistry,
     #[allow(dead_code)]
     file_watcher: Option<RecommendedWatcher>,
     shutdown: Arc<AtomicBool>,
@@ -26,8 +30,13 @@ pub struct IngestStats {
 
 impl ParseltongueAIM {
     pub fn new() -> Self {
+        let mut parser_registry = ParserRegistry::new();
+        parser_registry.register("rust", Box::new(RustParser));
+        parser_registry.register("python", Box::new(PythonParser));
+
         Self {
             isg: OptimizedISG::new(),
+            parser_registry,
             file_watcher: None,
             shutdown: Arc::new(AtomicBool::new(false)),
         }
@@ -41,22 +50,43 @@ impl ParseltongueAIM {
     /// Ingest code dump with FILE: markers - Target: <5s for 2.1MB
     pub fn ingest_code_dump(&mut self, file_path: &Path) -> Result<IngestStats, ISGError> {
         use std::fs;
-        
+
         let content = fs::read_to_string(file_path)
             .map_err(|e| ISGError::IoError(format!("Failed to read file: {}", e)))?;
-        
+
         let mut stats = IngestStats::default();
         let mut current_file = String::new();
         let mut current_content = String::new();
-        
+
         for line in content.lines() {
             if line.starts_with("FILE: ") {
-                // Process previous file if it exists and is a Rust file
-                if !current_file.is_empty() && current_file.ends_with(".rs") {
-                    self.parse_rust_file(&current_file, &current_content)?;
-                    stats.files_processed += 1;
+                // Process previous file if it exists
+                if !current_file.is_empty() {
+                    if let Some(language) = self.parser_registry.detect_language(&current_file) {
+                        if let Some(parser) = self.parser_registry.get_parser(language) {
+                            match parser.parse_file(&current_file, &current_content) {
+                                Ok(entities) => {
+                                    for entity in entities {
+                                        let node = NodeData {
+                                            hash: SigHash::from_signature(&entity.full_signature),
+                                            kind: entity.kind,
+                                            name: Arc::from(entity.name),
+                                            signature: Arc::from(entity.signature),
+                                            file_path: Arc::from(entity.file_path),
+                                            line: entity.line,
+                                        };
+                                        self.isg.upsert_node(node);
+                                    }
+                                    stats.files_processed += 1;
+                                }
+                                Err(e) => {
+                                    eprintln!("⚠️  Parse error in {}: {} (continuing with other files)", current_file, e);
+                                }
+                            }
+                        }
+                    }
                 }
-                
+
                 // Start new file
                 current_file = line[6..].trim().to_string();
                 current_content.clear();
@@ -68,137 +98,42 @@ impl ParseltongueAIM {
                 current_content.push('\n');
             }
         }
-        
-        // Process last file if it's a Rust file
-        if !current_file.is_empty() && current_file.ends_with(".rs") {
-            self.parse_rust_file(&current_file, &current_content)?;
-            stats.files_processed += 1;
+
+        // Process last file
+        if !current_file.is_empty() {
+            if let Some(language) = self.parser_registry.detect_language(&current_file) {
+                if let Some(parser) = self.parser_registry.get_parser(language) {
+                    match parser.parse_file(&current_file, &current_content) {
+                        Ok(entities) => {
+                            for entity in entities {
+                                let node = NodeData {
+                                    hash: SigHash::from_signature(&entity.full_signature),
+                                    kind: entity.kind,
+                                    name: Arc::from(entity.name),
+                                    signature: Arc::from(entity.signature),
+                                    file_path: Arc::from(entity.file_path),
+                                    line: entity.line,
+                                };
+                                self.isg.upsert_node(node);
+                            }
+                            stats.files_processed += 1;
+                        }
+                        Err(e) => {
+                            eprintln!("⚠️  Parse error in {}: {} (continuing with other files)", current_file, e);
+                        }
+                    }
+                }
+            }
         }
-        
+
         stats.nodes_created = self.isg.node_count();
         Ok(stats)
     }
 
     /// Parse Rust file using syn crate
     fn parse_rust_file(&mut self, file_path: &str, code: &str) -> Result<(), ISGError> {
-        use syn::{Item, ItemFn, ItemStruct, ItemTrait, ItemImpl};
-        
-        let syntax_tree = match syn::parse_file(code) {
-            Ok(tree) => tree,
-            Err(e) => {
-                // Log parsing error but continue processing other files
-                eprintln!("⚠️  Parse error in {}: {} (continuing with other files)", file_path, e);
-                return Ok(());
-            }
-        };
-        
-        let file_path_arc: Arc<str> = Arc::from(file_path);
-        
-        for item in &syntax_tree.items {
-            match item {
-                Item::Fn(item_fn) => {
-                    let name = item_fn.sig.ident.to_string();
-                    let signature = format!("fn {}", quote::quote!(#item_fn.sig));
-                    let hash = SigHash::from_signature(&signature);
-                    
-                    let node = NodeData {
-                        hash,
-                        kind: NodeKind::Function,
-                        name: Arc::from(name),
-                        signature: Arc::from(signature),
-                        file_path: file_path_arc.clone(),
-                        line: 0, // TODO: Extract actual line number
-                    };
-                    
-                    self.isg.upsert_node(node);
-                }
-                
-                Item::Struct(item_struct) => {
-                    let name = item_struct.ident.to_string();
-                    let signature = format!("struct {}", name);
-                    let hash = SigHash::from_signature(&signature);
-                    
-                    let node = NodeData {
-                        hash,
-                        kind: NodeKind::Struct,
-                        name: Arc::from(name),
-                        signature: Arc::from(signature),
-                        file_path: file_path_arc.clone(),
-                        line: 0,
-                    };
-                    
-                    self.isg.upsert_node(node);
-                }
-                
-                Item::Trait(item_trait) => {
-                    let name = item_trait.ident.to_string();
-                    let signature = format!("trait {}", name);
-                    let hash = SigHash::from_signature(&signature);
-                    
-                    let node = NodeData {
-                        hash,
-                        kind: NodeKind::Trait,
-                        name: Arc::from(name),
-                        signature: Arc::from(signature),
-                        file_path: file_path_arc.clone(),
-                        line: 0,
-                    };
-                    
-                    self.isg.upsert_node(node);
-                }
-                
-                Item::Impl(item_impl) => {
-                    // Handle trait implementations
-                    if let Some((_, trait_path, _)) = &item_impl.trait_ {
-                        if let syn::Type::Path(type_path) = item_impl.self_ty.as_ref() {
-                            if let (Some(struct_name), Some(trait_name)) = (
-                                type_path.path.segments.last().map(|s| s.ident.to_string()),
-                                trait_path.segments.last().map(|s| s.ident.to_string())
-                            ) {
-                                // Create edge: Struct implements Trait
-                                let struct_sig = format!("struct {}", struct_name);
-                                let trait_sig = format!("trait {}", trait_name);
-                                let struct_hash = SigHash::from_signature(&struct_sig);
-                                let trait_hash = SigHash::from_signature(&trait_sig);
-                                
-                                // Only create edge if both nodes exist
-                                if self.isg.get_node(struct_hash).is_ok() && self.isg.get_node(trait_hash).is_ok() {
-                                    let _ = self.isg.upsert_edge(struct_hash, trait_hash, crate::isg::EdgeKind::Implements);
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                _ => {
-                    // Ignore other items for MVP
-                }
-            }
-        }
-
-        // Phase 2: Call Graph Analysis
-        // Create a CallGraphVisitor to detect function calls within the parsed syntax tree
-        let mut call_visitor = CallGraphVisitor::new(&self.isg, file_path.to_string());
-
-        // Re-iterate through the items to analyze function bodies for calls
-        for item in &syntax_tree.items {
-            match item {
-                Item::Fn(item_fn) => {
-                    call_visitor.analyze_function(item_fn);
-                }
-                _ => {
-                    // Call graph analysis focuses on functions only
-                }
-            }
-        }
-
-        // Log call graph statistics (optional for debugging)
-        if call_visitor.stats.calls_detected > 0 || call_visitor.stats.method_calls_detected > 0 {
-            println!("🔗 Call analysis in {}: {} calls, {} method calls detected",
-                file_path, call_visitor.stats.calls_detected, call_visitor.stats.method_calls_detected);
-        }
-
-        Ok(())
+        // This method is deprecated - use the parser abstraction instead
+        unimplemented!("Use parser abstraction for language-agnostic parsing")
     }
 
     /// Start daemon with <12ms update constraint

@@ -10,7 +10,7 @@ use chrono::Utc;
 
 #[derive(Parser)]
 #[command(name = "parseltongue")]
-#[command(about = "Rust-only architectural intelligence daemon")]
+#[command(about = "Multi-language architectural intelligence daemon")]
 #[command(version = "1.0.0")]
 pub struct Cli {
     #[command(subcommand)]
@@ -23,6 +23,9 @@ pub enum Commands {
     Ingest {
         /// Path to code dump file
         file: PathBuf,
+        /// Language for parsing (rust, python, etc.)
+        #[arg(long, default_value = "rust")]
+        language: String,
     },
     /// Start daemon monitoring .rs files
     Daemon {
@@ -145,27 +148,32 @@ pub fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     }
     
     match cli.command {
-        Commands::Ingest { file } => {
+        Commands::Ingest { file, language } => {
             if !file.exists() {
                 return Err(format!("File not found: {}", file.display()).into());
             }
-            
+
+            // Validate language
+            if language != "rust" && language != "python" {
+                return Err(format!("Unsupported language: {}. Supported: rust, python", language).into());
+            }
+
             let start = Instant::now();
             let stats = daemon.ingest_code_dump(&file)?;
             let elapsed = start.elapsed();
-            
-            println!("✓ Ingestion complete:");
+
+            println!("✓ Ingestion complete (language: {}):", language);
             println!("  Files processed: {}", stats.files_processed);
             println!("  Nodes created: {}", stats.nodes_created);
             println!("  Total nodes in ISG: {}", daemon.isg.node_count());
             println!("  Total edges in ISG: {}", daemon.isg.edge_count());
             println!("  Time: {:.2}s", elapsed.as_secs_f64());
-            
+
             // Verify <5s constraint for 2.1MB dumps (Performance Contract)
             if elapsed.as_secs() > 5 {
                 eprintln!("⚠️  Ingestion took {:.2}s (>5s constraint violated)", elapsed.as_secs_f64());
             }
-            
+
             // Save snapshot for persistence between commands
             let snapshot_path = std::path::Path::new("parseltongue_snapshot.json");
             if let Err(e) = daemon.save_snapshot(snapshot_path) {

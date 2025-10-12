@@ -8,10 +8,16 @@
 pub use crate::isg::*;
 pub use crate::daemon::*;
 pub use crate::cli::*;
+pub use crate::language_traits::*;
 
 pub mod isg;
 pub mod daemon;
 pub mod cli;
+pub mod language_traits;
+pub mod parsers {
+    pub mod python;
+    pub mod rust;
+}
 pub mod mermaid_export;
 pub mod call_graph;
 pub mod wasm_core;
