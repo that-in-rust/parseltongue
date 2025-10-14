@@ -60,13 +60,13 @@ pub trait TreeSitterParser: LanguageParser {
 
     fn extract_dependencies(&self, entities: &[Entity]) -> Vec<Dependency> {
         // For tree-sitter parsers, we might want to override this to use tree-based analysis
-        self.extract_dependencies_with_tree(&self.parse_to_tree("").unwrap_or_else(|_| {
+        let tree = self.parse_to_tree("").unwrap_or_else(|_| {
             // If we can't parse empty string, create a minimal tree
             let mut parser = tree_sitter::Parser::new();
-                // Last resort - create an empty tree
-                Tree::new(tree_sitter::InputEdit::default(), tree_sitter::Range::default())
-            })
-        }), "")
+            // Last resort - create an empty tree
+            Tree::new(tree_sitter::InputEdit::default(), tree_sitter::Range::default())
+        });
+        self.extract_dependencies_with_tree(&tree, "")
     }
 }
 
