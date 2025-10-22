@@ -1,55 +1,6 @@
 [package]
 name = "parseltongue"
-version = "0.1.0"
+version = "0.7.0"
 edition = "2021"
 
 [dependencies]
-# Core OptimizedISG dependencies (proven architecture)
-petgraph = "0.6"
-parking_lot = "0.12"
-fxhash = "0.2"
-thiserror = "1.0"
-
-# Rust parsing and file monitoring
-syn = { version = "2.0", features = ["full", "visit"] }
-quote = "1.0"
-proc-macro2 = "1.0"
-notify = "6.0"
-
-# CLI and serialization
-clap = { version = "4.0", features = ["derive"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-
-# Terminal detection and timestamps
-atty = "0.2"
-chrono = "0.4"
-
-# Tree-sitter for robust language parsing
-tree-sitter = "0.20"
-tree-sitter-rust = "0.20"
-tree-sitter-python = "0.20"
-
-# WASM dependencies
-wasm-bindgen = "0.2"
-console_error_panic_hook = { version = "0.1", optional = true }
-web-sys = "0.3"
-js-sys = "0.3"
-html-escape = "0.2"
-
-# Dependency injection and async support
-async-trait = "0.1"
-tokio = { version = "1.0", features = ["full"] }
-uuid = { version = "1.0", features = ["v4"] }
-
-[dev-dependencies]
-tokio-test = "0.4"
-tempfile = "3.0"
-wasm-bindgen-test = "0.3"
-proptest = "1.0"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[features]
-default = ["console_error_panic_hook"]
