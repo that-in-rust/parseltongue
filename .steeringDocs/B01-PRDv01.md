@@ -1,6 +1,11 @@
-Cargo List and command lists
+# Cargo List and command lists
 
-
+- isg-code-chunk-streamer
+- ingest-chunks-to-codegraph
+- cozo-code-simulation-sorcerer
+- run-rust-preflight-code-simulator
+- write-final-code-changes
+- clean-slate-protocol-enforcer
 
 # Detailed User Journey
 - Executive Summary for Parseltongue
@@ -19,13 +24,13 @@ Cargo List and command lists
         - if yes
             - Tell user that code indexing has begun and will take 10 minutes
                 - For the github repo
-                    - trigger the tool interface-graph-builder which is composed of 2 tools
-                        - tool 01: ISG-code-chunk-streamer
+                    - trigger the following tools
+                        - tool 01: isg-code-chunk-streamer
                             - tool will read code based mother git repo where it located, using tree sitter
                             - tool will choose granularity of chunks
                             - optional: tool will call lsp (rust-analyzer) for meta-data about code-chunk-raw
                             - tool will output aggregated-primarykey + code-chunk-raw + tree-sitter-signature + TDD_classification +lsp-meta-data (optional)
-                        - tool 02: ingest-chunks-to-CodeGraph
+                        - tool 02: ingest-chunks-to-codegraph
                             - tool02 create CodeGraph (single write surface)
                                 - indexed by ISGL1 key (filepath-filename-InterfaceName)
                                 - columns (minimal, opinionated):
@@ -59,16 +64,16 @@ Cargo List and command lists
                         - Functionality wise
                     - After 2 iterations the reasoning-llm will accept the micro-PRD
                     - Ask the reasoning LLM to reset the context because likely it will overflow and micro-PRD final needs to be isolated
-                - tool 4: code-simulation-sorcerer is triggered
-                    - use TDD_idiomatic_rust_steering_doc for all code-simulation-sorcerer while reasoning through code
-                    - tool 4 creates a base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(LSGL1 + interface_signature + TDD_Classification + lsp_meta_data)
-                    - tool 4 asks the reasoning-llm to suggest the following to the Code-Graph based on base-context-area
+                - tool 3: cozo-code-simulation-sorcerer is triggered
+                    - use TDD_idiomatic_rust_steering_doc for all cozo-code-simulation-sorcerer while reasoning through code
+                    - tool 3 creates a base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(LSGL1 + interface_signature + TDD_Classification + lsp_meta_data)
+                    - tool 3 asks the reasoning-llm to suggest the following to the Code-Graph based on base-context-area
                         - Step A: ISG level simulations
                             - Step A01: Create Edit Delete Test Interface Rows ; call these changes test-interface-changes
                                 - addition Interfaces : new LSGL1 rows which will be current_ind = 0 & future_ind = 1 & Current_Code = empty & Future_Code=empty & Future_Action=Create
                                 - deletion Interfaces : old LSGL1 rows which will be current_ind = 1 & future_ind = 0 & Future_Code=empty & Future_Action=Delete
                                 - edit Interfaces : old LSGL1 rows which will be current_ind = 1 & future_ind = 1 & Future_Action=Edit
-                            - Step 02: Based on test-interface-changes + base-context-area, create edit delete non-test interfaces; call these rows non-test-interface-changes
+                            - Step A02: Based on test-interface-changes + base-context-area, create edit delete non-test interfaces; call these rows non-test-interface-changes
                                 - addition Interfaces : new LSGL1 rows which will be current_ind = 0 & future_ind = 1 & Current_Code = empty & Future_Code=empty & Future_Action=Create
                                 - deletion Interfaces : old LSGL1 rows which will be current_ind = 1 & future_ind = 0 & Future_Code=empty & Future_Action=Delete
                                 - edit Interfaces : old LSGL1 rows which will be current_ind = 1 & future_ind = 1 & Future_Action=Edit
@@ -80,10 +85,10 @@ Cargo List and command lists
                                 - if the LLM thinks that we need to refine the solutioning further, repeat Steps A01 A02 and then basis them repeat Steps B01
                                 - if the LLM doesn't feel confident of the changes, it should speak to the user to get additional context or web help sharing their current understanding in an MD file
                                 - if the LLM feels confident of the changes, we move to next step
-                        - Step C : tool05 : rust-preflight-code-simulator tool triggered for Rust use cases rust-analyzer overlay
+                        - Step C : tool04 : rust-preflight-code-simulator tool triggered for Rust use cases rust-analyzer overlay
                                 - if the rust-preflight-code-simulator tool fails then we go back to previous steps A01 onwards
                                 - if the rust-preflight-code-simulator tool passes then we move to next step
-                        - Step D: run tool06: final-code-changes tool
+                        - Step D: run tool05: write-final-code-changes tool
                             - Step D01 write the changes to code files
                             - Step D02 run cargo build
                             - Step D03 run cargo test
@@ -91,6 +96,9 @@ Cargo List and command lists
                             - Step D05: if cargo test fails then go back to previous steps A01 onwards
                             - Step D06: if cargo build and cargo test pass then we move to next step
             - Ask user if he is satisfied with how the code is working 
-                - if yes trigger tool07: clean-slate-protocol tool
-                    - clean-slate-protocol makes a commit with list of changes
-                    - clean-slate-protocol resets the CodeGraph and updates all rows in CozoDB database
+                - if yes trigger tool07: clean-slate-protocol-enforcer tool
+                    - clean-slate-protocol-enforcer makes a commit with list of changes
+                    - clean-slate-protocol-enforcer resets the CodeGraph and updates all rows in CozoDB database
+
+
+# Future additions

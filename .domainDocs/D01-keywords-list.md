@@ -1,467 +1,393 @@
-# D01: Comprehensive Keywords List for Parseltongue PRD Implementation
+# Parseltongue Project Keywords List
 
-**Created:** 2025-10-26
-**Purpose:** Research foundation for implementing B01-PRDv01.md
-**Scope:** Technical concepts, patterns, and implementation strategies for Parseltongue code analysis platform
+**Project:** Parseltongue - Automated Code Understanding Platform
+**Version:** 0.7.0
+**Date:** 2025-10-26
+**Purpose:** Comprehensive research vocabulary for implementing B01-PRDv01.md
 
 ---
 
 ## Executive Summary
 
-This document provides a comprehensive research foundation for implementing the Parseltongue code analysis platform. The keywords are organized by technical domains and prioritized by implementation importance, drawing insights from internet research, repository analysis, and industry best practices.
+This document provides a comprehensive keywords list for building the Parseltongue code analysis platform. The research covers Rust parsing, graph databases, static analysis, performance optimization, and industry best practices. Each keyword includes contextual relevance, research area classification, and implementation priority.
 
-**Core Project Vision:** Build an automated code understanding platform that uses Interface Signature Graph (ISG) for semantic analysis of large Rust codebases, prioritizing reliability-first principle with 1-go fixes.
+## Research Methodology
 
-**Target Performance:** Sub-millisecond query performance, 95%+ correct interface extraction, 99%+ successful compilations post-modification.
-
----
-
-## 1. Core Technical Domains
-
-### 1.1 Rust Code Analysis & Parsing
-
-#### **Critical Path Keywords (Must-Have)**
-
-| Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **Tree-sitter** | Incremental parsing library for syntax analysis | Parsing Infrastructure | Critical |
-| **TreeCursor** | AST traversal mechanism for navigating parse trees | AST Navigation | Critical |
-| **QueryCapture** | Pattern matching system for syntax highlighting | Pattern Matching | Critical |
-| **QueryCursor** | Efficient query execution with state management | Query Optimization | Critical |
-| **NodeKind** | AST node type identification (function_item, struct_item) | Node Classification | Critical |
-| **Range** | Byte and position ranges for text locations | Text Location | Critical |
-| **Point** | Line/column position representation | Position Tracking | Critical |
-| **InputEdit** | Incremental edit tracking for reparsing | Incremental Updates | Critical |
-| **TextProvider** | Interface for providing text to parser | Text Management | Critical |
-| **ParseOptions** | Configuration for parsing behavior | Parser Configuration | Critical |
-
-#### **Rust-Analyzer Integration Keywords**
-
-| Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **DefDatabase** | Definition database interface for incremental compilation | LSP Integration | Critical |
-| **HirDef** | High-level IR definitions for semantic analysis | Semantic Analysis | Critical |
-| **ExpandDatabase** | Macro expansion database interface | Macro Handling | Critical |
-| **InFile** | Wrapper for source location tracking | Source Management | Critical |
-| **AstId** | AST node identifier system | Node Identification | Critical |
-| **SyntaxContext** | Context for syntax analysis | Context Management | Critical |
-| **DefMap** | Definition mapping structure | Definition Resolution | Critical |
-| **Semantics** | Semantic analysis trait for type resolution | Type Analysis | Critical |
-| **TypeResolution** | Algorithm for resolving types in code | Type Inference | Critical |
-| **Diagnostics** | Error detection and reporting system | Error Handling | Critical |
-
-#### **Code Classification Keywords**
-
-| Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **TDD_Classification** | Test vs implementation detection logic | Code Classification | Critical |
-| **InterfaceSignature** | Contract representation for code analysis | Interface Analysis | Critical |
-| **ISGL1_Key** | Primary identifier format (filepath-filename-InterfaceName) | ISG Construction | Critical |
-| **ChunkGranularity** | Size and scope control for code chunks | Chunking Strategy | Critical |
-| **DependencyExtraction** | Algorithm for identifying code dependencies | Dependency Analysis | Critical |
-| **TestDetection** | Pattern matching for identifying test functions | Test Analysis | Critical |
-| **ImplementationClassification** | Logic for categorizing implementation code | Code Categorization | Critical |
-
-### 1.2 Graph Theory & Databases
-
-#### **Graph Construction Keywords**
-
-| Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **InterfaceSignatureGraph** | Core data structure for semantic analysis | Graph Architecture | Critical |
-| **StableDiGraph** | Stable directed graph implementation from petgraph | Graph Structure | Critical |
-| **NodeData** | Data stored at graph nodes | Node Information | Critical |
-| **EdgeKind** | Types of relationships between nodes | Edge Classification | Critical |
-| **FxHashMap** | Fast hash map for O(1) lookups | Performance Optimization | Critical |
-| **SigHash** | Collision-free identifier (u64) for interfaces | Unique Identification | Critical |
-| **GraphTraversals** | Algorithms for exploring graph relationships | Graph Navigation | Critical |
-| **BreadthFirstSearch** | Graph traversal for dependency analysis | Dependency Analysis | Critical |
-| **DepthFirstSearch** | Graph traversal for impact assessment | Impact Analysis | Critical |
-| **TopologicalSort** | Ordering algorithm for dependency resolution | Dependency Resolution | Critical |
-
-#### **CozoDB Integration Keywords**
-
-| Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **CozoDB** | Datalog-based graph database for persistence | Storage Backend | Critical |
-| **Datalog** | Declarative query language for graph databases | Query Language | Critical |
-| **Relation** | Table-like structure in CozoDB for data storage | Data Organization | Critical |
-| **Query** | CozoDB query execution and optimization | Database Queries | Critical |
-| **EpochStore** | Transaction and temporal data management | Concurrency Control | Critical |
-| **SessionTx** | Transaction management interface | Transaction Management | Critical |
-| **MagicFixedRuleApply** | Algorithm execution interface for custom logic | Algorithm Integration | Critical |
-| **TupleIter** | Efficient iteration over database tuples | Performance Optimization | Critical |
-| **DataValue** | Unified data type system for database values | Type System | Critical |
-| **Validity** | Temporal data versioning mechanism | Version Control | Critical |
-
-#### **Query Optimization Keywords**
-
-| Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **IndexingStrategy** | Database indexing for query performance | Performance Optimization | Important |
-| **QueryCache** | Caching mechanism for frequently executed queries | Performance | Important |
-| **ConcurrentQueries** | Parallel query execution patterns | Concurrency | Important |
-| **MemoryOptimization** | Techniques for reducing memory usage | Performance | Important |
-| **BatchProcessing** | Grouping operations for efficiency | Performance | Important |
-
-### 1.3 Software Engineering Principles
-
-#### **Static Analysis Keywords**
-
-| Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **StaticAnalysis** | Code analysis without execution | Analysis Methodology | Critical |
-| **SemanticAnalysis** | Understanding code meaning and behavior | Deep Analysis | Critical |
-| **ProgramComprehension** | Understanding software structure and behavior | Core Concept | Critical |
-| **RefactoringSafety** | Ensuring transformations preserve behavior | Safety Assurance | Critical |
-| **InterfaceBasedDesign** | Design philosophy focusing on contracts | Design Principle | Critical |
-| **ContractProgramming** | Programming with explicit contracts | Methodology | Critical |
-| **DependencyAnalysis** | Understanding relationships between components | Core Analysis | Critical |
-| **ImpactAssessment** | Determining effects of changes | Change Analysis | Critical |
-| **CodeTransformation** | Automated modification of code | Automation | Critical |
-| **SoftwareMaintenance** | Processes for evolving software | Lifecycle Management | Critical |
-
-#### **TDD & Quality Assurance Keywords**
-
-| Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **TestDrivenDevelopment** | Development methodology with tests first | Development Process | Critical |
-| **IdiomaticRust** | Best practices and patterns for Rust code | Code Quality | Critical |
-| **RefactoringPatterns** | Established techniques for code improvement | Code Evolution | Critical |
-| **DesignPatterns** | Reusable solutions to common problems | Architecture | Important |
-| **CodeMetrics** | Quantitative measures of code quality | Quality Assessment | Important |
-| **TechnicalDebt** | Cost of rework caused by choosing an easy solution | Quality Management | Important |
-| **RegressionTesting** | Testing to ensure changes don't break existing functionality | Quality Assurance | Critical |
-
-### 1.4 Performance & Systems
-
-#### **Performance Optimization Keywords**
-
-| Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **SubMillisecondQuery** | Performance target for ISG traversals (<1ms) | Performance Target | Critical |
-| **IncrementalParsing** | Only reprocess changed portions of code | Performance Strategy | Critical |
-| **MemoryEfficiency** | Optimizing memory usage for large codebases | Resource Management | Critical |
-| **ConcurrentProcessing** | Parallel execution of analysis tasks | Performance | Critical |
-| **CachingStrategy** | Storing computed results for reuse | Performance | Critical |
-| **StringInterning** | Memory-efficient string handling | Memory Optimization | Critical |
-| **Arc<str>** | Atomic reference counted string for sharing | Memory Efficiency | Critical |
-| **RwLock** | Read-write lock for concurrent access | Concurrency | Critical |
-| **ParallelProcessing** | Multi-threaded execution patterns | Performance | Critical |
-| **LazyEvaluation** | Defer computation until needed | Performance Optimization | Important |
-
-#### **System Architecture Keywords**
-
-| Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **CLI-FirstDesign** | Command-line interface as primary interaction | User Interface | Critical |
-| **ModularArchitecture** | System organized into independent components | System Design | Critical |
-| **PluginSystem** | Extensible architecture for adding functionality | Extensibility | Important |
-| **BatchOperations** | Processing multiple items together | Performance | Important |
-| **RealTimeMonitoring** - File watching and update detection | Feature Enhancement | Medium |
-| **StreamingProcessing** | Handling data as streams rather than batches | Performance | Medium |
-| **MemoryPool** | Reusing memory allocations | Performance | Medium |
-| **VectorSearch** | HNSW indexing for similarity search | Advanced Feature | Medium |
+1. **Repository Analysis:** Explored `.doNotCommit/.refGithubRepo/` containing tree-sitter, rust-analyzer, CozoDB, and related projects
+2. **Architecture Review:** Analyzed steering documents (A01-A05, B01-B02) for design principles and patterns
+3. **Code Pattern Extraction:** Identified idiomatic Rust patterns and implementation strategies
+4. **Domain Synthesis:** Connected concepts across parsing, graph theory, databases, and performance engineering
 
 ---
 
-## 2. Implementation Areas
+## Core Technical Domains
 
-### 2.1 Tool-Specific Implementation
+### 1. Rust Code Analysis & Parsing
 
-#### **isg-code-chunk-streamer Keywords**
-
+#### Tree-Sitter Ecosystem
 | Term | Context | Research Area | Priority |
 |------|---------|---------------|----------|
-| **CodeChunking** | Breaking code into manageable pieces | Core Functionality | Critical |
-| **FileDiscovery** | Finding relevant files in repository | File Management | Critical |
-| **SyntaxValidation** | Ensuring code parses correctly | Quality Assurance | Critical |
-| **ChunkMetadata** | Information about each code chunk | Data Management | Critical |
-| **StreamingInterface** | Iterator pattern for processing chunks | API Design | Important |
-| **ErrorRecovery** | Handling parsing errors gracefully | Robustness | Important |
-| **ProgressReporting** | User feedback during long operations | User Experience | Important |
+| **Tree-sitter** | Incremental parsing library for generating syntax trees | Parsing Infrastructure | High |
+| **SyntaxNode** | Core tree-sitter node representing syntax elements | AST Construction | High |
+| **LanguageFn** | C function pointer wrapper for grammar definitions | Grammar Loading | Medium |
+| **SyntaxKind** | Enum categorizing node types in the syntax tree | Node Classification | High |
+| **Query API** | Pattern matching interface for syntax tree traversal | Tree Navigation | High |
+| **Incremental Parsing** | Efficient re-parsing of changed code regions | Performance | High |
+| **Grammar Generation** | Process of creating language grammars from syntax definitions | Tooling | Medium |
+| **Point/Range Operations** | Text positioning and selection in source code | Text Manipulation | Medium |
+| **Parser Timeout** | Configurable limits for parsing operations | Safety | Medium |
 
-#### **ingest-chunks-to-codegraph Keywords**
-
+#### Rust-Analyzer Integration
 | Term | Context | Research Area | Priority |
 |------|---------|---------------|----------|
-| **GraphConstruction** | Building the Interface Signature Graph | Core Functionality | Critical |
-| **DataNormalization** | Ensuring consistent data format | Data Quality | Critical |
-| **RelationshipExtraction** | Identifying connections between interfaces | Analysis | Critical |
-| **BatchInsertion** | Efficient database insertion | Performance | Critical |
-| **Deduplication** | Removing duplicate entries | Data Management | Important |
-| **SchemaValidation** | Ensuring data conforms to expected structure | Data Quality | Important |
-| **TransactionManagement** | Atomic database operations | Reliability | Critical |
+| **HIR (High-Level IR)** | Abstract representation after macro expansion | Semantic Analysis | High |
+| **Chalk** | Trait solving engine for type checking | Type Resolution | High |
+| **Salsa** | Query-based computation framework for incremental analysis | Incremental Computation | High |
+| **Text Range** | Efficient text interval representation | Text Management | Medium |
+| **Editions** | Rust language edition handling (2015, 2018, 2021, 2024) | Language Support | Medium |
+| **Proc Macro Expansions** | Handling of procedural macro output | Macro Processing | High |
+| **Cargo Integration** | Build system integration for project analysis | Project Context | High |
+| **Diagnostic System** | Error reporting and suggestion generation | Error Handling | High |
+| **Semantic Highlighting** | Syntax highlighting based on semantic information | UI Enhancement | Medium |
+| **Code Actions** | Automated refactoring suggestions | Automation | High |
 
-#### **cozo-code-simulation-sorcerer Keywords**
+#### Code Chunking Strategies
+| Term | Context | Research Area | Priority |
+| **Granularity Control** | Determining optimal chunk sizes for analysis | Performance | High |
+| **Interface Extraction** | Identifying and extracting interface boundaries | Analysis Quality | High |
+| **Function Boundary Detection** | Locating function start/end points accurately | Parsing Accuracy | High |
+| **Module Segmentation** | Breaking code into logical module units | Organization | High |
+| **Dependency Graph Construction** | Building relationships between code elements | Analysis Core | High |
+| **Cross-Reference Resolution** | Linking uses to definitions across code | Semantic Analysis | High |
+| **TDD Classification** | Separating test code from implementation code | Code Classification | High |
+| **AST Traversal Patterns** | Efficient algorithms for tree navigation | Performance | High |
+| **Source Span Management** | Tracking original source locations | Debugging | Medium |
+| **Token Stream Processing** | Working with lexer output efficiently | Low-Level Processing | Medium |
 
+### 2. Graph Theory & Databases
+
+#### Interface Signature Graph (ISG)
 | Term | Context | Research Area | Priority |
 |------|---------|---------------|----------|
-| **CodeSimulation** | Simulating code changes before application | Safety Assurance | Critical |
-| **RubberDuckDebugging** | Systematic reasoning through code changes | Methodology | Critical |
-| **BlastRadius** | Calculating impact scope of changes | Impact Analysis | Critical |
-| **HoppingActions** | Navigating related code sections | Analysis Technique | Critical |
-| **ContextBuilding** | Creating relevant context for analysis | Analysis Foundation | Critical |
-| **ConfidenceScoring** | Assessing reliability of suggested changes | Safety | Critical |
-| **AlternativeGeneration** | Creating multiple solution options | Flexibility | Important |
+| **ISGL1 Key** | Primary key format (filepath-filename-InterfaceName) | Graph Identification | High |
+| **Interface Signature** | Unique identifier for code interfaces | Graph Nodes | High |
+| **Blast Radius Analysis** | Impact assessment for code changes | Graph Traversal | High |
+| **Graph Isomorphism** | Structural similarity detection between code patterns | Pattern Matching | Medium |
+| **Topological Sorting** | Dependency ordering for safe transformations | Graph Algorithms | High |
+| **Cycle Detection** | Identifying circular dependencies in code | Dependency Analysis | High |
+| **Graph Coloring** | Resource allocation and conflict detection | Optimization | Medium |
+| **Minimum Spanning Tree** | Finding essential dependency paths | Graph Analysis | Medium |
+| **Graph Clustering** | Grouping related code components | Code Organization | Medium |
+| **Reachability Queries** | Determining component relationships | Graph Navigation | High |
 
-#### **rust-preflight-code-simulator Keywords**
-
+#### CozoDB Implementation
 | Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **RustAnalyzerOverlay** | Using rust-analyzer for validation | Validation Technology | Critical |
-| **CompilationValidation** | Ensuring code compiles correctly | Safety Assurance | Critical |
-| **TypeChecking** | Verifying type correctness | Validation | Critical |
-| **BorrowChecking** | Rust-specific safety validation | Rust-Specific | Critical |
-| **TestExecution** | Running tests to validate changes | Quality Assurance | Critical |
-| **PerformanceBenchmarking** | Measuring performance impact | Performance | Important |
-| **StaticAnalysis** | Automated code quality checks | Quality Assurance | Important |
+| **Datalog Engine** | Declarative query language for graph databases | Query Processing | High |
+| **Bytecode Generation** | Compiled query execution plans | Performance | High |
+| **Query Optimization** | Efficient query planning and execution | Performance | High |
+| **Index Management** | B-tree, hash, and specialized indexing | Storage | High |
+| **Transaction Handling** | ACID properties for graph operations | Consistency | High |
+| **Storage Backends** | SQLite, RocksDB, Sled integration options | Persistence | High |
+| **Full-Text Search** | Text indexing and search capabilities | Search | Medium |
+| **Fixed-Rule Systems** | Recursive query handling for graph traversal | Query Expressiveness | High |
+| **Aggregation Operations** | Graph analytics and statistics | Analytics | Medium |
+| **Multi-Model Support** | Combining graph with relational/document data | Flexibility | Medium |
 
-#### **write-final-code-changes Keywords**
+### 3. Software Engineering Principles
 
+#### Static Analysis Techniques
 | Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **SafeCodeModification** | Applying changes with safety guarantees | Core Functionality | Critical |
-| **AtomicOperations** | Ensuring operations complete fully or not at all | Reliability | Critical |
-| **RollbackCapability** | Ability to undo changes if problems occur | Safety | Critical |
-| **BackupCreation** | Creating backups before modifications | Safety | Critical |
-| **ChangeValidation** | Verifying changes are correct before application | Quality Assurance | Critical |
-| **FormatPreservation** | Maintaining code formatting | User Experience | Important |
-| **CommentPreservation** | Keeping existing comments | User Experience | Important |
+| **Control Flow Analysis** | Understanding execution paths in code | Analysis Quality | High |
+| **Data Flow Analysis** | Tracking variable usage and transformations | Analysis Quality | High |
+| **Abstract Interpretation** | Over-approximation of program behavior | Theory | Medium |
+| **Symbolic Execution** | Path exploration with symbolic values | Advanced Analysis | Medium |
+| **Pattern Matching** | Finding specific code patterns and idioms | Code Detection | High |
+| **Invariant Detection** | Identifying properties that hold during execution | Verification | Medium |
+| **Dead Code Elimination** | Finding and removing unreachable code | Optimization | High |
+| **Refactoring Safety** | Ensuring transformations preserve behavior | Correctness | High |
+| **Type Inference** | Determining types where not explicitly specified | Analysis | High |
+| **Memory Safety Analysis** | Detecting potential memory issues | Security | High |
 
-#### **clean-slate-protocol-enforcer Keywords**
-
+#### Test-Driven Development
 | Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **CommitWorkflow** | Git integration for change tracking | Integration | Critical |
-| **DatabaseReset** | Clearing graph for fresh analysis | State Management | Critical |
-| **VersionControl** | Integration with version control systems | Integration | Critical |
-| **ChangeDocumentation** | Recording what was changed and why | Documentation | Important |
-| **WorkflowAutomation** | Automating the complete analysis workflow | Automation | Important |
-| **StateSynchronization** | Keeping different system components consistent | Consistency | Critical |
+| **Property-Based Testing** | Testing invariants across input space | Testing Strategy | High |
+| **Contract Testing** | Verifying interface behaviors | Testing Strategy | High |
+| **Mutation Testing** | Validating test quality by introducing bugs | Test Quality | Medium |
+| **Behavior-Driven Development** | User-focused specification and testing | Methodology | Medium |
+| **Test Coverage Analysis** | Measuring code exercised by tests | Metrics | Medium |
+| **Snapshot Testing** | Comparing outputs against known good examples | Regression Testing | Medium |
+| **Fuzz Testing** | Randomized input generation for robustness | Security | Medium |
+| **Integration Testing** | Testing component interactions | Testing Strategy | High |
+| **Performance Regression Testing** | Ensuring changes don't degrade performance | Performance | High |
+| **Contract-Driven Development** | Formal specifications driving implementation | Methodology | High |
 
-### 2.2 Process & Methodology
+### 4. Performance & Systems
 
-#### **Development Process Keywords**
-
+#### Sub-Millisecond Query Performance
 | Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **UltraThinkAnalysis** | Deep analysis methodology for design decisions | Methodology | Critical |
-| **ShreyasDoshiProductThinking** | Product development framework | Product Strategy | Critical |
-| **JeffDeanSystemsThinking** | Systems engineering approach | Architecture | Critical |
-| **FirstApplyCorrectness** | Prioritizing correctness over speed | Quality Principle | Critical |
-| **ReliabilityFirstPrinciple** | Safety-first approach to development | Quality Principle | Critical |
-| **IterativeRefinement** | Gradual improvement through iterations | Development Process | Critical |
-| **UserCentricDesign** | Design focused on user needs | Design Philosophy | Critical |
-| **EvidenceBasedDecisions** | Making decisions based on data and research | Decision Making | Critical |
+| **Cache Optimization** | L1/L2/L3 cache utilization for query data | Performance | High |
+| **Memory Layout** | Struct alignment for optimal cache access | Performance | High |
+| **SIMD Operations** | Vectorized processing for bulk operations | Performance | Medium |
+| **Zero-Copy Techniques** | Avoiding unnecessary data allocations | Performance | High |
+| **Memory Pooling** | Reusing allocations to reduce GC pressure | Performance | Medium |
+| **Query Planning** | Optimal execution strategy selection | Performance | High |
+| **Parallel Execution** | Multi-threaded query processing | Performance | High |
+| **Just-In-Time Compilation** | Runtime optimization of hot paths | Advanced Performance | Medium |
+| **Profile-Guided Optimization** | Using runtime data to guide optimizations | Advanced Performance | Medium |
+| **Lazy Evaluation** | Deferred computation for efficiency | Performance | High |
 
-#### **Quality Assurance Keywords**
-
+#### Concurrency & Parallelism
 | Term | Context | Research Area | Priority |
-|------|---------|---------------|----------|
-| **TestCoverage** | Measuring how much code is tested | Quality Metrics | Critical |
-| **PropertyBasedTesting** | Testing with automatically generated test cases | Testing Methodology | Important |
-| **RegressionTesting** | Ensuring changes don't break existing functionality | Quality Assurance | Critical |
-| **IntegrationTesting** | Testing component interactions | Testing Strategy | Critical |
-| **PerformanceTesting** | Measuring system performance characteristics | Quality Assurance | Critical |
-| **FuzzTesting** | Randomized testing for robustness | Testing Methodology | Important |
-| **StaticAnalysis** | Automated code quality checking | Quality Assurance | Critical |
+| **Structured Concurrency** | Managed lifetimes for concurrent tasks | Concurrency | High |
+| **Lock-Free Data Structures** | Wait-free synchronization primitives | Concurrency | Medium |
+| **Actor Model** | Message-passing concurrency pattern | Architecture | Medium |
+| **Work Stealing** | Dynamic load balancing for parallel tasks | Scheduling | Medium |
+| **Async/Await Patterns** | Asynchronous programming in Rust | Concurrency | High |
+| **Thread Pool Management** | Efficient worker thread utilization | Concurrency | High |
+| **Memory Ordering** | Synchronization primitives and memory barriers | Low-Level Concurrency | Medium |
+| **Channel Types** | Different communication patterns (MPSC, broadcast) | Communication | High |
+| **Cancellation Tokens** | Graceful shutdown of async operations | Concurrency | High |
+| **Backpressure Handling** | Managing producer-consumer flow control | Resilience | High |
+
+### 5. Industry & Research Context
+
+#### Leading Tools & Technologies
+| Term | Context | Research Area | Priority |
+| **GitHub Copilot** | AI-assisted code completion and generation | Industry Context | Medium |
+| **SourceGraph** | Code search and navigation platform | Competitive Analysis | Medium |
+| **SonarQube** | Code quality and security analysis | Industry Standards | Medium |
+| **CodeQL** | Semantic code analysis for security vulnerabilities | Security Analysis | Medium |
+| **LLM Integration** | Large language models for code understanding | Emerging Tech | Medium |
+| **Semantic Search** | Meaning-based code discovery | Search Technology | Medium |
+| **Vector Embeddings** | Neural representations of code semantics | Advanced Analysis | Low |
+| **Knowledge Graphs** | Structured representation of code relationships | Data Organization | Medium |
+| **Differential Analysis** | Comparing code versions intelligently | Version Control | Medium |
+| **Automated Refactoring** | AI-driven code transformation | Automation | High |
+
+#### Academic Research Areas
+| Term | Context | Research Area | Priority |
+| **Program Comprehension** | Human understanding of code structure and behavior | Academic Research | Medium |
+| **Software Maintenance** | Evolution and upkeep of software systems | Academic Research | Medium |
+| **Dependency Analysis** | Studying relationships between software components | Research | High |
+| **Clone Detection** | Finding duplicated code patterns | Research | Medium |
+| **API Mining** | Extracting usage patterns from large codebases | Research | Medium |
+| **Empirical Software Engineering** | Data-driven studies of software development | Research | Low |
+| **Formal Methods** | Mathematically rigorous software verification | Advanced Research | Low |
+| **Program Synthesis** | Automatic generation of programs from specifications | Advanced Research | Low |
+| **Reverse Engineering** | Understanding system design from implementation | Research | Medium |
+| **Software Visualization** | Visual representations of code structure | UI/UX | Low |
 
 ---
 
-## 3. Industry & Research Context
+## Implementation-Specific Keywords
 
-### 3.1 Leading Tools & Platforms
+### Tool-Specific Implementation Areas
 
-#### **Competitive Analysis Keywords**
-
+#### isg-code-chunk-streamer
 | Term | Context | Research Area | Priority |
 |------|---------|---------------|----------|
-| **GitHubCopilot** | AI-powered code completion tool | Competitive Analysis | Important |
-| **SourceGraph** | Code search and navigation platform | Competitive Analysis | Important |
-| **SonarQube** | Code quality and security analysis | Competitive Analysis | Important |
-| **JetBrainsIDEs** | Integrated development environments | Competitive Analysis | Important |
-| **VisualStudioCode** | Code editor with extensions | Competitive Analysis | Important |
-| **LLDB** | LLVM debugger for low-level debugging | Tooling | Medium |
-| **GDB** | GNU debugger for debugging | Tooling | Medium |
-| **Valgrind** | Memory profiling and debugging tool | Tooling | Medium |
+| **Chunk Granularity** | Optimal size units for code processing | Performance | High |
+| **Streaming Parser** | Incremental processing without full loading | Memory Efficiency | High |
+| **Parallel Chunking** | Concurrent processing of independent chunks | Performance | High |
+| **Chunk Dependency Tracking** | Managing relationships between chunks | Correctness | High |
+| **Incremental Updates** | Efficient re-processing of changed chunks | Performance | High |
+| **Language-Aware Splitting** | Respecting language syntax boundaries | Accuracy | High |
+| **Metadata Extraction** | Pulling additional context from chunks | Richness | Medium |
+| **Error Recovery** | Handling malformed chunks gracefully | Robustness | High |
+| **Memory-Mapped Files** | Efficient file access for large codebases | Performance | Medium |
+| **Chunk Hashing** | Efficient comparison and deduplication | Optimization | Medium |
 
-#### **Academic Research Keywords**
-
+#### ingest-chunks-to-codegraph
 | Term | Context | Research Area | Priority |
 |------|---------|---------------|----------|
-| **ProgramComprehension** | Academic field studying how humans understand code | Research Foundation | Critical |
-| **SoftwareMaintenance** | Research on evolving software systems | Research Foundation | Critical |
-| **AutomatedRefactoring** | Research on automated code transformation | Research Foundation | Critical |
-| **CodeAnalysis** | Research techniques for understanding code | Research Foundation | Critical |
-| **GraphAlgorithms** | Mathematical algorithms for graph operations | Algorithmic Foundation | Critical |
-| **FormalMethods** | Mathematical techniques for software verification | Advanced Research | Medium |
-| **ProgramSynthesis** | Research on automatically generating code | Advanced Research | Medium |
-| **MachineLearningForCode** | ML applications for code analysis | Emerging Research | Medium |
+| **Graph Schema Design** | Optimal data model for code relationships | Data Modeling | High |
+| **Bulk Insertion** | Efficient batch loading of graph data | Performance | High |
+| **Upsert Operations** | Update-or-insert logic for idempotent processing | Correctness | High |
+| **Graph Indexing** | Accelerating common query patterns | Performance | High |
+| **Transaction Management** | Ensuring consistency during ingestion | Reliability | High |
+| **Data Validation** | Verifying graph constraints and invariants | Correctness | High |
+| **Memory-Mapped Storage** | Efficient persistence for large graphs | Performance | Medium |
+| **Compression Techniques** | Reducing storage footprint | Storage | Medium |
+| **Concurrent Ingestion** | Parallel processing of independent chunks | Performance | High |
+| **Schema Evolution** | Handling changes in graph structure over time | Extensibility | Medium |
 
-### 3.2 Emerging Trends & Technologies
-
-#### **AI-Assisted Development Keywords**
-
+#### cozo-code-simulation-sorcerer
 | Term | Context | Research Area | Priority |
 |------|---------|---------------|----------|
-| **LargeLanguageModels** | AI models for code understanding and generation | Emerging Technology | Medium |
-| **TransformerModels** | Neural architecture for sequence processing | AI Technology | Medium |
-| **CodeGeneration** | AI-assisted code writing | Emerging Feature | Medium |
-| **AutomatedTesting** | AI-generated test cases | Emerging Feature | Medium |
-| **SemanticSearch** | AI-powered code search | Emerging Feature | Medium |
-| **PredictiveAnalysis** | AI for predicting code issues | Emerging Feature | Low |
-| **NaturalLanguageInterface** | Conversational interaction with code | User Interface | Low |
+| **Graph Simulation** | Modeling code changes before application | Safety | High |
+| **Impact Analysis** | Predicting effects of modifications | Risk Assessment | High |
+| **What-If Scenarios** | Exploring alternative implementation approaches | Decision Support | High |
+| **Constraint Satisfaction** | Ensuring changes respect system invariants | Correctness | High |
+| **Path Finding** | Discovering dependency chains between components | Analysis | High |
+| **Graph Traversal Algorithms** | Efficient navigation of code relationships | Algorithms | High |
+| **State Space Exploration** | Enumerating possible system states | Analysis | Medium |
+| **Abduction Reasoning** | Inferring causes from observed effects | Advanced Reasoning | Medium |
+| **Temporal Logic** | Reasoning about time-based properties | Advanced Analysis | Low |
+| **Model Checking** | Automatic verification of system properties | Verification | Medium |
 
-#### **Advanced Technologies Keywords**
-
+#### rust-preflight-code-simulator
 | Term | Context | Research Area | Priority |
 |------|---------|---------------|----------|
-| **QuantumComputing** | Quantum algorithms for optimization | Future Research | Low |
-| **FormalVerification** | Mathematical proof of correctness | Advanced Research | Low |
-| **DistributedSystems** | Multiple machine coordination | Advanced Architecture | Medium |
-| **CloudNative** | Cloud-optimized architecture patterns | Architecture | Medium |
-| **Microservices** | Service-oriented architecture | Architecture | Medium |
-| **Containerization** | Docker and container orchestration | Deployment | Medium |
+| **Type Checking** | Validating Rust type correctness before compilation | Correctness | High |
+| **Borrow Checking** | Ensuring memory safety through ownership analysis | Safety | High |
+| **Macro Expansion** | Resolving procedural and declarative macros | Compilation | High |
+| **Feature Resolution** | Handling conditional compilation features | Compilation | High |
+| **Cargo Integration** | Working with Rust's build system | Tooling | High |
+| **Error Recovery** | Graceful handling of compilation errors | Robustness | High |
+| **Incremental Compilation** | Fast recompilation of changed components | Performance | High |
+| **Cross-Crate Analysis** | Understanding dependencies between crates | Dependency Management | High |
+| **Attribute Processing** | Handling derive and procedural attributes | Metaprogramming | Medium |
+| **Lifetime Analysis** | Resolving lifetime parameters and relationships | Advanced Rust | Medium |
 
 ---
 
-## 4. Success Metrics & KPIs
+## Process & Methodology Keywords
 
-### 4.1 Performance Metrics
+### Development Workflow
+| Term | Context | Research Area | Priority |
+|------|---------|---------------|----------|
+| **Clean Slate Protocol** | Reset and commit workflow for safe changes | Process | High |
+| **Micro-PRD Iteration** | Refining requirements through user dialogue | Requirements Engineering | High |
+| **Single-Pass Fixes** | One-shot correct modifications strategy | Reliability | High |
+| **Confidence Gating** | Progressive trust in automated suggestions | Safety | High |
+| **Rubber Duck Debugging** | Structured reasoning through code simulation | Verification | High |
+| **Blast Radius Calculation** | Impact scope assessment for changes | Risk Management | High |
+| **Deterministic Transformations** | Predictable, repeatable code modifications | Reliability | High |
+| **Token Optimization** | Minimizing LLM usage for efficiency | Cost Optimization | High |
+| **Cache Hit Rates** | Measuring effectiveness of cached computations | Performance | High |
+| **Compilation Validation** | Ensuring changes preserve buildability | Correctness | High |
 
-| Metric | Target | Measurement Method | Priority |
-|--------|--------|-------------------|----------|
-| **QueryLatency** | <500μs for ISG traversals | Performance benchmarking | Critical |
-| **MemoryUsage** | <100MB for 1M LOC analysis | Memory profiling | Critical |
-| **ParsingSpeed** | <10s for large repositories | Performance testing | Critical |
-| **InterfaceExtractionAccuracy** | >95% correct identification | Accuracy testing | Critical |
-| **CompilationSuccessRate** | >99% successful after modifications | Integration testing | Critical |
-| **TestPassRate** | >95% tests pass after changes | Quality assurance | Critical |
-
-### 4.2 User Experience Metrics
-
-| Metric | Target | Measurement Method | Priority |
-|--------|--------|-------------------|----------|
-| **OnboardingTime** | <15 minutes to productive use | User testing | Important |
-| **ErrorRecoveryTime** | <5 minutes to resolve issues | User feedback | Important |
-| **LearningCurve** | Intuitive interface with minimal training | User testing | Important |
-| **DocumentationQuality** | Complete coverage with examples | Documentation review | Important |
-| **CommunityAdoption** | Active user base and contributions | Adoption metrics | Medium |
-
----
-
-## 5. Implementation Roadmap
-
-### 5.1 Phase 1: Core Infrastructure (Weeks 1-4)
-
-**Critical Path Items:**
-1. **Tree-sitter Integration** - Rust parsing and AST generation
-2. **CozoDB Schema Design** - Graph storage and query optimization
-3. **ISG Construction Algorithm** - Interface signature graph building
-4. **Basic CLI Framework** - 4-word command structure implementation
-
-**Keywords Focus:** Tree-sitter, CozoDB, ISGL1_Key, GraphConstruction, CLI-FirstDesign
-
-### 5.2 Phase 2: Analysis Engine (Weeks 5-8)
-
-**Critical Path Items:**
-1. **Rust-Analyzer Integration** - Semantic analysis and type resolution
-2. **Dependency Analysis** - Relationship extraction and graph building
-3. **Query Engine** - Fast graph traversal and relationship queries
-4. **Performance Optimization** - Sub-millisecond query performance
-
-**Keywords Focus:** DefDatabase, SemanticAnalysis, DependencyAnalysis, SubMillisecondQuery
-
-### 5.3 Phase 3: Code Transformation (Weeks 9-12)
-
-**Critical Path Items:**
-1. **Code Simulation Engine** - Safe change simulation
-2. **Rust Preflight Validation** - Compilation and testing validation
-3. **Safe Code Modification** - Atomic change application
-4. **Rollback Mechanisms** - Error recovery and state restoration
-
-**Keywords Focus:** CodeSimulation, RubberDuckDebugging, CompilationValidation, AtomicOperations
-
-### 5.4 Phase 4: Polish & Integration (Weeks 13-16)
-
-**Critical Path Items:**
-1. **User Interface Refinement** - CLI/UX improvements
-2. **Documentation Completion** - Comprehensive user guides
-3. **Performance Optimization** - Final performance tuning
-4. **Integration Testing** - End-to-end workflow validation
-
-**Keywords Focus:** UserCentricDesign, DocumentationQuality, PerformanceOptimization, IntegrationTesting
+### Quality Assurance
+| Term | Context | Research Area | Priority |
+|------|---------|---------------|----------|
+| **Reliability-First Principle** | Prioritizing correctness over speed | Philosophy | High |
+| **CPU-Bound Analysis** | Preferencing deterministic computation over AI | Architecture | High |
+| **Static Analysis Preference** | Using compile-time analysis over runtime | Methodology | High |
+| **Sub-Linear Scaling** | Ensuring performance scales better than linear | Performance | High |
+| **Correctness by Construction** | Building systems that cannot be wrong | Design Philosophy | High |
+| **Formal Verification** | Mathematical proof of system properties | Advanced QA | Medium |
+| **Property-Based Invariants** | Testing universal properties of the system | Testing | High |
+| **Regression Prevention** | Stopping bugs before they reach users | Quality | High |
+| **Automated Validation** | Continuous checking of system properties | CI/CD | High |
+| **User Efficacy Focus** | Measuring success by user productivity | UX | High |
 
 ---
 
-## 6. Risk Assessment & Mitigation
+## Emerging Trends & Future Research
 
-### 6.1 Technical Risks
+### AI-Assisted Development
+| Term | Context | Research Area | Priority |
+|------|---------|---------------|----------|
+| **Hybrid Analysis** | Combining static analysis with LLM reasoning | Emerging Tech | Medium |
+| **Context-Aware Suggestions** | Code recommendations based on project context | AI Integration | Medium |
+| **Neural Symbolic Integration** | Combining neural networks with formal methods | Advanced Research | Low |
+| **Few-Shot Learning** | Adapting to new code patterns with minimal examples | AI Research | Medium |
+| **Explainable AI** | Making AI suggestions interpretable to developers | Trust | Medium |
+| **Continual Learning** | Systems that improve from user feedback | Adaptation | Medium |
+| **Domain-Specific Models** | Specialized AI for particular programming patterns | Specialization | Medium |
+| **Multi-Modal Analysis** | Combining code, comments, and documentation | Comprehensive Analysis | Medium |
+| **Reinforcement Learning** | Learning optimal refactoring strategies | Optimization | Low |
+| **Human-AI Collaboration** | Effective partnership models for development | Workflow | Medium |
 
-| Risk | Probability | Impact | Mitigation Strategy |
-|------|-------------|--------|-------------------|
-| **ParsingComplexity** | Medium | High | Use tree-sitter with robust error handling |
-| **PerformanceTargets** | Medium | High | Early performance testing and optimization |
-| **GraphDatabaseComplexity** | Low | Medium | Start with simple schema, evolve as needed |
-| **RustAnalyzerIntegration** | Medium | Medium | Use stable APIs and fallback mechanisms |
-| **MemoryUsage** | Medium | Medium | Implement streaming and caching strategies |
-
-### 6.2 Market Risks
-
-| Risk | Probability | Impact | Mitigation Strategy |
-|------|-------------|--------|-------------------|
-| **CompetingTools** | High | Medium | Focus on unique reliability-first approach |
-| **UserAdoption** | Medium | High | Prioritize user experience and documentation |
-| **TechnologyChanges** | Medium | Medium | Design for extensibility and adaptation |
-| **MaintenanceBurden** | Low | Medium | Automate testing and use modular architecture |
-
----
-
-## 7. Research Sources & References
-
-### 7.1 Primary Research Sources
-
-1. **Tree-sitter Documentation** - Incremental parsing library
-2. **Rust-Analyzer Source Code** - LSP implementation patterns
-3. **CozoDB Documentation** - Graph database query language
-4. **Petgraph Library** - Graph algorithms and data structures
-5. **Academic Papers** - Program comprehension and automated refactoring
-
-### 7.2 Repository Analysis
-
-1. **.doNotCommit/.refGithubRepo/tree-sitter** - Parsing patterns and query systems
-2. **.doNotCommit/.refGithubRepo/rust-analyzer** - Semantic analysis and LSP integration
-3. **.doNotCommit/.refGithubRepo/cozo** - Graph database implementation patterns
-4. **.doNotCommit/.refGithubRepo/claude-code** - Plugin architecture and CLI patterns
-
-### 7.3 Industry Documentation
-
-1. **Rust Language Documentation** - Language features and best practices
-2. **CLI Design Guidelines** - Command-line interface design principles
-3. **Graph Database Research** - Current state of graph database technology
-4. **Static Analysis Tools** - Survey of existing analysis tools and techniques
+### Advanced Graph Technologies
+| Term | Context | Research Area | Priority |
+|------|---------|---------------|----------|
+| **Temporal Graphs** | Time-evolving code relationship tracking | Advanced Analysis | Medium |
+| **Hypergraphs** | Multi-way relationships beyond binary edges | Advanced Modeling | Low |
+| **Graph Neural Networks** | Neural processing of graph-structured data | Advanced AI | Low |
+| **Quantum Computing** | Potential for graph algorithm acceleration | Future Tech | Low |
+| **Distributed Graph Processing** | Scaling analysis across multiple machines | Scalability | Medium |
+| **Real-Time Graph Updates** | Maintaining consistency under concurrent changes | Concurrency | Medium |
+| **Graph Compression** | Efficient storage of large graph structures | Storage | Medium |
+| **Multi-Layer Graphs** | Modeling different types of relationships simultaneously | Complex Analysis | Low |
+| **Probabilistic Graph Models** | Handling uncertainty in code relationships | Uncertainty | Low |
+| **Graph Streaming** | Processing graph data in a single pass | Big Data | Medium |
 
 ---
 
-## 8. Conclusion & Next Steps
+## Implementation Priority Matrix
 
-This comprehensive keywords list provides a solid foundation for implementing the Parseltongue code analysis platform. The research has identified critical technical concepts, implementation patterns, and success metrics that will guide the development process.
+### Critical Path (Must-Have)
+1. **Tree-sitter Integration** - Core parsing capability
+2. **ISG Construction** - Fundamental data structure
+3. **CozoDB Storage** - Persistence layer
+4. **Interface Extraction** - Core analysis logic
+5. **TDD Classification** - Test/code separation
+6. **Performance Optimization** - Sub-millisecond queries
+7. **Reliability Validation** - Correctness guarantees
+8. **Rust-Analyzer Integration** - Semantic enrichment
 
-**Key Insights:**
-1. **Reliability-first approach** requires robust error handling and validation
-2. **Performance targets** drive architectural decisions (sub-millisecond queries)
-3. **Modular design** enables extensibility and maintainability
-4. **User experience** is critical for adoption in developer workflows
+### Important (Should-Have)
+1. **Incremental Processing** - Efficiency for large codebases
+2. **Parallel Execution** - Performance scaling
+3. **Advanced Querying** - Complex analysis capabilities
+4. **Visualization Support** - User interface components
+5. **API Integration** - External tool connectivity
+6. **Memory Optimization** - Resource efficiency
+7. **Error Recovery** - Robustness guarantees
+8. **Documentation Generation** - Automated insights
 
-**Next Steps:**
-1. Begin Phase 1 implementation with core infrastructure
-2. Set up performance benchmarking to track progress
-3. Establish user testing feedback loops
-4. Create detailed implementation specifications based on keyword research
+### Nice-to-Have (Could-Have)
+1. **AI Enhancement** - LLM integration for complex reasoning
+2. **Advanced Visualization** - Interactive graph exploration
+3. **Multi-Language Support** - Beyond Rust analysis
+4. **Cloud Deployment** - Scalable infrastructure
+5. **Collaboration Features** - Team-based analysis
+6. **Historical Analysis** - Code evolution tracking
+7. **Performance Profiling** - Detailed optimization insights
+8. **Custom Rule Engines** - Domain-specific analysis rules
 
-The keywords list will be continuously updated as implementation progresses and new insights are discovered through development experience and user feedback.
+### Future Research (Won't-Have - MVP)
+1. **Quantum Optimization** - Experimental algorithms
+2. **Neural Graph Processing** - Deep learning integration
+3. **Natural Language Queries** - English-to-analysis translation
+4. **Predictive Analysis** - Anticipating future issues
+5. **Cross-Project Analysis** - Multi-repository insights
+6. **Real-Time Collaboration** - Live synchronization
+7. **Advanced AI** - Autonomous code improvement
+8. **Formal Verification** - Mathematical correctness proofs
 
 ---
 
-*This document represents the culmination of comprehensive research combining internet sources, repository analysis, and industry best practices to provide a complete foundation for implementing the Parseltongue code analysis platform.*
+## Success Metrics & Validation
+
+### Technical Metrics
+- **Query Latency**: <500μs for standard ISG traversals
+- **Memory Efficiency**: <100MB for 1M LOC analysis
+- **Scalability**: Linear performance degradation with codebase size
+- **Accuracy**: >95% correct interface extraction
+- **Reliability**: >99% successful compilations post-modification
+
+### User Experience Metrics
+- **Time to Insight**: <10 seconds for meaningful code understanding
+- **Trust Score**: User confidence in automated suggestions
+- **Productivity Gain**: Measured improvement in development velocity
+- **Error Reduction**: Decrease in introduced bugs
+- **Learning Curve**: Time to proficiency for new users
+
+### System Quality Metrics
+- **Code Coverage**: >90% test coverage for critical paths
+- **Performance Regression**: <5% degradation over time
+- **Memory Leaks**: Zero detected memory leaks
+- **Concurrent Safety**: No race conditions in production
+- **Documentation**: Complete API documentation with examples
+
+---
+
+## Conclusion
+
+This keywords list provides a comprehensive foundation for implementing the Parseltongue code analysis platform. The research covers essential domains from low-level parsing to high-level AI integration, with clear priorities for implementation success.
+
+The key to successful implementation lies in:
+
+1. **Starting with Core Infrastructure** - Tree-sitter, ISG, CozoDB integration
+2. **Prioritizing Reliability** - Every change must compile and pass tests
+3. **Optimizing for Performance** - Sub-millisecond query requirements drive design
+4. **Maintaining Extensibility** - Architecture should support future enhancements
+5. **Focusing on User Value** - Every feature must improve developer productivity
+
+The structured approach and comprehensive keyword coverage ensure that implementation decisions are well-informed and aligned with both technical requirements and user needs.
+
+---
+
+*This document should be considered a living resource, updated as implementation progresses and new research insights emerge. Regular reviews will ensure the keywords list remains relevant and useful throughout the project lifecycle.*
