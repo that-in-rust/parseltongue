@@ -43,11 +43,11 @@ parseltongue [GLOBAL_OPTIONS] <COMMAND> [COMMAND_OPTIONS]
 --version            # Show version info
 ```
 
-### **Core Commands**
+### **Core Commands (Exactly 4-Word AA-BB-CC-DD Pattern)**
 
-#### **2.1 System Validation (SystemGate)**
+#### **2.1 System Validation → System Check And Validate**
 ```bash
-parseltongue check [OPTIONS]
+parseltongue system-check-and-validate [OPTIONS]
 ```
 
 **Purpose:** Validate system capabilities before building ISG
@@ -64,9 +64,9 @@ parseltongue check [OPTIONS]
 - Performance tier (high/medium/unsupported)
 - Block reasons with specific remediation advice
 
-#### **2.2 Build ISG (Main Workhorse)**
+#### **2.2 Build ISG → Graph Build And Parse**
 ```bash
-parseltongue build [OPTIONS] [REPO_PATH]
+parseltongue graph-build-and-parse [OPTIONS] [REPO_PATH]
 ```
 
 **Purpose:** Parse Rust repository and build Interface Signature Graph
@@ -89,48 +89,57 @@ parseltongue build [OPTIONS] [REPO_PATH]
 **Usage Examples:**
 ```bash
 # Basic build on current directory
-parseltongue build
+parseltongue graph-build-and-parse
 
 # Build with code snippets, custom repo
-parseltongue build --include-code ../my-rust-project
+parseltongue graph-build-and-parse --include-code ../my-rust-project
 
 # Build with custom settings
-parseltongue build --batch-size 1000 --workers 8 --exclude "**/tests/**" ./src
+parseltongue graph-build-and-parse --batch-size 1000 --workers 8 --exclude "**/tests/**" ./src
 
 # Force rebuild with detailed stats
-parseltongue build --force --stats ./my-project
+parseltongue graph-build-and-parse --force --stats ./my-project
 ```
 
-#### **2.3 Query Interface**
+#### **2.3 Query Interface → Graph Query And Search**
 ```bash
-parseltongue query <QUERY_TYPE> [OPTIONS]
+parseltongue graph-query-and-search <QUERY_TYPE> [OPTIONS]
 ```
 
 **Query Types:**
 
 **Prefix Search:**
 ```bash
-parseltongue query prefix --prefix "src/utils" --limit 20
+parseltongue graph-query-and-search prefix --prefix "src/utils" --limit 20
 ```
 
 **Interface by Exact Key:**
 ```bash
-parseltongue interface <isgl1_key>
+parseltongue graph-query-and-search exact --key <isgl1_key>
 ```
 
 **Relationship Search:**
 ```bash
-parseltongue query related --to <isgl1_key> --type defines|calls
+parseltongue graph-query-and-search related --to <isgl1_key> --type defines|calls
 ```
 
 **Interface Type Listing:**
 ```bash
-parseltongue query type --kind struct|trait|function|impl
+parseltongue graph-query-and-search type --kind struct|trait|function|impl
 ```
 
 **Full-text Search:**
 ```bash
-parseltongue query search --text "async fn" --in-tests
+parseltongue graph-query-and-search search --text "async fn" --in-tests
+```
+
+**Advanced Query Types (Exactly 4-Word Pattern):**
+```bash
+parseltongue what-implements-this-trait <trait_name>    # Find trait implementors
+parseltongue change-impact-and-analyze <entity_name>   # Calculate change impact
+parseltongue dependency-cycle-to-find                  # Find circular dependencies
+parseltongue function-caller-to-list <function_name>   # List function callers
+parseltongue execution-path-to-trace <from> <to>       # Trace execution paths
 ```
 
 **Query Options:**
@@ -143,23 +152,23 @@ parseltongue query search --text "async fn" --in-tests
 --relationships     # Include relationships in output
 ```
 
-#### **2.4 Database Management**
+#### **2.4 Database Management → Data Store And Manage**
 ```bash
-parseltongue db <SUBCOMMAND>
+parseltongue data-store-and-manage <SUBCOMMAND>
 ```
 
 **Subcommands:**
 ```bash
-parseltongue db info      # Show DB statistics
-parseltongue db optimize  # Optimize database
-parseltongue db export    # Export to JSON
-parseltongue db import    # Import from JSON
-parseltongue db reset     # Delete database
+parseltongue data-info-to-show                      # Show DB statistics
+parseltongue data-optimize-for-speed                # Optimize database
+parseltongue data-backup-to-create [file]           # Create database backup
+parseltongue data-restore-and-load [file]           # Restore from backup
+parseltongue data-reset-and-delete                  # Delete database
 ```
 
-#### **2.5 Interactive Mode**
+#### **2.5 Interactive Mode → Shell Start Interactive**
 ```bash
-parseltongue shell [OPTIONS]
+parseltongue shell-start-interactive [OPTIONS]
 ```
 
 **Options:**
@@ -168,10 +177,19 @@ parseltongue shell [OPTIONS]
 
 **Shell Commands:**
 ```
-> query prefix --prefix src
-> interface src-main-main.rs-MyStruct::new
-> db info
+> graph-query-and-search prefix --prefix src
+> graph-query-and-search exact --key src-main-main.rs-MyStruct::new
+> data-info-to-show
 > exit
+```
+
+#### **2.6 Export Operations (Additional 4-Word Commands)**
+```bash
+parseltongue graph-export-to-mermaid [output]        # Export to Mermaid format
+parseltongue graph-export-to-wasm [output]           # Export to WASM visualization
+parseltongue data-export-to-json [output]            # Export data as JSON
+parseltongue graph-structure-to-show                 # Show graph structure
+parseltongue graph-export-to-dot [output]            # Export to DOT format
 ```
 
 ---
@@ -211,50 +229,73 @@ parseltongue shell [OPTIONS]
 ### **Daily Workflow (Developer)**
 ```bash
 # Quick system check before starting
-parseltongue check
+parseltongue system-check-and-validate
 
 # Build current project with code snippets
-parseltongue build --include-code ./my-rust-project
+parseltongue graph-build-and-parse --include-code ./my-rust-project
 
 # Query specific interface
-parseltongue interface src-model-user.rs-User::new
+parseltongue graph-query-and-search exact --key src-model-user.rs-User::new
 
 # Find all structs in utils package
-parseltongue query type --kind struct --prefix "src/utils"
+parseltongue graph-query-and-search type --kind struct --prefix "src/utils"
 
 # Quick search for async functions
-parseltongue query search --text "async fn" --limit 10
+parseltongue graph-query-and-search search --text "async fn" --limit 10
 ```
 
 ### **Power User Workflow (Architect/Lead)**
 ```bash
 # Detailed build with full stats and optimization
-parseltongue build --stats --workers 12 --force ./large-project
+parseltongue graph-build-and-parse --stats --workers 12 --force ./large-project
 
 # Export entire ISG for external analysis
-parseltongue db export --output isg-backup.json
+parseltongue data-export-to-json --output isg-backup.json
 
 # Complex relationship analysis
-parseltongue query related --to "src-core-service.rs-Service::process" --type calls
+parseltongue graph-query-and-search related --to "src-core-service.rs-Service::process" --type calls
 
 # Find all test implementations for specific interfaces
-parseltongue query prefix --prefix "src/models" --in-tests --format json
+parseltongue graph-query-and-search prefix --prefix "src/models" --in-tests --format json
 
 # Database optimization and maintenance
-parseltongue db optimize
-parseltongue db info
+parseltongue data-optimize-for-speed
+parseltongue data-info-to-show
+
+# Advanced analysis commands
+parseltongue what-implements-this-trait Clone
+parseltongue change-impact-and-analyze "src-api-routes.rs-Router::new"
+parseltongue dependency-cycle-to-find
 ```
 
 ### **CI/CD Integration**
 ```bash
 # Automated system validation
-parseltongue check --json > system-report.json
+parseltongue system-check-and-validate --json > system-report.json
 
 # Build with minimal output for scripts
-parseltongue build --quiet --batch-size 1000 ./src
+parseltongue graph-build-and-parse --quiet --batch-size 1000 ./src
 
 # Query for change impact analysis
-parseltongue query related --to "src-api-routes.rs-Router::new" --format json > impact.json
+parseltongue change-impact-and-analyze "src-api-routes.rs-Router::new" --format json > impact.json
+
+# Backup database for analysis
+parseltongue data-backup-to-create ci-backup.json
+```
+
+### **Visualization and Export Workflow**
+```bash
+# Generate Mermaid diagram for documentation
+parseltongue graph-export-to-mermaid docs/architecture.md
+
+# Create interactive WASM visualization
+parseltongue graph-export-to-wasm web/viz/
+
+# Debug graph structure
+parseltongue graph-structure-to-show --detailed
+
+# Export for external tools
+parseltongue graph-export-to-dot analysis.dot
 ```
 
 ---
@@ -392,22 +433,27 @@ parseltongue query related --to "src-api-routes.rs-Router::new" --format json > 
 
 **Production Commands:**
 ```bash
-ingest           # Process code dumps with FILE: markers
-daemon          # Real-time file monitoring
-query           # WhatImplements, BlastRadius, FindCycles, etc.
-generate-context # LLM context generation
-export          # Mermaid diagram export
-export-wasm     # WASM visualization export
-debug           # Graph debugging and visualization
+ingest              # Process code dumps with FILE: markers
+daemon             # Real-time file monitoring
+query              # WhatImplements, BlastRadius, FindCycles, etc.
+generate-context   # LLM context generation
+export             # Mermaid diagram export
+export-wasm        # WASM visualization export
+debug              # Graph debugging and visualization
 ```
 
-**Our Proposed Commands:**
+**Our New Exactly 4-Word Commands:**
 ```bash
-check           # System validation
-build           # Build ISG from repo
-query           # Prefix, exact, relationship, type, search
-db              # Database management
-shell           # Interactive mode
+system-check-and-validate     # System validation
+graph-build-and-parse         # Build ISG from repo
+graph-query-and-search        # Prefix, exact, relationship, type, search
+data-store-and-manage         # Database management
+shell-start-interactive       # Interactive mode
+what-implements-this-trait    # Find trait implementors
+change-impact-and-analyze     # Calculate change impact
+dependency-cycle-to-find      # Find circular dependencies
+graph-export-to-mermaid       # Export to Mermaid
+graph-export-to-wasm          # Export to WASM
 ```
 
 ### **9.4 Missing Features in Our Design**
