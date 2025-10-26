@@ -1,6 +1,46 @@
-[package]
-name = "parseltongue"
+[workspace]
+members = [
+    "crates/*"
+]
+resolver = "2"
+
+[workspace.package]
 version = "0.7.0"
 edition = "2021"
+authors = ["Parseltongue Team"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/that-in-rust/parseltongue"
+homepage = "https://github.com/that-in-rust/parseltongue"
+rust-version = "1.70"
 
-[dependencies]
+[workspace.dependencies]
+# Core dependencies
+anyhow = "1.0"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+
+# CLI dependencies
+clap = { version = "4.0", features = ["derive"] }
+console = "0.15"
+indicatif = "0.17"
+
+# Parsing dependencies
+tree-sitter = "0.20"
+tree-sitter-rust = "0.20"
+
+# Storage dependencies
+cozo = "0.7"
+
+# Export dependencies
+wasm-bindgen = "0.2"
+
+# Development dependencies
+criterion = "0.5"
+proptest = "1.0"
+tempfile = "3.0"
+
+# Export format dependencies
+mermaid = "0.1"
+graphviz = "0.2"
