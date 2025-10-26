@@ -1,2 +1,93 @@
 Cargo List and command lists
 
+- Executive Summary for Parseltongue
+    - User Segment: Developers on large Rust codebases ONLY
+    - Reliability-First Principle:
+        - Optimize for accurate 1-go fixes that feel trustworthy and increase user efficacy.
+        - Prefer CPU-bound static analysis (rust-analyzer overlays, ISG traversals) and small, local, free subagents.
+        - Keep the reasoning LLM as lean and late as possible; minimize context/tokens; use deterministic transforms whenever feasible.
+    - Shreyas Doshi (product framing): Prioritize first-apply correctness over speed. Design for clarity, safety, and explicit confidence gating. Time is a secondary outcome.
+    - Jeff Dean (systems framing): Make correctness the fast path. Push work to deterministic, cacheable computations (ISG, RA, HNSW). Parallelize retrieval/validation; minimize token movement; measure token-per-fix and cache hit rates.
+    - User Promise: “When I hit a Rust bug, the system produces a single-pass, safe, minimal diff that compiles and (when present) passes tests before applying. Speed is a byproduct; correctness is the KPI.”
+- User Journey v0.7
+    - User arrives at github repo parseltongue
+    - Ask the user if we are currently in the relevant Rust Repo
+        - if no then ask them to share absolute path of git repo and cd there
+        - if yes
+            - Tell user that code indexing has begun and will take 10 minutes
+                - For the github repo
+                    - trigger the tool interface-graph-builder which is composed of 2 tools
+                        - tool 01: ISG-code-chunk-streamer
+                            - tool will read code based mother git repo where it located, using tree sitter
+                            - tool will choose granularity of chunks
+                            - optional: tool will call lsp (rust-analyzer) for meta-data about code-chunk-raw
+                            - tool will output aggregated-primarykey + code-chunk-raw + tree-sitter-signature + TDD_classification +lsp-meta-data (optional)
+                        - tool 02: ingest-chunks-to-CodeGraph
+                            - tool02 create CodeGraph (single write surface)
+                                - indexed by ISGL1 key (filepath-filename-InterfaceName)
+                                - columns (minimal, opinionated):
+                                    - receieved columns from tool 01
+                                        - ISGL1 primary key (receives the output of tool 01 - aggregated-primarykey)
+                                        - Current_Code (receives the output of tool 01 - code-chunk, can be empty if upsert of new ISGL1 + other fields happen)
+                                        - interface_signature (receives the output of tool 01 - tree-sitter-signature, optional)                                        
+                                        - TDD_Classification (whether the ISGL1 is TEST_IMPLEMENTATION, CODE_IMPLEMENTATION received from tool 01)
+                                        - current_id (1 by default at time of ingestion)
+                                        - lsp_meta_data (receives the output of tool 01 - lsp-meta-data)
+                                    - empty columns
+                                        - Future_Code (by default empty, edited by action of reasoning LLM)
+                                        - Future_Action (by default None, edited by action of reasoning LLM to be None|Create|Edit|Delete)
+                                        - future_id (0/1: 0 meaning NOT in future code, 1 meaning in future code)
+                - Tell user that code indexing is completed and basic anaytics of the CodeGraph table is shared
+                - User is now asked to describe their micro-PRD
+                - User describes the micro-PRD in text form
+                    - The reasoning-llm in our case the default LLM via ANTHROPIC_KEY analyzes the micro-PRD in context of ISGL1 + interface_signature + TDD_Classification + lsp_meta_data ; we will ignore the Current_Code because it will unnecessary bloat the context
+                        - Rough calculation of context in the reasoning-LLM = 1250000 tokens at 300 lines
+                            - avg interface size is 1000 to 1500 nodes
+                            - 1500 nodes x 3 tokens for ISGL1 = 4500 tokens
+                            - 1500 nodes x 7 tokens for interface_signature = 10500 tokens
+                            - 1500 nodes x 1 tokens for TDD_Classification = 1500 tokens
+                            - 1500 nodes x 15 tokens for lsp_meta_data = 22500 tokens
+                        - Total = 37.5k tokens
+                        - And micro-PRD = 5k tokens + 3 iterations = 20k tokens
+                        - Under 100k tokens 
+                    - The reasoning-llm will analyze then suggest changes to the micro-PRD to make it clearer in terms of what changes does the user want
+                        - Tests wise
+                        - Behavior wise
+                        - Functionality wise
+                    - After 2 iterations the reasoning-llm will accept the micro-PRD
+                    - Ask the reasoning LLM to reset the context because likely it will overflow and micro-PRD final needs to be isolated
+                - tool 4: code-simulation-sorcerer is triggered
+                    - use TDD_idiomatic_rust_steering_doc for all code-simulation-sorcerer while reasoning through code
+                    - tool 4 creates a base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(LSGL1 + interface_signature + TDD_Classification + lsp_meta_data)
+                    - tool 4 asks the reasoning-llm to suggest the following to the Code-Graph based on base-context-area
+                        - Step A: ISG level simulations
+                            - Step A01: Create Edit Delete Test Interface Rows ; call these changes test-interface-changes
+                                - addition Interfaces : new LSGL1 rows which will be current_ind = 0 & future_ind = 1 & Current_Code = empty & Future_Code=empty & Future_Action=Create
+                                - deletion Interfaces : old LSGL1 rows which will be current_ind = 1 & future_ind = 0 & Future_Code=empty & Future_Action=Delete
+                                - edit Interfaces : old LSGL1 rows which will be current_ind = 1 & future_ind = 1 & Future_Action=Edit
+                            - Step 02: Based on test-interface-changes + base-context-area, create edit delete non-test interfaces; call these rows non-test-interface-changes
+                                - addition Interfaces : new LSGL1 rows which will be current_ind = 0 & future_ind = 1 & Current_Code = empty & Future_Code=empty & Future_Action=Create
+                                - deletion Interfaces : old LSGL1 rows which will be current_ind = 1 & future_ind = 0 & Future_Code=empty & Future_Action=Delete
+                                - edit Interfaces : old LSGL1 rows which will be current_ind = 1 & future_ind = 1 & Future_Action=Edit
+                        - Step B: Code Simulation
+                            - Step B01: Based on filter(Future_Action != None)=>(all fields of Code_Graph including current code) + base-context-area , update future_code for all the rows that are changing
+                                - the reasoning-LLM can use hopping or blast-radius kind of actions on Code_Graph to fetch all informations for rows where (Future_Action = None) ; meaning for rows which are not changing current_code should not bloat the reasoning-LLM context
+                                    - hopping or blast-radius actions can be CLI options but preferably since our LLM is smart enough they need not be, and we can define them precisely in our supporting MD files
+                            - Step B02: Follow rubber duck debugging to re-reason filter(Future_Action != None)=>(all fields of Code_Graph including current code) + base-context-area
+                                - if the LLM thinks that we need to refine the solutioning further, repeat Steps A01 A02 and then basis them repeat Steps B01
+                                - if the LLM doesn't feel confident of the changes, it should speak to the user to get additional context or web help sharing their current understanding in an MD file
+                                - if the LLM feels confident of the changes, we move to next step
+                        - Step C : tool05 : rust-preflight-code-simulator tool triggered for Rust use cases rust-analyzer overlay
+                                - if the rust-preflight-code-simulator tool fails then we go back to previous steps A01 onwards
+                                - if the rust-preflight-code-simulator tool passes then we move to next step
+                        - Step D: run tool06: final-code-changes tool
+                            - Step D01 write the changes to code files
+                            - Step D02 run cargo build
+                            - Step D03 run cargo test
+                            - Step D04: if cargo build fails then go back to previous steps A01 onwards
+                            - Step D05: if cargo test fails then go back to previous steps A01 onwards
+                            - Step D06: if cargo build and cargo test pass then we move to next step
+            - Ask user if he is satisfied with how the code is working 
+                - if yes trigger tool07: clean-slate-protocol tool
+                    - clean-slate-protocol makes a commit with list of changes
+                    - clean-slate-protocol resets the CodeGraph and updates all rows in CozoDB database
