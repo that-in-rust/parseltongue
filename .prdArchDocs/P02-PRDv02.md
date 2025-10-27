@@ -1,4 +1,4 @@
-# Parseltongue PRD v0.2 - Detailed CLI Architecture
+# Parseltongue PRD v0.2 - Minimalistic CLI Architecture
 
 ## Executive Summary
 
@@ -15,331 +15,190 @@
 
 **User Promise**: "When I hit a Rust bug, the system produces a single-pass, safe, minimal diff that compiles and (when present) passes tests before applying. Speed is a byproduct; correctness is the KPI."
 
-## Unified CLI Architecture
+## Minimalistic CLI Architecture
 
-### Main Binary Structure
+### Core Philosophy
 
-Instead of separate binaries, we use a unified `parseltongue` CLI following `cargo`/`git` patterns:
+- **Independent Crates**: Each tool is a standalone binary with 4-word naming
+- **Mandatory Arguments Only**: No optional configuration files
+- **Pure Functions**: Deterministic input → output transformations
+- **Zero Configuration**: All parameters passed via CLI
+- **Simple Options**: Only essential flags, no complex configuration
 
-```bash
-parseltongue <SUBCOMMAND> [OPTIONS] [ARGS]
-```
-
-### Global Options (available on all subcommands)
-
-```bash
---config <PATH>              # Path to config file (default: ~/.parseltongue/config.toml)
---database <URL>             # CozoDB connection string (default: sqlite://parseltongue.db)
--v, --verbose                # Increase verbosity (use multiple times: -v, -vv, -vvv)
--q, --quiet                  # Suppress output except errors
---no-progress                # Disable progress bars for automated environments
---output-format <FORMAT>     # Output format: json, yaml, table, human (default: human)
---log-file <PATH>            # Write logs to file (default: none)
--h, --help                   # Show help
---version                    # Show version
-```
-
-### Configuration File Support
-
-```toml
-# ~/.parseltongue/config.toml
-[database]
-url = "sqlite://parseltongue.db"
-timeout = 30  # seconds
-
-[parsing]
-default_granularity = "isgl1"
-chunk_size = 1000
-parallel_workers = 4
-lsp_enabled = true
-
-[simulation]
-max_iterations = 3
-context_limit = 100000  # tokens
-timeout = 300  # seconds
-
-[validation]
-rust_toolchain = "stable"
-check_format = true
-run_tests = true
-```
-
-## Detailed CLI Specifications
-
-### Tool 1: `parseltongue index` - Repository Indexing
-
-**Purpose**: Parse and chunk Rust codebases, extract metadata, store in CozoDB
+### Global Options (All Tools)
 
 ```bash
-parseltongue index [OPTIONS] <REPOSITORY_PATH>
+--db <path>          # Database directory (default: ./parseltongue.db)
+--verbose, -v        # Verbose output
+--quiet, -q          # Minimal output
+--help, -h           # Show help
+--version            # Show version
+```
+
+### Functional Programming Principles
+
+**Pure Functions**: Each tool implements `fn(input) -> Result<output>`
+**No Side Effects**: Only intended file/database operations
+**Immutable Data**: Input data never modified in-place
+**Streaming Architecture**: Process data in chunks, never load entire datasets
+
+## Independent Crate Specifications
+
+### Crate 1: `folder-to-cozoDB-streamer`
+
+**Purpose**: Stream folder contents to CozoDB using pure functional parsing
+
+```bash
+folder-to-cozoDB-streamer [OPTIONS] <FOLDER_PATH>
 
 # Required Arguments:
-<REPOSITORY_PATH>            # Path to Rust repository to index
+<FOLDER_PATH>                # Path to folder to process
 
 # Options:
---granularity <LEVEL>        # Chunk granularity: isgl1, isgl2, function, module, crate
-                            # (default: isgl1)
---parser <BACKEND>           # Parser backend: tree-sitter, syn, rust-analyzer
-                            # (default: tree-sitter)
---lsp-enabled                # Enable rust-analyzer metadata extraction (default: true)
---lsp-path <PATH>            # Path to rust-analyzer executable
---include-tests              # Include test files in indexing (default: true)
---include-examples           # Include example files (default: false)
---include-targets <TARGETS>  # Specific targets to include (comma-separated)
---exclude-patterns <PATTERNS> # File patterns to exclude (glob syntax)
---parallel-jobs <N>          # Number of parallel parsing jobs (default: CPU count)
---chunk-size <N>             # Maximum lines per chunk (default: 1000)
---force-reindex              # Reindex even if already indexed
---dry-run                    # Show what would be indexed without processing
---batch-size <N>             # Batch size for database writes (default: 1000)
+--parsing-library tree-sitter # Parser: tree-sitter, syn, rust-analyzer
+--granularity isgl1          # Chunk granularity: isgl1, isgl2, function, module
+--include-tests              # Include test files (default: true)
+--exclude-patterns "tests/**" # Exclude patterns
+--batch-size 500             # Database batch size (default: 500)
+--workers auto               # Worker count (default: CPU cores)
+--output-db <PATH>           # CozoDB database path (required)
 ```
 
-**Examples**:
-```bash
-# Index current repository with default settings
-parseltongue index .
+**Functional Pattern**: `stream_folder_to_cozodb(path, db) -> Result<StreamStats>`
 
-# Index specific repository with ISGL2 granularity
-parseltongue index /path/to/repo --granularity isgl2
+### Crate 2: `txt-to-cozoDB-streamer`
 
-# Index with rust-analyzer metadata and custom chunk size
-parseltongue index . --lsp-enabled --chunk-size 500 --verbose
-
-# Dry run to see what would be processed
-parseltongue index . --dry-run --output-format json
-```
-
-### Tool 2: `parseltongue ingest` - Graph Database Ingestion
-
-**Purpose**: Create and populate CodeGraph from indexed chunks
+**Purpose**: Stream text file contents to CozoDB
 
 ```bash
-parseltongue ingest [OPTIONS] <INPUT_SOURCE>
+txt-to-cozoDB-streamer [OPTIONS] <FILE_PATH>
 
 # Required Arguments:
-<INPUT_SOURCE>               # Source: database path, JSON file, or directory of chunks
+<FILE_PATH>                  # Path to text file
 
 # Options:
---source-format <FORMAT>     # Input format: json, yaml, csv, database
-                            # (default: database)
---graph-name <NAME>          # CodeGraph identifier (default: "default")
---create-if-missing          # Create database if it doesn't exist (default: true)
---append                     # Append to existing graph (default: false, replaces)
---validate-schema            # Validate data against schema (default: true)
---batch-size <N>             # Batch size for inserts (default: 1000)
---skip-duplicates            # Skip duplicate entries (default: true)
---update-existing            # Update existing ISGL1 entries (default: false)
---index-current-only         # Only mark entries as current (default: true)
+--encoding utf-8             # File encoding (default: utf-8)
+--chunk-size 1000            # Processing chunk size (default: 1000)
+--format auto                # Auto-detect format (default: auto)
+--include-metadata           # Include file metadata (default: false)
+--output-db <PATH>           # CozoDB database path (required)
 ```
 
-**Examples**:
-```bash
-# Ingest from default database
-parseltongue ingest sqlite://parseltongue.db
+**Functional Pattern**: `stream_text_to_cozodb(path, db) -> Result<TextStats>`
 
-# Ingest from JSON file with validation
-parseltongue ingest chunks.json --validate-schema --verbose
+### Crate 3: `cozo-code-simulation-sorcerer`
 
-# Create new graph with custom name
-parseltongue ingest . --graph-name "project_v2" --create-if-missing
-```
-
-### Tool 3: `parseltongue simulate` - Code Simulation
-
-**Purpose**: Simulate code changes based on micro-PRD using reasoning LLM
+**Purpose**: Simulate code changes based on micro-PRD using CozoDB data
 
 ```bash
-parseltongue simulate [OPTIONS] <PRD_FILE>
+cozo-code-simulation-sorcerer [OPTIONS] <CHANGE_SPEC>
 
 # Required Arguments:
-<PRD_FILE>                   # Path to micro-PRD file (markdown or text)
+<CHANGE_SPEC>                # Path to change specification file
+--database <PATH>            # CozoDB database path (required)
 
 # Options:
---context-limit <TOKENS>     # Maximum context tokens (default: 100000)
---max-iterations <N>         # Maximum simulation iterations (default: 3)
---blast-radius <LEVEL>       # ISG traversal depth: 1, 2, 3, unlimited
---focus-area <PATTERNS>      # File/module patterns to focus on (comma-separated)
---exclude-area <PATTERNS>    # File/module patterns to exclude
---idiomatic-rust-docs <PATH> # Path to TDD idiomatic Rust documentation
---confidence-threshold <N>   # Minimum confidence to proceed (0-100, default: 80)
---interactive                # Interactive mode for unclear decisions
---save-context <PATH>        # Save reasoning context to file
---load-context <PATH>        # Load reasoning context from file
---simulation-type <TYPE>     # Type: full, test-only, code-only (default: full)
+--dry-run                    # Preview changes only (default: false)
+--impact-analysis true        # Show impact analysis (default: true)
+--confidence-threshold 80    # Confidence threshold (default: 80)
+--max-iterations 3           # Maximum simulation iterations (default: 3)
+--context-limit 100000       # Context token limit (default: 100000)
 ```
 
-**Examples**:
-```bash
-# Simulate with default settings
-parseltongue simulate micro_prd.md
+**Functional Pattern**: `simulate_changes_with_cozodb(spec, db) -> Result<SimulationPlan>`
 
-# Interactive simulation with larger context
-parseltongue simulate prd.md --interactive --context-limit 150000 --verbose
+### Crate 4: `rust-preflight-code-simulator`
 
-# Focus simulation on specific modules
-parseltongue simulate prd.md --focus-area "src/**/*" --exclude-area "tests/**"
-
-# Save and resume simulation context
-parseltongue simulate prd.md --save-context session.json
-parseltongue simulate prd.md --load-context session.json --max-iterations 5
-```
-
-### Tool 4: `parseltongue validate` - Rust Preflight Validation
-
-**Purpose**: Validate proposed changes using rust-analyzer and cargo
+**Purpose**: Validate Rust code using rust-analyzer overlay
 
 ```bash
-parseltongue validate [OPTIONS] <CHANGES_SOURCE>
+rust-preflight-code-simulator [OPTIONS] <SIMULATION_OUTPUT>
 
 # Required Arguments:
-<CHANGES_SOURCE>             # Source: simulation output, diff file, or changeset
+<SIMULATION_OUTPUT>          # Path to simulation output from Tool 3
 
 # Options:
---toolchain <TOOLCHAIN>      # Rust toolchain: stable, beta, nightly (default: stable)
---features <FEATURES>        # Cargo features to enable (comma-separated)
---all-features               # Enable all cargo features
---no-default-features        # Disable default features
---check-format               # Run rustfmt formatting check (default: true)
---run-clippy                 # Run clippy lints (default: true)
---run-tests                  # Run cargo test (default: true)
---test-threads <N>           # Number of test threads (default: CPU count)
---allow-failing-tests        # Continue validation despite test failures (default: false)
---timeout <SECONDS>          # Per-operation timeout (default: 300)
---workspace                  # Validate entire workspace (default: current package)
---target <TARGET>            # Specific target to validate
---examples                   # Validate examples (default: false)
---benches                    # Validate benchmarks (default: false)
+--check-types                # Type checking only (default: false)
+--check-borrow               # Borrow checking only (default: false)
+--compile                    # Full compilation check (default: true)
+--target debug               # Build target (default: debug)
+--timeout 300                # Timeout seconds (default: 300)
 ```
 
-**Examples**:
-```bash
-# Validate simulation changes
-parseltongue validate simulation_output.json
+**Functional Pattern**: `validate_simulated_code(simulation) -> Result<ValidationReport>`
 
-# Validate with all checks and features
-parseltongue validate changes.diff --check-format --run-clippy --run-tests --all-features
+### Crate 5: `cozoDB-to-code-writer`
 
-# Validate specific target with custom toolchain
-parseltongue validate changes.json --toolchain nightly --target "my_binary"
-
-# Quick validation without tests
-parseltongue validate changes.json --no-tests --check-format
-```
-
-### Tool 5: `parseltongue apply` - Apply Code Changes
-
-**Purpose**: Write validated changes to code files and run verification
+**Purpose**: Write validated code changes from CozoDB to actual files
 
 ```bash
-parseltongue apply [OPTIONS] <CHANGES_SOURCE>
+cozoDB-to-code-writer [OPTIONS] <VALIDATION_OUTPUT>
 
 # Required Arguments:
-<CHANGES_SOURCE>             # Source: validated changeset or simulation output
+<VALIDATION_OUTPUT>          # Path to validation output from Tool 4
+--database <PATH>            # CozoDB database path (required)
 
 # Options:
---backup                     # Create backup before applying changes (default: true)
---backup-dir <DIR>           # Backup directory (default: .parseltongue/backups)
---dry-run                    # Show changes without applying (default: false)
---force                      # Apply changes even with warnings (default: false)
---verify-after               # Run cargo build/test after applying (default: true)
---parallel-jobs <N>          # Number of parallel file operations (default: 4)
---create-dirs                # Create parent directories as needed (default: true)
---preserve-permissions       # Preserve file permissions (default: true)
---diff-format <FORMAT>       # Diff output format: unified, context, minimal
---interactive                # Interactive confirmation for each change
---rollback-on-failure        # Rollback changes if verification fails (default: true)
+--backup-dir <PATH>          # Backup directory (default: ./backups)
+--dry-run false              # Preview only (default: false)
+--parallel-jobs 4            # Parallel file operations (default: 4)
+--verify-after true          # Run cargo build/test after apply (default: true)
 ```
 
-**Examples**:
-```bash
-# Apply changes with backup and verification
-parseltongue apply validated_changes.json
+**Functional Pattern**: `write_cozodb_changes_to_files(validation, db) -> Result<WriteStats>`
 
-# Dry run to preview changes
-parseltongue apply changes.json --dry-run --diff-format unified
+### Crate 6: `cozoDB-make-future-code-current`
 
-# Apply changes interactively
-parseltongue apply changes.json --interactive --backup-dir ./my_backups
-
-# Force apply with automatic rollback on failure
-parseltongue apply changes.json --force --rollback-on-failure --verify-after
-```
-
-### Tool 6: `parseltongue commit` - Clean Slate Protocol
-
-**Purpose**: Commit changes and reset CodeGraph state
+**Purpose**: Reset CodeGraph state after successful changes (CRITICAL: handles data consistency)
 
 ```bash
-parseltongue commit [OPTIONS] [MESSAGE]
+cozoDB-make-future-code-current [OPTIONS] <WRITE_OUTPUT>
 
-# Optional Arguments:
-[MESSAGE]                    # Commit message (if not provided, opens editor)
+# Required Arguments:
+<WRITE_OUTPUT>               # Path to write output from Tool 5
+--database <PATH>            # CozoDB database path (required)
 
 # Options:
---reset-graph                # Reset CodeGraph to current state (default: true)
---graph-name <NAME>          # Specific graph to reset (default: "default")
---amend                      # Amend previous commit (default: false)
---allow-empty                # Allow empty commits (default: false)
---sign                       # GPG sign commit (default: false)
---no-verify                  # Skip pre-commit hooks (default: false)
---backup-graph <PATH>        # Backup graph state before reset
---tag <TAG>                  # Create tag after commit
---push                       # Push to remote after commit (default: false)
---remote <REMOTE>            # Remote to push to (default: "origin")
---branch <BRANCH>            # Branch to push to (default: current branch)
+--source-of-trust files      # Data source: files|cozodb|reparse (default: files)
+--metadata-strategy preserve # Metadata handling: preserve|regenerate|hybrid (default: preserve)
+--commit-message ""          # Auto commit message (optional)
+--verify-consistency true    # Verify data consistency (default: true)
 ```
 
-**Examples**:
-```bash
-# Commit with automatic message and graph reset
-parseltongue commit "Implement feature X with tests"
+**Functional Pattern**: `reset_cozodb_to_current_state(write_output, db) -> Result<ResetStats>`
 
-# Commit with custom message and tag
-parseltongue commit "Fix critical bug in module Y" --tag "v1.2.3"
+## Critical Data Consistency Challenge (Tool 6)
 
-# Amend previous commit and push
-parseltongue commit --amend --push
+### The Fundamental Problem
 
-# Commit with graph backup
-parseltongue commit "Major refactor" --backup-graph ./graph_backup.json
+**Tool 6 (`cozoDB-make-future-code-current`)** faces a critical architectural challenge in maintaining data consistency between three different sources of truth:
+
+#### **Three Competing Data Sources:**
+
+1. **CozoDB Future_Code** (Simulation Intent)
+   - What the reasoning LLM intended to write
+   - Pure, theoretical representation
+   - May not match actual filesystem state
+
+2. **Actual Files** (Written by Tool 5)
+   - What `cozoDB-to-code-writer` actually created
+   - Real filesystem state
+   - May differ from simulation intent due to formatting, edge cases, or write failures
+
+3. **Current CodeGraph Metadata** (Existing CozoDB Data)
+   - Rich metadata from multiple parsers
+   - `interface_signature` (tree-sitter)
+   - `lsp_meta_data` (rust-analyzer)
+   - `TDD_Classification` (automated analysis)
+   - LLM summaries and other enriched data
+
+#### **CodeGraph Structure Complexity:**
+
+```
+ISGL1 (Primary Key) | Current_Code | Future_Code | interface_signature | lsp_meta_data | TDD_Classification | current_id | future_id
 ```
 
-### Tool 7: `parseltongue status` - System Status and Analytics
-
-**Purpose**: Show repository status, graph analytics, and system information
-
-```bash
-parseltongue status [OPTIONS]
-
-# Options:
---format <FORMAT>            # Output format: table, json, yaml, markdown
---detailed                   # Show detailed statistics (default: false)
---graph-stats                # Show CodeGraph statistics (default: true)
---recent-changes             # Show recent changes (default: false)
---health-check               # Run system health check (default: false)
---performance                # Show performance metrics (default: false)
---last-simulation            # Show last simulation results (default: false)
---pending-changes            # Show pending uncommitted changes
-```
-
-**Examples**:
-```bash
-# Show basic status
-parseltongue status
-
-# Detailed status in JSON format
-parseltongue status --detailed --format json
-
-# Show recent changes and performance
-parseltongue status --recent-changes --performance
-
-# Full health check
-parseltongue status --health-check --detailed
-```
-
-## Configuration and Environment Variables
-
-### Environment Variable Support
+### Architectural Decision Options
 
 ```bash
 # Database configuration
@@ -364,6 +223,70 @@ PARSELTOngue_CONFIG_DIR="/path/to/config"
 PARSELTOngue_DATA_DIR="/path/to/data"
 PARSELTOngue_LOG_LEVEL="info"
 ```
+
+#### **Option 1: Trust CozoDB Future_Code**
+```bash
+cozoDB-make-future-code-current --source-of-trust cozodb --metadata-strategy preserve
+```
+**Approach:**
+- Use `Future_Code` from CozoDB as new `Current_Code`
+- Preserve all existing metadata
+- Ignore actual filesystem differences
+
+**Pros:**
+- Maintains data consistency within CozoDB
+- Preserves rich metadata
+- Fast operation (no re-parsing)
+
+**Cons:**
+- CozoDB state diverges from filesystem
+- Future operations based on outdated metadata
+- Risk of database vs reality mismatch
+
+#### **Option 2: Trust Files (Re-parse Everything)**
+```bash
+cozoDB-make-future-code-current --source-of-trust files --metadata-strategy regenerate
+```
+**Approach:**
+- Read actual files written by Tool 5
+- Re-parse with all tools (tree-sitter, rust-analyzer, LLM)
+- Regenerate all metadata from scratch
+
+**Pros:**
+- CozoDB matches filesystem exactly
+- Fresh, accurate metadata
+- No data drift over time
+
+**Cons:**
+- Computationally expensive
+- May lose metadata that can't be regenerated
+- Risk of regeneration failures
+
+#### **Option 3: Hybrid Strategy (Recommended)**
+```bash
+cozoDB-make-future-code-current --source-of-trust hybrid --metadata-strategy hybrid
+```
+**Approach:**
+- Use actual file content as new `Current_Code`
+- Preserve metadata that's still valid
+- Regenerate metadata that's inconsistent
+- Flag and handle mismatches
+
+### Recommended Configuration
+
+```bash
+# Production-safe configuration
+cozoDB-make-future-code-current \
+  --source-of-trust hybrid \
+  --metadata-strategy hybrid \
+  --verify-consistency true \
+  --backup-metadata true \
+  --on-mismatch prompt \
+  --on-metadata-fallback preserve \
+  --consistency-report detailed
+```
+
+This approach balances data integrity with practical considerations, ensuring CozoDB remains the authoritative source while acknowledging the complexity of maintaining consistency with real-world filesystem operations.
 
 ### Shell Completion
 
@@ -572,4 +495,107 @@ parseltongue index . --database sqlite://db.sqlite
 parseltongue ingest sqlite://db.sqlite
 ```
 
-This detailed CLI architecture provides a comprehensive, developer-friendly interface that follows Rust ecosystem best practices while maintaining the reliability-first approach required for complex codebase modifications.
+## Functional Programming Architecture
+
+### Core Traits (Pure Functional)
+
+#### Parser Trait (`pure_parse` crate)
+```rust
+trait Parser: Clone + Send {
+    type Input;
+    type Output;
+
+    fn parse(&self, input: &Self::Input) -> Result<Self::Output>;
+}
+
+// Implementation: Immutable input -> parsed output
+// No side effects, no global state, pure functions only
+```
+
+#### Chunker Trait (`fold_chunk` crate)
+```rust
+trait Chunker: Clone + Send {
+    type Input;
+    type Output;
+
+    fn chunk(&self, input: &Self::Input) -> Vec<Self::Output>;
+}
+
+// Implementation: Fold parsed data into immutable chunks
+// Monoidal reduction, associative, parallelizable
+```
+
+### Minimalistic Workflow Examples
+
+#### Basic Repository Processing
+```bash
+# Step 1: Stream folder to CozoDB
+folder-to-cozoDB-streamer . --output-db ./parseltongue.db --granularity isgl1
+
+# Step 2: Create change specification
+echo "Add async support to UserService" > changes.md
+
+# Step 3: Simulate changes using CozoDB
+cozo-code-simulation-sorcerer changes.md --database ./parseltongue.db
+
+# Step 4: Validate proposed changes
+rust-preflight-code-simulator simulation_output.json
+
+# Step 5: Write validated changes to files
+cozoDB-to-code-writer validation_output.json --database ./parseltongue.db
+
+# Step 6: Reset CozoDB state to current
+cozoDB-make-future-code-current write_output.json --database ./parseltongue.db
+```
+
+#### Text Document Processing
+```bash
+# Stream text document to CozoDB
+txt-to-cozoDB-streamer document.md --output-db ./parseltongue.db --encoding utf-8
+
+# Process document-based changes
+cozo-code-simulation-sorcerer doc_changes.md --database ./parseltongue.db
+
+# Validate and apply changes
+rust-preflight-code-simulator simulation_output.json
+cozoDB-to-code-writer validation_output.json --database ./parseltongue.db
+cozoDB-make-future-code-current write_output.json --database ./parseltongue.db
+```
+
+### Performance Characteristics
+
+**Streaming Architecture**:
+- Process data in chunks (default 500-1000 items)
+- Never load entire datasets into memory
+- Parallel processing where possible
+- Lazy evaluation for large inputs
+
+**Memory Efficiency**:
+- Immutable data structures with `Cow<'a, str>` for borrow-or-clone
+- Arena allocators for large parsing tasks
+- Automatic memory cleanup via RAII
+- Zero-copy operations where possible
+
+### Migration from v0.1
+
+**Old Separate Binaries**:
+```bash
+folder-to-cozoDB-streamer --input . --output db.sqlite
+txt-to-cozoDB-streamer --file doc.txt --output db.sqlite
+cozo-code-simulation-sorcerer --spec changes.md
+run-rust-preflight-code-simulator --code proposal.rs
+cozoDB-to-code-writer --template Template --output file.rs
+cozoDB-make-future-code-current --template Template --target src/
+```
+
+**New Independent Crates**:
+```bash
+code-folder-to-stream . --batch-size 500
+text-file-to-stream doc.txt --encoding utf-8
+code-change-to-simulate changes.md --target Interface
+rust-code-to-validate proposal.rs --compile
+code-templates-to-write Template --output file.rs
+code-templates-to-apply Template --target src/
+```
+
+This minimalistic architecture provides pure functional interfaces with mandatory arguments only, focusing on streaming data processing and deterministic transformations suitable for large-scale Rust codebase analysis and modification.
