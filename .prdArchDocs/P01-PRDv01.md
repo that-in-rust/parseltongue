@@ -7,6 +7,14 @@
 - write-final-code-changes
 - clean-slate-protocol-enforcer
 
+# Reasoning ideas
+
+- We will parse and chunk via a tool but where will it actually be kept?
+    - Can a tree-sitter parse a codebase or txt file and output what?
+        - should we insert it in cozoDB by default
+        - 
+
+
 # Detailed User Journey
 - Executive Summary for Parseltongue
     - User Segment: Developers on large Rust codebases ONLY
