@@ -1,18 +1,36 @@
 # Cargo List and command lists
 
-- isg-code-chunk-streamer
-- ingest-chunks-to-codegraph
+- folder-to-cozoDB-streamer
+- txt-to-cozoDB-streamer
 - cozo-code-simulation-sorcerer
 - run-rust-preflight-code-simulator
-- write-final-code-changes
-- clean-slate-protocol-enforcer
+- cozoDB-to-code-writer
+- cozoDB-make-future-code-current
 
 # Reasoning ideas
 
-- We will parse and chunk via a tool but where will it actually be kept?
-    - Can a tree-sitter parse a codebase or txt file and output what?
-        - should we insert it in cozoDB by default
-        - 
+- folder-to-cozoDB-streamer
+    - We will parse and chunk via a tool but where will it actually be kept?
+        - Can a tree-sitter parse a codebase or txt file and output what?
+            - should we insert it in cozoDB by default
+            - commands
+                - command01
+                    - argument01: type of input
+                        - folder
+                        - txt
+                    - argument02: absolute path of input
+                    - argument03: parsing-chunking library
+                        - tree-sitter
+                        - syn
+                        - rust-analyzer
+                        - some-text-based-parsing-chunking-library01
+                        - some-text-based-parsing-chunking-library02
+                    - argument04: granularity of parsing-chunking
+                        - ISGL1
+                        - ISGL2
+                        - text-granularity-inputs
+                    - argument05: new output cozodb database filepath-filename
+
 
 
 # Detailed User Journey
@@ -33,7 +51,7 @@
             - Tell user that code indexing has begun and will take 10 minutes
                 - For the github repo
                     - trigger the following tools
-                        - tool 01: isg-code-chunk-streamer
+                        - tool 01: folder-to-cozoDB-streamer
                             - tool will read code based mother git repo where it located, using tree sitter
                             - tool will choose granularity of chunks
                             - optional: tool will call lsp (rust-analyzer) for meta-data about code-chunk-raw
