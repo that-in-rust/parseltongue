@@ -1,7 +1,6 @@
 # Cargo List and command lists
 
 - folder-to-cozoDB-streamer
-- txt-to-cozoDB-streamer
 - cozo-code-simulation-sorcerer
 - run-rust-preflight-code-simulator
 - cozoDB-to-code-writer
@@ -17,7 +16,6 @@
                 - command01
                     - argument01: type of input
                         - folder
-                        - txt
                     - argument02: absolute path of input
                     - argument03: parsing-chunking library
                         - tree-sitter
@@ -56,17 +54,15 @@
                             - tool will choose granularity of chunks
                             - optional: tool will call lsp (rust-analyzer) for meta-data about code-chunk-raw
                             - tool will output aggregated-primarykey + code-chunk-raw + tree-sitter-signature + TDD_classification +lsp-meta-data (optional)
-                        - tool 02: ingest-chunks-to-codegraph
-                            - tool02 create CodeGraph (single write surface)
+                        - folder-to-cozoDB-streamer creates CodeGraph (single write surface)
                                 - indexed by ISGL1 key (filepath-filename-InterfaceName)
                                 - columns (minimal, opinionated):
-                                    - receieved columns from tool 01
-                                        - ISGL1 primary key (receives the output of tool 01 - aggregated-primarykey)
-                                        - Current_Code (receives the output of tool 01 - code-chunk, can be empty if upsert of new ISGL1 + other fields happen)
-                                        - interface_signature (receives the output of tool 01 - tree-sitter-signature, optional)                                        
-                                        - TDD_Classification (whether the ISGL1 is TEST_IMPLEMENTATION, CODE_IMPLEMENTATION received from tool 01)
+                                    - ISGL1 primary key (aggregated-primarykey)
+                                        - Current_Code (code-chunk from parsing, can be empty if upsert of new ISGL1 + other fields happen)
+                                        - interface_signature (tree-sitter-signature, optional)
+                                        - TDD_Classification (TEST_IMPLEMENTATION or CODE_IMPLEMENTATION)
                                         - current_id (1 by default at time of ingestion)
-                                        - lsp_meta_data (receives the output of tool 01 - lsp-meta-data)
+                                        - lsp_meta_data (LSP metadata, optional)
                                     - empty columns
                                         - Future_Code (by default empty, edited by action of reasoning LLM)
                                         - Future_Action (by default None, edited by action of reasoning LLM to be None|Create|Edit|Delete)
@@ -90,10 +86,10 @@
                         - Functionality wise
                     - After 2 iterations the reasoning-llm will accept the micro-PRD
                     - Ask the reasoning LLM to reset the context because likely it will overflow and micro-PRD final needs to be isolated
-                - tool 3: cozo-code-simulation-sorcerer is triggered
+                - tool 2: cozo-code-simulation-sorcerer is triggered
                     - use TDD_idiomatic_rust_steering_doc for all cozo-code-simulation-sorcerer while reasoning through code
-                    - tool 3 creates a base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(LSGL1 + interface_signature + TDD_Classification + lsp_meta_data)
-                    - tool 3 asks the reasoning-llm to suggest the following to the Code-Graph based on base-context-area
+                    - tool 2 creates a base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(LSGL1 + interface_signature + TDD_Classification + lsp_meta_data)
+                    - tool 2 asks the reasoning-llm to suggest the following to the Code-Graph based on base-context-area
                         - Step A: ISG level simulations
                             - Step A01: Create Edit Delete Test Interface Rows ; call these changes test-interface-changes
                                 - addition Interfaces : new LSGL1 rows which will be current_ind = 0 & future_ind = 1 & Current_Code = empty & Future_Code=empty & Future_Action=Create
@@ -111,20 +107,68 @@
                                 - if the LLM thinks that we need to refine the solutioning further, repeat Steps A01 A02 and then basis them repeat Steps B01
                                 - if the LLM doesn't feel confident of the changes, it should speak to the user to get additional context or web help sharing their current understanding in an MD file
                                 - if the LLM feels confident of the changes, we move to next step
-                        - Step C : tool04 : rust-preflight-code-simulator tool triggered for Rust use cases rust-analyzer overlay
+                        - Step C : tool03 : rust-preflight-code-simulator tool triggered for Rust use cases rust-analyzer overlay
                                 - if the rust-preflight-code-simulator tool fails then we go back to previous steps A01 onwards
                                 - if the rust-preflight-code-simulator tool passes then we move to next step
-                        - Step D: run tool05: write-final-code-changes tool
+                        - Step D: run tool04: cozoDB-to-code-writer tool
                             - Step D01 write the changes to code files
                             - Step D02 run cargo build
                             - Step D03 run cargo test
                             - Step D04: if cargo build fails then go back to previous steps A01 onwards
                             - Step D05: if cargo test fails then go back to previous steps A01 onwards
                             - Step D06: if cargo build and cargo test pass then we move to next step
-            - Ask user if he is satisfied with how the code is working 
-                - if yes trigger tool07: clean-slate-protocol-enforcer tool
-                    - clean-slate-protocol-enforcer makes a commit with list of changes
-                    - clean-slate-protocol-enforcer resets the CodeGraph and updates all rows in CozoDB database
+            - Ask user if he is satisfied with how the code is working
+                - if yes trigger tool05: cozoDB-make-future-code-current tool
+                    - cozoDB-make-future-code-current makes a commit with list of changes
+                    - cozoDB-make-future-code-current resets the CodeGraph and updates all rows in CozoDB database
 
+## Backlog Items for Future Research
 
+### Domain Research Backlog
 
+**Text Input Processing**
+- txt-to-cozoDB-streamer: Direct text file input processing (moved to backlog)
+- Rationale: Folder-based approach provides sufficient coverage for immediate needs
+- Research needed: Performance comparison vs folder-based processing
+
+**Remote Repository Support**
+- Git repository cloning and processing
+- Rationale: Local folder processing is priority for immediate delivery
+- Research needed: Authentication handling, large repo optimization
+
+**Document Format Support**
+- PDF → structured text conversion
+- HTML/Markdown → structured text with hierarchy
+- DOCX → text with style-based structure
+- Rationale: Focus on code files first, documents later
+- Research needed: Format detection, layout analysis algorithms
+
+**Advanced Input Types**
+- Gitingest unified text representation processing
+- Rationale: Niche use case, prioritize core functionality
+- Research needed: Protocol handling, parsing optimization
+
+**Enhanced Chunking Strategies**
+- Document section chunking for non-code content
+- Semantic chunking with overlap for better context
+- Rationale: AST-based chunking covers primary code use cases
+- Research needed: Embedding models, semantic similarity algorithms
+
+### Architectural Enhancements Backlog
+
+**Multi-Repository Batch Processing**
+- Process multiple codebases in single workflow
+- Rationale: Single repo focus for MVP
+- Research needed: Parallel processing, dependency resolution
+
+**Advanced Parser Integration**
+- Additional language support beyond Rust
+- Custom parser plugins
+- Rationale: Rust-only focus for initial release
+- Research needed: Parser abstraction, language-specific AST handling
+
+**Enhanced Validation**
+- Multi-language compilation checking
+- Integration testing pipeline
+- Rationale: Rust-specific validation is priority
+- Research needed: Language-specific toolchains, sandboxing
