@@ -36,10 +36,10 @@ graph TB
             Current[Current State:<br/>current_ind = 1]
             Future[Future State:<br/>future_ind = 1]
 
-            Current --> |"Entities existing now"| State11[(1,1)<br/>Exists-Continues]
-            Current --> |"Entities to delete"| State10[(1,0)<br/>Exists-Will Delete]
-            Future --> |"Entities to create"| State01[(0,1)<br/>Will Create-Exists]
-            Future --> |"Entities to edit"| State11_Edit[(1,1)<br/>Exists-Modified]
+            Current --> |"Entities existing now"| State11[(1,1)<br/>Unchanged]
+            Current --> |"Entities to delete"| State10[(1,0)<br/>Delete]
+            Future --> |"Entities to create"| State01[(0,1)<br/>Create]
+            Future --> |"Entities to edit"| State11_Edit[(1,1)<br/>Modify]
         end
 
         CozoDB --> State11
