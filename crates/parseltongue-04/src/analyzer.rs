@@ -2,7 +2,7 @@
 //! Provides comprehensive Rust code validation using rust-analyzer
 
 use crate::validation::{ValidationError, ValidationOutput, ValidationType};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::path::PathBuf;
 use std::time::Duration;
 use tokio::process::Command as TokioCommand;

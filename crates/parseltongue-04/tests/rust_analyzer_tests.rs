@@ -629,7 +629,7 @@ mod property_tests {
             // This should fail because rust-analyzer integration doesn't exist yet
 
             let temp_dir = TempDir::new().unwrap();
-            let project_path = temp_dir.path().to_path_buf();
+            let _project_path = temp_dir.path().to_path_buf();
 
             let cargo_toml = r#"[package]
 name = "property-test"

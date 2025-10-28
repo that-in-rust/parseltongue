@@ -642,9 +642,9 @@ mod property_tests {
     proptest! {
         #[test]
         fn test_performance_contract_time_limits(
-            max_syntax_time_ms in 1u64..1000,
-            max_type_time_ms in 1u64..5000,
-            max_compilation_time_ms in 1u64..10000
+            _max_syntax_time_ms in 1u64..1000,
+            _max_type_time_ms in 1u64..5000,
+            _max_compilation_time_ms in 1u64..10000
         ) {
             // RED: Property-based test for performance contract time limits
             // This should fail because ValidationPerformanceContract doesn't exist yet
