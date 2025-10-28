@@ -139,11 +139,11 @@ Before using this agent, ensure you have:
 - **Input**: Project folder path
 - **Output**: CozoDB database with code graph
 
-### Tool 2: cozo-reasoning-writer
+### Tool 2: cozo-to-context-writer
 - **When**: Phase 2 (context extraction)
 - **Purpose**: Export relevant code context as JSON for LLM reasoning
-- **Input**: Micro-PRD + database
-- **Output**: JSON context file
+- **Input**: Micro-PRD + database + CozoDB query
+- **Output**: CodeGraphContext.json
 
 ### Tool 3: rust-preflight-code-simulator
 - **When**: Phase 3 (validation)

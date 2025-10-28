@@ -47,9 +47,9 @@ This section provides a high-level command reference for all Parseltongue tools.
 command-01: folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --chunking-method <METHOD> --output-db <DATABASE_PATH>
 ```
 
-#### cozo-reasoning-writer
+#### cozo-to-context-writer
 ```bash
-command-01: cozo-reasoning-writer <MICRO_PRD> --database <DATABASE_PATH> --output-context <JSON_FILE>
+command-01: cozo-to-context-writer <MICRO_PRD> --database <DATABASE_PATH> --query <COZO_QUERY> --output-context <JSON_FILE>
 ```
 
 #### rust-preflight-code-simulator
@@ -224,28 +224,28 @@ folder-to-cozoDB-streamer /path/to/rust/repo --parsing-library txt-parsing --chu
 ISGL1 (Primary Key) | Current_Code | Future_Code | interface_signature | lsp_meta_data | TDD_Classification | current_id | future_id
 ```
 
-#### Tool 2: cozo-reasoning-writer
+#### Tool 2: cozo-to-context-writer
 
 **Purpose**: Query CozoDB and export JSON context files for external LLM reasoning
 
 ```bash
-cozo-reasoning-writer <MICRO_PRD> --database <DATABASE_PATH> --output-context <JSON_FILE>
+cozo-to-context-writer <MICRO_PRD> --database <DATABASE_PATH> --query <COZO_QUERY> --output-context <JSON_FILE>
 
 # Required Arguments:
 <MICRO_PRD>                  # Path to micro-PRD text file
 --database <DATABASE_PATH>   # CozoDB database path
---output-context <JSON_FILE> # Output JSON context file for LLM
+--query <COZO_QUERY>         # CozoDB query string (see CozoDbQueryRef.md)
+--output-context <JSON_FILE> # Output JSON context file for LLM (default: CodeGraphContext.json)
 
-# Optional:
---query-filter <FILTER>      # Filter specific interfaces/relationships
---include-metadata           # Include LSP and TDD metadata
+# Example:
+cozo-to-context-writer ./micro-prd.md --database ./parseltongue.db --query "?[interface_signature {...}]" --output-context CodeGraphContext.json
 ```
 
-**Simple Workflow**:
-1. **Query CozoDB**: Extract relevant CodeGraph data based on micro-PRD
-2. **Context Export**: Create structured JSON file with current code state
-3. **External Reasoning**: LLM agent reads JSON, performs reasoning, writes output
-4. **Import Results**: Parse LLM reasoning output back into CozoDB with future flags
+**LLM Integration Workflow**:
+1. **Query CozoDB**: Extract relevant CodeGraph data using LLM-specified query
+2. **Context Export**: Create CodeGraphContext.json with current code state
+3. **External Reasoning**: LLM agent reads PRD.md + CodeGraphContext.json + CozoDbQueryRef.md
+4. **Change Planning**: LLM performs reasoning and generates structured change specification
 
 **JSON Context Structure**:
 ```json
