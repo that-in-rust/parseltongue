@@ -186,7 +186,7 @@ flowchart TD
         Validation --> FileWrite["Write changes<br/>cozoDB-to-code-writer"]
         FileWrite --> StateReset["Reset database<br/>cozoDB-make-future-code-current"]
         StateReset --> GitCommit["Auto-git commit<br/>of changes"]
-        GitCommit --> AgentSuccess["✅ Complete<br/>Workflow Success"]
+        GitCommit --> AgentSuccess["Workflow<br/>Complete"]
     end
 
     subgraph AdvancedOptions ["Advanced Options (5% of users)"]
@@ -204,13 +204,13 @@ flowchart TD
     end
 
     subgraph CommonScenarios ["Bug Fixing Scenarios"]
-        AgentSuccess --> Scenario1["Scenario 1:<br/>Panic/Segfault Fix<br/>'#1234: Null pointer crash'"]
-        AgentSuccess --> Scenario2["Scenario 2:<br/>Logic Error Fix<br/>'#5678: Wrong calculation result'"]
-        AgentSuccess --> Scenario3["Scenario 3:<br/>Memory Leak Fix<br/>'#9012: Resource not freed'"]
+        AgentSuccess --> Scenario1["Panic/Segfault<br/>Issue #1234"]
+        AgentSuccess --> Scenario2["Logic Error<br/>Issue #5678"]
+        AgentSuccess --> Scenario3["Memory Leak<br/>Issue #9012"]
 
-        Scenario1 --> TimeEstimate1["⏱️ 3-5 minutes<br/>Panic analysis + fix"]
-        Scenario2 --> TimeEstimate2["⏱️ 10-15 minutes<br/>Logic tracing + correction"]
-        Scenario3 --> TimeEstimate3["⏱️ 5-10 minutes<br/>Memory analysis + cleanup"]
+        Scenario1 --> TimeEstimate1["3-5 minutes<br/>Panic analysis + fix"]
+        Scenario2 --> TimeEstimate2["10-15 minutes<br/>Logic tracing + correction"]
+        Scenario3 --> TimeEstimate3["5-10 minutes<br/>Memory analysis + cleanup"]
     end
 
     %% Feedback loops
@@ -334,20 +334,19 @@ cp target/release/parseltongue /path/to/your/repo/
 - **Windows**: Not supported (strategic focus on Unix-like environments)
 
 **Strategic Rationale for Bug-Fixing Focus**:
-- **Precise Problem Definition**: Bugs come with clear error messages, stack traces, and reproduction steps
+- **Precise Problem Definition**: Bugs include error messages, stack traces, and reproduction steps
 - **Clear Success Criteria**: Bug is fixed when error no longer occurs and tests pass
-- **High Business Value**: Developers get paid to fix bugs; bugs block releases and user workflows
-- **Perfect LLM Fit**: Error analysis, pattern matching, and code generation are LLM strengths
-- **Measurable Impact**: Before/after comparison is clear (crash → no crash, wrong → correct)
-- **Repeatable Workflows**: Common bug patterns can be recognized and fixed automatically
+- **Direct Value**: Bug resolution is a primary developer task
+- **Technical Fit**: Error analysis, pattern matching, and code generation align with LLM capabilities
+- **Measurable Results**: Before/after comparison is verifiable
+- **Automated Patterns**: Common bug types can be addressed systematically
 
 **Strategic Rationale for Apple Silicon Focus**:
 - **Unified Hardware**: Consistent performance across M1/M2/M3 with unified memory architecture
-- **High-Value Market**: Apple Silicon users represent premium developer segment
-- **Rust Developer Concentration**: Large percentage of serious Rust developers use MacBooks
-- **Simplified Distribution**: Single binary target, Homebrew integration, .dmg installers
-- **Performance Optimization**: Apple Silicon's ARM architecture offers excellent performance for static analysis
-- **Reduced Support Overhead**: Focus resources on one high-value platform initially
+- **Developer Concentration**: Rust developers commonly use MacBooks
+- **Simplified Distribution**: Single binary target, Homebrew integration
+- **Performance**: ARM architecture provides good performance for static analysis
+- **Support Focus**: Resources concentrated on one platform initially
 
 **Reliability-First Principle**:
 - Optimize for accurate 1-go fixes that feel trustworthy and increase user efficacy
@@ -358,7 +357,7 @@ cp target/release/parseltongue /path/to/your/repo/
 - **Shreyas Doshi**: Prioritize first-apply correctness over speed. Design for clarity, safety, and explicit confidence gating. Time is a secondary outcome.
 - **Jeff Dean**: Make correctness the fast path. Push work to deterministic, cacheable computations (ISG, RA, HNSW). Parallelize retrieval/validation; minimize token movement; measure token-per-fix and cache hit rates.
 
-**User Promise**: "When I encounter a Rust bug, I provide the GitHub issue link or error details, and the system automatically analyzes the problem, generates a precise fix, and applies it with full validation. Bug resolution time goes from hours to minutes while maintaining 100% correctness."
+**User Promise**: "When I encounter a Rust bug, I provide the issue details and receive a validated fix that compiles and passes tests. Bug resolution time is reduced from manual debugging to automated analysis."
 
 ## Local Folder Architecture
 
