@@ -234,11 +234,12 @@ impl SimulationPlan {
     }
 
     /// Check for circular dependencies
-    fn has_circular_dependencies(&self) -> bool {
+    pub fn has_circular_dependencies(&self) -> bool {
         // Simple depth-first search to detect cycles
         let mut visited = std::collections::HashSet::new();
         let mut rec_stack = std::collections::HashSet::new();
 
+        // Check all steps in the plan
         for step in &self.steps {
             if !visited.contains(&step.id) {
                 if self.has_cycle_dfs(step.id, &mut visited, &mut rec_stack) {
@@ -246,6 +247,22 @@ impl SimulationPlan {
                 }
             }
         }
+
+        // Also check dependencies that don't have corresponding steps
+        for (step_id, dependencies) in &self.dependencies {
+            // Skip if step exists (already checked above)
+            if self.steps.iter().any(|s| s.id == *step_id) {
+                continue;
+            }
+
+            // Check this orphaned dependency for cycles
+            if !visited.contains(step_id) {
+                if self.has_cycle_dfs(*step_id, &mut visited, &mut rec_stack) {
+                    return true;
+                }
+            }
+        }
+
         false
     }
 

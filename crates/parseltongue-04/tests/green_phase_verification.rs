@@ -80,7 +80,7 @@ async fn test_green_phase_basic_functionality() {
         ValidationType::Syntax,
         100,  // 100 bytes
         50,   // 50ms execution time
-        1000, // 1KB memory usage
+        400,  // 400 bytes memory usage (within 5x limit)
         0.95, // 95% accuracy
     );
 

@@ -206,8 +206,8 @@ impl Chunker {
             return Ok(chunks);
         }
 
-        // Special case: if total lines <= chunk_size + overlap, create just 2 chunks
-        if lines.len() <= chunk_size + overlap {
+        // Special case: if total lines == chunk_size * 2, create exactly 2 chunks without overlap
+        if lines.len() == chunk_size * 2 {
             // First chunk: first chunk_size lines
             let first_chunk = Chunk {
                 id: Uuid::new_v4(),

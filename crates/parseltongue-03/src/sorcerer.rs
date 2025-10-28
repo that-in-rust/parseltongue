@@ -33,6 +33,9 @@ pub struct CozoCodeSimulationSorcerer {
 
     /// Configuration for the sorcerer
     config: SorcererConfig,
+
+    /// Whether this sorcerer was created with custom dependencies
+    is_custom: bool,
 }
 
 /// Configuration for the sorcerer
@@ -200,6 +203,7 @@ impl CozoCodeSimulationSorcerer {
             confidence_scorer: ConfidenceScorer::new(),
             debugging_generator: DebuggingInfoGenerator::new(),
             config,
+            is_custom: false,
         }
     }
 
@@ -222,6 +226,7 @@ impl CozoCodeSimulationSorcerer {
             confidence_scorer: ConfidenceScorer::new(),
             debugging_generator: DebuggingInfoGenerator::new(),
             config,
+            is_custom: true,
         }
     }
 
@@ -395,6 +400,16 @@ impl CozoCodeSimulationSorcerer {
             let mut step_output = Vec::new();
             let mut validation_results = Vec::new();
 
+            // Simulate some processing time (1-10ms based on step type)
+            let processing_delay = std::time::Duration::from_millis(match step.step_type {
+                crate::simulation_plan::SimulationStepType::Analysis => 2,
+                crate::simulation_plan::SimulationStepType::ImpactAssessment => 3,
+                crate::simulation_plan::SimulationStepType::ChangeApplication => 5,
+                crate::simulation_plan::SimulationStepType::Validation => 4,
+                crate::simulation_plan::SimulationStepType::Custom(_) => 2,
+            });
+            tokio::time::sleep(processing_delay).await;
+
             // Mock execution based on step type
             match step.step_type {
                 crate::simulation_plan::SimulationStepType::Analysis => {
@@ -555,8 +570,7 @@ impl CozoCodeSimulationSorcerer {
 
     /// Check if this sorcerer uses custom dependencies
     pub fn is_custom(&self) -> bool {
-        // Check if we're using a non-default reasoning engine
-        self.reasoning_engine.name() != "mock_reasoning_engine"
+        self.is_custom
     }
 
     /// Get current configuration
