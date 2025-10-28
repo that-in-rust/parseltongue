@@ -138,14 +138,27 @@ parseltongue reason --query "
 
 ### Phase 4: File Writing & Testing
 
-**Objective**: Apply validated changes to actual files
+**Objective**: Apply validated changes to actual files and perform multi-layer validation
 
 **Actions**:
 1. Run Tool 4 to write changes with safety checks
 2. Create automatic backups before modifications
 3. Apply changes atomically with rollback capability
-4. Run cargo build and cargo test on real codebase
-5. Return to Phase 2 if tests fail
+4. **Build Validation**: Run cargo build
+5. **Test Validation**: Run cargo test
+6. **Runtime Validation**: Run integration/smoke tests
+7. **Performance Validation**: Run benchmarks (if applicable)
+8. **Code Quality**: Run clippy/rustfmt checks
+9. **CI/CD Validation**: Validate pipeline compatibility
+10. Return to appropriate phase if any validation fails
+
+**Validation Recovery Loops**:
+- **Build fails** → Fix syntax/dependency issues → Re-write files
+- **Tests fail** → Fix logic issues → Back to Phase 3 (re-validation)
+- **Runtime errors** → Fix implementation bugs → Re-write files
+- **Performance regression** → Optimize implementation → Back to Phase 2
+- **Linter errors** → Fix style/safety issues → Re-write files
+- **Pipeline failures** → Fix CI/CD compatibility → Re-write files
 
 **User Experience**:
 ```
@@ -154,7 +167,11 @@ parseltongue reason --query "
 📝 Modified 23 files across 4 modules
 🔨 Building project... ✅
 🧪 Running tests... ✅ (142/142 passed)
-✅ Changes applied successfully!
+🚀 Runtime validation... ✅
+⚡ Performance benchmarks... ✅ (no regression)
+🔍 Linter checks... ✅ (clippy + rustfmt)
+🔄 CI/CD validation... ✅
+✅ All validations passed - changes applied successfully!
 ```
 
 ### Phase 5: State Reset & Cleanup
@@ -319,6 +336,31 @@ parseltongue reason --query "
 - **Detection**: Tool 4 post-write test failure
 - **Recovery**: Rollback changes, return to Phase 2
 - **User Communication**: Test failure details, rollback confirmation
+
+### Build Failures
+- **Detection**: cargo build compilation errors
+- **Recovery**: Fix syntax/dependency issues, re-write files
+- **User Communication**: Build error details, automatic fixes attempted
+
+### Runtime Failures
+- **Detection**: Integration tests or runtime crashes
+- **Recovery**: Fix implementation bugs, re-write files
+- **User Communication**: Runtime error details, debugging information
+
+### Performance Regressions
+- **Detection**: Benchmark slowdowns beyond thresholds
+- **Recovery**: Optimize implementation, return to Phase 2
+- **User Communication**: Performance impact analysis, optimization suggestions
+
+### Linter/Quality Failures
+- **Detection**: clippy/rustfmt violations
+- **Recovery**: Fix style and safety issues, re-write files
+- **User Communication**: Quality issues found, automatic fixes applied
+
+### CI/CD Pipeline Failures
+- **Detection**: Pipeline validation failures
+- **Recovery**: Fix CI/CD compatibility issues, re-write files
+- **User Communication**: Pipeline compatibility issues, deployment blockers
 
 ### User Dissatisfaction
 - **Detection**: Phase 5 user rejection

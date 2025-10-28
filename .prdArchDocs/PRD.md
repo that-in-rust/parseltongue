@@ -226,10 +226,30 @@ flowchart TD
     CliSuccess --> |"Additional changes"| ManualIndex
     MixedSuccess --> |"Refine workflow"| PartialAgent
 
-    %% Error handling
+    %% Error handling and recovery loops
     Validation --> |"Validation fails"| ContextExtraction
-    FileWrite --> |"Tests fail"| Validation
-    ManualWrite --> |"Build fails"| ManualSim
+    FileWrite --> BuildCheck["Build Check:<br/>cargo build"]
+    BuildCheck --> |"Build fails"| FileWrite
+    BuildCheck --> TestCheck["Test Check:<br/>cargo test"]
+    TestCheck --> |"Tests fail"| Validation
+    TestCheck --> RuntimeCheck["Runtime Check:<br/>Integration tests"]
+    RuntimeCheck --> |"Runtime errors"| FileWrite
+    RuntimeCheck --> PerformanceCheck["Performance Check:<br/>Benchmarks"]
+    PerformanceCheck --> |"Performance regression"| Validation
+    PerformanceCheck --> LinterCheck["Linter Check:<br/>clippy/rustfmt"]
+    LinterCheck --> |"Linter errors"| FileWrite
+    LinterCheck --> CICheck["CI/CD Check:<br/>Pipeline validation"]
+    CICheck --> |"Pipeline fails"| FileWrite
+    CICheck --> GitCommit["Auto-git commit<br/>of changes"]
+
+    %% CLI error handling
+    ManualWrite --> ManualBuild["Manual Build Check"]
+    ManualBuild --> |"Build fails"| ManualWrite
+    ManualBuild --> ManualTest["Manual Test Check"]
+    ManualTest --> |"Tests fail"| ManualSim
+    ManualTest --> ManualRuntime["Manual Runtime Check"]
+    ManualRuntime --> |"Runtime errors"| ManualWrite
+    ManualRuntime --> ManualComplete["✅ Manual<br/>Process Complete"]
 ```
 
 ### Command Usage Reference
