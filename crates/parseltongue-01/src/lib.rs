@@ -185,6 +185,19 @@ pub mod streaming {
             nodes.insert(key.clone(), node);
             Ok(())
         }
+
+        /// Get the number of nodes in the graph (thread-safe)
+        pub fn node_count(&self) -> usize {
+            self.nodes.read().map(|guard| guard.len()).unwrap_or(0)
+        }
+
+        /// Get a copy of all nodes in the graph (thread-safe)
+        pub fn get_all_nodes(&self) -> std::collections::HashMap<super::types::ISGL1Key, CodeNode> {
+            self.nodes
+                .read()
+                .map(|guard| guard.clone())
+                .unwrap_or_default()
+        }
     }
 }
 
