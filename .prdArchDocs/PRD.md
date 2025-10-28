@@ -145,6 +145,161 @@ parseltongue reason --query "
 
 This architecture enables sophisticated code modification while keeping each tool simple, focused, and reliable.
 
+## Section 0B: User Journey & Command Usage (JTBD)
+
+### End-to-End User Workflow
+
+```mermaid
+---
+config:
+  flowchart:
+    defaultRenderer: "dagre"
+  themeVariables:
+    primaryColor: "#f0f9ff"
+    primaryTextColor: "#0c4a6e"
+    primaryBorderColor: "#0ea5e9"
+    lineColor: "#38bdf8"
+    secondaryColor: "#f0fdf4"
+    tertiaryColor: "#fefce8"
+    quaternaryColor: "#fff7ed"
+    background: "#ffffff"
+    fontFamily: "Arial, sans-serif"
+    fontSize: "13px"
+---
+flowchart TD
+    subgraph Setup ["User Setup Phase"]
+        Start["User discovers<br/>Parseltongue"] --> Download["Download parseltongue<br/>binary from GitHub"]
+        Download --> CopyBinary["Copy binary to<br/>GitHub repo root"]
+        CopyBinary --> CreateAgents["Create .claude/agents/<br/>directory"]
+        CreateAgents --> CopyAgent["Copy reasoning-orchestrator.md<br/>to agents folder"]
+        CopyAgent --> SetupComplete["Setup Complete<br/>Ready to use"]
+    end
+
+    subgraph UsagePatterns ["Usage Patterns"]
+        SetupComplete --> Decision{How will user<br/>interact?}
+
+        Decision --> |"Natural Language<br/>Conversational"| AgentPath["Agent Path:<br/>Full Workflow"]
+        Decision --> |"Direct CLI<br/>Control"| CliPath["CLI Path:<br/>Individual Tools"]
+        Decision --> |"Mixed Mode<br/>Advanced"| MixedPath["Mixed Path:<br/>Custom Workflow"]
+    end
+
+    subgraph AgentWorkflow ["Agent Workflow: Full Automation"]
+        AgentPath --> ClaudeStart["@agent-parseltongue-reasoning-orchestrator<br/>in Claude Code"]
+        ClaudeStart --> NaturalRequest["User: 'Add async support<br/>to database layer'"]
+        NaturalRequest --> AutoIndex["Auto-index codebase<br/>(Tool 1) if needed"]
+        AutoIndex --> ContextExtraction["Extract relevant context<br/>(Tool 2) with queries"]
+        ContextExtraction --> Validation["Validate changes<br/>(Tool 3)"]
+        Validation --> FileWrite["Write changes<br/>(Tool 4) with backups"]
+        FileWrite --> StateReset["Reset database<br/>(Tool 5)"]
+        StateReset --> GitCommit["Auto-git commit<br/>of changes"]
+        GitCommit --> AgentSuccess["✅ Complete<br/>Workflow Success"]
+    end
+
+    subgraph CliWorkflow ["CLI Workflow: Manual Control"]
+        CliPath --> ManualIndex["Manual: parseltongue read<br/>./src --parsing tree-sitter<br/>--chunking ISGL1<br/>--output-db ./parseltongue.db"]
+        ManualIndex --> ManualContext["Manual: parseltongue reason<br/>--query 'SELECT * FROM Code_Graph<br/>WHERE interface_signature LIKE '%database%''<br/>--database ./parseltongue.db"]
+        ManualContext --> ManualSim["Manual: parseltongue simulate<br/>--validation-type all<br/>simulated_changes.json"]
+        ManualSim --> ManualWrite["Manual: parseltongue write<br/>validation.json<br/>--database ./parseltongue.db<br/>--backup-dir ./backups"]
+        ManualWrite --> ManualReset["Manual: parseltongue reset<br/>--project-path .<br/>--database ./parseltongue.db"]
+        ManualReset --> CliSuccess["✅ Manual<br/>Process Complete"]
+    end
+
+    subgraph MixedWorkflow ["Mixed Workflow: Custom Control"]
+        MixedPath --> PartialAgent["Use agent for<br/>reasoning only"]
+        PartialAgent --> CustomTools["Run specific tools<br/>manually as needed"]
+        CustomTools --> IterativeProcess["Iterative:<br/>Agent → Tools → Review"]
+        IterativeProcess --> MixedSuccess["✅ Custom<br/>Workflow Complete"]
+    end
+
+    subgraph CommonScenarios ["Common Usage Scenarios"]
+        AgentSuccess --> Scenario1["Scenario 1:<br/>Simple Refactoring<br/>'Add timeout parameter'"]
+        CliSuccess --> Scenario2["Scenario 2:<br/>Complex Migration<br/>'Sync to async conversion'"]
+        MixedSuccess --> Scenario3["Scenario 3:<br/>Feature Addition<br/>'Add caching layer'"]
+
+        Scenario1 --> TimeEstimate1["⏱️ 5-10 minutes<br/>Fully automated"]
+        Scenario2 --> TimeEstimate2["⏱️ 20-40 minutes<br/>Manual iteration"]
+        Scenario3 --> TimeEstimate3["⏱️ 15-30 minutes<br/>Hybrid approach"]
+    end
+
+    %% Feedback loops
+    AgentSuccess --> |"New change request"| ClaudeStart
+    CliSuccess --> |"Additional changes"| ManualIndex
+    MixedSuccess --> |"Refine workflow"| PartialAgent
+
+    %% Error handling
+    Validation --> |"Validation fails"| ContextExtraction
+    FileWrite --> |"Tests fail"| Validation
+    ManualWrite --> |"Build fails"| ManualSim
+```
+
+### Command Usage Reference
+
+#### **Agent Path (Recommended for Most Users)**
+```bash
+# Interactive conversational interface
+@agent-parseltongue-reasoning-orchestrator "Add async support to database layer"
+```
+
+#### **CLI Path (For Advanced Users)**
+```bash
+# 1. Index codebase
+parseltongue read ./src --parsing-library tree-sitter --chunking-method ISGL1 --output-db ./parseltongue.db
+
+# 2. Extract context
+parseltongue reason --query "?[entity, code] := *Code_Graph[entity, code, _, _, _]" --database ./parseltongue.db
+
+# 3. Validate changes
+parseltongue simulate validation_output.json --validation-type all --timeout 300
+
+# 4. Write changes
+parseltongue write validation_output.json --database ./parseltongue.db --backup-dir ./backups
+
+# 5. Reset state
+parseltongue reset --project-path . --database ./parseltongue.db
+```
+
+#### **Mixed Path (For Custom Workflows)**
+```bash
+# Use agent for complex reasoning, then manual tool execution
+@agent-parseltongue-reasoning-orchestrator "Analyze impact of changing auth system"
+# Review agent's analysis, then execute specific tools manually
+parseltongue reason --query "SELECT * FROM Code_Graph WHERE interface_signature LIKE '%auth%'"
+```
+
+### Jobs To Be Done (JTBD)
+
+| **Job** | **When to Use Agent Path** | **When to Use CLI Path** | **When to Use Mixed Path** |
+|----------|----------------------------|--------------------------|---------------------------|
+| **Simple interface changes** | ✅ Quick, conversational | ⚠️ Overkill for simple tasks | ❌ Unnecessary complexity |
+| **Complex refactoring** | ✅ Best for complex changes | ⚠️ May require multiple iterations | ✅ Good for partial automation |
+| **Learning the codebase** | ✅ Natural language exploration | ✅ Precise querying capabilities | ✅ Flexible exploration |
+| **Production changes** | ✅ Built-in safety checks | ✅ Full control over each step | ✅ Custom validation workflow |
+| **Team collaboration** | ✅ Clear documentation of changes | ✅ Precise change logs | ✅ Custom change tracking |
+| **Emergency fixes** | ⚠️ May be slower due to workflow | ✅ Direct, fast execution | ⚠️ Added complexity |
+| **Batch operations** | ❌ Not designed for bulk changes | ✅ Scriptable and automatable | ✅ Custom batch workflows |
+
+### Setup Instructions
+
+```bash
+# 1. Download the latest parseltongue binary
+wget https://github.com/that-in-rust/parseltongue/releases/latest/download/parseltongue-linux-x64
+chmod +x parseltongue-linux-x64
+mv parseltongue-linux-x64 parseltongue
+
+# 2. Copy to your GitHub repository
+cp parseltongue /path/to/your/repo/
+
+# 3. Create Claude agents directory
+mkdir -p /path/to/your/repo/.claude/agents/
+
+# 4. Copy the orchestrator agent
+cp agent-parseltongue-reasoning-orchestrator.md /path/to/your/repo/.claude/agents/
+
+# 5. Add to .gitignore if needed
+echo ".parseltongue/" >> .gitignore
+echo "backups/" >> .gitignore
+```
+
 ## Executive Summary
 
 **User Segment**: Developers on large Rust codebases ONLY
