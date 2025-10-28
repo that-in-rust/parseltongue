@@ -51,24 +51,68 @@ Before using this agent, ensure you have:
 
 ### Phase 2: Change Specification & Reasoning
 
-**Objective**: Convert user's natural language request into structured change plan
+**Objective**: Convert user's natural language request into structured change plan using temporal versioning
 
 **Actions**:
 1. Elicit clear change requirements from user
-2. Run Tool 2 to extract relevant code context as JSON
-3. Perform LLM reasoning on the change requirements
-4. Generate structured change specification with confidence scoring
-5. Validate change specification with user
+2. **Step A01**: Create test interface changes in CozoDB with temporal flags
+3. **Step A02**: Propagate non-test interface changes based on test context
+4. **Step B01**: Generate future code using hopping/blast radius analysis
+5. **Step B02**: Rubber duck debugging to re-reason and validate changes
+6. Generate structured change specification with confidence scoring
+7. Validate change specification with user
+
+**Temporal Versioning System**:
+- **(1,0)**: current_ind=1, future_ind=0 → Mark for deletion
+- **(0,1)**: current_ind=0, future_ind=1 → Mark for creation
+- **(1,1)**: current_ind=1, future_ind=1 → Mark for modification
+
+**Step A01: Test Interface Changes**
+```bash
+# LLM generates queries via cozo-to-context-writer:
+parseltongue reason --query "
+  ?[entity_id, current_ind, future_ind, current_code, future_code, future_action] := [
+    ('new_async_db', 0, 1, '', '', 'Create'),
+    ('old_sync_db', 1, 0, 'existing code', '', 'Delete'),
+    ('modify_db', 1, 1, 'existing code', '', 'Edit')
+  ]" --databaseTableName "Code_Graph"
+```
+
+**Step A02: Non-Test Interface Changes**
+- Analyze dependencies of test changes
+- Propagate temporal flags to dependent entities
+- Expand change context using hopping analysis
+
+**Step B01: Code Simulation with Hopping/Blast Radius**
+```bash
+# LLM requests dependency analysis:
+parseltongue reason --query "
+  ?[entity, hop_distance, dependency_type, current_code] :=
+    *changed_entity[base_entity],
+    *dependency_graph[base_entity, intermediate],
+    *dependency_graph[intermediate, entity],
+    hop_distance <= 3,
+    current_ind = 1
+" --context-filter "Future_Action != None"
+```
+
+**Step B02: Rubber Duck Debugging**
+- Re-reason complete change set
+- Validate temporal consistency
+- Assess confidence (≥80% to proceed)
+- Request user clarification if needed
 
 **User Experience**:
 ```
 📝 Processing change request: "Add async support to database layer"
-📤 Extracted relevant code context (23 interfaces)
-🧠 Reasoning about change impact...
-📋 Generated change specification:
-   - Modify 15 interfaces
-   - Add 5 new interfaces
-   - Update 3 modules
+🧪 Step A01: Created 3 test interface changes in CozoDB
+📋 Step A02: Propagated to 23 non-test interface changes
+🔮 Step B01: Generated future code using 2-hop dependency analysis
+🦆 Step B02: Rubber duck validation complete
+📊 Generated change specification:
+   - Modify 15 interfaces (1,1) → Updated future_code
+   - Add 5 new interfaces (0,1) → Generated from scratch
+   - Remove 3 deprecated interfaces (1,0) → Marked for deletion
    - Confidence: 87%
 ```
 
@@ -131,6 +175,102 @@ Before using this agent, ensure you have:
 ✅ Workflow completed successfully!
 ```
 
+## LLM Query Generation Patterns
+
+### Temporal Versioning Queries
+
+**Create New Interface**:
+```bash
+parseltongue reason --query "
+  ?[entity_id, current_ind, future_ind, current_code, future_code, future_action] := [
+    ('async_database_pool', 0, 1, '', 'pub struct AsyncDatabasePool { ... }', 'Create')
+  ]" --databaseTableName "Code_Graph"
+```
+
+**Delete Existing Interface**:
+```bash
+parseltongue reason --query "
+  ?[entity_id, current_ind, future_ind, current_code, future_code, future_action] :=
+    *Code_Graph[entity_id, current_code, _, _, _],
+    entity_id = 'sync_database_pool',
+    current_ind = 1, future_ind = 0,
+    future_code = '', future_action = 'Delete'
+" --databaseTableName "Code_Graph"
+```
+
+**Modify Existing Interface**:
+```bash
+parseltongue reason --query "
+  ?[entity_id, current_ind, future_ind, current_code, future_code, future_action] :=
+    *Code_Graph[entity_id, current_code, _, _, _],
+    entity_id = 'database_connection',
+    current_ind = 1, future_ind = 1,
+    future_code = 'pub async fn connect(&self) -> Result<Connection> { ... }',
+    future_action = 'Edit'
+" --databaseTableName "Code_Graph"
+```
+
+### Hopping & Blast Radius Queries
+
+**1-Hop Dependencies (Direct)**:
+```bash
+parseltongue reason --query "
+  ?[entity, dependency_type, current_code] :=
+    *changed_entity[base_entity],
+    *dependency_graph[base_entity, entity],
+    dependency_type = 'direct_call',
+    current_ind = 1
+" --context-filter "Future_Action = None"
+```
+
+**2-Hop Dependencies (Indirect)**:
+```bash
+parseltongue reason --query "
+  ?[entity, hop_distance, dependency_type, current_code] :=
+    *changed_entity[base_entity],
+    *dependency_graph[base_entity, intermediate],
+    *dependency_graph[intermediate, entity],
+    hop_distance = 2,
+    current_ind = 1
+" --context-filter "Future_Action = None"
+```
+
+**Blast Radius Analysis**:
+```bash
+parseltongue reason --query "
+  ?[entity, impact_level, dependency_chain] :=
+    *changed_entity[base_entity],
+    *dependency_graph[base_entity, entity],
+    impact_level = 'critical',
+    dependency_chain = [base_entity, entity]
+" --max-depth 3 --context-filter "current_ind = 1"
+```
+
+### Context Extraction Queries
+
+**Get All Changing Entities**:
+```bash
+parseltongue reason --query "
+  ?[entity_id, current_code, future_code, future_action] :=
+    *Code_Graph[entity_id, current_code, future_code, _, future_action],
+    future_action != None,
+    [current_ind, future_ind] != [0, 0]
+" --export-json CodeGraphContext.json
+```
+
+**Get Dependent Non-Changing Entities**:
+```bash
+parseltongue reason --query "
+  ?[entity_id, current_code, relationship_type] :=
+    *changing_entity[base_entity],
+    *dependency_graph[base_entity, entity_id],
+    *Code_Graph[entity_id, current_code, _, current_ind, _],
+    current_ind = 1,
+    future_ind = 1,
+    future_action = None
+" --context-limit 50
+```
+
 ## Tool Integration Details
 
 ### Tool 1: folder-to-cozoDB-streamer
@@ -140,10 +280,15 @@ Before using this agent, ensure you have:
 - **Output**: CozoDB database with code graph
 
 ### Tool 2: cozo-to-context-writer
-- **When**: Phase 2 (context extraction)
-- **Purpose**: Export relevant code context as JSON for LLM reasoning
-- **Input**: Micro-PRD + database + CozoDB query
-- **Output**: CodeGraphContext.json
+- **When**: Phase 2 (temporal reasoning & context extraction)
+- **Purpose**: Create/edit/delete CozoDB rows with temporal flags AND export context for LLM reasoning
+- **Input**: LLM-generated queries + database + hopping/blast radius parameters
+- **Output**: Updated CozoDB state + CodeGraphContext.json
+- **Key Capabilities**:
+  - Temporal versioning: Set (current_ind, future_ind) flags
+  - Hopping queries: Multi-hop dependency analysis (1-hop, 2-hop, N-hop)
+  - Blast radius: Calculate impact areas for changes
+  - Context filtering: Only load relevant code for LLM reasoning
 
 ### Tool 3: rust-preflight-code-simulator
 - **When**: Phase 3 (validation)
@@ -202,22 +347,44 @@ Before using this agent, ensure you have:
 ### Simple Interface Changes
 ```
 Request: "Add timeout parameter to all database connection methods"
-Workflow: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5
+Workflow: Phase 1 → Phase 2(A01→A02→B01→B02) → Phase 3 → Phase 4 → Phase 5
 Expected Time: 5-10 minutes
+Temporal Changes: (1,1) modifications to 3 existing interfaces
 ```
 
 ### Complex Refactoring
 ```
 Request: "Convert sync database layer to async with proper error handling"
-Workflow: Multiple iterations through Phase 2 → Phase 3 → Phase 4
+Workflow: Multiple iterations through Phase 2(A01→A02→B01→B02) → Phase 3 → Phase 4
 Expected Time: 20-40 minutes
+Temporal Changes:
+  - Delete: (1,0) sync interfaces
+  - Create: (0,1) async interfaces
+  - Modify: (1,1) dependent code
 ```
 
 ### Feature Addition
 ```
 Request: "Add caching layer with TTL support to HTTP client"
-Workflow: Phase 1 → Phase 2 (multiple iterations) → Phase 3 → Phase 4 → Phase 5
+Workflow: Phase 1 → Phase 2(multiple A01→A02→B01→B02 iterations) → Phase 3 → Phase 4 → Phase 5
 Expected Time: 15-30 minutes
+Temporal Changes:
+  - A01: Create test cache interfaces (0,1)
+  - A02: Propagate to HTTP client dependencies
+  - B01: Generate cache implementation with 2-hop analysis
+  - B02: Validate with rubber duck debugging
+```
+
+### Temporal Versioning Workflow Example
+```
+Request: "Replace Result<T, E> with ?-based error propagation"
+Step A01: Create test interfaces showing new error pattern (0,1)
+Step A02: Identify all call sites using 2-hop dependency analysis
+Step B01: Generate ?-based implementations for affected functions
+Step B02: Rubber duck validation → 95% confidence
+Phase 3: Validate compilation of temporal changes
+Phase 4: Apply changes → all (1,1) entities updated with new future_code
+Phase 5: Reset database → future_code becomes current_code
 ```
 
 ## Configuration

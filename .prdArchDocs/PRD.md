@@ -1,5 +1,164 @@
 # Parseltongue PRD - Unified Document
 
+## Section 0: Visual Architecture Overview
+
+### Complete System Workflow
+
+```mermaid
+graph TB
+    %% User Interface Layer
+    User[User] -->|"Change Request:<br/>Add async support"| Claude[Claude Code LLM]
+
+    %% External Orchestrator Agent
+    subgraph "External LLM Agent"
+        Claude --> Orchestrator[🧠 Reasoning Orchestrator]
+        Orchestrator --> Phase1{Phase 1: Setup}
+        Orchestrator --> Phase2{Phase 2: Reasoning}
+        Orchestrator --> Phase3{Phase 3: Validation}
+        Orchestrator --> Phase4{Phase 4: Writing}
+        Orchestrator --> Phase5{Phase 5: Reset}
+    end
+
+    %% Tool Pipeline Layer
+    subgraph "Unified parseltongue Binary"
+        Phase1 --> Tool1[📁 Tool 1:<br/>folder-to-cozoDB-streamer]
+        Phase2 --> Tool2[🔍 Tool 2:<br/>cozo-to-context-writer]
+        Phase3 --> Tool3[🔬 Tool 3:<br/>rust-preflight-code-simulator]
+        Phase4 --> Tool4[✏️ Tool 4:<br/>cozoDB-to-code-writer]
+        Phase5 --> Tool5[🔄 Tool 5:<br/>cozoDB-make-future-code-current]
+    end
+
+    %% CozoDB State Management
+    subgraph "CozoDB Temporal States"
+        Tool1 --> CozoDB[(📊 CozoDB Database)]
+
+        subgraph "Temporal Versioning States"
+            Current[Current State:<br/>current_ind = 1]
+            Future[Future State:<br/>future_ind = 1]
+
+            Current --> |"Entities existing now"| State11[(1,1)<br/>Exists→Continues]
+            Current --> |"Entities to delete"| State10[(1,0)<br/>Exists→Will Delete]
+            Future --> |"Entities to create"| State01[(0,1)<br/>Will Create→Exists]
+            Future --> |"Entities to edit"| State11_Edit[(1,1)<br/>Exists→Modified]
+        end
+
+        CozoDB --> State11
+        CozoDB --> State10
+        CozoDB --> State01
+        CozoDB --> State11_Edit
+    end
+
+    %% File System Layer
+    subgraph "File System Operations"
+        Tool4 --> Files[📝 Rust Source Files]
+        Files --> |"Atomic writes with<br/>optional backups"| Modified[✅ Modified Files]
+    end
+
+    %% Detailed Phase 2 Workflow (Hopping/Blast Radius)
+    subgraph "Phase 2: Detailed Reasoning Workflow"
+        Tool2 --> TestInterface["🧪 Step A01:<br/>Test Interface Changes"]
+        TestInterface --> NonTestInterface["📋 Step A02:<br/>Non-Test Interface Changes"]
+        NonTestInterface --> CodeSim["🔮 Step B01:<br/>Code Simulation"]
+        CodeSim --> RubberDuck["🦆 Step B02:<br/>Rubber Duck Debugging"]
+
+        %% Hopping/Blast Radius Queries
+        TestInterface --> Hopping["🔄 Hopping Queries:<br/>cozo-to-context-writer"]
+        Hopping --> |"2-hop dependency<br/>analysis"| Context[📋 LLM Context]
+        NonTestInterface --> Context
+        Context --> CodeSim
+    end
+
+    %% Query Patterns
+    subgraph "LLM-Generated Query Examples"
+        Hopping --> |"?[entity, hop_distance] :=<br/>*dependency_graph[src, inter],<br/>*dependency_graph[inter, target]"| Query1[🔍 Multi-hop Query]
+        Hopping --> |"?[future_code] :=<br/>current_ind = 1, future_ind = 1,<br/>Future_Action = 'Edit'"| Query2[✏️ Edit Query]
+        Hopping --> |"?[entity_id] :=<br/>current_ind = 0, future_ind = 1,<br/>Future_Action = 'Create'"| Query3[➕ Create Query]
+    end
+
+    %% Validation and Feedback Loops
+    RubberDuck --> |"Confidence ≥ 80%"| Phase3
+    RubberDuck --> |"Needs refinement"| Phase2
+    Phase3 --> |"Validation fails"| Phase2
+    Phase4 --> |"Tests fail"| Phase2
+    Phase5 --> |"User dissatisfied"| Phase4
+
+    %% User Interaction Points
+    Phase5 --> |"Are you satisfied?"| User
+    User --> |"Yes ✅"| Complete[✅ Workflow Complete]
+    User --> |"No ❌"| Rollback[🔄 Rollback Changes]
+
+    %% Styling
+    classDef orchestrator fill:#e1f5fe
+    classDef tools fill:#f3e5f5
+    classDef database fill:#e8f5e8
+    classDef files fill:#fff3e0
+    classDef queries fill:#fce4ec
+    classDef states fill:#f1f8e9
+
+    class Orchestrator,Phase1,Phase2,Phase3,Phase4,Phase5 orchestrator
+    class Tool1,Tool2,Tool3,Tool4,Tool5 tools
+    class CozoDB,State11,State10,State01,State11_Edit database
+    class Files,Modified files
+    class Hopping,Query1,Query2,Query3 queries
+    class Current,Future,TestInterface,NonTestInterface,CodeSim,RubberDuck states
+```
+
+### Temporal Versioning System Explained
+
+**Core Innovation**: Time-based state tracking directly in CozoDB
+
+| State | current_ind | future_ind | Meaning | Action |
+|-------|-------------|------------|---------|--------|
+| **Exists→Continues** | 1 | 1 | Code exists now and will continue | No change needed |
+| **Exists→Delete** | 1 | 0 | Code exists now but will be removed | Mark for deletion |
+| **Create→Exists** | 0 | 1 | Code doesn't exist but will be created | Create new code |
+| **Exists→Modified** | 1 | 1 | Code exists and will be modified | Update with Future_Code |
+
+**State Transition Flow**:
+```
+Phase 2: LLM sets (current_ind, future_ind, Future_Code, Future_Action)
+Phase 4: Apply changes → Files reflect future state
+Phase 5: Reset database → (1,1, current_code=Future_Code, future_ind=1)
+```
+
+### Hopping & Blast Radius Integration
+
+**Built into cozo-to-context-writer** (not a separate tool):
+
+```bash
+# LLM generates these queries via cozo-to-context-writer:
+parseltongue reason --query "
+  ?[entity, hop_distance, dependency_type] :=
+    *changed_entity[base_entity],
+    *dependency_graph[base_entity, intermediate],
+    *dependency_graph[intermediate, entity],
+    hop_distance <= 3
+" --context-filter "Future_Action != None"
+```
+
+**Query Capabilities**:
+- **1-hop**: Direct dependencies only
+- **2-hop**: Dependencies of dependencies
+- **N-hop**: Configurable depth analysis
+- **Blast Radius**: All entities affected by changes
+- **Context Filtering**: Only load relevant code for LLM reasoning
+
+### External Agent Philosophy
+
+**Smart Orchestration, Simple Tools**:
+- **LLM handles complexity**: Change reasoning, query generation, validation
+- **Tools handle execution**: Deterministic, focused operations
+- **Clean separation**: External reasoning vs internal tool execution
+- **User interaction**: Conversational workflow with confirmation points
+
+**Integration Points**:
+1. **Natural Language → Structured Query** (Phase 2)
+2. **Query Results → LLM Context** (Phase 2)
+3. **LLM Reasoning → Tool Commands** (All phases)
+4. **Tool Results → User Feedback** (All phases)
+
+This architecture enables sophisticated code modification while keeping each tool simple, focused, and reliable.
+
 ## Executive Summary
 
 **User Segment**: Developers on large Rust codebases ONLY
@@ -49,6 +208,8 @@ The `parseltongue` binary consolidates all 5 tools into a single executable with
 ```bash
 parseltongue folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --chunking-method <METHOD> --output-db <DATABASE_PATH>
 ```
+
+
 
 #### cozoDB-to-context-writer
 ```bash
