@@ -1,5 +1,5 @@
 [package]
-name = "parseltongue-03"
+name = "cozo-to-context-writer"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -18,7 +18,7 @@ tokio.workspace = true
 async-trait = "0.1"
 
 # Parseltongue core dependencies
-parseltongue-01 = { path = "../parseltongue-01" }
+folder-to-cozoDB-streamer = { path = "../folder-to-cozoDB-streamer" }
 
 # LLM integration dependencies
 reqwest = { version = "0.11", features = ["json"] }

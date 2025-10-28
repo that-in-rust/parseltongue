@@ -1,5 +1,5 @@
 [package]
-name = "parseltongue-04"
+name = "rust-preflight-code-simulator"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -18,8 +18,8 @@ tokio.workspace = true
 async-trait = "0.1"
 
 # Parseltongue core dependencies
-parseltongue-01 = { path = "../parseltongue-01" }
-parseltongue-03 = { path = "../parseltongue-03" }
+folder-to-cozoDB-streamer = { path = "../folder-to-cozoDB-streamer" }
+cozo-to-context-writer = { path = "../cozo-to-context-writer" }
 
 # Rust analyzer integration (using simpler versions for GREEN phase)
 # ra_ap_syntax = "0.0.180"

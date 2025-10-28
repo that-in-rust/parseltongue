@@ -1,5 +1,5 @@
 [package]
-name = "parseltongue-05"
+name = "cozoDB-to-code-writer"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -18,9 +18,9 @@ tokio.workspace = true
 async-trait = "0.1"
 
 # Parseltongue core dependencies
-parseltongue-01 = { path = "../parseltongue-01" }
-parseltongue-03 = { path = "../parseltongue-03" }
-parseltongue-04 = { path = "../parseltongue-04" }
+folder-to-cozoDB-streamer = { path = "../folder-to-cozoDB-streamer" }
+cozo-to-context-writer = { path = "../cozo-to-context-writer" }
+rust-preflight-code-simulator = { path = "../rust-preflight-code-simulator" }
 
 # File system and temporary resources
 tempfile = "3.0"

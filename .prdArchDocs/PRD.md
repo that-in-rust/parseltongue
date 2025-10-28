@@ -64,11 +64,7 @@ command-01: cozoDB-to-code-writer <VALIDATION_OUTPUT> --database <DATABASE_PATH>
 
 #### cozoDB-make-future-code-current
 ```bash
-command-01: cozoDB-make-future-code-current --project-path <PATH>
-command-02: cozoDB-make-future-code-current reset --force
-command-03: cozoDB-make-future-code-current list-backups
-command-04: cozoDB-make-future-code-current stats
-command-05: cozoDB-make-future-code-current validate
+command-01: cozoDB-make-future-code-current reset --project-path <PATH>
 ```
 
 ### Global Options (All Tools)
@@ -326,29 +322,26 @@ cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir 
 
 **Purpose**: Reset database state and manage metadata backups after successful code changes
 
-**Simplified State Reset Strategy**:
-- Re-triggers Tool 1 to re-ingest current file state
-- Creates timestamped metadata backups in MD files
+**State Reset Strategy**:
+- Re-triggers Tool 1 (folder-to-cozoDB-streamer) to re-ingest current file state
+- Creates timestamped metadata backups in MD files before reset
 - Resets all current/future flags appropriately
 - Git-integrated backup tracking
 
 ```bash
-cozoDB-make-future-code-current --project-path /path/to/rust/repo
+cozoDB-make-future-code-current reset --project-path <PATH>
 
-# Options:
+# Required Arguments:
 --project-path <PATH>         # Path to Rust project
---backup-dir <PATH>            # Backup directory (default: .parseltongue/metadata-backups)
---skip-backup                  # Skip metadata backup (not recommended)
---git-integrated               # Enable Git integration
---verbose                      # Detailed output
-```
 
-**Commands**:
-```bash
-cozoDB-make-future-code-current reset --force    # Reset state
-cozoDB-make-future-code-current list-backups     # List backups
-cozoDB-make-future-code-current stats            # Show database stats
-cozoDB-make-future-code-current validate         # Validate project
+# Optional Arguments:
+--backup-dir <PATH>            # Metadata backup directory (default: .parseltongue/metadata-backups)
+--skip-backup                  # Skip metadata backup (not recommended)
+--git-integrated               # Enable Git integration (default: true)
+--verbose                      # Detailed output
+
+# Example:
+cozoDB-make-future-code-current reset --project-path /path/to/rust/repo --verbose
 ```
 
 **Backup Structure**:
