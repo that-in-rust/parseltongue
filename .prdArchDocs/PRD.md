@@ -175,16 +175,10 @@ flowchart TD
         CopyAgent --> SetupComplete["Setup Complete<br/>Ready to use"]
     end
 
-    subgraph UsagePatterns ["Usage Patterns"]
-        SetupComplete --> Decision{How will user<br/>interact?}
+    SetupComplete --> PrimaryWorkflow["Primary Workflow:<br/>Agentic Interface"]
 
-        Decision --> |"Natural Language<br/>Conversational"| AgentPath["Agent Path:<br/>Full Workflow"]
-        Decision --> |"Direct CLI<br/>Control"| CliPath["CLI Path:<br/>Individual Tools"]
-        Decision --> |"Mixed Mode<br/>Advanced"| MixedPath["Mixed Path:<br/>Custom Workflow"]
-    end
-
-    subgraph AgentWorkflow ["Agent Workflow: Full Automation"]
-        AgentPath --> ClaudeStart["@agent-parseltongue-reasoning-orchestrator<br/>in Claude Code"]
+    subgraph PrimaryPath ["Agentic Workflow (95% of users)"]
+        PrimaryWorkflow --> ClaudeStart["@agent-parseltongue-reasoning-orchestrator<br/>in Claude Code"]
         ClaudeStart --> NaturalRequest["User: 'Add async support<br/>to database layer'"]
         NaturalRequest --> AutoIndex["Auto-index codebase<br/>folder-to-cozoDB-streamer"]
         AutoIndex --> ContextExtraction["Extract relevant context<br/>cozo-to-context-writer"]
@@ -195,36 +189,33 @@ flowchart TD
         GitCommit --> AgentSuccess["✅ Complete<br/>Workflow Success"]
     end
 
-    subgraph CliWorkflow ["CLI Workflow: Manual Control"]
-        CliPath --> ManualIndex["parseltongue read<br/>./src --parsing tree-sitter<br/>--chunking ISGL1<br/>--output-db ./parseltongue.db"]
-        ManualIndex --> ManualContext["parseltongue reason<br/>--query 'context extraction'<br/>--database ./parseltongue.db"]
-        ManualContext --> ManualSim["parseltongue simulate<br/>--validation-type all<br/>simulated_changes.json"]
-        ManualSim --> ManualWrite["parseltongue write<br/>validation.json<br/>--database ./parseltongue.db<br/>--backup-dir ./backups"]
-        ManualWrite --> ManualReset["parseltongue reset<br/>--project-path .<br/>--database ./parseltongue.db"]
-        ManualReset --> CliSuccess["✅ Manual<br/>Process Complete"]
-    end
+    subgraph AdvancedOptions ["Advanced Options (5% of users)"]
+        AgentSuccess --> AdvancedChoice{Need more<br/>control?}
+        AdvancedChoice --> |"Manual CLI<br/>intervention"| CliPath["Direct Tool<br/>Commands"]
+        AdvancedChoice --> |"Custom<br/>workflow"| MixedPath["Mixed<br/>Approach"]
+        AdvancedChoice --> |"Continue with<br/>agent"| NewRequest["New change<br/>request"]
 
-    subgraph MixedWorkflow ["Mixed Workflow: Custom Control"]
-        MixedPath --> PartialAgent["Use agent for<br/>reasoning only"]
-        PartialAgent --> CustomTools["Run specific tools<br/>manually as needed"]
-        CustomTools --> IterativeProcess["Iterative:<br/>Agent → Tools → Review"]
-        IterativeProcess --> MixedSuccess["✅ Custom<br/>Workflow Complete"]
+        CliPath --> ManualTools["parseltongue read/reason/<br/>simulate/write/reset"]
+        MixedPath --> HybridTools["Agent reasoning +<br/>manual execution"]
+
+        ManualTools --> ResumeAgent["Resume agent<br/>workflow"]
+        MixedPath --> ResumeAgent
+        ResumeAgent --> ClaudeStart
     end
 
     subgraph CommonScenarios ["Common Usage Scenarios"]
         AgentSuccess --> Scenario1["Scenario 1:<br/>Simple Refactoring<br/>'Add timeout parameter'"]
-        CliSuccess --> Scenario2["Scenario 2:<br/>Complex Migration<br/>'Sync to async conversion'"]
-        MixedSuccess --> Scenario3["Scenario 3:<br/>Feature Addition<br/>'Add caching layer'"]
+        AgentSuccess --> Scenario2["Scenario 2:<br/>Complex Migration<br/>'Sync to async conversion'"]
+        AgentSuccess --> Scenario3["Scenario 3:<br/>Feature Addition<br/>'Add caching layer'"]
 
         Scenario1 --> TimeEstimate1["⏱️ 5-10 minutes<br/>Fully automated"]
-        Scenario2 --> TimeEstimate2["⏱️ 20-40 minutes<br/>Manual iteration"]
-        Scenario3 --> TimeEstimate3["⏱️ 15-30 minutes<br/>Hybrid approach"]
+        Scenario2 --> TimeEstimate2["⏱️ 20-40 minutes<br/>Agent-guided iteration"]
+        Scenario3 --> TimeEstimate3["⏱️ 15-30 minutes<br/>Agent-managed approach"]
     end
 
     %% Feedback loops
     AgentSuccess --> |"New change request"| ClaudeStart
-    CliSuccess --> |"Additional changes"| ManualIndex
-    MixedSuccess --> |"Refine workflow"| PartialAgent
+    NewRequest --> ClaudeStart
 
     %% Error handling and recovery loops
     Validation --> |"Validation fails"| ContextExtraction
@@ -254,49 +245,39 @@ flowchart TD
 
 ### Command Usage Reference
 
-#### **Agent Path (Recommended for Most Users)**
+#### **Primary Interface: Agentic Workflow (95% of users)**
 ```bash
-# Interactive conversational interface
+# Interactive conversational interface - this is the main way to use Parseltongue
 @agent-parseltongue-reasoning-orchestrator "Add async support to database layer"
 ```
 
-#### **CLI Path (For Advanced Users)**
+#### **Advanced Options (5% of users)**
+The agent workflow includes optional manual intervention for specific needs:
+
 ```bash
-# 1. Index codebase
+# Manual tool commands (for power users who need direct control)
 parseltongue read ./src --parsing-library tree-sitter --chunking-method ISGL1 --output-db ./parseltongue.db
-
-# 2. Extract context
-parseltongue reason --query "?[entity, code] := *Code_Graph[entity, code, _, _, _]" --database ./parseltongue.db
-
-# 3. Validate changes
+parseltongue reason --query "context extraction query" --database ./parseltongue.db
 parseltongue simulate validation_output.json --validation-type all --timeout 300
-
-# 4. Write changes
 parseltongue write validation_output.json --database ./parseltongue.db --backup-dir ./backups
-
-# 5. Reset state
 parseltongue reset --project-path . --database ./parseltongue.db
-```
 
-#### **Mixed Path (For Custom Workflows)**
-```bash
-# Use agent for complex reasoning, then manual tool execution
+# Mixed approach (agent reasoning + manual execution)
 @agent-parseltongue-reasoning-orchestrator "Analyze impact of changing auth system"
-# Review agent's analysis, then execute specific tools manually
-parseltongue reason --query "SELECT * FROM Code_Graph WHERE interface_signature LIKE '%auth%'"
+# Review agent analysis, then execute specific commands as needed
 ```
 
 ### Jobs To Be Done (JTBD)
 
-| **Job** | **When to Use Agent Path** | **When to Use CLI Path** | **When to Use Mixed Path** |
+| **Job** | **Primary: Agentic Workflow** | **Advanced: Manual CLI** | **Power Users: Mixed Approach** |
 |----------|----------------------------|--------------------------|---------------------------|
-| **Simple interface changes** | ✅ Quick, conversational | ⚠️ Overkill for simple tasks | ❌ Unnecessary complexity |
-| **Complex refactoring** | ✅ Best for complex changes | ⚠️ May require multiple iterations | ✅ Good for partial automation |
-| **Learning the codebase** | ✅ Natural language exploration | ✅ Precise querying capabilities | ✅ Flexible exploration |
-| **Production changes** | ✅ Built-in safety checks | ✅ Full control over each step | ✅ Custom validation workflow |
-| **Team collaboration** | ✅ Clear documentation of changes | ✅ Precise change logs | ✅ Custom change tracking |
-| **Emergency fixes** | ⚠️ May be slower due to workflow | ✅ Direct, fast execution | ⚠️ Added complexity |
-| **Batch operations** | ❌ Not designed for bulk changes | ✅ Scriptable and automatable | ✅ Custom batch workflows |
+| **Simple interface changes** | ✅ Primary use case | ❌ Overkill | ❌ Unnecessary complexity |
+| **Complex refactoring** | ✅ Best for complex changes | ⚠️ For specific manual steps | ⚠️ For fine-tuned control |
+| **Learning the codebase** | ✅ Natural language exploration | ⚠️ For precise queries | ⚠️ For custom analysis |
+| **Production changes** | ✅ Built-in safety & documentation | ⚠️ For specific validation steps | ⚠️ For custom validation |
+| **Team collaboration** | ✅ Clear documentation & communication | ⚠️ For specific operations | ⚠️ For custom workflows |
+| **Emergency fixes** | ✅ Fast with context awareness | ✅ For immediate direct control | ❌ Too complex for emergencies |
+| **Batch operations** | ❌ Not designed for bulk operations | ✅ Scriptable and automatable | ✅ Custom batch workflows |
 
 ### Setup Instructions
 
