@@ -29,62 +29,65 @@
 
 ```bash
 --project-path <PATH>         # Path to Rust project (required)
---verbose, -v                  # Verbose output
---quiet, -q                    # Minimal output
 --help, -h                     # Show help
 --version                      # Show version
 ```
 
-## Command-Summary
+**Note**: All tools provide verbose output by default for transparency and debugging.
+
+## Section 01: Command-Summary
 
 ### Overview
-This section provides a high-level command reference for all Parseltongue tools. For detailed specifications, see Section 02: Individual Tool Specifications.
+This section provides a high-level command reference for the unified `parseltongue` binary with its 5 subcommands. For detailed specifications, see Section 02: Individual Tool Specifications.
+
+**Unified Binary Architecture:**
+The `parseltongue` binary consolidates all 5 tools into a single executable with subcommands, similar to `git` and `cargo`. Each tool can be invoked as a subcommand while maintaining its exact CLI interface.
 
 ### Tool Commands Matrix
 
 #### folder-to-cozoDB-streamer
 ```bash
-command-01: folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --chunking-method <METHOD> --output-db <DATABASE_PATH>
+parseltongue folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --chunking-method <METHOD> --output-db <DATABASE_PATH>
 ```
 
-#### cozo-to-context-writer
+#### cozoDB-to-context-writer
 ```bash
-command-01: cozo-to-context-writer <MICRO_PRD> --database <DATABASE_PATH> --query <COZO_QUERY> --output-context <JSON_FILE>
+command-01: cozoDB-to-context-writer <MICRO_PRD> --database <DATABASE_PATH> --query <COZO_QUERY> --output-context <JSON_FILE>
 ```
 
 #### rust-preflight-code-simulator
 ```bash
-command-01: rust-preflight-code-simulator <SIMULATION_OUTPUT> --validation-type <TYPE> --timeout <SECONDS>
+parseltongue rust-preflight-code-simulator <SIMULATION_OUTPUT> --validation-type <TYPE> --timeout <SECONDS>
 ```
 
 #### cozoDB-to-code-writer
 ```bash
-command-01: cozoDB-to-code-writer <VALIDATION_OUTPUT> --database <DATABASE_PATH> [--backup-dir <PATH>]
+parseltongue cozoDB-to-code-writer <VALIDATION_OUTPUT> --database <DATABASE_PATH> [--backup-dir <PATH>]
 ```
 
 #### cozoDB-make-future-code-current
 ```bash
-command-01: cozoDB-make-future-code-current reset --project-path <PATH>
+parseltongue cozoDB-make-future-code-current reset --project-path <PATH> --database <DATABASE_PATH>
 ```
 
 ### Global Options (All Tools)
 ```bash
 --project-path <PATH>    # Path to Rust project (required)
---verbose, -v            # Verbose output
 --quiet, -q              # Minimal output
 --help, -h               # Show help
 --version                # Show version
 ```
 
-## Parseltongue Architecture Overview
+## Section 02 Parseltongue Architecture Overview
 
 ### Core Design Philosophy
 
-**External Orchestration + Internal Tools**
-- **External Agent**: `agent-parseltongue-reasoning-orchestrator.md` handles complex reasoning and workflow orchestration
-- **Internal Tools**: 5 specialized Rust executables handle focused, deterministic operations
+**External Orchestration + Unified Binary**
+- **External Agent**: `agent-parseltongue-reasoning-orchestrator.md` handles complex reasoning and workflow orchestration (located in `.claude/agents/`)
+- **Unified Binary**: Single `parseltongue` executable with 5 subcommands for focused, deterministic operations
 - **Clean Separation**: LLM reasoning (external) vs tool execution (internal)
-- **Shreyas Doshi Minimalism**: Simple tools, smart orchestration
+- **Shreyas Doshi Minimalism**: Simple CLI interface, smart orchestration
+- **Rust Idiomatic Design**: Follows established patterns like `git` and `cargo` with subcommand architecture
 
 ### Complete System Architecture
 
@@ -102,9 +105,23 @@ command-01: cozoDB-make-future-code-current reset --project-path <PATH>
                            │ orchestrates
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   5-Tool Pipeline                          │
+│                 Unified parseltongue Binary                │
+│                   ┌─────────────────────────┐               │
+│                   │    Subcommands           │               │
+│                   │  (5 Tool Functions)      │               │
+│                   └─────────────────────────┘               │
+│                           │                                   │
+│                  ┌─────────────────────────────┐             │
+│                  │ parseltongue subcommand     │             │
+│                  │ execution routing         │             │
+│                  └─────────────────────────────┘             │
+│                           ▼                                   │
+│                   ┌─────────────────────────────┐             │
+│                   │  Individual Tool Logic     │             │
+│                   └─────────────────────────────┘             │
+│                           │                                   │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  Tool 1: folder-to-cozoDB-streamer                  │   │
+│  │  Subcommand: folder-to-cozoDB-streamer             │   │
 │  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
 │  │  │  Rust Code  │───►│  CozoDB Graph Database     │  │   │
 │  │  │  Files      │    │  (CodeGraph + Metadata)    │  │   │
@@ -112,7 +129,7 @@ command-01: cozoDB-make-future-code-current reset --project-path <PATH>
 │  └─────────────────────────────────────────────────────┘   │
 │                           │                                 │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  Tool 2: cozo-reasoning-writer                      │   │
+│  │  Subcommand: cozo-to-context-writer                      │   │
 │  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
 │  │  │  Micro-PRD  │───►│  JSON Context for LLM       │  │   │
 │  │  │  + Query    │    │  (Current Code State)      │  │   │
@@ -120,7 +137,7 @@ command-01: cozoDB-make-future-code-current reset --project-path <PATH>
 │  └─────────────────────────────────────────────────────┘   │
 │                           │                                 │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  Tool 3: rust-preflight-code-simulator              │   │
+│  │  Subcommand: rust-preflight-code-simulator              │   │
 │  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
 │  │  │  Proposed   │───►│  Validation Results         │  │   │
 │  │  │  Changes    │    │  (Compile/Test/Type)        │  │   │
@@ -128,7 +145,7 @@ command-01: cozoDB-make-future-code-current reset --project-path <PATH>
 │  └─────────────────────────────────────────────────────┘   │
 │                           │                                 │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  Tool 4: cozoDB-to-code-writer                      │   │
+│  │  Subcommand: cozoDB-to-code-writer                      │   │
 │  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
 │  │  │  Validated  │───►│  Modified Files +           │  │   │
 │  │  │  Changes    │    │  Optional Backups           │  │   │
@@ -136,7 +153,7 @@ command-01: cozoDB-make-future-code-current reset --project-path <PATH>
 │  └─────────────────────────────────────────────────────┘   │
 │                           │                                 │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  Tool 5: cozoDB-make-future-code-current            │   │
+│  │  Subcommand: cozoDB-make-future-code-current            │   │
 │  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
 │  │  │  Successful │───►│  Reset Database State +     │  │   │
 │  │  │  Changes    │    │  Git Integration            │  │   │
@@ -200,7 +217,7 @@ folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --chunking-m
 # Required Arguments:
 <FOLDER_PATH>               # Local folder path containing Rust code
 --parsing-library <LIBRARY> # Parser: tree-sitter, txt-parsing
---chunking-method <METHOD>  # Chunking: ISGL1, 300-sentences
+--chunking-method <METHOD>  # Chunking: ISGL1 (Interface-level), 300-sentences (Text-level)
 --output-db <DATABASE_PATH> # CozoDB database path
 
 # Examples:
@@ -214,6 +231,13 @@ folder-to-cozoDB-streamer /path/to/rust/repo --parsing-library txt-parsing --chu
 - LSP metadata extraction (optional rust-analyzer integration)
 - TDD classification (TEST_IMPLEMENTATION vs CODE_IMPLEMENTATION)
 - CozoDB ingestion with interface signatures and metadata
+
+**ISGL1 Chunking Method Explained**:
+- **Interface Signature Graph Level 1**: Creates chunks at the interface/function level
+- **Format**: `filepath-filename-InterfaceName` (e.g., `src-db-connection.rs-main.rs-DatabaseConnection`)
+- **Granularity**: One chunk per interface found under each filename (main.rs, lib.rs, etc.)
+- **Purpose**: Enables precise code modification targeting specific interfaces rather than entire files
+- **Use Case**: Perfect for targeted refactoring where you need to modify specific functions/methods
 
 **Output Schema**:
 ```
@@ -259,7 +283,7 @@ cozo-to-context-writer ./micro-prd.md --database ./parseltongue.db --query "?[in
 }
 ```
 
-#### Tool 3: rust-preflight-code-simulator
+#### Subcommand: rust-preflight-code-simulator
 
 **Purpose**: Validate Rust code using rust-analyzer overlay
 
@@ -278,7 +302,7 @@ rust-preflight-code-simulator <SIMULATION_OUTPUT> --validation-type <TYPE> --tim
 - **check-borrow**: Borrow checker verification
 - **all**: Comprehensive validation (recommended)
 
-#### Tool 4: cozoDB-to-code-writer (IMPLEMENTED ✅)
+#### Subcommand: cozoDB-to-code-writer (IMPLEMENTED ✅)
 
 **Purpose**: Write validated code changes from CozoDB to actual files
 
@@ -292,14 +316,14 @@ cozoDB-to-code-writer <VALIDATION_OUTPUT> --database <DATABASE_PATH> [--backup-d
 # Optional Arguments:
 --backup-dir <PATH>          # Backup directory (default: no backups for simplicity)
 --safety-level <LEVEL>       # Safety level: basic, standard, strict (default: basic)
---verbose                     # Detailed operation logging and metrics
+# Detailed operation logging and metrics (default behavior)
 
 # Examples:
 # Basic usage (no backups, simple validation)
 cozoDB-to-code-writer validation.json --database ./parseltongue.db
 
 # Production usage (with backups and strict safety)
-cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir ./backups --safety-level strict --verbose
+cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir ./backups --safety-level strict # (verbose by default)
 ```
 
 **Implementation Quality Analysis:**
@@ -318,7 +342,7 @@ cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir 
 - **Detailed operation reporting** with JSON metrics and operation tracking
 - **Integration with Tool 3** validation pipeline for end-to-end safety
 
-#### Tool 5: cozoDB-make-future-code-current (IMPLEMENTED ✅)
+#### Subcommand: cozoDB-make-future-code-current (IMPLEMENTED ✅)
 
 **Purpose**: Reset database state and manage metadata backups after successful code changes
 
@@ -338,10 +362,10 @@ cozoDB-make-future-code-current reset --project-path <PATH>
 --backup-dir <PATH>            # Metadata backup directory (default: .parseltongue/metadata-backups)
 --skip-backup                  # Skip metadata backup (not recommended)
 --git-integrated               # Enable Git integration (default: true)
---verbose                      # Detailed output
+# Detailed output (default behavior)
 
 # Example:
-cozoDB-make-future-code-current reset --project-path /path/to/rust/repo --verbose
+cozoDB-make-future-code-current reset --project-path /path/to/rust/repo # (verbose by default)
 ```
 
 **Backup Structure**:
@@ -508,7 +532,7 @@ enum ProcessError {
 
 **For production environments, always use:**
 ```bash
-cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir ./prod-backups --safety-level strict --verbose
+cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir ./prod-backups --safety-level strict # (verbose by default)
 ```
 
 **For development and exploration:**
@@ -703,13 +727,13 @@ cozoDB-to-code-writer validation.json --database ./parseltongue.db --safety-leve
 **Staging (Testing with Safety):**
 ```bash
 # Test environment with backups for rollback
-cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir ./staging-backups --safety-level standard --verbose
+cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir ./staging-backups --safety-level standard # (verbose by default)
 ```
 
 **Production (Maximum Safety):**
 ```bash
 # Production environment with full safety net
-cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir ./prod-backups --safety-level strict --verbose
+cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir ./prod-backups --safety-level strict # (verbose by default)
 ```
 
 ---
