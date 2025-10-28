@@ -55,6 +55,12 @@ pub enum ToolError {
 /// Result type for Tool operations
 pub type ToolResult<T> = Result<T, ToolError>;
 
+impl From<cozo::Error> for ToolError {
+    fn from(error: cozo::Error) -> Self {
+        Self::CozoConnection(error.to_string())
+    }
+}
+
 impl ToolError {
     /// Create a file discovery error with context
     pub fn file_discovery(msg: impl Into<String>) -> Self {

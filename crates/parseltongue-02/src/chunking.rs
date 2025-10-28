@@ -31,7 +31,7 @@ pub enum ChunkType {
 }
 
 /// Metadata for a chunk
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ChunkMetadata {
     pub parent_id: Option<Uuid>,
     pub children_ids: Vec<Uuid>,

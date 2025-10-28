@@ -4,8 +4,13 @@
 use crate::chunking::Chunk;
 use crate::error::ToolResult;
 use parseltongue_01::types::ISGL1Key;
+use std::collections::BTreeMap;
 use std::path::PathBuf;
+use std::sync::Arc;
 use uuid::Uuid;
+use cozo::{DbInstance, NamedRows, DataValue, Json};
+use miette::{IntoDiagnostic, Context, WrapErr};
+use eyre::{Context as EyreContext, WrapErr as EyreWrapErr};
 
 /// Result of ingesting data into CozoDB
 #[derive(Debug, Clone)]
@@ -17,28 +22,69 @@ pub struct IngestionResult {
 }
 
 /// CozoDB connection and ingestion interface
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct CozoDBConnection {
-    #[allow(dead_code)] // Will be used when real CozoDB integration is implemented
-    db_path: Option<PathBuf>,
-    #[allow(dead_code)] // Will be used when real CozoDB integration is implemented
+    db: Arc<DbInstance>,
     connection_id: Uuid,
+}
+
+impl std::fmt::Debug for CozoDBConnection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CozoDBConnection")
+            .field("connection_id", &self.connection_id)
+            .field("db", &"<Arc<DbInstance>>")
+            .finish()
+    }
 }
 
 impl CozoDBConnection {
     /// Create a new CozoDB connection
-    pub fn new(db_path: Option<PathBuf>) -> Self {
-        Self {
-            db_path,
+    pub fn new(db_path: Option<PathBuf>) -> ToolResult<Self> {
+        let db_path = db_path.unwrap_or_else(|| PathBuf::from(":memory:"));
+        let db = DbInstance::new("sqlite", &db_path, "{}")
+            .map_err(|e| miette::miette!("Failed to create CozoDB instance: {}", e))?;
+
+        Ok(Self {
+            db: Arc::new(db),
             connection_id: Uuid::new_v4(),
-        }
+        })
     }
 
     /// Initialize the database schema
     pub async fn initialize_schema(&self) -> ToolResult<()> {
-        // GREEN: Simple implementation for testing
-        // In a real implementation, this would create CozoDB relations and indexes
-        tokio::time::sleep(tokio::time::Duration::from_millis(1)).await;
+        // Create chunks relation
+        self.db.run_default(r#"
+            :create chunks {
+                id: String,
+                content: String,
+                start_line: Int,
+                end_line: Int,
+                chunk_type: String,
+                metadata: Json,
+                file_path: String,
+                interface_name: String,
+                parent_id: String?
+            }
+        "#).map_err(|e| miette::miette!("Failed to create chunks relation: {}", e))?;
+
+        // Create relationships relation
+        self.db.run_default(r#"
+            :create relationships {
+                source_id: String,
+                target_id: String,
+                relationship_type: String,
+                metadata: Json
+            }
+        "#).map_err(|e| miette::miette!("Failed to create relationships relation: {}", e))?;
+
+        // Create indexes for performance
+        self.db.run_default(r#"
+            :create index chunks_id_idx ON chunks(id);
+            :create index chunks_interface_idx ON chunks(interface_name);
+            :create index relationships_source_idx ON relationships(source_id);
+            :create index relationships_target_idx ON relationships(target_id);
+        "#).map_err(|e| miette::miette!("Failed to create indexes: {}", e))?;
+
         Ok(())
     }
 
@@ -46,77 +92,184 @@ impl CozoDBConnection {
     pub async fn ingest_chunks(
         &self,
         chunks: &[Chunk],
-        _keys: &[ISGL1Key],
+        keys: &[ISGL1Key],
     ) -> ToolResult<IngestionResult> {
-        // GREEN: Simple mock implementation for testing
-        // In a real implementation, this would use CozoDB to store chunks
-
         let start_time = std::time::Instant::now();
 
-        // Simulate ingestion work
-        tokio::time::sleep(tokio::time::Duration::from_millis(1)).await;
+        if chunks.len() != keys.len() {
+            return Err(miette::miette!("Number of chunks and keys must match").into_diagnostic());
+        }
+
+        // Import chunks using individual insert statements
+        for (chunk, key) in chunks.iter().zip(keys.iter()) {
+            let metadata_json = serde_json::to_value(&chunk.metadata)
+                .map_err(|e| miette::miette!("Failed to serialize chunk metadata: {}", e))?;
+
+            let insert_query = format!(r#"
+                ?[id, content, start_line, end_line, chunk_type, metadata, file_path, interface_name, parent_id] :=
+                    chunks["{}", "{}", {}, {}, "{}", "{}", "{}", "{}", "{}"]
+            "#,
+                chunk.id.to_string(),
+                chunk.content.replace('"', "\\\""),
+                chunk.start_line,
+                chunk.end_line,
+                format!("{:?}", chunk.chunk_type),
+                serde_json::to_string(&metadata_json).unwrap_or_default(),
+                key.filepath.to_string_lossy(),
+                key.interface_name,
+                chunk.metadata.parent_id.map(|id| id.to_string()).unwrap_or_default()
+            );
+
+            self.db.run_default(&insert_query)
+                .map_err(|e| miette::miette!("Failed to insert chunk: {}", e))?;
+        }
 
         let ingestion_time_ms = start_time.elapsed().as_millis() as u64;
 
         Ok(IngestionResult {
             chunks_ingested: chunks.len(),
-            relationships_created: 0, // Would create relationships in real implementation
+            relationships_created: 0,
             ingestion_time_ms,
             success: true,
         })
     }
 
     /// Query chunks by various criteria
-    pub async fn query_chunks(&self, _query: &str) -> ToolResult<Vec<Chunk>> {
-        // GREEN: Simple implementation for testing
-        // In a real implementation, this would query CozoDB with the given criteria
-        tokio::time::sleep(tokio::time::Duration::from_millis(1)).await;
+    pub async fn query_chunks(&self, query: &str) -> ToolResult<Vec<Chunk>> {
+        // Build a safe query that filters chunks
+        let safe_query = format!(r#"
+            ?[id, content, start_line, end_line, chunk_type, metadata, file_path, interface_name, parent_id] :=
+                chunks[id, content, start_line, end_line, chunk_type, metadata, file_path, interface_name, parent_id],
+                contains(content, "{}")
+        "#, query.replace("\"", "\\\""));
 
-        // Return a mock chunk for testing purposes
-        Ok(vec![Chunk {
-            id: Uuid::new_v4(),
-            content: "fn query_test() {}".to_string(),
-            start_line: 1,
-            end_line: 1,
-            chunk_type: crate::chunking::ChunkType::Function,
-            metadata: crate::chunking::ChunkMetadata {
-                parent_id: None,
-                children_ids: vec![],
-                dependencies: vec![],
-                exports: vec![],
-            },
-        }])
+        let result = self.db.run_default(&safe_query)
+            .map_err(|e| miette::miette!("Failed to query chunks: {}", e))?;
+
+        let mut chunks = Vec::new();
+        for row in result.rows {
+            if let (Some(id), Some(content), Some(start_line), Some(end_line),
+                 Some(chunk_type), Some(metadata), Some(_file_path), Some(_interface_name), parent_id) =
+                (row.get("id"), row.get("content"), row.get("start_line"), row.get("end_line"),
+                 row.get("chunk_type"), row.get("metadata"), row.get("file_path"), row.get("interface_name"),
+                 row.get("parent_id")) {
+
+                let chunk_id = Uuid::parse_str(&id.to_string())
+                    .map_err(|e| miette::miette!("Failed to parse chunk ID: {}", e))?;
+                let start_line = start_line.get_int().map_err(|_| miette::miette!("Invalid start_line"))? as usize;
+                let end_line = end_line.get_int().map_err(|_| miette::miette!("Invalid end_line"))? as usize;
+                let content = content.to_string();
+                let chunk_type_str = chunk_type.to_string();
+
+                // Parse chunk type
+                let chunk_type = if chunk_type_str.contains("Function") {
+                    crate::chunking::ChunkType::Function
+                } else if chunk_type_str.contains("Struct") {
+                    crate::chunking::ChunkType::Struct
+                } else if chunk_type_str.contains("Impl") {
+                    crate::chunking::ChunkType::Impl
+                } else if chunk_type_str.contains("Module") {
+                    crate::chunking::ChunkType::Module
+                } else {
+                    crate::chunking::ChunkType::Other
+                };
+
+                let metadata_json = serde_json::to_value(metadata)
+                    .map_err(|e| miette::miette!("Failed to serialize metadata: {}", e))?;
+                let metadata: crate::chunking::ChunkMetadata = serde_json::from_value(metadata_json)
+                    .map_err(|e| miette::miette!("Failed to deserialize metadata: {}", e))?;
+
+                chunks.push(Chunk {
+                    id: chunk_id,
+                    content,
+                    start_line,
+                    end_line,
+                    chunk_type,
+                    metadata,
+                });
+            }
+        }
+
+        Ok(chunks)
     }
 
     /// Create relationships between chunks
     pub async fn create_relationships(
         &self,
-        _relationships: &[ChunkRelationship],
+        relationships: &[ChunkRelationship],
     ) -> ToolResult<()> {
-        // GREEN: Simple implementation for testing
-        // In a real implementation, this would create relationships in CozoDB
-        tokio::time::sleep(tokio::time::Duration::from_millis(1)).await;
+        if relationships.is_empty() {
+            return Ok(());
+        }
+
+        // Import relationships using individual insert statements
+        for rel in relationships {
+            let metadata_json = serde_json::to_value(&rel.metadata)
+                .map_err(|e| miette::miette!("Failed to serialize relationship metadata: {}", e))?;
+
+            let insert_query = format!(r#"
+                ?[source_id, target_id, relationship_type, metadata] :=
+                    relationships["{}", "{}", "{}", "{}"]
+            "#,
+                rel.source_id.to_string(),
+                rel.target_id.to_string(),
+                format!("{:?}", rel.relationship_type),
+                serde_json::to_string(&metadata_json).unwrap_or_default()
+            );
+
+            self.db.run_default(&insert_query)
+                .map_err(|e| miette::miette!("Failed to insert relationship: {}", e))?;
+        }
+
         Ok(())
     }
 
     /// Get database statistics
     pub async fn get_stats(&self) -> ToolResult<DatabaseStats> {
-        // GREEN: Simple implementation for testing
-        // In a real implementation, this would query CozoDB for actual stats
-        tokio::time::sleep(tokio::time::Duration::from_millis(1)).await;
+        // Count chunks
+        let chunk_count_result = self.db.run_default(r#"
+            ?[count] := chunks[*]
+        "#).map_err(|e| miette::miette!("Failed to count chunks: {}", e))?;
+
+        let total_chunks = chunk_count_result.rows
+            .first()
+            .and_then(|row| row.get("count"))
+            .and_then(|val| val.get_int().ok())
+            .unwrap_or(0) as usize;
+
+        // Count relationships
+        let rel_count_result = self.db.run_default(r#"
+            ?[count] := relationships[*]
+        "#).map_err(|e| miette::miette!("Failed to count relationships: {}", e))?;
+
+        let total_relationships = rel_count_result.rows
+            .first()
+            .and_then(|row| row.get("count"))
+            .and_then(|val| val.get_int().ok())
+            .unwrap_or(0) as usize;
+
+        // Count unique files
+        let file_count_result = self.db.run_default(r#"
+            ?[count] := COUNT[DISTINCT file_path] FROM chunks[*]
+        "#).map_err(|e| miette::miette!("Failed to count files: {}", e))?;
+
+        let file_count = file_count_result.rows
+            .first()
+            .and_then(|row| row.get("count"))
+            .and_then(|val| val.get_int().ok())
+            .unwrap_or(0) as usize;
+
         Ok(DatabaseStats {
-            total_chunks: 0,
-            total_relationships: 0,
-            file_count: 0,
+            total_chunks,
+            total_relationships,
+            file_count,
             last_updated: chrono::Utc::now(),
         })
     }
 
     /// Close the connection
     pub async fn close(&self) -> ToolResult<()> {
-        // GREEN: Simple implementation for testing
-        // In a real implementation, this would properly close CozoDB connection
-        tokio::time::sleep(tokio::time::Duration::from_millis(1)).await;
+        // CozoDB handles cleanup automatically when DbInstance is dropped
         Ok(())
     }
 }
@@ -152,7 +305,7 @@ pub struct DatabaseStats {
 
 impl Default for CozoDBConnection {
     fn default() -> Self {
-        Self::new(None)
+        Self::new(None).expect("Failed to create default CozoDB connection")
     }
 }
 
