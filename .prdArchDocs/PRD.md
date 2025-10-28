@@ -5,7 +5,6 @@
 ### Complete System Workflow
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#667eea', 'primaryTextColor': '#2d3748', 'lineColor': '#cbd5e0'}}}%%
 flowchart TD
     User[User] --> |"Change Request"| Claude[LLM]
 
@@ -71,20 +70,6 @@ flowchart TD
     Phase5 --> |"Satisfied?"| User
     User --> |"Yes"| Complete[Complete]
     User --> |"No"| Rollback[Rollback]
-
-    classDef agent fill:#667eea
-    classDef tools fill:#48bb78
-    classDef database fill:#ed8936
-    classDef files fill:#667eea
-    classDef workflow fill:#48bb78
-    classDef states fill:#ed8936
-
-    class Orchestrator,Phase1,Phase2,Phase3,Phase4,Phase5 agent
-    class Tool1,Tool2,Tool3,Tool4,Tool5 tools
-    class CozoDB,State11,State10,State01,State11Edit database
-    class Files,Modified files
-    class Hopping,Context workflow
-    class Current,Future,TestInterface,NonTestInterface,CodeSim,RubberDuck states
 ```
 
 ### Temporal Versioning System Explained
