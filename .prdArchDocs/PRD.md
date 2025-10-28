@@ -35,19 +35,119 @@
 --version                      # Show version
 ```
 
-## 5-Tool Pipeline Architecture
+## Parseltongue Architecture Overview
 
-### Overview
+### Core Design Philosophy
 
-The Parseltongue pipeline consists of 5 specialized tools that process Rust code from folder ingestion to state management:
+**External Orchestration + Internal Tools**
+- **External Agent**: `agent-parseltongue-reasoning-orchestrator.md` handles complex reasoning and workflow orchestration
+- **Internal Tools**: 5 specialized Rust executables handle focused, deterministic operations
+- **Clean Separation**: LLM reasoning (external) vs tool execution (internal)
+- **Shreyas Doshi Minimalism**: Simple tools, smart orchestration
 
-1. **Tool 1**: `folder-to-cozoDB-streamer` - Stream folder contents to CozoDB
-2. **Tool 2**: `cozo-code-simulation-sorcerer` - LLM-powered code change simulation
-3. **Tool 3**: `rust-preflight-code-simulator` - Pre-flight validation framework
-4. **Tool 4**: `cozoDB-to-code-writer` - Comprehensive file writing with safety checks
-5. **Tool 5**: `cozoDB-make-future-code-current` - State management and metadata backup
+### Complete System Architecture
 
-### Individual Tool Specifications
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 External LLM Agent                         │
+│  agent-parseltongue-reasoning-orchestrator.md             │
+│  ┌─────────────────┐  ┌─────────────────┐                 │
+│  │   Claude Code   │  │  Natural        │                 │
+│  │   LLM Reasoning │  │  Language       │                 │
+│  │   & Workflow    │◄─┤  Change         │                 │
+│  │   Orchestration │  │  Request        │                 │
+│  └─────────────────┘  └─────────────────┘                 │
+└─────────────────────────────────────────────────────────────┘
+                           │ orchestrates
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   5-Tool Pipeline                          │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  Tool 1: folder-to-cozoDB-streamer                  │   │
+│  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
+│  │  │  Rust Code  │───►│  CozoDB Graph Database     │  │   │
+│  │  │  Files      │    │  (CodeGraph + Metadata)    │  │   │
+│  │  └─────────────┘    └────────────────────────────┘  │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                           │                                 │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  Tool 2: cozo-reasoning-writer                      │   │
+│  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
+│  │  │  Micro-PRD  │───►│  JSON Context for LLM       │  │   │
+│  │  │  + Query    │    │  (Current Code State)      │  │   │
+│  │  └─────────────┘    └────────────────────────────┘  │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                           │                                 │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  Tool 3: rust-preflight-code-simulator              │   │
+│  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
+│  │  │  Proposed   │───►│  Validation Results         │  │   │
+│  │  │  Changes    │    │  (Compile/Test/Type)        │  │   │
+│  │  └─────────────┘    └────────────────────────────┘  │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                           │                                 │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  Tool 4: cozoDB-to-code-writer                      │   │
+│  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
+│  │  │  Validated  │───►│  Modified Files +           │  │   │
+│  │  │  Changes    │    │  Backups                    │  │   │
+│  │  └─────────────┘    └────────────────────────────┘  │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                           │                                 │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  Tool 5: cozoDB-make-future-code-current            │   │
+│  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
+│  │  │  Successful │───►│  Reset Database State +     │  │   │
+│  │  │  Changes    │    │  Git Integration            │  │   │
+│  │  └─────────────┘    └────────────────────────────┘  │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 5-Phase User Journey
+
+**Phase 1: Project Analysis & Setup**
+- Agent validates Rust project structure
+- Triggers Tool 1 to index codebase into CozoDB
+- Displays codebase statistics and complexity assessment
+
+**Phase 2: Change Specification & Reasoning**
+- Agent elicits clear change requirements from user
+- Triggers Tool 2 to extract relevant code context as JSON
+- Agent performs LLM reasoning on change requirements
+- Generates structured change specification with confidence scoring
+
+**Phase 3: Pre-flight Validation**
+- Agent triggers Tool 3 to validate proposed changes
+- Checks compilation, type safety, borrow checker
+- Runs cargo test on simulated changes
+- Returns to Phase 2 if validation fails
+
+**Phase 4: File Writing & Testing**
+- Agent triggers Tool 4 to write changes with safety checks
+- Creates automatic backups, applies changes atomically
+- Runs cargo build and cargo test on real codebase
+- Returns to Phase 2 if tests fail
+
+**Phase 5: State Reset & Cleanup**
+- Agent asks user for satisfaction confirmation
+- Triggers Tool 5 to reset database state
+- Creates Git commit with generated changes
+- Cleans up temporary files and backups
+
+### Tool Integration Details
+
+#### External Orchestration Agent
+**File**: `agent-parseltongue-reasoning-orchestrator.md`
+**Purpose**: Claude Code agent that orchestrates the complete 5-tool pipeline
+**Installation**: Copy to `.claude/agents/` directory
+**Capabilities**:
+- Natural language change request processing
+- 5-phase workflow management with safety gates
+- Error recovery and rollback mechanisms
+- Git integration and user interaction
+
+#### Individual Tool Specifications
 
 #### Tool 1: folder-to-cozoDB-streamer
 
@@ -77,25 +177,44 @@ folder-to-cozoDB-streamer /path/to/rust/repo --parsing-library tree-sitter --out
 ISGL1 (Primary Key) | Current_Code | Future_Code | interface_signature | lsp_meta_data | TDD_Classification | current_id | future_id
 ```
 
-#### Tool 2: cozo-code-simulation-sorcerer
+#### Tool 2: cozo-reasoning-writer
 
-**Purpose**: Simulate code changes based on micro-PRD using CozoDB CodeGraph
+**Purpose**: Query CozoDB and export JSON context files for external LLM reasoning
 
 ```bash
-cozo-code-simulation-sorcerer <CHANGE_SPEC> --database <DATABASE_PATH> --confidence-threshold <THRESHOLD>
+cozo-reasoning-writer <MICRO_PRD> --database <DATABASE_PATH> --output-context <JSON_FILE>
 
 # Required Arguments:
-<CHANGE_SPEC>               # Path to change specification file
+<MICRO_PRD>                  # Path to micro-PRD text file
 --database <DATABASE_PATH>   # CozoDB database path
---confidence-threshold <THRESHOLD> # Confidence threshold (0-100)
+--output-context <JSON_FILE> # Output JSON context file for LLM
+
+# Optional:
+--query-filter <FILTER>      # Filter specific interfaces/relationships
+--include-metadata           # Include LSP and TDD metadata
 ```
 
-**Core Workflow**:
-1. **Base Context Creation**: Combine micro-PRD with filtered CodeGraph (current_id=1)
-2. **ISG Level Simulations**: Create/edit/delete interface rows with future flags
-3. **Code Simulation**: Generate Future_Code for all changing interfaces
-4. **Rubber Duck Debugging**: Validate and refine solution iteratively
-5. **Confidence Scoring**: Ensure high-quality change recommendations
+**Simple Workflow**:
+1. **Query CozoDB**: Extract relevant CodeGraph data based on micro-PRD
+2. **Context Export**: Create structured JSON file with current code state
+3. **External Reasoning**: LLM agent reads JSON, performs reasoning, writes output
+4. **Import Results**: Parse LLM reasoning output back into CozoDB with future flags
+
+**JSON Context Structure**:
+```json
+{
+  "micro_prd": "user change request",
+  "current_code": [
+    {
+      "ISGL1": "filepath-filename-InterfaceName",
+      "current_code": "existing implementation",
+      "metadata": {...}
+    }
+  ],
+  "relationships": [...],
+  "timestamp": "2025-10-28T..."
+}
+```
 
 #### Tool 3: rust-preflight-code-simulator
 
@@ -341,10 +460,11 @@ Following strict RED → GREEN → REFACTOR cycle:
 - ✅ Tree-sitter parsing, chunking, metadata extraction
 - ✅ Performance optimized streaming architecture
 
-**Tool 2**: cozo-code-simulation-sorcerer
-- ✅ Complete with mock LLM implementation
-- ✅ ISG simulation, confidence scoring
-- ✅ Graph traversal and analysis
+**Tool 2**: cozo-reasoning-writer
+- 🟡 **NEEDS REFACTOR** - Current implementation has mock LLM
+- ❌ Missing: JSON context export functionality
+- ❌ Missing: External LLM integration pattern
+- ✅ ISG simulation, confidence scoring (existing)
 
 **Tool 3**: rust-preflight-code-simulator
 - 🟡 **PARTIAL** - rust-analyzer integration incomplete
@@ -370,7 +490,7 @@ Following strict RED → GREEN → REFACTOR cycle:
 
 ### ❌ **BLOCKING ISSUES**
 
-- Tool 2: Mock LLM → Real LLM integration
+- Tool 2: Mock LLM → JSON context writer refactor (NEEDS ARCHITECTURAL CHANGE)
 - Tool 3: rust-analyzer API compatibility
 - CozoDB API resolution in some components
 
@@ -398,7 +518,47 @@ The Parseltongue project implements a sophisticated 5-tool pipeline for automate
 
 The architecture successfully balances complexity with practicality, leveraging existing tools (Tree-sitter, rust-analyzer, CozoDB) while maintaining clean separation of concerns and comprehensive error handling.
 
-**Next Priority**: Complete Tool 3 rust-analyzer integration and test end-to-end pipeline functionality.
+**Next Priority**: Refactor Tool 2 from mock LLM to JSON context writer, then complete Tool 3 rust-analyzer integration.
+
+## Installation & Usage
+
+### Quick Start
+
+1. **Build Tools**:
+   ```bash
+   cargo build --release --workspace
+   export PATH="$PWD/target/release:$PATH"
+   ```
+
+2. **Setup Agent**:
+   ```bash
+   cp agent-parseltongue-reasoning-orchestrator.md ~/.claude/agents/
+   ```
+
+3. **Use in Claude Code**:
+   ```
+   @agent-parseltongue-reasoning-orchestrator Add async support to database layer
+   ```
+
+### Architecture Benefits
+
+- **Simple Tools**: Each tool has a single, focused responsibility
+- **Smart Orchestration**: Complex reasoning handled by external LLM agent
+- **Safety First**: Multiple validation gates prevent breaking changes
+- **Git Integration**: Automatic commits and rollback capability
+- **Extensible**: Easy to add new tools or modify orchestration logic
+
+### User Experience
+
+The orchestrator provides a conversational interface for complex code changes:
+
+```
+🔍 Analyzing Rust codebase...
+📊 Found 1,247 interfaces across 89 files
+📝 Processing change request: "Add async support to database layer"
+🧠 Reasoning about change impact...
+✅ Changes applied successfully!
+```
 
 ---
 
