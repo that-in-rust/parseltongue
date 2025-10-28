@@ -179,7 +179,7 @@ flowchart TD
 
     subgraph PrimaryPath ["Agentic Workflow (95% of users)"]
         PrimaryWorkflow --> ClaudeStart["@agent-parseltongue-reasoning-orchestrator<br/>in Claude Code"]
-        ClaudeStart --> NaturalRequest["User: 'Add async support<br/>to database layer'"]
+        ClaudeStart --> NaturalRequest["User: 'Fix panic in<br/>GitHub #1234' or<br/>'Fix segfault from error.log'"]
         NaturalRequest --> AutoIndex["Auto-index codebase<br/>folder-to-cozoDB-streamer"]
         AutoIndex --> ContextExtraction["Extract relevant context<br/>cozo-to-context-writer"]
         ContextExtraction --> Validation["Validate changes<br/>rust-preflight-code-simulator"]
@@ -203,14 +203,14 @@ flowchart TD
         ResumeAgent --> ClaudeStart
     end
 
-    subgraph CommonScenarios ["Common Usage Scenarios"]
-        AgentSuccess --> Scenario1["Scenario 1:<br/>Simple Refactoring<br/>'Add timeout parameter'"]
-        AgentSuccess --> Scenario2["Scenario 2:<br/>Complex Migration<br/>'Sync to async conversion'"]
-        AgentSuccess --> Scenario3["Scenario 3:<br/>Feature Addition<br/>'Add caching layer'"]
+    subgraph CommonScenarios ["Bug Fixing Scenarios"]
+        AgentSuccess --> Scenario1["Scenario 1:<br/>Panic/Segfault Fix<br/>'#1234: Null pointer crash'"]
+        AgentSuccess --> Scenario2["Scenario 2:<br/>Logic Error Fix<br/>'#5678: Wrong calculation result'"]
+        AgentSuccess --> Scenario3["Scenario 3:<br/>Memory Leak Fix<br/>'#9012: Resource not freed'"]
 
-        Scenario1 --> TimeEstimate1["⏱️ 5-10 minutes<br/>Fully automated"]
-        Scenario2 --> TimeEstimate2["⏱️ 20-40 minutes<br/>Agent-guided iteration"]
-        Scenario3 --> TimeEstimate3["⏱️ 15-30 minutes<br/>Agent-managed approach"]
+        Scenario1 --> TimeEstimate1["⏱️ 3-5 minutes<br/>Panic analysis + fix"]
+        Scenario2 --> TimeEstimate2["⏱️ 10-15 minutes<br/>Logic tracing + correction"]
+        Scenario3 --> TimeEstimate3["⏱️ 5-10 minutes<br/>Memory analysis + cleanup"]
     end
 
     %% Feedback loops
@@ -245,10 +245,16 @@ flowchart TD
 
 ### Command Usage Reference
 
-#### **Primary Interface: Agentic Workflow (95% of users)**
+#### **Primary Interface: Bug Fixing Workflow (95% of users)**
 ```bash
-# Interactive conversational interface - this is the main way to use Parseltongue
-@agent-parseltongue-reasoning-orchestrator "Add async support to database layer"
+# Interactive conversational interface - designed for bug fixing
+@agent-parseltongue-reasoning-orchestrator "Fix panic in GitHub #1234"
+
+# Or provide error details directly
+@agent-parseltongue-reasoning-orchestrator "Fix segfault from error.log: thread 'main' panicked at 'src/main.rs:42:5'"
+
+# Or describe the issue
+@agent-parseltongue-reasoning-orchestrator "Fix memory leak in database connection pool - connections not being dropped"
 ```
 
 #### **Advanced Options (5% of users)**
@@ -269,15 +275,16 @@ parseltongue reset --project-path . --database ./parseltongue.db
 
 ### Jobs To Be Done (JTBD)
 
-| **Job** | **Primary: Agentic Workflow** | **Advanced: Manual CLI** | **Power Users: Mixed Approach** |
-|----------|----------------------------|--------------------------|---------------------------|
-| **Simple interface changes** | ✅ Primary use case | ❌ Overkill | ❌ Unnecessary complexity |
-| **Complex refactoring** | ✅ Best for complex changes | ⚠️ For specific manual steps | ⚠️ For fine-tuned control |
-| **Learning the codebase** | ✅ Natural language exploration | ⚠️ For precise queries | ⚠️ For custom analysis |
-| **Production changes** | ✅ Built-in safety & documentation | ⚠️ For specific validation steps | ⚠️ For custom validation |
-| **Team collaboration** | ✅ Clear documentation & communication | ⚠️ For specific operations | ⚠️ For custom workflows |
-| **Emergency fixes** | ✅ Fast with context awareness | ✅ For immediate direct control | ❌ Too complex for emergencies |
-| **Batch operations** | ❌ Not designed for bulk operations | ✅ Scriptable and automatable | ✅ Custom batch workflows |
+| **Bug Type** | **Primary: Agent Workflow** | **Advanced: Manual CLI** | **Power Users: Mixed Approach** |
+|------------|----------------------------|--------------------------|---------------------------|
+| **Panic/Segfault** | ✅ Primary use case - crash analysis | ⚠️ For specific manual debugging | ⚠️ For custom debugging strategies |
+| **Logic Errors** | ✅ Root cause analysis + fix | ⚠️ For precise tracing | ⚠️ For complex logic flows |
+| **Memory Issues** | ✅ Leak detection + cleanup | ⚠️ For manual memory profiling | ⚠️ For custom optimization |
+| **Build Errors** | ✅ Dependency/compilation fixes | ✅ For specific build steps | ❌ Overkill for simple builds |
+| **Test Failures** | ✅ Test debugging + fixes | ⚠️ For specific test scenarios | ⚠️ For custom test strategies |
+| **Performance Issues** | ✅ Bottleneck analysis + optimization | ⚠️ For manual profiling | ✅ For custom optimization |
+| **Security Vulnerabilities** | ✅ Vulnerability analysis + patch | ⚠️ For specific security checks | ⚠️ For custom security workflows |
+| **Multiple Bug Fixes** | ❌ One bug at a time | ✅ Scriptable batch fixes | ✅ Custom batch workflows |
 
 ### Setup Instructions
 
@@ -317,12 +324,22 @@ cp target/release/parseltongue /path/to/your/repo/
 
 ## Executive Summary
 
-**User Segment**: Apple Silicon developers working on large Rust codebases
+**User Segment**: Apple Silicon developers fixing bugs and issues in large Rust codebases
+
+**Primary Use Case**: Bug fixing and issue resolution with precise problem definitions from GitHub issues, error logs, and stack traces
 
 **Platform Strategy**:
 - **Primary**: Apple Silicon (M1/M2/M3) with pre-compiled binaries and Homebrew support
 - **Secondary**: Linux/Unix via source compilation (self-serve, community-supported)
 - **Windows**: Not supported (strategic focus on Unix-like environments)
+
+**Strategic Rationale for Bug-Fixing Focus**:
+- **Precise Problem Definition**: Bugs come with clear error messages, stack traces, and reproduction steps
+- **Clear Success Criteria**: Bug is fixed when error no longer occurs and tests pass
+- **High Business Value**: Developers get paid to fix bugs; bugs block releases and user workflows
+- **Perfect LLM Fit**: Error analysis, pattern matching, and code generation are LLM strengths
+- **Measurable Impact**: Before/after comparison is clear (crash → no crash, wrong → correct)
+- **Repeatable Workflows**: Common bug patterns can be recognized and fixed automatically
 
 **Strategic Rationale for Apple Silicon Focus**:
 - **Unified Hardware**: Consistent performance across M1/M2/M3 with unified memory architecture
@@ -341,7 +358,7 @@ cp target/release/parseltongue /path/to/your/repo/
 - **Shreyas Doshi**: Prioritize first-apply correctness over speed. Design for clarity, safety, and explicit confidence gating. Time is a secondary outcome.
 - **Jeff Dean**: Make correctness the fast path. Push work to deterministic, cacheable computations (ISG, RA, HNSW). Parallelize retrieval/validation; minimize token movement; measure token-per-fix and cache hit rates.
 
-**User Promise**: "When I hit a Rust bug, the system produces a single-pass, safe, minimal diff that compiles and (when present) passes tests before applying. Speed is a byproduct; correctness is the KPI."
+**User Promise**: "When I encounter a Rust bug, I provide the GitHub issue link or error details, and the system automatically analyzes the problem, generates a precise fix, and applies it with full validation. Bug resolution time goes from hours to minutes while maintaining 100% correctness."
 
 ## Local Folder Architecture
 
