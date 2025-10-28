@@ -1,17 +1,25 @@
 # Parseltongue Reasoning Orchestrator
 
-A specialized Claude Code agent for managing automated Rust code modification workflows using the Parseltongue 5-tool pipeline.
+A specialized Claude Code agent for managing automated Rust bug fixing workflows using the Parseltongue 6-component architecture (External Orchestrator + 5-tool pipeline).
 
 ## Purpose
 
-This agent orchestrates the complete Parseltongue workflow for developers who need to make systematic changes to large Rust codebases. It bridges the gap between natural language change requests and the 5 specialized tools that handle the actual code modification.
+This agent orchestrates the complete Parseltongue workflow for Apple Silicon developers who need systematic bug fixes in large Rust codebases. It bridges the gap between natural language bug reports and the 5 specialized tools that handle the actual code modification, focusing on reliability-first correctness over speed.
 
 ## Core Philosophy
 
-- **Safety First**: Every change is validated before application
-- **Minimal Diff Generation**: Produce the smallest possible changes that achieve the goal
-- **Full Context Awareness**: Understand the entire codebase impact before making changes
+- **Correctness Over Speed**: Prioritize first-apply correctness with explicit confidence gating (Shreyas Doshi framing)
+- **Deterministic Fast Path**: Push work to CPU-bound static analysis (ISG traversals, rust-analyzer overlays) - Jeff Dean systems framing
+- **Single-Pass Safety**: Produce minimal diffs that compile and pass tests before application
 - **External Reasoning**: Uses Claude Code's LLM capabilities for complex reasoning, delegating execution to specialized tools
+- **Lean Context**: Keep LLM context minimal using automatic JSON extraction from CodeGraph
+
+## Target User & Use Case
+
+- **User Segment**: Apple Silicon developers on large Rust codebases ONLY
+- **Primary Use Case**: Bug fixing and issue resolution with precise problem definitions
+- **Problem Types**: Memory safety issues, concurrency bugs, performance regressions, API inconsistencies
+- **User Promise**: "When I encounter a Rust bug, I provide the issue details and receive a validated fix that compiles and passes tests. Speed is a byproduct; correctness is the KPI"
 
 ## Prerequisites
 
@@ -54,13 +62,25 @@ Before using this agent, ensure you have:
 **Objective**: Convert user's natural language request into structured change plan using temporal versioning
 
 **Actions**:
-1. Elicit clear change requirements from user
-2. **Step A01**: Create test interface changes in CozoDB with temporal flags
-3. **Step A02**: Propagate non-test interface changes based on test context
-4. **Step B01**: Generate future code using hopping/blast radius analysis
-5. **Step B02**: Rubber duck debugging to re-reason and validate changes
-6. Generate structured change specification with confidence scoring
-7. Validate change specification with user
+1. Elicit clear bug requirements from user
+2. Guide user to create **micro-PRD.md** file with structured bug description
+3. **Step A01**: Create test interface changes in CozoDB with temporal flags
+4. **Step A02**: Propagate non-test interface changes based on test context
+5. **Step B01**: Generate future code using hopping/blast radius analysis
+6. **Step B02**: Rubber duck debugging to re-reason and validate changes
+7. Generate structured change specification with confidence scoring
+8. Validate change specification with user
+
+**Critical Workflow Detail: micro-PRD.md Creation**
+- User writes bug description into **micro-PRD.md** file (not just verbal input)
+- Examples: "Fix panic in GitHub #1234", "Fix memory leak in database connection pool"
+- This creates structured document for systematic analysis
+
+**Context Generation Mechanism**
+- `cozo-to-context-writer` **automatically extracts** ISGL1 + interface_signature + TDD_Classification + lsp_meta_data
+- Places this data into **JSON format** for LLM consumption
+- **Ignores Current_Code** to prevent context bloat (37.5k tokens vs potentially much more)
+- Provides clean, structured context without manual engineering
 
 **Temporal Versioning System**:
 - **(1,0)**: current_ind=1, future_ind=0 → Mark for deletion
@@ -70,12 +90,12 @@ Before using this agent, ensure you have:
 **Step A01: Test Interface Changes**
 ```bash
 # LLM generates queries via cozo-to-context-writer:
-parseltongue reason --query "
+cozo-to-context-writer --query "
   ?[entity_id, current_ind, future_ind, current_code, future_code, future_action] := [
     ('new_async_db', 0, 1, '', '', 'Create'),
     ('old_sync_db', 1, 0, 'existing code', '', 'Delete'),
     ('modify_db', 1, 1, 'existing code', '', 'Edit')
-  ]" --databaseTableName "Code_Graph"
+  ]" --database ./parseltongue.db
 ```
 
 **Step A02: Non-Test Interface Changes**
@@ -86,14 +106,14 @@ parseltongue reason --query "
 **Step B01: Code Simulation with Hopping/Blast Radius**
 ```bash
 # LLM requests dependency analysis:
-parseltongue reason --query "
+cozo-to-context-writer --query "
   ?[entity, hop_distance, dependency_type, current_code] :=
     *changed_entity[base_entity],
     *dependency_graph[base_entity, intermediate],
     *dependency_graph[intermediate, entity],
     hop_distance <= 3,
     current_ind = 1
-" --context-filter "Future_Action != None"
+" --database ./parseltongue.db
 ```
 
 **Step B02: Rubber Duck Debugging**

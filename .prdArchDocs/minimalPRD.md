@@ -1,6 +1,6 @@
-# Minimal User Journey
+# 1.0 Minimal User Journey
 
-## Executive Summary for Parseltongue
+## 1.1 Executive Summary for Parseltongue
 - **User Segment**: Apple Silicon developers on large Rust codebases ONLY
 - **Reliability-First Principle**:
     - Optimize for accurate 1-go fixes that feel trustworthy and increase user efficacy
@@ -10,7 +10,7 @@
 - **Jeff Dean (systems framing)**: Make correctness the fast path. Push work to deterministic, cacheable computations (ISG, RA, HNSW). Parallelize retrieval/validation; minimize token movement; measure token-per-fix and cache hit rates
 - **User Promise**: "When I encounter a Rust bug, the system produces a single-pass, safe, minimal diff that compiles and (when present) passes tests before applying. Speed is a byproduct; correctness is the KPI"
 
-## User Journey v0.8 (Updated for Current Architecture)
+## 1.2 User Journey v0.8 (Updated for Current Architecture)
 - User downloads parseltongue binary and sets up Claude agent
 - User confirms they are in the relevant Rust repository
     - If no, ask them to share absolute path of git repo and cd there
@@ -37,9 +37,9 @@
                                 - Future_Action (by default None, edited by action of reasoning LLM to be None|Create|Edit|Delete)
                                 - future_ind (0/1: 0 meaning NOT in future code, 1 meaning in future code)
                 - Tell user that code indexing is completed and basic analytics of the CodeGraph table is shared
-                - User is now asked to describe their bug/micro-PRD
+                - User is now asked to describe their bug/micro-PRD in micro-PRD.md
                 - User describes the bug in text form (examples: "Fix panic in GitHub #1234", "Fix memory leak in database connection pool")
-                    - The reasoning-LLM (default LLM via ANTHROPIC_KEY) analyzes the micro-PRD in context of ISGL1 + interface_signature + TDD_Classification + lsp_meta_data; we will ignore the Current_Code because it would unnecessarily bloat the context
+                    - The reasoning-LLM (default LLM via ANTHROPIC_KEY) analyzes the micro-PRD in context of ISGL1 + interface_signature + TDD_Classification + lsp_meta_data because cozo-to-context-writer places them in a json; we will ignore the Current_Code because it would unnecessarily bloat the context
                         - Rough calculation of context in the reasoning-LLM = 1250000 tokens at 300 lines:
                             - Avg interface size is 1000 to 1500 nodes
                             - 1500 nodes x 3 tokens for ISGL1 = 4500 tokens
@@ -94,120 +94,101 @@
                     - `cozoDB-make-future-code-current` creates a git commit with list of changes
                     - `cozoDB-make-future-code-current` resets the CodeGraph and updates all rows in CozoDB database, making future_code the new current_code
 
+# 2.0 Detailed User Journey - Updated for Current Architecture
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Detailed User Journey - Updated for Current Architecture
-
-## Executive Summary
+## 2.1 Executive Summary
 - **User Segment**: Apple Silicon developers fixing bugs in large Rust codebases
 - **Primary Use Case**: Bug fixing and issue resolution with precise problem definitions
 - **User Promise**: "When I encounter a Rust bug, I provide the issue details and receive a validated fix that compiles and passes tests."
 
-## User Journey v1.0
+## 2.2 User Journey v1.0
+- Phase 1: Setup & Code Indexing
+    - User downloads parseltongue binary and sets up Claude agent
+    - User confirms they are in the relevant Rust repository
+    - Code indexing begins (approximately 10 minutes)
+        - Tool 1: `folder-to-cozoDB-streamer` processes codebase
+            - Uses tree-sitter parsing with ISGL1 chunking
+            - Creates CodeGraph database with interface-level indexing
+            - Optional LSP metadata extraction via rust-analyzer
 
-### Phase 1: Setup & Code Indexing
-- User downloads parseltongue binary and sets up Claude agent
-- User confirms they are in the relevant Rust repository
-- Code indexing begins (approximately 10 minutes)
-  - Tool 1: `folder-to-cozoDB-streamer` processes codebase
-    - Uses tree-sitter parsing with ISGL1 chunking
-    - Creates CodeGraph database with interface-level indexing
-    - Optional LSP metadata extraction via rust-analyzer
+- Phase 2: Bug Analysis & Micro-PRD
+    - Code indexing completes, basic analytics shared
+    - User provides bug details in natural language
+        - Examples: "Fix panic in GitHub #1234", "Fix segfault from error.log"
+        - Or describes issue: "Fix memory leak in database connection pool"
+    - Agent analyzes bug against CodeGraph context
+    - Agent refines requirements through 2 iterations
+    - Final micro-PRD isolated for processing
 
-### Phase 2: Bug Analysis & Micro-PRD
-- Code indexing completes, basic analytics shared
-- User provides bug details in natural language
-  - Examples: "Fix panic in GitHub #1234", "Fix segfault from error.log"
-  - Or describes issue: "Fix memory leak in database connection pool"
-- Agent analyzes bug against CodeGraph context
-- Agent refines requirements through 2 iterations
-- Final micro-PRD isolated for processing
+- Phase 3: Temporal Code Simulation
+    - Tool 2: `cozo-to-context-writer` with temporal versioning
+        - **Step A01**: Create test interface changes (current_ind=0, future_ind=1)
+        - **Step A02**: Propagate changes to non-test interfaces
+        - **Step B01**: Generate future code using hopping/blast-radius analysis
+        - **Step B02**: Rubber duck debugging and confidence validation
 
-### Phase 3: Temporal Code Simulation
-- Tool 2: `cozo-to-context-writer` with temporal versioning
-  - **Step A01**: Create test interface changes (current_ind=0, future_ind=1)
-  - **Step A02**: Propagate changes to non-test interfaces
-  - **Step B01**: Generate future code using hopping/blast-radius analysis
-  - **Step B02**: Rubber duck debugging and confidence validation
+- Phase 4: Validation & Testing
+    - Tool 3: `rust-preflight-code-simulator` validates proposed changes
+    - If validation fails, return to Phase 3 for refinement
+    - Tool 4: `cozoDB-to-code-writer` applies changes with safety checks
+        - Build validation: cargo build
+        - Test validation: cargo test
+        - Runtime validation: integration tests
+        - Performance validation: benchmarks
+        - Code quality validation: clippy/rustfmt
+        - CI/CD validation: pipeline compatibility
 
-### Phase 4: Validation & Testing
-- Tool 3: `rust-preflight-code-simulator` validates proposed changes
-- If validation fails, return to Phase 3 for refinement
-- Tool 4: `cozoDB-to-code-writer` applies changes with safety checks
-  - Build validation: cargo build
-  - Test validation: cargo test
-  - Runtime validation: integration tests
-  - Performance validation: benchmarks
-  - Code quality validation: clippy/rustfmt
-  - CI/CD validation: pipeline compatibility
+- Phase 5: State Reset & Completion
+    - User confirms satisfaction with changes
+    - Tool 5: `cozoDB-make-future-code-current` resets database state
+    - Git commit created with list of changes
+    - CodeGraph updated with current state
 
-### Phase 5: State Reset & Completion
-- User confirms satisfaction with changes
-- Tool 5: `cozoDB-make-future-code-current` resets database state
-- Git commit created with list of changes
-- CodeGraph updated with current state
+## 2.3 Tool Mapping to Current Architecture
+- **Complete Tool Pipeline (6 components)**:
+    - **Orchestrator**: `agent-parseltongue-reasoning-orchestrator` (External LLM coordination & workflow management)
+    - Tool 1: `folder-to-cozoDB-streamer` (Code indexing)
+    - Tool 2: `cozo-to-context-writer` (Temporal reasoning & context extraction)
+    - Tool 3: `rust-preflight-code-simulator` (Validation)
+    - Tool 4: `cozoDB-to-code-writer` (File writing)
+    - Tool 5: `cozoDB-make-future-code-current` (State reset)
 
-## Tool Mapping to Current Architecture
+## 2.4 Temporal Versioning System
+- **State Tracking in CozoDB**:
+    - **(1,1)**: Code exists now and continues (unchanged)
+    - **(1,0)**: Code exists now but will be deleted
+    - **(0,1)**: Code doesn't exist but will be created
+    - **(1,1)**: Code exists and will be modified
 
-**Tool Names (Current Architecture)**:
-- Tool 1: `folder-to-cozoDB-streamer` (Code indexing)
-- Tool 2: `cozo-to-context-writer` (Temporal reasoning & context extraction)
-- Tool 3: `rust-preflight-code-simulator` (Validation)
-- Tool 4: `cozoDB-to-code-writer` (File writing)
-- Tool 5: `cozoDB-make-future-code-current` (State reset)
+- **Current_Code → Future_Code Flow**:
+    - Phase 2: LLM sets future_code based on bug analysis
+    - Phase 4: Future_code becomes actual code in files
+    - Phase 5: Database reset makes future_code the new current_code
 
-## Temporal Versioning System
+## 2.5 Command Interface (Current)
+- **Primary Interface (95% of users)**:
+    ```bash
+    @agent-parseltongue-reasoning-orchestrator "Fix panic in GitHub #1234"
+    ```
 
-**State Tracking in CozoDB**:
-- **(1,1)**: Code exists now and continues (unchanged)
-- **(1,0)**: Code exists now but will be deleted
-- **(0,1)**: Code doesn't exist but will be created
-- **(1,1)**: Code exists and will be modified
+- **Manual Tools (5% of users)**:
+    ```bash
+    folder-to-cozoDB-streamer ./src --parsing-library tree-sitter --chunking ISGL1 --output-db ./parseltongue.db
+    cozo-to-context-writer --query "context extraction query" --database ./parseltongue.db
+    rust-preflight-code-simulator validation_output.json --validation-type all
+    cozoDB-to-code-writer validation.json --database ./parseltongue.db
+    cozoDB-make-future-code-current --project-path . --database ./parseltongue.db
+    ```
 
-**Current_Code → Future_Code Flow**:
-- Phase 2: LLM sets future_code based on bug analysis
-- Phase 4: Future_code becomes actual code in files
-- Phase 5: Database reset makes future_code the new current_code
-
-## Command Interface (Current)
-
-### Primary Interface (95% of users)
-```bash
-@agent-parseltongue-reasoning-orchestrator "Fix panic in GitHub #1234"
-```
-
-### Manual Tools (5% of users)
-```bash
-folder-to-cozoDB-streamer ./src --parsing-library tree-sitter --chunking ISGL1 --output-db ./parseltongue.db
-cozo-to-context-writer --query "context extraction query" --database ./parseltongue.db
-rust-preflight-code-simulator validation_output.json --validation-type all
-cozoDB-to-code-writer validation.json --database ./parseltongue.db
-cozoDB-make-future-code-current --project-path . --database ./parseltongue.db
-```
-
-## Integration with Current Architecture
-
-The minimalPRD workflow aligns with the current 5-tool architecture:
-- **5-Tool Pipeline**: Individual specialized tools for each phase
+## 2.6 Integration with Current Architecture
+The minimalPRD workflow aligns with the current 6-component architecture:
+- **External Orchestrator + 5-Tool Pipeline**: Claude Code agent coordinates specialized tools
 - **5-Phase Process**: Matches current orchestrator workflow
 - **Temporal Versioning**: Enhanced with (current_ind, future_ind) state management
 - **Apple Silicon Focus**: Current platform strategy
 - **Bug-Fixing Priority**: Current primary use case
 
-## Success Criteria
-
+## 2.7 Success Criteria
 A bug is considered fixed when:
 1. Error no longer occurs (verified through testing)
 2. Code compiles successfully
