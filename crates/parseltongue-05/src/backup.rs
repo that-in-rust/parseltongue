@@ -335,12 +335,11 @@ impl BackupManager for DefaultBackupManager {
     ) -> FileWriterResult<()> {
         let mut backups = self.list_backups(original_path).await?;
 
+        // backups are sorted newest first
         if backups.len() > keep_count {
-            // Keep the newest 'keep_count' backups
-            backups.truncate(keep_count);
-
-            // Delete the rest
-            for backup in backups {
+            // Split off the backups we want to DELETE (everything after the newest `keep_count`)
+            let to_delete = backups.split_off(keep_count);
+            for backup in to_delete {
                 self.delete_backup(&backup).await?;
             }
         }

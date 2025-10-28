@@ -16,6 +16,13 @@ pub struct ValidationPerformanceContract {
     pub memory_limits: MemoryLimits,
     /// Throughput requirements
     pub throughput_requirements: ThroughputRequirements,
+
+    // Compatibility fields expected by tests
+    pub max_syntax_validation_time_per_kb: std::time::Duration,
+    pub max_type_validation_time_per_kb: std::time::Duration,
+    pub max_compilation_time_per_kb: std::time::Duration,
+    pub max_memory_overhead_factor: f64,
+    pub min_validation_accuracy: f64,
 }
 
 /// Performance thresholds for different validation types
@@ -53,6 +60,23 @@ pub struct ThroughputRequirements {
     pub max_concurrent_operations: usize,
     /// Queue depth for operations
     pub max_queue_depth: usize,
+}
+
+/// Lightweight, test-facing validation execution report
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidationExecutionReport {
+    pub total_execution_time_ms: u64,
+    pub memory_usage_bytes: usize,
+    pub validation_accuracy: f64,
+}
+
+/// Lightweight, test-facing batch validation case report
+#[derive(Debug, Clone)]
+pub struct BatchValidationCaseReport {
+    pub name: String,
+    pub total_execution_time: std::time::Duration,
+    pub memory_usage_bytes: usize,
+    pub validation_accuracy: f64,
 }
 
 impl ValidationPerformanceContract {
@@ -140,6 +164,12 @@ impl ValidationPerformanceContract {
                 max_concurrent_operations: 4,
                 max_queue_depth: 10,
             },
+            // Reasonable defaults to satisfy tests
+            max_syntax_validation_time_per_kb: std::time::Duration::from_millis(100),
+            max_type_validation_time_per_kb: std::time::Duration::from_millis(200),
+            max_compilation_time_per_kb: std::time::Duration::from_millis(500),
+            max_memory_overhead_factor: 5.0,
+            min_validation_accuracy: 0.9,
         }
     }
 
@@ -153,6 +183,11 @@ impl ValidationPerformanceContract {
             thresholds,
             memory_limits: MemoryLimits::default(),
             throughput_requirements: ThroughputRequirements::default(),
+            max_syntax_validation_time_per_kb: std::time::Duration::from_millis(100),
+            max_type_validation_time_per_kb: std::time::Duration::from_millis(200),
+            max_compilation_time_per_kb: std::time::Duration::from_millis(500),
+            max_memory_overhead_factor: 5.0,
+            min_validation_accuracy: 0.9,
         }
     }
 
@@ -227,6 +262,102 @@ impl ValidationPerformanceContract {
             CodeSizeCategory::Large
         }
     }
+
+    /// Test compatibility method: validate validation performance
+    pub async fn validate_validation_performance<V: crate::validation::RustCodeValidator<Input = str>>(
+        &self,
+        validator: &V,
+        test_case: &crate::validation::ValidationTestCase,
+    ) -> Result<ValidationExecutionReport, parseltongue_01::performance::PerformanceError> {
+        use parseltongue_01::performance::PerformanceError;
+        use std::time::Instant;
+
+        let code = test_case.code.clone();
+        let size_bytes = code.len();
+        let kb = std::cmp::max(1, (size_bytes as u64 + 1023) / 1024);
+
+        let start = Instant::now();
+        let report = validator
+            .validate_all(code.as_str())
+            .await
+            .map_err(|e| PerformanceError::ParseFailure(format!("{:?}", e)))?;
+        let elapsed_ms = start.elapsed().as_millis() as u64;
+
+        // Memory: use aggregated report's memory
+        let memory_usage_bytes = report.total_memory_usage_bytes;
+
+        // Accuracy proxy: share of successful validations
+        let validation_accuracy = report.validation_accuracy();
+
+        // Time budgets per KB (very simple approximation)
+        let max_time_ms = std::cmp::max(
+            self.max_compilation_time_per_kb.as_millis() as u64,
+            std::cmp::max(
+                self.max_type_validation_time_per_kb.as_millis() as u64,
+                self.max_syntax_validation_time_per_kb.as_millis() as u64,
+            ),
+        ) * kb;
+
+        if elapsed_ms > max_time_ms {
+            return Err(PerformanceError::TimeContractViolation {
+                actual: std::time::Duration::from_millis(elapsed_ms),
+                expected: std::time::Duration::from_millis(max_time_ms),
+                input_size: size_bytes,
+            });
+        }
+
+        // Memory budget: overhead factor times input
+        let max_memory_allowed =
+            (size_bytes as f64 * self.max_memory_overhead_factor) as usize;
+        if memory_usage_bytes > max_memory_allowed {
+            return Err(PerformanceError::MemoryContractViolation {
+                estimated: memory_usage_bytes,
+                max_allowed: max_memory_allowed,
+                input_size: size_bytes,
+            });
+        }
+
+        // Accuracy threshold
+        if validation_accuracy < self.min_validation_accuracy {
+            return Err(PerformanceError::InvalidInput(format!(
+                "Validation accuracy {:.3} below {:.3}",
+                validation_accuracy, self.min_validation_accuracy
+            )));
+        }
+
+        Ok(ValidationExecutionReport {
+            total_execution_time_ms: elapsed_ms,
+            memory_usage_bytes,
+            validation_accuracy,
+        })
+    }
+
+    /// Test compatibility method: validate batch performance
+    pub async fn validate_batch_performance<V: crate::validation::RustCodeValidator<Input = str>>(
+        &self,
+        validator: &V,
+        test_cases: Vec<crate::validation::ValidationTestCase>,
+    ) -> Result<Vec<BatchValidationCaseReport>, parseltongue_01::performance::PerformanceError> {
+        use parseltongue_01::performance::PerformanceError;
+
+        let mut out = Vec::with_capacity(test_cases.len());
+        for tc in test_cases {
+            let start = std::time::Instant::now();
+            let report = validator
+                .validate_all(tc.code.as_str())
+                .await
+                .map_err(|e| PerformanceError::ParseFailure(format!("{:?}", e)))?;
+            let dur = start.elapsed();
+
+            out.push(BatchValidationCaseReport {
+                name: tc.name,
+                total_execution_time: dur,
+                memory_usage_bytes: report.total_memory_usage_bytes,
+                validation_accuracy: report.validation_accuracy(),
+            });
+        }
+        Ok(out)
+    }
 }
 
 impl Default for MemoryLimits {
@@ -246,6 +377,19 @@ impl Default for ThroughputRequirements {
             max_concurrent_operations: 4,
             max_queue_depth: 10,
         }
+    }
+}
+
+impl Default for ValidationPerformanceContract {
+    fn default() -> Self {
+        let mut c = Self::new("Default".to_string());
+        // Reasonable defaults to satisfy tests
+        c.max_syntax_validation_time_per_kb = std::time::Duration::from_millis(100);
+        c.max_type_validation_time_per_kb = std::time::Duration::from_millis(200);
+        c.max_compilation_time_per_kb = std::time::Duration::from_millis(500);
+        c.max_memory_overhead_factor = 5.0;
+        c.min_validation_accuracy = 0.9;
+        c
     }
 }
 

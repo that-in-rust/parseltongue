@@ -265,7 +265,7 @@ impl DefaultSafetyChecker {
                         "File is too large: {} bytes (max: {} bytes)",
                         file_size, self.max_file_size
                     ),
-                    severity: SafetySeverity::Warning,
+                    severity: SafetySeverity::Error,
                     path: path.to_string_lossy().to_string(),
                 });
                 check.add_recommendation(

@@ -80,6 +80,12 @@ impl RustAnalyzerClient {
         &self.config
     }
 
+    /// Check if the analyzer is ready (test compatibility)
+    pub async fn is_ready(&self) -> bool {
+        // Simple readiness probe: Cargo.toml exists
+        self.project_path.join("Cargo.toml").exists()
+    }
+
     /// Analyze Rust code syntax using rust-analyzer
     pub async fn analyze_syntax(
         &self,
@@ -255,10 +261,17 @@ impl RustAnalyzerClient {
 
         if output.status.success() {
             let metadata: CargoMetadata = serde_json::from_slice(&output.stdout)?;
+            let src_dir = metadata.workspace_root.join("src");
+            let has_main_rs = src_dir.join("main.rs").exists();
+            let has_lib_rs = src_dir.join("lib.rs").exists();
+
             Ok(WorkspaceInfo {
-                workspace_root: metadata.workspace_root,
+                workspace_root: metadata.workspace_root.clone(),
                 packages: metadata.packages.len(),
-                target_directory: metadata.target_directory,
+                target_directory: metadata.target_directory.clone(),
+                root_dir: metadata.workspace_root,
+                has_main_rs,
+                has_lib_rs,
             })
         } else {
             Err(RustAnalyzerError::CargoError(
@@ -606,6 +619,9 @@ pub struct WorkspaceInfo {
     pub workspace_root: PathBuf,
     pub packages: usize,
     pub target_directory: PathBuf,
+    pub root_dir: PathBuf,
+    pub has_main_rs: bool,
+    pub has_lib_rs: bool,
 }
 
 /// Cargo metadata structure
