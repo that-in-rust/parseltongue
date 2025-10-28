@@ -155,6 +155,118 @@ impl RustAnalyzerClient {
         }
     }
 
+    /// Validate syntax (alias for analyze_syntax for test compatibility)
+    pub async fn validate_syntax(
+        &self,
+        file_path: &str,
+    ) -> Result<ValidationOutput, RustAnalyzerError> {
+        // Read the file content
+        let full_path = self.project_path.join(file_path);
+        let code = tokio::fs::read_to_string(&full_path).await?;
+        self.analyze_syntax(&code, &full_path).await
+    }
+
+    /// Validate types (alias for analyze_types for test compatibility)
+    pub async fn validate_types(
+        &self,
+        file_path: &str,
+    ) -> Result<ValidationOutput, RustAnalyzerError> {
+        // Read the file content
+        let full_path = self.project_path.join(file_path);
+        let code = tokio::fs::read_to_string(&full_path).await?;
+        self.analyze_types(&code, &full_path).await
+    }
+
+    /// Validate dependencies (basic implementation for test compatibility)
+    pub async fn validate_dependencies(
+        &self,
+        file_path: &str,
+    ) -> Result<ValidationOutput, RustAnalyzerError> {
+        let start_time = std::time::Instant::now();
+
+        // Basic dependency validation using cargo check
+        let output = TokioCommand::new("cargo")
+            .arg("check")
+            .arg("--message-format=json")
+            .current_dir(&self.project_path)
+            .output()
+            .await?;
+
+        let execution_time = start_time.elapsed().as_millis() as u64;
+        let memory_usage = 1024 * 1024; // 1MB estimate
+
+        if output.status.success() {
+            Ok(ValidationOutput::success(
+                ValidationType::Compilation,
+                execution_time,
+                memory_usage,
+            ))
+        } else {
+            // Parse for dependency-related errors
+            let output_str = String::from_utf8_lossy(&output.stdout);
+            let mut errors = Vec::new();
+
+            for line in output_str.lines() {
+                if line.contains("cannot find") || line.contains("unresolved import") {
+                    errors.push(ValidationError::CompilationError {
+                        message: line.to_string(),
+                        help_text: None,
+                        error_code: Some("E0432".to_string()),
+                    });
+                }
+            }
+
+            Ok(ValidationOutput::failure(
+                ValidationType::Compilation,
+                errors,
+                vec![],
+                execution_time,
+                memory_usage,
+            ))
+        }
+    }
+
+    /// Validate all aspects (comprehensive validation)
+    pub async fn validate_all(
+        &self,
+        file_path: &str,
+    ) -> Result<crate::validation::ValidationReport, RustAnalyzerError> {
+        use crate::validation::{ValidationReport, RustCodeValidator};
+
+        // Read the file content
+        let full_path = self.project_path.join(file_path);
+        let code = tokio::fs::read_to_string(&full_path).await?;
+
+        // Create a mock validator for now
+        let validator = crate::validation::DefaultRustCodeValidator::new();
+        validator.validate_all(&code).await.map_err(|e| {
+            RustAnalyzerError::CargoError(format!("Validation failed: {}", e))
+        })
+    }
+
+    /// Get workspace info (basic implementation for test compatibility)
+    pub async fn get_workspace_info(&self) -> Result<WorkspaceInfo, RustAnalyzerError> {
+        let output = TokioCommand::new("cargo")
+            .arg("metadata")
+            .arg("--format-version=1")
+            .current_dir(&self.project_path)
+            .output()
+            .await?;
+
+        if output.status.success() {
+            let metadata: CargoMetadata = serde_json::from_slice(&output.stdout)?;
+            Ok(WorkspaceInfo {
+                workspace_root: metadata.workspace_root,
+                packages: metadata.packages.len(),
+                target_directory: metadata.target_directory,
+            })
+        } else {
+            Err(RustAnalyzerError::CargoError(
+                String::from_utf8_lossy(&output.stderr).to_string(),
+            ))
+        }
+    }
+
     /// Analyze borrow checker issues
     pub async fn analyze_borrow_checker(
         &self,
@@ -486,4 +598,26 @@ struct DiagnosticSpan {
     column_start: usize,
     line_end: usize,
     column_end: usize,
+}
+
+/// Workspace information for cargo projects
+#[derive(Debug, Clone)]
+pub struct WorkspaceInfo {
+    pub workspace_root: PathBuf,
+    pub packages: usize,
+    pub target_directory: PathBuf,
+}
+
+/// Cargo metadata structure
+#[derive(Debug, Deserialize)]
+struct CargoMetadata {
+    workspace_root: PathBuf,
+    packages: Vec<CargoPackage>,
+    target_directory: PathBuf,
+}
+
+#[derive(Debug, Deserialize)]
+struct CargoPackage {
+    name: String,
+    version: String,
 }

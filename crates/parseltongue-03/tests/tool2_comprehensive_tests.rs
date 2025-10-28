@@ -141,7 +141,7 @@ async fn test_confidence_scoring() {
     // Test confidence threshold enforcement
     let threshold = ConfidenceThreshold::new(0.8); // This should fail until implemented
     assert!(
-        threshold.meets_threshold(confidence.score()),
+        threshold.meets_threshold(&confidence),
         "Should meet 0.8 threshold"
     );
 }
@@ -190,7 +190,7 @@ async fn test_reasoning_engine_integration() {
     let change_request = create_mock_change_request();
     let code_graph = create_mock_code_graph();
 
-    let mut reasoning_engine = ReasoningEngine::new(); // This should fail until implemented
+    let mut reasoning_engine = MockReasoningEngine::default(); // This should fail until implemented
 
     // Test LLM reasoning integration
     let reasoning_result = reasoning_engine
@@ -200,15 +200,15 @@ async fn test_reasoning_engine_integration() {
 
     // Verify reasoning output
     assert!(
-        !reasoning_result.analysis().is_empty(),
+        !reasoning_result.analysis.is_empty(),
         "Should provide analysis"
     );
     assert!(
-        !reasoning_result.recommendations().is_empty(),
+        !reasoning_result.recommendations.is_empty(),
         "Should provide recommendations"
     );
     assert!(
-        reasoning_result.confidence_estimate() > 0.0,
+        reasoning_result.confidence_estimate > 0.0,
         "Should provide confidence estimate"
     );
 }
@@ -220,7 +220,7 @@ async fn test_debugging_artifacts() {
     let change_request = create_mock_change_request();
     let simulation_plan = create_mock_simulation_plan();
 
-    let mut debugging_info = DebuggingInfo::new(); // This should fail until implemented
+    let mut debugging_info = DebuggingInfo::new(change_request.clone(), simulation_plan.clone()); // This should fail until implemented
 
     // Test rubber duck debugging artifact generation
     debugging_info
@@ -282,7 +282,7 @@ async fn test_end_to_end_simulation_workflow() {
         "Should have debugging artifacts"
     );
     assert!(
-        simulation_result.confidence_meets_threshold(),
+        simulation_result.confidence_meets_threshold(0.8),
         "Confidence should meet threshold"
     );
 

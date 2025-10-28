@@ -3,6 +3,7 @@
 
 use parseltongue_03::*;
 use parseltongue_04::*;
+use serde::{Serialize, Deserialize};
 use serde_json;
 use std::path::PathBuf;
 
@@ -107,7 +108,7 @@ async fn test_tool2_simulation_output_to_validation_input() {
     let validation_case = validation_input.unwrap();
 
     assert_eq!(validation_case.file_path, simulation_file.path);
-    assert_eq!(validation_case.code_size_bytes, simulation_file.size_bytes);
+    assert_eq!(validation_case.code_size_bytes(), simulation_file.size_bytes);
     assert_eq!(
         validation_case.expected_syntax_valid,
         simulation_file.simulation_results.success
@@ -137,7 +138,7 @@ async fn test_validation_report_to_tool2_format() {
         "#
         .to_string(),
         individual_results: vec![
-            ValidationResult {
+            ValidationOutput {
                 is_valid: true,
                 validation_type: ValidationType::Syntax,
                 errors: vec![],
@@ -145,15 +146,19 @@ async fn test_validation_report_to_tool2_format() {
                 execution_time_ms: 10,
                 memory_usage_bytes: 512,
             },
-            ValidationResult {
+            ValidationOutput {
                 is_valid: true,
                 validation_type: ValidationType::Type,
                 errors: vec![],
-                warnings: vec!["Unused variable 'x'".to_string()],
+                warnings: vec![ValidationError::GeneralError {
+                    message: "Unused variable 'x'".to_string(),
+                    severity: ValidationSeverity::Warning,
+                    details: None,
+                }],
                 execution_time_ms: 25,
                 memory_usage_bytes: 1024,
             },
-            ValidationResult {
+            ValidationOutput {
                 is_valid: true,
                 validation_type: ValidationType::Compilation,
                 errors: vec![],
@@ -534,7 +539,7 @@ async fn test_tool2_serialization_compatibility() {
 }
 
 // Mock implementations for testing
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct SimulationData {
     simulation_id: String,
     timestamp: chrono::DateTime<chrono::Utc>,
@@ -543,7 +548,7 @@ struct SimulationData {
     summary: SimulationSummary,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct SimulationFileResult {
     path: PathBuf,
     size_bytes: usize,
@@ -552,7 +557,7 @@ struct SimulationFileResult {
     simulation_results: SimulationResults,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct SimulationResults {
     execution_time_ms: u64,
     memory_usage_bytes: usize,
@@ -563,7 +568,7 @@ struct SimulationResults {
     warnings: Vec<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct SimulationSummary {
     total_files: usize,
     total_execution_time_ms: u64,
@@ -674,14 +679,14 @@ struct BatchValidationSummary {
     total_memory_usage_bytes: usize,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Tool2ValidationFormat {
     file_path: PathBuf,
-    validation_results: Vec<ValidationResult>,
+    validation_results: Vec<ValidationReport>,
     validation_summary: Tool2ValidationSummary,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Tool2ValidationSummary {
     total_validations: usize,
     successful_validations: usize,
