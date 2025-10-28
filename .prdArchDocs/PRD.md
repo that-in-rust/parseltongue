@@ -29,13 +29,13 @@ graph TB
         Tool1 --> CozoDB[(CozoDB Database)]
 
         subgraph "Temporal States"
-            Current[Current: current_ind = 1]
-            Future[Future: future_ind = 1]
+            Current[Current State]
+            Future[Future State]
 
-            Current --> State11[(1,1) Unchanged]
-            Current --> State10[(1,0) Delete]
-            Future --> State01[(0,1) Create]
-            Future --> State11_Edit[(1,1) Modify]
+            Current --> State11[State 1,1 Unchanged]
+            Current --> State10[State 1,0 Delete]
+            Future --> State01[State 0,1 Create]
+            Future --> State11_Edit[State 1,1 Modify]
         end
 
         CozoDB --> State11
