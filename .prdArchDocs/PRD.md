@@ -35,6 +35,51 @@
 --version                      # Show version
 ```
 
+## Command-Summary
+
+### Overview
+This section provides a high-level command reference for all Parseltongue tools. For detailed specifications, see Section 02: Individual Tool Specifications.
+
+### Tool Commands Matrix
+
+#### folder-to-cozoDB-streamer
+```bash
+command-01: folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --output-db <DATABASE_PATH>
+```
+
+#### cozo-reasoning-writer
+```bash
+command-01: cozo-reasoning-writer <MICRO_PRD> --database <DATABASE_PATH> --output-context <JSON_FILE>
+```
+
+#### rust-preflight-code-simulator
+```bash
+command-01: rust-preflight-code-simulator <SIMULATION_OUTPUT> --validation-type <TYPE> --timeout <SECONDS>
+```
+
+#### cozoDB-to-code-writer
+```bash
+command-01: cozoDB-to-code-writer <VALIDATION_OUTPUT> --database <DATABASE_PATH> --backup-dir <PATH>
+```
+
+#### cozoDB-make-future-code-current
+```bash
+command-01: cozoDB-make-future-code-current --project-path <PATH>
+command-02: cozoDB-make-future-code-current reset --force
+command-03: cozoDB-make-future-code-current list-backups
+command-04: cozoDB-make-future-code-current stats
+command-05: cozoDB-make-future-code-current validate
+```
+
+### Global Options (All Tools)
+```bash
+--project-path <PATH>    # Path to Rust project (required)
+--verbose, -v            # Verbose output
+--quiet, -q              # Minimal output
+--help, -h               # Show help
+--version                # Show version
+```
+
 ## Parseltongue Architecture Overview
 
 ### Core Design Philosophy
