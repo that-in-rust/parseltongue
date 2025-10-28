@@ -300,11 +300,11 @@ parseltongue reason --query "SELECT * FROM Code_Graph WHERE interface_signature 
 
 ### Setup Instructions
 
+#### **Apple Silicon (Recommended)**
 ```bash
-# 1. Download the latest parseltongue binary
-wget https://github.com/that-in-rust/parseltongue/releases/latest/download/parseltongue-linux-x64
-chmod +x parseltongue-linux-x64
-mv parseltongue-linux-x64 parseltongue
+# 1. Download the Apple Silicon binary
+curl -L https://github.com/that-in-rust/parseltongue/releases/latest/download/parseltongue-apple-silicon -o parseltongue
+chmod +x parseltongue
 
 # 2. Copy to your GitHub repository
 cp parseltongue /path/to/your/repo/
@@ -315,14 +315,41 @@ mkdir -p /path/to/your/repo/.claude/agents/
 # 4. Copy the orchestrator agent
 cp agent-parseltongue-reasoning-orchestrator.md /path/to/your/repo/.claude/agents/
 
-# 5. Add to .gitignore if needed
-echo ".parseltongue/" >> .gitignore
-echo "backups/" >> .gitignore
+# 5. Add to .gitignore
+echo ".parseltongue/" >> /path/to/your/repo/.gitignore
+echo "backups/" >> /path/to/your/repo/.gitignore
+
+# 6. Install via Homebrew (optional)
+brew install that-in-rust/tap/parseltongue
+```
+
+#### **Linux/Other Platforms**
+```bash
+# 1. Compile from source
+git clone https://github.com/that-in-rust/parseltongue.git
+cd parseltongue
+cargo build --release
+cp target/release/parseltongue /path/to/your/repo/
+
+# 2. Continue with steps 3-5 from above
 ```
 
 ## Executive Summary
 
-**User Segment**: Developers on large Rust codebases ONLY
+**User Segment**: Apple Silicon developers working on large Rust codebases
+
+**Platform Strategy**:
+- **Primary**: Apple Silicon (M1/M2/M3) with pre-compiled binaries and Homebrew support
+- **Secondary**: Linux/Unix via source compilation (self-serve, community-supported)
+- **Windows**: Not supported (strategic focus on Unix-like environments)
+
+**Strategic Rationale for Apple Silicon Focus**:
+- **Unified Hardware**: Consistent performance across M1/M2/M3 with unified memory architecture
+- **High-Value Market**: Apple Silicon users represent premium developer segment
+- **Rust Developer Concentration**: Large percentage of serious Rust developers use MacBooks
+- **Simplified Distribution**: Single binary target, Homebrew integration, .dmg installers
+- **Performance Optimization**: Apple Silicon's ARM architecture offers excellent performance for static analysis
+- **Reduced Support Overhead**: Focus resources on one high-value platform initially
 
 **Reliability-First Principle**:
 - Optimize for accurate 1-go fixes that feel trustworthy and increase user efficacy
@@ -996,12 +1023,13 @@ The architecture successfully balances complexity with practicality, leveraging 
 
 ## Installation & Usage
 
-### Quick Start
+### Quick Start (Apple Silicon)
 
-1. **Build Tools**:
+1. **Download Binary**:
    ```bash
-   cargo build --release --workspace
-   export PATH="$PWD/target/release:$PATH"
+   curl -L https://github.com/that-in-rust/parseltongue/releases/latest/download/parseltongue-apple-silicon -o parseltongue
+   chmod +x parseltongue
+   sudo mv parseltongue /usr/local/bin/
    ```
 
 2. **Setup Agent**:
@@ -1013,6 +1041,16 @@ The architecture successfully balances complexity with practicality, leveraging 
    ```
    @agent-parseltongue-reasoning-orchestrator Add async support to database layer
    ```
+
+### Linux Users
+
+```bash
+# Compile from source
+git clone https://github.com/that-in-rust/parseltongue.git
+cd parseltongue
+cargo build --release
+sudo cp target/release/parseltongue /usr/local/bin/
+```
 
 ### Architecture Benefits
 
