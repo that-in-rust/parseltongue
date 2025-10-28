@@ -5,7 +5,8 @@
 ### Complete System Workflow
 
 ```mermaid
-graph TB
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#667eea', 'primaryTextColor': '#2d3748', 'lineColor': '#cbd5e0'}}}%%
+flowchart TD
     User[User] --> |"Change Request"| Claude[LLM]
 
     subgraph "External Agent"
@@ -18,11 +19,11 @@ graph TB
     end
 
     subgraph "Parseltongue Tools"
-        Phase1 --> Tool1[Tool 1: folder-to-cozoDB-streamer]
-        Phase2 --> Tool2[Tool 2: cozo-to-context-writer]
-        Phase3 --> Tool3[Tool 3: rust-preflight-code-simulator]
-        Phase4 --> Tool4[Tool 4: cozoDB-to-code-writer]
-        Phase5 --> Tool5[Tool 5: cozoDB-make-future-code-current]
+        Phase1 --> Tool1[Tool 1 folder-to-cozoDB]
+        Phase2 --> Tool2[Tool 2 cozo-to-context]
+        Phase3 --> Tool3[Tool 3 rust-simulator]
+        Phase4 --> Tool4[Tool 4 cozo-to-writer]
+        Phase5 --> Tool5[Tool 5 make-future-current]
     end
 
     subgraph "CozoDB States"
@@ -32,16 +33,16 @@ graph TB
             Current[Current State]
             Future[Future State]
 
-            Current --> State11[State 1,1 Unchanged]
-            Current --> State10[State 1,0 Delete]
-            Future --> State01[State 0,1 Create]
-            Future --> State11_Edit[State 1,1 Modify]
+            Current --> State11[State 1-1 Unchanged]
+            Current --> State10[State 1-0 Delete]
+            Future --> State01[State 0-1 Create]
+            Future --> State11Edit[State 1-1 Modify]
         end
 
         CozoDB --> State11
         CozoDB --> State10
         CozoDB --> State01
-        CozoDB --> State11_Edit
+        CozoDB --> State11Edit
     end
 
     subgraph "File System"
@@ -50,10 +51,10 @@ graph TB
     end
 
     subgraph "Phase 2 Workflow"
-        Tool2 --> TestInterface[Step A01: Test Changes]
-        TestInterface --> NonTestInterface[Step A02: Non-Test Changes]
-        NonTestInterface --> CodeSim[Step B01: Code Simulation]
-        CodeSim --> RubberDuck[Step B02: Rubber Duck]
+        Tool2 --> TestInterface[Step A01 Test Changes]
+        TestInterface --> NonTestInterface[Step A02 Non-Test Changes]
+        NonTestInterface --> CodeSim[Step B01 Code Simulation]
+        CodeSim --> RubberDuck[Step B02 Rubber Duck Debug]
 
         TestInterface --> Hopping[Hopping Queries]
         Hopping --> |"2-hop analysis"| Context[LLM Context]
@@ -71,16 +72,16 @@ graph TB
     User --> |"Yes"| Complete[Complete]
     User --> |"No"| Rollback[Rollback]
 
-    classDef agent fill:#e1f5fe
-    classDef tools fill:#f3e5f5
-    classDef database fill:#e8f5e8
-    classDef files fill:#fff3e0
-    classDef workflow fill:#fce4ec
-    classDef states fill:#f1f8e9
+    classDef agent fill:#667eea
+    classDef tools fill:#48bb78
+    classDef database fill:#ed8936
+    classDef files fill:#667eea
+    classDef workflow fill:#48bb78
+    classDef states fill:#ed8936
 
     class Orchestrator,Phase1,Phase2,Phase3,Phase4,Phase5 agent
     class Tool1,Tool2,Tool3,Tool4,Tool5 tools
-    class CozoDB,State11,State10,State01,State11_Edit database
+    class CozoDB,State11,State10,State01,State11Edit database
     class Files,Modified files
     class Hopping,Context workflow
     class Current,Future,TestInterface,NonTestInterface,CodeSim,RubberDuck states
