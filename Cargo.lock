@@ -505,6 +505,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "fs_extra"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42703706b716c37f96a77aea830392ad231f44c9e9a67872fa5548707e11b11c"
+
+[[package]]
 name = "fuchsia-zircon"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1408,6 +1414,29 @@ dependencies = [
 [[package]]
 name = "parseltongue-05"
 version = "0.7.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "criterion",
+ "fs_extra",
+ "ignore",
+ "parseltongue-01",
+ "parseltongue-03",
+ "parseltongue-04",
+ "proptest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tokio-process",
+ "tokio-test",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "walkdir",
+]
 
 [[package]]
 name = "parseltongue-06"
