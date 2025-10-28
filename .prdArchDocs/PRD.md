@@ -44,7 +44,7 @@ This section provides a high-level command reference for all Parseltongue tools.
 
 #### folder-to-cozoDB-streamer
 ```bash
-command-01: folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --output-db <DATABASE_PATH>
+command-01: folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --chunking-method <METHOD> --output-db <DATABASE_PATH>
 ```
 
 #### cozo-reasoning-writer
@@ -199,15 +199,17 @@ command-05: cozoDB-make-future-code-current validate
 **Purpose**: Process local Rust codebase folders into CozoDB
 
 ```bash
-folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --output-db <DATABASE_PATH>
+folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --chunking-method <METHOD> --output-db <DATABASE_PATH>
 
 # Required Arguments:
 <FOLDER_PATH>               # Local folder path containing Rust code
---parsing-library <LIBRARY> # Parser: tree-sitter, syn, rust-analyzer
+--parsing-library <LIBRARY> # Parser: tree-sitter, txt-parsing
+--chunking-method <METHOD>  # Chunking: ISGL1, 300-sentences
 --output-db <DATABASE_PATH> # CozoDB database path
 
-# Example:
-folder-to-cozoDB-streamer /path/to/rust/repo --parsing-library tree-sitter --output-db ./parseltongue.db
+# Examples:
+folder-to-cozoDB-streamer /path/to/rust/repo --parsing-library tree-sitter --chunking-method ISGL1 --output-db ./parseltongue.db
+folder-to-cozoDB-streamer /path/to/rust/repo --parsing-library txt-parsing --chunking-method 300-sentences --output-db ./parseltongue.db
 ```
 
 **Key Functionality**:
