@@ -1,7 +1,7 @@
 //! Tool 2 integration module for parsing simulation outputs and converting to validation tests
 //! Handles the data flow between Tool 2 (simulation) and Tool 3 (validation)
 
-use crate::validation::{ValidationReport, ValidationTestCase, ValidationType};
+use crate::validation::{ValidationReport, ValidationOutput, ValidationTestCase, ValidationType};
 use parseltongue_01::types::ISGL1Key;
 // use parseltongue_03::{ChangeRequest, SimulationPlan, CozoCodeSimulationSorcerer}; // Not used in GREEN phase
 use serde::{Deserialize, Serialize};
@@ -85,144 +85,9 @@ impl Tool2SimulationParser {
         }
     }
 
-    /// Parse simulation output asynchronously (for test compatibility)
-    pub async fn parse_simulation_output(
-        &self,
-        simulation_output: &str,
-    ) -> Result<SimulationData, Tool2IntegrationError> {
-        // For test compatibility, parse the JSON format expected by tests
-        let parsed: serde_json::Value = serde_json::from_str(simulation_output)
-            .map_err(|e| Tool2IntegrationError::ParseError(e.to_string()))?;
-
-        // Convert to the test's expected format
-        let simulation_data = self.convert_json_to_simulation_data(parsed)?;
-        Ok(simulation_data)
-    }
-
-    /// Convert JSON to simulation data structure
-    fn convert_json_to_simulation_data(
-        &self,
-        json: serde_json::Value,
-    ) -> Result<SimulationData, Tool2IntegrationError> {
-        let simulation_id = json["simulation_id"]
-            .as_str()
-            .ok_or_else(|| Tool2IntegrationError::ParseError("Missing simulation_id".to_string()))?
-            .to_string();
-
-        let timestamp_str = json["timestamp"]
-            .as_str()
-            .ok_or_else(|| Tool2IntegrationError::ParseError("Missing timestamp".to_string()))?;
-        let timestamp = chrono::DateTime::parse_from_rfc3339(timestamp_str)
-            .map_err(|e| Tool2IntegrationError::ParseError(format!("Invalid timestamp: {}", e)))?
-            .with_timezone(&chrono::Utc);
-
-        let project_root = json["project_root"]
-            .as_str()
-            .unwrap_or("/test")
-            .to_string();
-
-        let files_analyzed = json["files_analyzed"]
-            .as_array()
-            .ok_or_else(|| Tool2IntegrationError::ParseError("Missing files_analyzed".to_string()))?
-            .iter()
-            .map(|f| self.convert_json_to_file_result(f))
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let summary = json["summary"]
-            .as_object()
-            .ok_or_else(|| Tool2IntegrationError::ParseError("Missing summary".to_string()))?;
-
-        let simulation_summary = SimulationSummary {
-            total_files: summary["total_files"]
-                .as_u64()
-                .unwrap_or(0) as usize,
-            total_execution_time_ms: summary["total_execution_time_ms"]
-                .as_u64()
-                .unwrap_or(0),
-            total_memory_usage_bytes: summary["total_memory_usage_bytes"]
-                .as_u64()
-                .unwrap_or(0) as usize,
-            average_cpu_usage_percent: summary["average_cpu_usage_percent"]
-                .as_f64()
-                .unwrap_or(0.0),
-            success_rate: summary["success_rate"]
-                .as_f64()
-                .unwrap_or(0.0),
-            total_errors: summary["total_errors"]
-                .as_u64()
-                .unwrap_or(0) as usize,
-            total_warnings: summary["total_warnings"]
-                .as_u64()
-                .unwrap_or(0) as usize,
-        };
-
-        Ok(SimulationData {
-            simulation_id,
-            timestamp,
-            project_root: PathBuf::from(project_root),
-            files_analyzed,
-            summary: simulation_summary,
-        })
-    }
-
-    /// Convert JSON to file result
-    fn convert_json_to_file_result(
-        &self,
-        json: &serde_json::Value,
-    ) -> Result<SimulationFileResult, Tool2IntegrationError> {
-        let path = json["path"]
-            .as_str()
-            .ok_or_else(|| Tool2IntegrationError::ParseError("Missing path".to_string()))?;
-
-        let last_modified_str = json["last_modified"]
-            .as_str()
-            .unwrap_or("2025-01-15T10:00:00Z");
-        let last_modified = chrono::DateTime::parse_from_rfc3339(last_modified_str)
-            .map_err(|e| Tool2IntegrationError::ParseError(format!("Invalid last_modified: {}", e)))?
-            .with_timezone(&chrono::Utc);
-
-        let simulation_results_json = &json["simulation_results"];
-        let simulation_results = SimulationResults {
-            execution_time_ms: simulation_results_json["execution_time_ms"]
-                .as_u64()
-                .unwrap_or(0),
-            memory_usage_bytes: simulation_results_json["memory_usage_bytes"]
-                .as_u64()
-                .unwrap_or(0) as usize,
-            cpu_usage_percent: simulation_results_json["cpu_usage_percent"]
-                .as_f64()
-                .unwrap_or(0.0),
-            success: simulation_results_json["success"]
-                .as_bool()
-                .unwrap_or(false),
-            output: simulation_results_json["output"]
-                .as_str()
-                .unwrap_or("")
-                .to_string(),
-            errors: simulation_results_json["errors"]
-                .as_array()
-                .map(|arr| arr.iter().filter_map(|s| s.as_str().map(|s| s.to_string())).collect())
-                .unwrap_or_default(),
-            warnings: simulation_results_json["warnings"]
-                .as_array()
-                .map(|arr| arr.iter().filter_map(|s| s.as_str().map(|s| s.to_string())).collect())
-                .unwrap_or_default(),
-        };
-
-        Ok(SimulationFileResult {
-            path: PathBuf::from(path),
-            size_bytes: json["size_bytes"]
-                .as_u64()
-                .unwrap_or(0) as usize,
-            last_modified,
-            content_hash: json["content_hash"]
-                .as_str()
-                .unwrap_or("")
-                .to_string(),
-            simulation_results,
-        })
-    }
-
+    
+    
+    
     /// Create a parser with custom configuration
     pub fn with_config(config: ParserConfig) -> Self {
         Self { config }
@@ -967,41 +832,48 @@ impl ValidationToTool2Converter {
             },
         };
 
-        // For test compatibility, we need to return this directly
-        // But we also wrap it in the larger format for consistency
-        let simulation_data = serde_json::to_value(&tool2_format)?;
-
-        let validation_metadata = ValidationMetadata {
-            source_tool: "parseltongue-03".to_string(),
-            target_tool: "parseltongue-04".to_string(),
-            created_at: chrono::Utc::now(),
-            isgl1_key_mappings: HashMap::new(),
-        };
-
-        Ok(Tool2ValidationFormat {
-            version: "1.0.0".to_string(),
-            simulation_data,
-            validation_metadata,
-        })
+        // Return the correctly formatted Tool2ValidationFormat
+        Ok(tool2_format)
     }
 
     /// Convert validation results back to Tool 2 format
     pub fn convert_validation_results(
         validation_reports: &[ValidationReport],
     ) -> Result<Tool2ValidationFormat, Tool2IntegrationError> {
-        let simulation_data = serde_json::to_value(validation_reports)?;
+        if validation_reports.is_empty() {
+            return Err(Tool2IntegrationError::ParseError("No validation reports provided".to_string()));
+        }
 
-        let validation_metadata = ValidationMetadata {
-            source_tool: "parseltongue-03".to_string(),
-            target_tool: "parseltongue-04".to_string(),
-            created_at: chrono::Utc::now(),
-            isgl1_key_mappings: HashMap::new(), // Would be populated in real implementation
+        // Aggregate all validation results from all reports
+        let all_validation_results: Vec<ValidationOutput> = validation_reports
+            .iter()
+            .flat_map(|report| report.individual_results.clone())
+            .collect();
+
+        // Use the first report's file path as representative
+        let file_path = validation_reports[0].file_path.clone();
+
+        // Aggregate summary data
+        let total_validations = all_validation_results.len();
+        let successful_validations = all_validation_results.iter().filter(|r| r.is_valid).count();
+        let total_execution_time_ms: u64 = validation_reports.iter().map(|r| r.total_execution_time_ms).sum();
+        let total_memory_usage_bytes: usize = validation_reports.iter().map(|r| r.total_memory_usage_bytes).sum();
+        let validation_accuracy = if total_validations > 0 {
+            successful_validations as f64 / total_validations as f64
+        } else {
+            0.0
         };
 
         Ok(Tool2ValidationFormat {
-            version: "1.0.0".to_string(),
-            simulation_data,
-            validation_metadata,
+            file_path,
+            validation_results: all_validation_results,
+            validation_summary: Tool2ValidationSummary {
+                total_validations,
+                successful_validations,
+                total_execution_time_ms,
+                total_memory_usage_bytes,
+                validation_accuracy,
+            },
         })
     }
 }

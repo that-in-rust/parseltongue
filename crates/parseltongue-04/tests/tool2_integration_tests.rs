@@ -251,7 +251,7 @@ async fn test_tool2_validation_integration_pipeline() {
     // Verify that the Tool 2 format output is generated
     assert!(result.tool2_compatible_output.is_some());
     let tool2_output = result.tool2_compatible_output.unwrap();
-    assert_eq!(tool2_output.files_processed.len(), 1);
+    assert_eq!(tool2_output.validation_results.len(), 1);
 }
 
 #[tokio::test]
