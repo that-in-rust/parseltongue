@@ -5,37 +5,52 @@
 ### Complete System Workflow
 
 ```mermaid
+---
+config:
+  flowchart:
+    defaultRenderer: "dagre"
+  themeVariables:
+    primaryColor: "#f3f9ff"
+    primaryTextColor: "#0d47a1"
+    primaryBorderColor: "#2196f3"
+    lineColor: "#42a5f5"
+    secondaryColor: "#f1f8e9"
+    tertiaryColor: "#fff3e0"
+    background: "#ffffff"
+    fontFamily: "Arial, sans-serif"
+    fontSize: "14px"
+---
 flowchart TD
-    User[User] --> |"Change Request"| Claude[LLM]
+    User[User Request] --> |"Natural Language<br/>Change Request"| Claude[LLM Agent]
 
-    subgraph "External Agent"
-        Claude --> Orchestrator[Reasoning Orchestrator]
-        Orchestrator --> Phase1{Phase 1 Setup}
-        Orchestrator --> Phase2{Phase 2 Reasoning}
-        Orchestrator --> Phase3{Phase 3 Validation}
-        Orchestrator --> Phase4{Phase 4 Writing}
-        Orchestrator --> Phase5{Phase 5 Reset}
+    subgraph ExternalAgent ["External LLM Agent"]
+        Claude --> Orchestrator["Reasoning Orchestrator<br/>5-Phase Workflow"]
+        Orchestrator --> Phase1["Phase 1<br/>Project Analysis"]
+        Orchestrator --> Phase2["Phase 2<br/>Change Reasoning"]
+        Orchestrator --> Phase3["Phase 3<br/>Validation"]
+        Orchestrator --> Phase4["Phase 4<br/>File Writing"]
+        Orchestrator --> Phase5["Phase 5<br/>State Reset"]
     end
 
-    subgraph "Parseltongue Tools"
-        Phase1 --> Tool1[Tool 1 folder-to-cozoDB]
-        Phase2 --> Tool2[Tool 2 cozo-to-context]
-        Phase3 --> Tool3[Tool 3 rust-simulator]
-        Phase4 --> Tool4[Tool 4 cozo-to-writer]
-        Phase5 --> Tool5[Tool 5 make-future-current]
+    subgraph Tools ["Parseltongue Unified Binary"]
+        Phase1 --> Tool1["Tool 1<br/>folder-to-cozoDB<br/>Code Indexing"]
+        Phase2 --> Tool2["Tool 2<br/>cozo-to-context<br/>LLM Queries"]
+        Phase3 --> Tool3["Tool 3<br/>rust-simulator<br/>Pre-flight Check"]
+        Phase4 --> Tool4["Tool 4<br/>cozo-to-writer<br/>Atomic Changes"]
+        Phase5 --> Tool5["Tool 5<br/>make-future-current<br/>Database Reset"]
     end
 
-    subgraph "CozoDB States"
-        Tool1 --> CozoDB[(CozoDB Database)]
+    subgraph Database ["CozoDB Temporal States"]
+        Tool1 --> CozoDB[(CozoDB<br/>Graph Database)]
 
-        subgraph "Temporal States"
-            Current[Current State]
-            Future[Future State]
+        subgraph Temporal ["Temporal Versioning System"]
+            Current["Current<br/>State"]
+            Future["Future<br/>State"]
 
-            Current --> State11[State 1-1 Unchanged]
-            Current --> State10[State 1-0 Delete]
-            Future --> State01[State 0-1 Create]
-            Future --> State11Edit[State 1-1 Modify]
+            Current --> State11["(1,1)<br/>Unchanged"]
+            Current --> State10["(1,0)<br/>Delete"]
+            Future --> State01["(0,1)<br/>Create"]
+            Future --> State11Edit["(1,1)<br/>Modify"]
         end
 
         CozoDB --> State11
@@ -44,32 +59,34 @@ flowchart TD
         CozoDB --> State11Edit
     end
 
-    subgraph "File System"
-        Tool4 --> Files[Source Files]
-        Files --> |"Atomic writes"| Modified[Modified Files]
+    subgraph FileSystem ["File System Operations"]
+        Tool4 --> Files["Rust Source<br/>Files"]
+        Files --> |"Atomic Writes<br/>with Backups"| Modified["Modified<br/>Files"]
     end
 
-    subgraph "Phase 2 Workflow"
-        Tool2 --> TestInterface[Step A01 Test Changes]
-        TestInterface --> NonTestInterface[Step A02 Non-Test Changes]
-        NonTestInterface --> CodeSim[Step B01 Code Simulation]
-        CodeSim --> RubberDuck[Step B02 Rubber Duck Debug]
+    subgraph Phase2Detail ["Phase 2: Detailed Reasoning"]
+        Tool2 --> TestInterface["Step A01<br/>Test Interface<br/>Changes"]
+        TestInterface --> NonTestInterface["Step A02<br/>Non-Test<br/>Interface Changes"]
+        NonTestInterface --> CodeSim["Step B01<br/>Code<br/>Simulation"]
+        CodeSim --> RubberDuck["Step B02<br/>Rubber Duck<br/>Debugging"]
 
-        TestInterface --> Hopping[Hopping Queries]
-        Hopping --> |"2-hop analysis"| Context[LLM Context]
+        TestInterface --> Hopping["Hopping &<br/>Blast Radius<br/>Queries"]
+        Hopping --> |"2-Hop<br/>Dependency<br/>Analysis"| Context["LLM Context<br/>Generation"]
         NonTestInterface --> Context
         Context --> CodeSim
     end
 
-    RubberDuck --> |"Confidence OK"| Phase3
-    RubberDuck --> |"Needs refinement"| Phase2
-    Phase3 --> |"Validation fails"| Phase2
-    Phase4 --> |"Tests fail"| Phase2
-    Phase5 --> |"User dissatisfied"| Phase4
+    %% Feedback Loops
+    RubberDuck --> |"Confidence ≥ 80%"| Phase3
+    RubberDuck --> |"Needs<br/>Refinement"| Phase2
+    Phase3 --> |"Validation<br/>Fails"| Phase2
+    Phase4 --> |"Tests Fail"| Phase2
+    Phase5 --> |"User<br/>Dissatisfied"| Phase4
 
+    %% User Interaction
     Phase5 --> |"Satisfied?"| User
-    User --> |"Yes"| Complete[Complete]
-    User --> |"No"| Rollback[Rollback]
+    User --> |"Yes ✅"| Complete["Workflow<br/>Complete"]
+    User --> |"No ❌"| Rollback["Rollback<br/>Changes"]
 ```
 
 ### Temporal Versioning System Explained
