@@ -1668,6 +1668,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "parseltongue-06"
+version = "0.7.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "clap",
+ "console",
+ "parseltongue-core",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tokio-test",
+]
+
+[[package]]
 name = "parseltongue-core"
 version = "0.7.0"
 dependencies = [
