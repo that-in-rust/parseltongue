@@ -1,11 +1,12 @@
 use anyhow::Result;
 use std::path::PathBuf;
 
-use parseltongue_core::entities::{CodeEntity, FutureAction, TemporalState, InterfaceSignature, EntityType, Visibility, LineRange, LanguageSpecificSignature, Language, TddClassification, TestabilityLevel, EntityMetadata};
+use parseltongue_core::entities::{CodeEntity, FutureAction, TemporalState, InterfaceSignature, EntityType, Visibility, LineRange, LanguageSpecificSignature, RustSignature, Language, TddClassification, TestabilityLevel, ComplexityLevel, RiskLevel, EntityMetadata};
 
 use crate::errors::FileWriterError;
 use crate::types::{WriteOperation, WriteResult};
 use std::collections::HashMap;
+use chrono::Utc;
 
 /// Ultra-minimalist file writer
 ///
@@ -40,28 +41,71 @@ impl FileWriter {
 
     /// Create a new file (fails if file already exists)
     async fn create_file(&self, entity: &CodeEntity) -> Result<WriteResult> {
-        // RED phase: This will be implemented to make tests pass
-        unimplemented!("create_file not yet implemented")
+        // GREEN phase: Minimal implementation
+        let file_path = self.resolve_file_path(&entity.isgl1_key)?;
+
+        // Ensure parent directory exists
+        if let Some(parent) = file_path.parent() {
+            tokio::fs::create_dir_all(parent).await?;
+        }
+
+        // Get content to write
+        let content = entity.future_code
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("Future code missing for Create operation"))?;
+
+        // Write file directly (ultra-minimalist: no backups)
+        tokio::fs::write(&file_path, content).await?;
+
+        Ok(WriteResult::success(file_path, WriteOperation::Create))
     }
 
     /// Modify an existing file (direct overwrite, NO backup)
     async fn modify_file(&self, entity: &CodeEntity) -> Result<WriteResult> {
-        // RED phase: This will be implemented to make tests pass
-        unimplemented!("modify_file not yet implemented")
+        // GREEN phase: Minimal implementation - direct overwrite
+        let file_path = self.resolve_file_path(&entity.isgl1_key)?;
+
+        let content = entity.future_code
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("Future code missing for Edit operation"))?;
+
+        // Ultra-minimalist: Direct overwrite, NO backup
+        tokio::fs::write(&file_path, content).await?;
+
+        Ok(WriteResult::success(file_path, WriteOperation::Edit))
     }
 
     /// Delete a file permanently (NO trash/recycle)
     async fn delete_file(&self, entity: &CodeEntity) -> Result<WriteResult> {
-        // RED phase: This will be implemented to make tests pass
-        unimplemented!("delete_file not yet implemented")
+        // GREEN phase: Minimal implementation - permanent deletion
+        let file_path = self.resolve_file_path(&entity.isgl1_key)?;
+
+        // Ultra-minimalist: Permanent deletion, NO trash
+        tokio::fs::remove_file(&file_path).await?;
+
+        Ok(WriteResult::success(file_path, WriteOperation::Delete))
     }
 
     /// Parse ISGL1 key to extract file path
     ///
     /// Format: "src-models-rs-User" → "src/models.rs"
     fn resolve_file_path(&self, isgl1_key: &str) -> Result<PathBuf, FileWriterError> {
-        // RED phase: This will be implemented to make tests pass
-        unimplemented!("resolve_file_path not yet implemented")
+        // GREEN phase: Simple string parsing
+        // Format: filepath-filename-rs-EntityName
+        // Example: "src-models-rs-User" → "src/models.rs"
+
+        // Find last occurrence of "-rs-" to separate path from entity name
+        let rs_marker = "-rs-";
+        let pos = isgl1_key.rfind(rs_marker)
+            .ok_or_else(|| FileWriterError::invalid_isgl1_key(isgl1_key.to_string()))?;
+
+        // Extract path part (everything before "-rs-")
+        let path_part = &isgl1_key[..pos];
+
+        // Convert hyphens to path separators and add .rs extension
+        let file_path = path_part.replace('-', "/") + ".rs";
+
+        Ok(self.root_path.join(file_path))
     }
 }
 
@@ -83,27 +127,30 @@ mod tests {
                 line_range: LineRange { start: 1, end: 10 },
                 module_path: vec!["test".to_string()],
                 documentation: None,
-                language_specific: LanguageSpecificSignature::Rust {
-                    generics: None,
-                    where_clause: None,
-                    async_kind: None,
-                },
+                language_specific: LanguageSpecificSignature::Rust(RustSignature {
+                    generics: vec![],
+                    lifetimes: vec![],
+                    where_clauses: vec![],
+                    attributes: vec![],
+                    trait_impl: None,
+                }),
             },
             current_code: None,
             future_code,
             tdd_classification: TddClassification {
-                testability: TestabilityLevel::FullyTestable,
-                has_tests: false,
-                test_coverage_percentage: 0.0,
+                testability: TestabilityLevel::High,
+                complexity: ComplexityLevel::Simple,
+                dependencies: 0,
+                test_coverage_estimate: 0.0,
+                critical_path: false,
+                change_risk: RiskLevel::Low,
             },
             lsp_metadata: None,
             metadata: EntityMetadata {
-                language: Language::Rust,
-                complexity_score: 1.0,
-                dependencies: vec![],
-                dependents: vec![],
-                tags: vec![],
-                custom_metadata: HashMap::new(),
+                created_at: Utc::now(),
+                modified_at: Utc::now(),
+                content_hash: "test_hash".to_string(),
+                additional: HashMap::new(),
             },
         }
     }
