@@ -190,12 +190,14 @@ flowchart TD
     subgraph PrimaryPath ["Agentic Workflow (95% of users)"]
         PrimaryWorkflow --> ClaudeStart["@agent-parseltongue-reasoning-orchestrator<br/>in Claude Code"]
         ClaudeStart --> NaturalRequest["User: 'Fix panic in<br/>GitHub #1234' or<br/>'Fix segfault from error.log'"]
-        NaturalRequest --> AutoIndex["Auto-index codebase<br/>folder-to-cozoDB-streamer"]
-        AutoIndex --> ContextExtraction["Extract relevant context<br/>cozo-to-context-writer"]
-        ContextExtraction --> Validation["Validate changes<br/>rust-preflight-code-simulator"]
-        Validation --> FileWrite["Write changes<br/>cozoDB-to-code-writer"]
-        FileWrite --> StateReset["Reset database<br/>cozoDB-make-future-code-current"]
-        StateReset --> GitCommit["Auto-git commit<br/>of changes"]
+        NaturalRequest --> AutoIndex["Auto-index codebase<br/>Tool 1: folder-to-cozoDB-streamer"]
+        AutoIndex --> MicroPRD["Create Micro-PRD<br/>Bug analysis & refinement"]
+        MicroPRD --> Tool2["Tool 2: LLM-to-cozoDB-writer<br/>Temporal updates"]
+        Tool2 --> Tool3["Tool 3: LLM-cozoDB-to-context-writer<br/>Context extraction"]
+        Tool3 --> Validation["Tool 4: rust-preflight-code-simulator<br/>Rust validation"]
+        Validation --> Tool5["Tool 5: LLM-cozoDB-to-code-writer<br/>Write changes"]
+        Tool5 --> Tool6["Tool 6: cozoDB-make-future-code-current<br/>State reset"]
+        Tool6 --> GitCommit["Auto-git commit<br/>of changes"]
         GitCommit --> AgentSuccess["Workflow<br/>Complete"]
     end
 
@@ -228,29 +230,23 @@ flowchart TD
     NewRequest --> ClaudeStart
 
     %% Error handling and recovery loops
-    Validation --> |"Validation fails"| ContextExtraction
-    FileWrite --> BuildCheck["Build Check:<br/>cargo build"]
-    BuildCheck --> |"Build fails"| FileWrite
+    Validation --> |"Validation fails"| Tool3
+    Tool5 --> BuildCheck["Build Check:<br/>cargo build"]
+    BuildCheck --> |"Build fails"| Tool5
     BuildCheck --> TestCheck["Test Check:<br/>cargo test"]
     TestCheck --> |"Tests fail"| Validation
     TestCheck --> RuntimeCheck["Runtime Check:<br/>Integration tests"]
-    RuntimeCheck --> |"Runtime errors"| FileWrite
+    RuntimeCheck --> |"Runtime errors"| Tool5
     RuntimeCheck --> PerformanceCheck["Performance Check:<br/>Benchmarks"]
     PerformanceCheck --> |"Performance regression"| Validation
     PerformanceCheck --> LinterCheck["Linter Check:<br/>clippy/rustfmt"]
-    LinterCheck --> |"Linter errors"| FileWrite
+    LinterCheck --> |"Linter errors"| Tool5
     LinterCheck --> CICheck["CI/CD Check:<br/>Pipeline validation"]
-    CICheck --> |"Pipeline fails"| FileWrite
+    CICheck --> |"Pipeline fails"| Tool5
     CICheck --> GitCommit["Auto-git commit<br/>of changes"]
 
-    %% CLI error handling
-    ManualWrite --> ManualBuild["Manual Build Check"]
-    ManualBuild --> |"Build fails"| ManualWrite
-    ManualBuild --> ManualTest["Manual Test Check"]
-    ManualTest --> |"Tests fail"| ManualSim
-    ManualTest --> ManualRuntime["Manual Runtime Check"]
-    ManualRuntime --> |"Runtime errors"| ManualWrite
-    ManualRuntime --> ManualComplete["✅ Manual<br/>Process Complete"]
+    %% Note: Manual CLI workflow follows similar error handling patterns
+  %% with appropriate tool references for direct command usage
 ```
 
 ### Command Usage Reference
