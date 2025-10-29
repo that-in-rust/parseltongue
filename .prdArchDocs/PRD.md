@@ -43,9 +43,17 @@ flowchart TD
 
     subgraph Tools ["Parseltongue Unified Binary<br/>6-Tool Pipeline"]
         Tool1["Tool 1<br/>folder-to-cozoDB<br/>Multi-language Indexing"]
-        Phase2 --> Tool2["Tool 2<br/>LLM-to-cozoDB<br/>Temporal Updates"]
-        Phase3 --> Tool3["Tool 3<br/>LLM-cozoDB-to-context-writer<br/>Context Extraction"]
-        Phase3 --> Tool4["Tool 4<br/>rust-preflight<br/>Enhanced Validation"]
+
+        subgraph IterativeCycle ["Iterative Reasoning Cycle"]
+            Phase2 --> Tool3Read["Tool 3<br/>Read Context<br/>LLM-cozoDB-to-context-writer"]
+            Tool3Read --> LLMThink["LLM Reasoning<br/>Rubber Duck Debugging"]
+            LLMThink --> Tool2Edit["Tool 2<br/>Edit CozoDB<br/>LLM-to-cozoDB-writer"]
+            Tool2Edit --> ConfidenceLoop{"Confidence<br/>≥80%?"}
+            ConfidenceLoop --> |"No<br/>Refine"| Tool3Read
+            ConfidenceLoop --> |"Yes<br/>Proceed"| Tool4
+        end
+
+        Tool4["Tool 4<br/>rust-preflight<br/>Enhanced Validation"]
         Phase4 --> Tool5["Tool 5<br/>LLM-cozoDB-to-code-writer<br/>Atomic Changes"]
         Phase5 --> Tool6["Tool 6<br/>cozoDB-make-future-code-current<br/>Database Reset"]
     end
@@ -192,9 +200,16 @@ flowchart TD
         ClaudeStart --> NaturalRequest["User: 'Fix panic in<br/>GitHub #1234' or<br/>'Fix segfault from error.log'"]
         NaturalRequest --> AutoIndex["Auto-index codebase<br/>Tool 1: folder-to-cozoDB-streamer"]
         AutoIndex --> MicroPRD["Create Micro-PRD<br/>Bug analysis & refinement"]
-        MicroPRD --> Tool2["Tool 2: LLM-to-cozoDB-writer<br/>Temporal updates"]
-        Tool2 --> Tool3["Tool 3: LLM-cozoDB-to-context-writer<br/>Context extraction"]
-        Tool3 --> Validation["Tool 4: rust-preflight-code-simulator<br/>Rust validation"]
+
+        subgraph IterativeReasoning ["Iterative LLM Reasoning Cycle"]
+            MicroPRD --> Tool3Read["Tool 3: Read Context<br/>LLM-cozoDB-to-context-writer"]
+            Tool3Read --> LLMReason["LLM reasoning<br/>Rubber duck debugging"]
+            LLMReason --> Tool2Edit["Tool 2: Edit CozoDB<br/>LLM-to-cozoDB-writer"]
+            Tool2Edit --> ConfidenceCheck{"Confidence<br/>≥ 80%?"}
+            ConfidenceCheck --> |"No<br/>Refine"| Tool3Read
+            ConfidenceCheck --> |"Yes<br/>Proceed"| Validation
+        end
+
         Validation --> Tool5["Tool 5: LLM-cozoDB-to-code-writer<br/>Write changes"]
         Tool5 --> Tool6["Tool 6: cozoDB-make-future-code-current<br/>State reset"]
         Tool6 --> GitCommit["Auto-git commit<br/>of changes"]
@@ -230,15 +245,15 @@ flowchart TD
     NewRequest --> ClaudeStart
 
     %% Error handling and recovery loops
-    Validation --> |"Validation fails"| Tool3
+    Validation --> |"Validation fails"| LLMReason
     Tool5 --> BuildCheck["Build Check:<br/>cargo build"]
     BuildCheck --> |"Build fails"| Tool5
     BuildCheck --> TestCheck["Test Check:<br/>cargo test"]
-    TestCheck --> |"Tests fail"| Validation
+    TestCheck --> |"Tests fail"| LLMReason
     TestCheck --> RuntimeCheck["Runtime Check:<br/>Integration tests"]
     RuntimeCheck --> |"Runtime errors"| Tool5
     RuntimeCheck --> PerformanceCheck["Performance Check:<br/>Benchmarks"]
-    PerformanceCheck --> |"Performance regression"| Validation
+    PerformanceCheck --> |"Performance regression"| LLMReason
     PerformanceCheck --> LinterCheck["Linter Check:<br/>clippy/rustfmt"]
     LinterCheck --> |"Linter errors"| Tool5
     LinterCheck --> CICheck["CI/CD Check:<br/>Pipeline validation"]
