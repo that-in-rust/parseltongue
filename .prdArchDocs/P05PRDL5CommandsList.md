@@ -1,6 +1,13 @@
 
 # Commands list and examples
 
+## MVP Ultra-Minimalist Principles (~10 users)
+**Target**: ~10 users - focus on essential functionality that works reliably
+**Philosophy**: Simplicity over complexity - each tool does ONE thing well
+**Tool 5 (LLM-cozoDB-to-code-writer)**: NO backup options, NO multiple safety levels, NO configuration complexity
+**Tool 6 (cozoDB-make-future-code-current)**: NO backup metadata files, NO configuration options - Delete table + re-trigger indexing
+**Goal**: Maximum reliability through ultra-minimalist approach
+
 #### **Primary Interface: Bug Fixing Workflow (95% of users)**
 ```bash
 # Interactive conversational interface - designed for bug fixing
@@ -18,11 +25,12 @@ The agent workflow includes optional manual intervention for specific needs:
 
 ```bash
 # Manual tool commands (for power users who need direct control)
-parseltongue read ./src --parsing-library tree-sitter --chunking-method ISGL1 --output-db ./parseltongue.db
-parseltongue reason --query "context extraction query" --database ./parseltongue.db
-parseltongue simulate validation_output.json --validation-type all --timeout 300
-parseltongue write validation_output.json --database ./parseltongue.db --backup-dir ./backups
-parseltongue reset --project-path . --database ./parseltongue.db
+folder-to-cozoDB-streamer ./src --parsing-library tree-sitter --chunking ISGL1 --output-db ./parseltongue.db
+LLM-to-cozoDB-writer --query-temporal "INSERT INTO Code_Graph VALUES (...)" --database ./parseltongue.db
+LLM-cozoDB-to-context-writer --query "SELECT * FROM Code_Graph WHERE current_ind=1" --database ./parseltongue.db --output-context CodeGraphContext.json
+rust-preflight-code-simulator validation_output.json --validation-type all
+LLM-cozoDB-to-code-writer validation.json --database ./parseltongue.db
+cozoDB-make-future-code-current --project-path . --database ./parseltongue.db
 
 # Mixed approach (agent reasoning + manual execution)
 @agent-parseltongue-reasoning-orchestrator "Analyze impact of changing auth system"
