@@ -18,6 +18,7 @@ pub struct TemporalVersioningManager {
     /// Current state of all entities
     entities: HashMap<String, CodeEntity>,
     /// Pending changes not yet applied
+    #[allow(dead_code)]
     pending_changes: Vec<TemporalChange>,
     /// Validation rules
     validation_rules: Vec<Box<dyn TemporalValidationRule>>,
@@ -538,7 +539,7 @@ impl ConflictResolver {
         Ok(resolved)
     }
 
-    fn attempt_merge(&self, changes: Vec<TemporalChange>, conflicts: Vec<Conflict>) -> Result<Vec<TemporalChange>> {
+    fn attempt_merge(&self, _changes: Vec<TemporalChange>, _conflicts: Vec<Conflict>) -> Result<Vec<TemporalChange>> {
         // Simplified merge implementation
         // In a real implementation, this would be more sophisticated
         Err(ParseltongError::TemporalError {

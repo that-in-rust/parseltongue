@@ -12,12 +12,12 @@ publish = false
 [dependencies]
 # Core dependencies
 parseltongue-core = { path = "../parseltongue-core" }
-parseltongue-01 = { path = "../parseltongue-01" }
-parseltongue-02 = { path = "../parseltongue-02" }
-parseltongue-03 = { path = "../parseltongue-03" }
-parseltongue-04 = { path = "../parseltongue-04" }
-parseltongue-05 = { path = "../parseltongue-05" }
-parseltongue-06 = { path = "../parseltongue-06" }
+folder-to-cozodb-streamer = { path = "../folder-to-cozodb-streamer" }
+llm-to-cozodb-writer = { path = "../llm-to-cozodb-writer" }
+llm-cozodb-to-context-writer = { path = "../llm-cozodb-to-context-writer" }
+rust-preflight-code-simulator = { path = "../rust-preflight-code-simulator" }
+llm-cozodb-to-code-writer = { path = "../llm-cozodb-to-code-writer" }
+cozodb-make-future-code-current = { path = "../cozodb-make-future-code-current" }
 
 # Dependencies from workspace
 anyhow.workspace = true

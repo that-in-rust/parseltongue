@@ -1,5 +1,5 @@
 [package]
-name = "parseltongue-04"
+name = "llm-cozodb-to-context-writer"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -7,9 +7,6 @@ license.workspace = true
 repository.workspace = true
 homepage.workspace = true
 rust-version.workspace = true
-description = "Rust preflight code validation - syntax, build, and test validation for Parseltongue"
-keywords = ["validation", "rust-analyzer", "preflight", "parseltongue"]
-categories = ["development-tools"]
 
 [dependencies]
 # Core dependencies
@@ -20,16 +17,22 @@ serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 tokio = { workspace = true, features = ["full"] }
 
+# LLM communication dependencies
+reqwest = { version = "0.11", features = ["json"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# Storage dependencies
+cozo = { workspace = true }
+
 # CLI dependencies
 clap = { workspace = true, features = ["derive"] }
 console.workspace = true
 indicatif.workspace = true
 async-trait.workspace = true
-
-# Validation dependencies
-syn = { version = "2.0", features = ["full", "extra-traits"] }
-tempfile.workspace = true
 chrono = { version = "0.4", features = ["serde"] }
+
+# Context optimization dependencies
+rayon = "1.7"
 
 [dev-dependencies]
 criterion.workspace = true
@@ -39,13 +42,9 @@ tokio-test.workspace = true
 async-trait.workspace = true
 
 [[bin]]
-name = "parseltongue-04"
+name = "llm-cozodb-to-context-writer"
 path = "src/main.rs"
 
 [lib]
-name = "parseltongue_04"
+name = "llm_cozodb_to_context_writer"
 path = "src/lib.rs"
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]

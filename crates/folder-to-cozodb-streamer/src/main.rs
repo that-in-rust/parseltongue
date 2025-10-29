@@ -3,7 +3,7 @@
 use console::style;
 use anyhow::Result;
 
-use parseltongue_01::{
+use folder_to_cozodb_streamer::{
     cli::CliConfig,
     errors::StreamerError,
     streamer::FileStreamer,
@@ -76,7 +76,7 @@ async fn run_streamer(
     config: &StreamerConfig,
     verbose: bool,
     quiet: bool,
-) -> Result<parseltongue_01::StreamResult, StreamerError> {
+) -> Result<folder_to_cozodb_streamer::StreamResult, StreamerError> {
     // Create streamer instance using factory (now async)
     let streamer = ToolFactory::create_streamer(config.clone()).await?;
 

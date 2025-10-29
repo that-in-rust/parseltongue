@@ -1,5 +1,5 @@
 [package]
-name = "parseltongue-01"
+name = "folder-to-cozodb-streamer"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -39,9 +39,9 @@ tokio-test.workspace = true
 async-trait.workspace = true
 
 [[bin]]
-name = "parseltongue-01"
+name = "folder-to-cozodb-streamer"
 path = "src/main.rs"
 
 [lib]
-name = "parseltongue_01"
+name = "folder_to_cozodb_streamer"
 path = "src/lib.rs"

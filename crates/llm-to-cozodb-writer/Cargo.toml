@@ -1,5 +1,5 @@
 [package]
-name = "parseltongue-02"
+name = "llm-to-cozodb-writer"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -38,9 +38,9 @@ tokio-test.workspace = true
 async-trait.workspace = true
 
 [[bin]]
-name = "parseltongue-02"
+name = "llm-to-cozodb-writer"
 path = "src/main.rs"
 
 [lib]
-name = "parseltongue_02"
+name = "llm_to_cozodb_writer"
 path = "src/lib.rs"

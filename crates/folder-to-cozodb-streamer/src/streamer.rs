@@ -13,7 +13,11 @@ use parseltongue_core::entities::*;
 use parseltongue_core::storage::CozoDbStorage;
 use crate::errors::*;
 use crate::isgl1_generator::*;
+use crate::lsp_client::*;
 use crate::StreamerConfig;
+
+// Import LSP metadata types from parseltongue-core
+use parseltongue_core::entities::{LspMetadata, TypeInformation, UsageAnalysis};
 
 /// File streamer interface
 #[async_trait::async_trait]
@@ -59,6 +63,7 @@ pub struct StreamStats {
 pub struct FileStreamerImpl {
     config: StreamerConfig,
     key_generator: Arc<dyn Isgl1KeyGenerator>,
+    lsp_client: Arc<dyn RustAnalyzerClient>,
     db: Arc<CozoDbStorage>,
     stats: std::sync::Mutex<StreamStats>,
 }
@@ -83,9 +88,43 @@ impl FileStreamerImpl {
                 details: format!("Failed to create schema: {}", e),
             })?;
 
+        // Initialize LSP client (graceful degradation if unavailable)
+        let lsp_client = RustAnalyzerClientImpl::new().await;
+
         Ok(Self {
             config,
             key_generator,
+            lsp_client: Arc::new(lsp_client),
+            db: Arc::new(db),
+            stats: std::sync::Mutex::new(StreamStats::default()),
+        })
+    }
+
+    /// Create new file streamer with custom LSP client (for testing)
+    #[cfg(test)]
+    pub async fn new_with_lsp(
+        config: StreamerConfig,
+        key_generator: Arc<dyn Isgl1KeyGenerator>,
+        lsp_client: Arc<dyn RustAnalyzerClient>,
+    ) -> Result<Self> {
+        // Initialize database connection
+        let db = CozoDbStorage::new(&config.db_path)
+            .await
+            .map_err(|e| StreamerError::StorageError {
+                details: format!("Failed to create database: {}", e),
+            })?;
+
+        // Create schema
+        db.create_schema()
+            .await
+            .map_err(|e| StreamerError::StorageError {
+                details: format!("Failed to create schema: {}", e),
+            })?;
+
+        Ok(Self {
+            config,
+            key_generator,
+            lsp_client,
             db: Arc::new(db),
             stats: std::sync::Mutex::new(StreamStats::default()),
         })
@@ -343,9 +382,17 @@ impl FileStreamer for FileStreamerImpl {
             // Generate ISGL1 key
             let isgl1_key = self.key_generator.generate_key(&parsed_entity)?;
 
+            // Enrich with LSP metadata for Rust files (sequential hover requests)
+            let lsp_metadata = self.fetch_lsp_metadata_for_entity(&parsed_entity, file_path).await;
+
             // Convert ParsedEntity to CodeEntity
             match self.parsed_entity_to_code_entity(&parsed_entity, &isgl1_key, &content) {
-                Ok(code_entity) => {
+                Ok(mut code_entity) => {
+                    // Store LSP metadata as JSON string if available
+                    if let Some(metadata) = lsp_metadata {
+                        code_entity.lsp_metadata = Some(metadata);
+                    }
+
                     // Store in real database
                     match self.db.insert_entity(&code_entity).await {
                         Ok(_) => {
@@ -383,3 +430,54 @@ impl FileStreamer for FileStreamerImpl {
     }
 }
 
+impl FileStreamerImpl {
+    /// Fetch LSP metadata for an entity using rust-analyzer hover
+    /// Returns LspMetadata if successful, None if unavailable or failed (graceful degradation)
+    async fn fetch_lsp_metadata_for_entity(
+        &self,
+        entity: &ParsedEntity,
+        file_path: &Path,
+    ) -> Option<LspMetadata> {
+        // Only fetch for Rust files
+        if entity.language != Language::Rust {
+            return None;
+        }
+
+        // Calculate hover position at the start of the entity (line is 0-indexed in LSP)
+        let line = entity.line_range.0.saturating_sub(1) as u32;
+        let character = 0u32; // Start of line (tree-sitter gives us the entity name position)
+
+        // Request hover metadata
+        match self.lsp_client.hover(file_path, line, character).await {
+            Ok(Some(hover_response)) => {
+                // Convert hover response to LspMetadata (stub/MVP implementation)
+                Self::hover_response_to_lsp_metadata(&hover_response)
+            }
+            Ok(None) => None, // Graceful degradation
+            Err(_) => None,   // Graceful degradation
+        }
+    }
+
+    /// Convert hover response to LspMetadata (stub implementation for MVP)
+    /// Future enhancement: parse rust-analyzer response for richer metadata
+    fn hover_response_to_lsp_metadata(hover: &HoverResponse) -> Option<LspMetadata> {
+        Some(LspMetadata {
+            type_information: TypeInformation {
+                resolved_type: hover.contents.clone(),
+                module_path: vec![],
+                generic_parameters: vec![],
+                definition_location: None,
+            },
+            usage_analysis: UsageAnalysis {
+                total_references: 0,
+                usage_locations: vec![],
+                dependents: vec![],
+            },
+            semantic_tokens: vec![],
+        })
+    }
+}
+
+#[cfg(test)]
+#[path = "streamer_lsp_tests.rs"]
+mod streamer_lsp_tests;

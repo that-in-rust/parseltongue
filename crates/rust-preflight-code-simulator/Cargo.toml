@@ -1,5 +1,5 @@
 [package]
-name = "parseltongue-05"
+name = "rust-preflight-code-simulator"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -7,8 +7,8 @@ license.workspace = true
 repository.workspace = true
 homepage.workspace = true
 rust-version.workspace = true
-description = "Ultra-minimalist file writer for Parseltongue - writes code from CozoDB to files"
-keywords = ["file-writer", "cozodb", "ultra-minimalist", "parseltongue"]
+description = "Rust preflight code validation - syntax, build, and test validation for Parseltongue"
+keywords = ["validation", "rust-analyzer", "preflight", "parseltongue"]
 categories = ["development-tools"]
 
 [dependencies]
@@ -25,6 +25,10 @@ clap = { workspace = true, features = ["derive"] }
 console.workspace = true
 indicatif.workspace = true
 async-trait.workspace = true
+
+# Validation dependencies
+syn = { version = "2.0", features = ["full", "extra-traits"] }
+tempfile.workspace = true
 chrono = { version = "0.4", features = ["serde"] }
 
 [dev-dependencies]
@@ -32,13 +36,14 @@ criterion.workspace = true
 proptest.workspace = true
 tempfile.workspace = true
 tokio-test.workspace = true
+async-trait.workspace = true
 
 [[bin]]
-name = "parseltongue-05"
+name = "rust-preflight-code-simulator"
 path = "src/main.rs"
 
 [lib]
-name = "parseltongue_05"
+name = "rust_preflight_code_simulator"
 path = "src/lib.rs"
 
 [package.metadata.docs.rs]
