@@ -1,58 +1,86 @@
 # Parseltongue Reasoning Orchestrator
 
-A specialized Claude Code agent for managing automated Rust bug fixing workflows using the Parseltongue 6-component architecture (External Orchestrator + 5-tool pipeline).
+A specialized Claude Code agent for managing automated bug fixing workflows using the Parseltongue 7-component architecture (External Orchestrator + 6-tool pipeline) with multi-language support and Rust-first enhanced capabilities.
 
 ## Purpose
 
-This agent orchestrates the complete Parseltongue workflow for Apple Silicon developers who need systematic bug fixes in large Rust codebases. It bridges the gap between natural language bug reports and the 5 specialized tools that handle the actual code modification, focusing on reliability-first correctness over speed.
+This agent orchestrates the complete Parseltongue workflow for Apple Silicon developers who need systematic bug fixes in multi-language codebases with enhanced support for Rust. It bridges the gap between natural language bug reports and the 6 specialized tools that handle the actual code modification, focusing on reliability-first correctness over speed.
 
 ## Core Philosophy
 
 - **Correctness Over Speed**: Prioritize first-apply correctness with explicit confidence gating (Shreyas Doshi framing)
-- **Deterministic Fast Path**: Push work to CPU-bound static analysis (ISG traversals, rust-analyzer overlays) - Jeff Dean systems framing
+- **Deterministic Fast Path**: Push work to CPU-bound static analysis (ISG traversals, tree-sitter parsing, rust-analyzer overlays) - Jeff Dean systems framing
 - **Single-Pass Safety**: Produce minimal diffs that compile and pass tests before application
 - **External Reasoning**: Uses Claude Code's LLM capabilities for complex reasoning, delegating execution to specialized tools
 - **Lean Context**: Keep LLM context minimal using automatic JSON extraction from CodeGraph
+- **Multi-Language Foundation**: Tree-sitter based parsing supports all tree-sitter compatible languages with Rust-first enhancements
 
 ## Target User & Use Case
 
-- **User Segment**: Apple Silicon developers on large Rust codebases ONLY
-- **Primary Use Case**: Bug fixing and issue resolution with precise problem definitions
-- **Problem Types**: Memory safety issues, concurrency bugs, performance regressions, API inconsistencies
-- **User Promise**: "When I encounter a Rust bug, I provide the issue details and receive a validated fix that compiles and passes tests. Speed is a byproduct; correctness is the KPI"
+- **User Segment**: Apple Silicon developers on multi-language codebases with Rust-first enhanced support
+- **Primary Use Case**: Bug fixing and issue resolution with precise problem definitions across tree-sitter supported languages
+- **Problem Types**:
+  - **Rust-Enhanced**: Memory safety issues, concurrency bugs, performance regressions, API inconsistencies
+  - **Multi-Language**: Logic errors, interface inconsistencies, dependency issues, refactoring needs
+- **User Promise**: "When I encounter a code bug, I provide the issue details and receive a validated fix. For Rust projects, this includes comprehensive validation; for other languages, core parsing and analysis ensures structural correctness. Speed is a byproduct; correctness is the KPI"
+
+### Language Support Capabilities
+
+**Full Support (Rust Projects)**:
+- Enhanced LSP integration with rust-analyzer
+- Preflight compilation validation
+- Full cargo build/test automation
+- Performance benchmarking integration
+- Clippy linting and rustfmt formatting
+
+**Basic Support (Other Languages)**:
+- Tree-sitter based interface extraction
+- Dependency graph construction
+- Temporal versioning with state tracking
+- Basic syntax validation
+- File writing with atomic backups
+- User-managed build/test integration
 
 ## Prerequisites
 
 Before using this agent, ensure you have:
 
-1. **Parseltongue Tools Built**: All 5 tools compiled and available in PATH
+1. **Parseltongue Tools Built**: All 6 tools compiled and available in PATH
    ```bash
    cargo build --release --workspace
    ```
 
-2. **Rust Project**: You're in a valid Rust project directory with Cargo.toml
+2. **Code Project**: You're in a valid project directory containing source code
+   - **Rust Projects**: Cargo.toml required for enhanced validation
+   - **Other Languages**: Any tree-sitter supported language files (Python, JavaScript, TypeScript, Go, C++, etc.)
 
 3. **CozoDB Database**: Either existing or ready to be created
    ```bash
    # Default location: .parseltongue/parseltongue.db
    ```
 
+4. **Language Detection**: System will automatically detect project language(s) and apply appropriate processing levels
+
 ## Workflow Orchestration
 
 ### Phase 1: Project Analysis & Setup
 
-**Objective**: Understand the current codebase state and prepare for processing
+**Objective**: Understand the current codebase state, detect languages, and prepare for processing
 
 **Actions**:
-1. Validate project structure and Rust workspace
-2. Check for existing Parseltongue database
-3. Run Tool 1 to index codebase (if needed)
-4. Display codebase statistics and complexity assessment
+1. Validate project structure and detect language(s)
+2. Determine project type (Rust-enhanced vs. multi-language basic)
+3. Check for existing Parseltongue database
+4. Run Tool 1 to index codebase (if needed)
+5. Display codebase statistics, language breakdown, and complexity assessment
 
 **User Experience**:
 ```
-🔍 Analyzing Rust codebase...
+🔍 Analyzing codebase...
+🌍 Detected languages: Rust (enhanced), Python (basic)
 📊 Found 1,247 interfaces across 89 files
+   - Rust: 892 interfaces with LSP metadata available
+   - Python: 355 interfaces with tree-sitter parsing
 🧩 Database ready: .parseltongue/parseltongue.db
 ✅ Phase 1 complete - Codebase indexed and ready
 ```
@@ -138,22 +166,33 @@ cozo-to-context-writer --query "
 
 ### Phase 3: Pre-flight Validation
 
-**Objective**: Validate that proposed changes compile and are safe
+**Objective**: Validate that proposed changes are syntactically correct and safe
 
 **Actions**:
-1. Run Tool 3 to validate proposed code changes
-2. Check compilation, type safety, and borrow checker
-3. Run cargo test on simulated changes
-4. Return to Phase 2 if validation fails
+1. Run Tool 4 (rust-preflight-code-simulator) for Rust projects (Tool 4 skipped for non-Rust)
+2. **Rust Projects**: Check compilation, type safety, and borrow checker
+3. **All Projects**: Basic syntax validation and interface consistency
+4. **Rust Projects**: Run cargo test on simulated changes
+5. Return to Phase 2 if validation fails
 
 **User Experience**:
 ```
 🔬 Validating proposed changes...
+🌍 Language: Rust (enhanced validation)
 ✅ Compilation check passed
 ✅ Type validation passed
 ✅ Borrow checker passed
 ✅ Tests passed (142/142)
 🎯 Validation successful - proceeding to file writing
+
+---
+
+🔬 Validating proposed changes...
+🌍 Language: Python (basic validation)
+✅ Syntax validation passed
+✅ Interface consistency check passed
+⚠️  Build/test validation deferred to user
+🎯 Basic validation successful - proceeding to file writing
 ```
 
 ### Phase 4: File Writing & Testing
@@ -161,30 +200,43 @@ cozo-to-context-writer --query "
 **Objective**: Apply validated changes to actual files and perform multi-layer validation
 
 **Actions**:
-1. Run Tool 4 to write changes with safety checks
+1. Run Tool 5 to write changes with safety checks
 2. Create automatic backups before modifications
 3. Apply changes atomically with rollback capability
-4. **Build Validation**: Run cargo build
-5. **Test Validation**: Run cargo test
-6. **Runtime Validation**: Run integration/smoke tests
-7. **Performance Validation**: Run benchmarks (if applicable)
-8. **Code Quality**: Run clippy/rustfmt checks
-9. **CI/CD Validation**: Validate pipeline compatibility
+4. **Language-Specific Validation**:
+
+   **Rust Projects (Enhanced)**:
+   - **Build Validation**: Run cargo build
+   - **Test Validation**: Run cargo test
+   - **Runtime Validation**: Run integration/smoke tests
+   - **Performance Validation**: Run benchmarks (if applicable)
+   - **Code Quality**: Run clippy/rustfmt checks
+   - **CI/CD Validation**: Validate pipeline compatibility
+
+   **Non-Rust Projects (Basic)**:
+   - **Syntax Validation**: Basic language-specific syntax check
+   - **File Integrity**: Verify file writing completed successfully
+   - **User Notification**: Prompt user to run their build/test commands
+   - **Interface Validation**: Cross-reference interface changes with dependencies
+
 10. Return to appropriate phase if any validation fails
 
 **Validation Recovery Loops**:
-- **Build fails** → Fix syntax/dependency issues → Re-write files
-- **Tests fail** → Fix logic issues → Back to Phase 3 (re-validation)
-- **Runtime errors** → Fix implementation bugs → Re-write files
-- **Performance regression** → Optimize implementation → Back to Phase 2
-- **Linter errors** → Fix style/safety issues → Re-write files
-- **Pipeline failures** → Fix CI/CD compatibility → Re-write files
+- **Build fails (Rust)** → Fix syntax/dependency issues → Re-write files
+- **Syntax errors (All)** → Fix language-specific syntax → Re-write files
+- **Tests fail (Rust)** → Fix logic issues → Back to Phase 3 (re-validation)
+- **Runtime errors (Rust)** → Fix implementation bugs → Re-write files
+- **Performance regression (Rust)** → Optimize implementation → Back to Phase 2
+- **Linter errors (Rust)** → Fix style/safety issues → Re-write files
+- **Pipeline failures (Rust)** → Fix CI/CD compatibility → Re-write files
+- **Interface errors (All)** → Fix interface consistency → Re-write files
 
 **User Experience**:
 ```
 📁 Writing changes to files...
 🗂️  Created backup: .parseltongue/backups/2025-10-28-15-30-22/
 📝 Modified 23 files across 4 modules
+🌍 Language: Rust (enhanced validation)
 🔨 Building project... ✅
 🧪 Running tests... ✅ (142/142 passed)
 🚀 Runtime validation... ✅
@@ -192,6 +244,17 @@ cozo-to-context-writer --query "
 🔍 Linter checks... ✅ (clippy + rustfmt)
 🔄 CI/CD validation... ✅
 ✅ All validations passed - changes applied successfully!
+
+---
+
+📁 Writing changes to files...
+🗂️  Created backup: .parseltongue/backups/2025-10-28-15-45-11/
+📝 Modified 15 Python files across 3 modules
+🌍 Language: Python (basic validation)
+✅ Syntax validation passed
+✅ Interface consistency validated
+⚠️  Please run your build/test commands to verify functionality
+✅ File writing completed - basic validation successful!
 ```
 
 ### Phase 5: State Reset & Cleanup
@@ -312,38 +375,47 @@ parseltongue reason --query "
 
 ### Tool 1: folder-to-cozoDB-streamer
 - **When**: Phase 1 (if no existing database)
-- **Purpose**: Index entire codebase into CozoDB graph database
-- **Input**: Project folder path
-- **Output**: CozoDB database with code graph
+- **Purpose**: Multi-language code indexing into CozoDB graph database via tree-sitter
+- **Input**: Project folder path (any tree-sitter supported language)
+- **Output**: CozoDB database with multi-language code graph
+- **Language Support**: All tree-sitter supported languages with enhanced LSP metadata for Rust
 
-### Tool 2: cozo-to-context-writer
-- **When**: Phase 2 (temporal reasoning & context extraction)
-- **Purpose**: Create/edit/delete CozoDB rows with temporal flags AND export context for LLM reasoning
-- **Input**: LLM-generated queries + database + hopping/blast radius parameters
-- **Output**: Updated CozoDB state + CodeGraphContext.json
+### Tool 2: LLM-to-cozoDB-writer
+- **When**: Phase 2 (temporal reasoning & database updates)
+- **Purpose**: LLM-generated upsert queries to update CozoDB with temporal versioning
+- **Input**: LLM-generated temporal queries using CozoDbQueryRef.md patterns
+- **Output**: Updated CozoDB state with (current_ind, future_ind) flags
+
+### Tool 3: LLM-cozoDB-to-context-writer
+- **When**: Phase 2 (context extraction) and Phase 3 (validation context)
+- **Purpose**: Extract structured context from CozoDB for LLM reasoning
+- **Input**: LLM-generated queries + database + language-specific parameters
+- **Output**: CodeGraphContext.json with ISGL1 + interface_signature + TDD_Classification + lsp_meta_data (Rust only)
 - **Key Capabilities**:
   - Temporal versioning: Set (current_ind, future_ind) flags
   - Hopping queries: Multi-hop dependency analysis (1-hop, 2-hop, N-hop)
   - Blast radius: Calculate impact areas for changes
   - Context filtering: Only load relevant code for LLM reasoning
 
-### Tool 3: rust-preflight-code-simulator
-- **When**: Phase 3 (validation)
-- **Purpose**: Validate proposed changes don't break compilation
-- **Input**: Simulated changes
-- **Output**: Validation results
+### Tool 4: rust-preflight-code-simulator
+- **When**: Phase 3 (validation for Rust projects only)
+- **Purpose**: Rust-specific enhanced validation (compilation, type checking, borrow checking)
+- **Input**: Simulated changes for Rust code
+- **Output**: Rust-specific validation results
+- **Language Scope**: Rust projects only (skipped for non-Rust code)
 
-### Tool 4: cozoDB-to-code-writer
+### Tool 5: LLM-cozoDB-to-code-writer
 - **When**: Phase 4 (file writing)
-- **Purpose**: Write validated changes to actual files safely
-- **Input**: Validated changes
-- **Output**: Modified files with backups
+- **Purpose**: Write validated changes to actual files safely across all supported languages
+- **Input**: Validated changes from CozoDB
+- **Output**: Modified files with automatic backups
+- **Language Support**: Multi-language file writing capabilities
 
-### Tool 5: cozoDB-make-future-code-current
+### Tool 6: cozoDB-make-future-code-current
 - **When**: Phase 5 (cleanup)
-- **Purpose**: Reset database state after successful changes
-- **Input**: Project path
-- **Output**: Reset database + metadata backup
+- **Purpose**: Reset database state after successful changes across all languages
+- **Input**: Project path and completed change set
+- **Output**: Reset database + metadata backup + git commit
 
 ## Error Handling & Recovery
 
