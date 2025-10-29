@@ -1,5 +1,13 @@
 ## Section 0B: User Journey & Command Usage (JTBD)
 
+### MVP Ultra-Minimalist Principles (~10 users)
+**Target**: ~10 users - focus on essential functionality that works reliably
+**Philosophy**: Simplicity over complexity - each tool does ONE thing well
+**Tool 5**: NO backup options, NO multiple safety levels, NO configuration complexity
+**Tool 6**: NO backup metadata files, NO configuration options
+**Validation**: Basic build/test verification only (no complex safety nets)
+**Goal**: Maximum reliability through ultra-minimalist approach
+
 ### End-to-End User Workflow
 
 ```mermaid
@@ -50,8 +58,8 @@ flowchart TD
             ConfidenceCheck --> |"Yes<br/>Proceed"| Validation
         end
 
-        Validation --> Tool5["Tool 5: LLM-cozoDB-to-code-writer<br/>Write changes"]
-        Tool5 --> Tool6["Tool 6: cozoDB-make-future-code-current<br/>State reset"]
+        Validation --> Tool5["Tool 5: LLM-cozoDB-to-code-writer<br/>Single Reliable Write<br/>(No Backup Options)"]
+        Tool5 --> Tool6["Tool 6: cozoDB-make-future-code-current<br/>Delete Table +<br/>Re-trigger Indexing"]
         Tool6 --> GitCommit["Auto-git commit<br/>of changes"]
         GitCommit --> AgentSuccess["Workflow<br/>Complete"]
     end
@@ -84,21 +92,13 @@ flowchart TD
     AgentSuccess --> |"New change request"| ClaudeStart
     NewRequest --> ClaudeStart
 
-    %% Error handling and recovery loops
+    %% Error handling and recovery loops (MVP: Minimal Verification)
     Validation --> |"Validation fails"| LLMReason
     Tool5 --> BuildCheck["Build Check:<br/>cargo build"]
     BuildCheck --> |"Build fails"| Tool5
     BuildCheck --> TestCheck["Test Check:<br/>cargo test"]
     TestCheck --> |"Tests fail"| LLMReason
-    TestCheck --> RuntimeCheck["Runtime Check:<br/>Integration tests"]
-    RuntimeCheck --> |"Runtime errors"| Tool5
-    RuntimeCheck --> PerformanceCheck["Performance Check:<br/>Benchmarks"]
-    PerformanceCheck --> |"Performance regression"| LLMReason
-    PerformanceCheck --> LinterCheck["Linter Check:<br/>clippy/rustfmt"]
-    LinterCheck --> |"Linter errors"| Tool5
-    LinterCheck --> CICheck["CI/CD Check:<br/>Pipeline validation"]
-    CICheck --> |"Pipeline fails"| Tool5
-    CICheck --> GitCommit["Auto-git commit<br/>of changes"]
+    TestCheck --> GitCommit["Auto-git commit<br/>of changes"]
 
     %% Note: Manual CLI workflow follows similar error handling patterns
   %% with appropriate tool references for direct command usage
