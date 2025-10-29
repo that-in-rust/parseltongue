@@ -24,18 +24,30 @@ impl CozoDbStorage {
     /// Create new CozoDB storage instance
     ///
     /// # Arguments
-    /// * `engine` - Storage engine: "mem" for in-memory, or path for SQLite file
+    /// * `engine_spec` - Storage engine specification:
+    ///   - "mem" for in-memory
+    ///   - "rocksdb:path/to/db" for RocksDB persistent storage (recommended)
+    ///   - "sqlite:path/to/db.sqlite" for SQLite storage
     ///
     /// # Examples
     /// ```ignore
     /// let db = CozoDbStorage::new("mem").await?;
-    /// let db = CozoDbStorage::new("sqlite:parseltongue.db").await?;
+    /// let db = CozoDbStorage::new("rocksdb:./parseltongue.db").await?;
+    /// let db = CozoDbStorage::new("sqlite:./parseltongue.sqlite").await?;
     /// ```
-    pub async fn new(engine: &str) -> Result<Self> {
-        let db = DbInstance::new(engine, "", Default::default())
+    pub async fn new(engine_spec: &str) -> Result<Self> {
+        // Parse engine specification: "engine:path" or just "engine" (for mem)
+        let (engine, path) = if engine_spec.contains(':') {
+            let parts: Vec<&str> = engine_spec.splitn(2, ':').collect();
+            (parts[0], parts[1])
+        } else {
+            (engine_spec, "")
+        };
+
+        let db = DbInstance::new(engine, path, Default::default())
             .map_err(|e| ParseltongError::DatabaseError {
                 operation: "connection".to_string(),
-                details: format!("Failed to create CozoDB instance: {}", e),
+                details: format!("Failed to create CozoDB instance with engine '{}' and path '{}': {}", engine, path, e),
             })?;
 
         Ok(Self { db })

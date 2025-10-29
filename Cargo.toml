@@ -32,7 +32,8 @@ tree-sitter-rust = "0.20"
 syn = { version = "2.0", features = ["full", "parsing"] }
 
 # Storage dependencies
-cozo = { version = "0.7.6", default-features = false, features = ["storage-sqlite", "storage-sqlite-src", "rayon"] }
+# Using RocksDB for persistent storage (recommended by CozoDB)
+cozo = { version = "0.7.6", default-features = false, features = ["storage-rocksdb", "rayon"] }
 
 # Export dependencies
 wasm-bindgen = "0.2"
