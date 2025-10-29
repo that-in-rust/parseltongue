@@ -121,9 +121,19 @@
 - [x] **Validation Pipeline**: Syntax → Build → Test validation levels
 
 **Remaining Work**:
-- [ ] **End-to-end Integration Tests**: Full 6-tool pipeline test
-- [ ] **rust-analyzer Integration**: Enhanced LSP metadata extraction (optional)
-- [ ] **Agent Orchestrator**: 95% agentic workflow integration (next phase)
+- [x] **End-to-end Integration Tests**: Full 6-tool pipeline test ✅ COMPLETE
+- [x] **Agent Orchestrator**: 95% agentic workflow integration ✅ VALIDATED
+- [ ] **rust-analyzer Integration**: Enhanced LSP metadata extraction (optional - future)
+
+**Known Issues**:
+- ⚠️ **SQLite Backend Compilation**: CozoDB's SQLite backend not compiling despite features
+  - **Error**: `database engine 'sqlite:...' not supported (maybe not compiled in)`
+  - **Cargo.toml Config**: `cozo = { features = ["storage-sqlite", "storage-sqlite-src"] }`
+  - **Workaround**: Using in-memory database (`"mem"`) for all tests and workflows
+  - **Impact**: CLI tools must use `--db mem` instead of persistent SQLite files
+  - **Root Cause**: CozoDB 0.7.6 compilation issue or platform incompatibility (macOS Darwin 24.3.0)
+  - **Future Fix**: Investigate CozoDB version upgrade or alternative storage backend
+  - **Note**: In-memory approach aligns well with agent orchestrator pattern (no persistent state between reasoning cycles)
 
 ---
 
