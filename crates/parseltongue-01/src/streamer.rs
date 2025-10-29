@@ -1,6 +1,6 @@
 //! File streaming implementation for folder-to-cozoDB processing.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Instant;
 use tokio::fs;
@@ -8,9 +8,9 @@ use tokio::io::AsyncReadExt;
 use walkdir::WalkDir;
 use console::style;
 use indicatif::{ProgressBar, ProgressStyle};
-use async_trait::async_trait;
 
-use parseltongue_core::entities::CodeEntity;
+use parseltongue_core::entities::*;
+use parseltongue_core::storage::CozoDbStorage;
 use crate::errors::*;
 use crate::isgl1_generator::*;
 use crate::StreamerConfig;
@@ -59,20 +59,121 @@ pub struct StreamStats {
 pub struct FileStreamerImpl {
     config: StreamerConfig,
     key_generator: Arc<dyn Isgl1KeyGenerator>,
+    db: Arc<CozoDbStorage>,
     stats: std::sync::Mutex<StreamStats>,
 }
 
 impl FileStreamerImpl {
-    /// Create new file streamer
-    pub fn new(
+    /// Create new file streamer with database connection
+    pub async fn new(
         config: StreamerConfig,
         key_generator: Arc<dyn Isgl1KeyGenerator>,
-    ) -> Self {
-        Self {
+    ) -> Result<Self> {
+        // Initialize database connection
+        let db = CozoDbStorage::new(&config.db_path)
+            .await
+            .map_err(|e| StreamerError::StorageError {
+                details: format!("Failed to create database: {}", e),
+            })?;
+
+        // Create schema
+        db.create_schema()
+            .await
+            .map_err(|e| StreamerError::StorageError {
+                details: format!("Failed to create schema: {}", e),
+            })?;
+
+        Ok(Self {
             config,
             key_generator,
+            db: Arc::new(db),
             stats: std::sync::Mutex::new(StreamStats::default()),
+        })
+    }
+
+    /// Convert ParsedEntity to CodeEntity for database storage
+    fn parsed_entity_to_code_entity(
+        &self,
+        parsed: &ParsedEntity,
+        isgl1_key: &str,
+        source_code: &str,
+    ) -> std::result::Result<CodeEntity, parseltongue_core::error::ParseltongError> {
+        // Create InterfaceSignature
+        let interface_signature = InterfaceSignature {
+            entity_type: self.convert_entity_type(&parsed.entity_type),
+            name: parsed.name.clone(),
+            visibility: Visibility::Public, // Default to public for now
+            file_path: PathBuf::from(&parsed.file_path),
+            line_range: LineRange::new(parsed.line_range.0 as u32, parsed.line_range.1 as u32)?,
+            module_path: vec![], // TODO: Extract from file path
+            documentation: None,
+            language_specific: self.create_language_signature(&parsed.language),
+        };
+
+        // Create CodeEntity with temporal state initialized to "unchanged" (current=true, future=true, action=none)
+        let mut entity = CodeEntity::new(isgl1_key.to_string(), interface_signature)?;
+
+        // Extract the code snippet from the source
+        let code_snippet = self.extract_code_snippet(source_code, parsed.line_range.0, parsed.line_range.1);
+
+        // Set current_code and future_code to the same value (unchanged state)
+        entity.current_code = Some(code_snippet.clone());
+        entity.future_code = Some(code_snippet);
+
+        Ok(entity)
+    }
+
+    /// Convert Tool 1's EntityType to parseltongue-core's EntityType
+    fn convert_entity_type(&self, entity_type: &crate::isgl1_generator::EntityType) -> parseltongue_core::entities::EntityType {
+        match entity_type {
+            crate::isgl1_generator::EntityType::Function => parseltongue_core::entities::EntityType::Function,
+            crate::isgl1_generator::EntityType::Struct => parseltongue_core::entities::EntityType::Struct,
+            crate::isgl1_generator::EntityType::Enum => parseltongue_core::entities::EntityType::Enum,
+            crate::isgl1_generator::EntityType::Trait => parseltongue_core::entities::EntityType::Trait,
+            crate::isgl1_generator::EntityType::Impl => parseltongue_core::entities::EntityType::ImplBlock {
+                trait_name: None,
+                struct_name: "Unknown".to_string(), // TODO: Extract from parsed entity
+            },
+            crate::isgl1_generator::EntityType::Module => parseltongue_core::entities::EntityType::Module,
+            crate::isgl1_generator::EntityType::Variable => parseltongue_core::entities::EntityType::Variable,
         }
+    }
+
+    /// Create language-specific signature
+    fn create_language_signature(&self, language: &Language) -> LanguageSpecificSignature {
+        match language {
+            Language::Rust => LanguageSpecificSignature::Rust(RustSignature {
+                generics: vec![],
+                lifetimes: vec![],
+                where_clauses: vec![],
+                attributes: vec![],
+                trait_impl: None,
+            }),
+            Language::Python => LanguageSpecificSignature::Python(PythonSignature {
+                parameters: vec![],
+                return_type: None,
+                is_async: false,
+                decorators: vec![],
+            }),
+            _ => LanguageSpecificSignature::Rust(RustSignature {
+                generics: vec![],
+                lifetimes: vec![],
+                where_clauses: vec![],
+                attributes: vec![],
+                trait_impl: None,
+            }),
+        }
+    }
+
+    /// Extract code snippet from source by line range
+    fn extract_code_snippet(&self, source: &str, start_line: usize, end_line: usize) -> String {
+        source
+            .lines()
+            .enumerate()
+            .filter(|(idx, _)| *idx + 1 >= start_line && *idx + 1 <= end_line)
+            .map(|(_, line)| line)
+            .collect::<Vec<_>>()
+            .join("\n")
     }
 
     /// Check if file should be processed based on patterns
@@ -99,12 +200,8 @@ impl FileStreamerImpl {
     /// Simple glob pattern matching
     fn matches_pattern(&self, path: &str, pattern: &str) -> bool {
         if pattern.contains('*') {
-            // Convert glob pattern to regex-like matching
-            let regex_pattern = pattern
-                .replace('.', "\\.")
-                .replace('*', ".*")
-                .replace('?', ".");
-
+            // Simple pattern matching: check if path ends with extension
+            // TODO: Implement proper glob matching for complex patterns
             path.contains(&pattern.replace('*', "")) || path == pattern
         } else {
             path.contains(pattern)
@@ -246,19 +343,38 @@ impl FileStreamer for FileStreamerImpl {
             // Generate ISGL1 key
             let isgl1_key = self.key_generator.generate_key(&parsed_entity)?;
 
-            // Store in database
-            // TODO: Implement actual database storage with CodeEntity
-            // For now, just count the entity
-            entities_created += 1;
+            // Convert ParsedEntity to CodeEntity
+            match self.parsed_entity_to_code_entity(&parsed_entity, &isgl1_key, &content) {
+                Ok(code_entity) => {
+                    // Store in real database
+                    match self.db.insert_entity(&code_entity).await {
+                        Ok(_) => {
+                            entities_created += 1;
+                        }
+                        Err(e) => {
+                            let error_msg = format!("Failed to insert entity {}: {}", isgl1_key, e);
+                            errors.push(error_msg);
+                        }
+                    }
+                }
+                Err(e) => {
+                    let error_msg = format!("Failed to convert entity {}: {}", isgl1_key, e);
+                    errors.push(error_msg);
+                }
+            }
         }
 
-        self.update_stats(entities_created, false);
+        self.update_stats(entities_created, !errors.is_empty());
 
         Ok(FileResult {
             file_path: file_path_str,
             entities_created,
-            success: true,
-            error: None,
+            success: errors.is_empty(),
+            error: if errors.is_empty() {
+                None
+            } else {
+                Some(errors.join("; "))
+            },
         })
     }
 

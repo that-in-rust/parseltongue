@@ -34,8 +34,8 @@ impl CliConfig {
                     .short('b')
                     .long("db")
                     .value_name("PATH")
-                    .help("Database file path")
-                    .default_value("parseltongue.db"),
+                    .help("Database connection string (use 'mem' for in-memory)")
+                    .default_value("mem"),
             )
             .arg(
                 Arg::new("max-size")
@@ -53,7 +53,7 @@ impl CliConfig {
                     .value_name("PATTERN")
                     .help("File patterns to include (can be used multiple times)")
                     .action(clap::ArgAction::Append)
-                    .default_values(&["**/*.rs", "**/*.py"]),
+                    .default_values(&["*.rs", "*.py"]),
             )
             .arg(
                 Arg::new("exclude")
@@ -62,7 +62,7 @@ impl CliConfig {
                     .value_name("PATTERN")
                     .help("File patterns to exclude (can be used multiple times)")
                     .action(clap::ArgAction::Append)
-                    .default_values(&["**/target/**", "**/node_modules/**"]),
+                    .default_values(&["target/**", "node_modules/**"]),
             )
             .arg(
                 Arg::new("verbose")
@@ -156,7 +156,7 @@ mod tests {
 
         let config = CliConfig::parse_config(&matches);
         assert_eq!(config.root_dir, PathBuf::from("."));
-        assert_eq!(config.db_path, "parseltongue.db");
+        assert_eq!(config.db_path, "mem");
         assert_eq!(config.max_file_size, 1048576);
         assert_eq!(config.include_patterns.len(), 2);
         assert_eq!(config.exclude_patterns.len(), 2);

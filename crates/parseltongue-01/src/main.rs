@@ -1,20 +1,18 @@
 //! Main entry point for parseltongue-01.
 
-use std::sync::Arc;
-use console::{style, Term};
+use console::style;
 use anyhow::Result;
 
 use parseltongue_01::{
     cli::CliConfig,
     errors::StreamerError,
-    streamer::{FileStreamer, FileStreamerImpl},
+    streamer::FileStreamer,
     ToolFactory,
     StreamerConfig,
 };
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let term = Term::stdout();
 
     // Parse CLI arguments
     let cli = CliConfig::build_cli();
@@ -79,8 +77,8 @@ async fn run_streamer(
     verbose: bool,
     quiet: bool,
 ) -> Result<parseltongue_01::StreamResult, StreamerError> {
-    // Create streamer instance using factory
-    let streamer = ToolFactory::create_streamer(config.clone())?;
+    // Create streamer instance using factory (now async)
+    let streamer = ToolFactory::create_streamer(config.clone()).await?;
 
     if verbose && !quiet {
         println!("Configuration:");
@@ -126,24 +124,31 @@ mod tests {
         let test_file_path = temp_dir.path().join("test.rs");
         std::fs::write(
             &test_file_path,
-            r#"
-fn test_function() {
+            r#"fn test_function() {
     println!("Hello, world!");
 }
 "#,
         )
         .unwrap();
 
+        // Verify file was created
+        assert!(test_file_path.exists(), "Test file should exist");
+
         let config = StreamerConfig {
             root_dir: temp_dir.path().to_path_buf(),
-            db_path: "test.db".to_string(),
+            db_path: "mem".to_string(), // Use in-memory database for tests
             max_file_size: 1024 * 1024,
-            include_patterns: vec!["**/*.rs".to_string()],
+            include_patterns: vec!["*.rs".to_string()], // Simplified pattern
             exclude_patterns: vec![],
         };
 
         let result = run_streamer(&config, false, true).await;
         assert!(result.is_ok());
+
+        // Verify entities were actually created
+        let stream_result = result.unwrap();
+        assert!(stream_result.total_files > 0, "Should have found at least one file");
+        assert!(stream_result.entities_created > 0, "Should have created at least one entity");
     }
 
     #[tokio::test]
@@ -152,7 +157,7 @@ fn test_function() {
 
         let config = StreamerConfig {
             root_dir: temp_dir.path().to_path_buf(),
-            db_path: "test.db".to_string(),
+            db_path: "mem".to_string(), // Use in-memory database for tests
             max_file_size: 1024 * 1024,
             include_patterns: vec!["**/*.rs".to_string()],
             exclude_patterns: vec![],

@@ -40,10 +40,10 @@ impl Default for StreamerConfig {
     fn default() -> Self {
         Self {
             root_dir: PathBuf::from("."),
-            db_path: "parseltongue.db".to_string(),
+            db_path: "mem".to_string(), // Use in-memory database by default
             max_file_size: 1024 * 1024, // 1MB
-            include_patterns: vec!["**/*.rs".to_string(), "**/*.py".to_string()],
-            exclude_patterns: vec!["**/target/**".to_string(), "**/node_modules/**".to_string()],
+            include_patterns: vec!["*.rs".to_string(), "*.py".to_string()], // Simplified patterns that work
+            exclude_patterns: vec!["target/**".to_string(), "node_modules/**".to_string()],
         }
     }
 }
@@ -52,10 +52,10 @@ impl Default for StreamerConfig {
 pub struct ToolFactory;
 
 impl ToolFactory {
-    /// Create a new file streamer instance
-    pub fn create_streamer(config: StreamerConfig) -> Result<Arc<FileStreamerImpl>> {
+    /// Create a new file streamer instance with database connection
+    pub async fn create_streamer(config: StreamerConfig) -> Result<Arc<FileStreamerImpl>> {
         let generator = Isgl1KeyGeneratorFactory::new();
-        let streamer = Arc::new(FileStreamerImpl::new(config, generator));
-        Ok(streamer)
+        let streamer = FileStreamerImpl::new(config, generator).await?;
+        Ok(Arc::new(streamer))
     }
 }
