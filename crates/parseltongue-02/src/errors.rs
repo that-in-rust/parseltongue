@@ -64,6 +64,7 @@ impl From<LlmWriterError> for ParseltongError {
         match err {
             LlmWriterError::DatabaseQueryError { query, reason } => {
                 ParseltongError::DatabaseError {
+                    operation: "query".to_string(),
                     details: format!("Query: {} - {}", query, reason),
                 }
             }

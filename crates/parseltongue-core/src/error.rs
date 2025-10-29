@@ -12,9 +12,16 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum ParseltongError {
     /// Database-related errors
-    #[error("Database operation failed: {details}")]
+    #[error("Database operation '{operation}' failed: {details}")]
     DatabaseError {
+        operation: String,
         details: String,
+    },
+
+    /// Entity not found error
+    #[error("Entity not found: {isgl1_key}")]
+    EntityNotFound {
+        isgl1_key: String,
     },
 
     /// File system operation errors
@@ -82,8 +89,6 @@ pub enum ParseltongError {
     #[error("Serialization error: {details}")]
     SerializationError {
         details: String,
-        #[source]
-        source: serde_json::Error,
     },
 }
 

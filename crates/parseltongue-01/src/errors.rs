@@ -66,7 +66,10 @@ impl From<StreamerError> for ParseltongError {
                 ParseltongError::ParseError { reason, location: file }
             }
             StreamerError::StorageError { details } => {
-                ParseltongError::DatabaseError { details }
+                ParseltongError::DatabaseError {
+                    operation: "storage".to_string(),
+                    details,
+                }
             }
             StreamerError::ConfigurationError { field, reason } => {
                 ParseltongError::ConfigurationError { details: format!("{}: {}", field, reason) }

@@ -201,7 +201,7 @@ impl FileStreamer for FileStreamerImpl {
                     Err(e) => {
                         let error_msg = format!("{}: {}", path.display(), e);
                         errors.push(error_msg.clone());
-                        pb.println(style("⚠").yellow().for_stderr().to_string() + " " + &error_msg);
+                        pb.println(format!("{} {}", style("⚠").yellow().for_stderr(), error_msg));
                         self.update_stats(0, true);
                     }
                 }

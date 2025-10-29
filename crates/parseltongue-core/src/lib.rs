@@ -11,10 +11,12 @@
 pub mod entities;
 pub mod error;
 pub mod interfaces;
+pub mod storage;
 pub mod temporal;
 
 // Re-export commonly used types
 pub use entities::*;
 pub use error::*;
 pub use interfaces::*;
+pub use storage::*;
 pub use temporal::*;
