@@ -48,16 +48,38 @@
   - Tree-sitter parsing with ISGL1 key generation
   - Extracts 45 entities from 6 files in 16ms
   - CLI interface operational
+  - ⚠️ **CozoDB MOCKED** - needs real database integration
 
 - [x] **Tool 2 (parseltongue-02)**: LLM-to-cozoDB-writer ✅ COMPLETE
   - 12/12 tests passing (9 lib + 3 binary)
   - Temporal state management implemented
   - LLM client integration (mock for testing)
+  - ⚠️ **CozoDB MOCKED** - needs real database integration
 
 - [x] **Tool 3 (parseltongue-03)**: LLM-cozoDB-to-context-writer 🟡 MOSTLY COMPLETE
   - 16/17 tests passing (12 lib + 3/4 binary)
   - Context generation and token counting working
   - **1 FAILING TEST**: Binary integration test needs fix
+  - ⚠️ **CozoDB MOCKED** - needs real database integration
+
+**Missing Tools (0/3 - GREENFIELD IMPLEMENTATION REQUIRED)** 🚨:
+- [ ] **Tool 4 (parseltongue-04)**: rust-preflight-code-simulator ❌ DOES NOT EXIST
+  - **Status**: Crate directory missing entirely
+  - **Effort**: 16-24 hours (RED→GREEN→REFACTOR)
+  - **Purpose**: Syntax → Build → Test validation pipeline
+  - **Blockers**: None (can implement independently)
+
+- [ ] **Tool 5 (parseltongue-05)**: LLM-cozoDB-to-code-writer ❌ DOES NOT EXIST
+  - **Status**: Crate directory missing entirely
+  - **Effort**: 12-18 hours (RED→GREEN→REFACTOR)
+  - **Purpose**: Ultra-minimalist file writing (NO backups)
+  - **Blockers**: Depends on CozoDB for reading Future_Code
+
+- [ ] **Tool 6 (parseltongue-06)**: cozoDB-make-future-code-current ❌ DOES NOT EXIST
+  - **Status**: Crate directory missing entirely
+  - **Effort**: 10-16 hours (RED→GREEN→REFACTOR)
+  - **Purpose**: State reset + re-indexing trigger
+  - **Blockers**: Depends on CozoDB + Tool 1 integration
 
 **Build Status**:
 - ✅ `cargo check --workspace` - PASSING (minor warnings only)
@@ -66,13 +88,27 @@
 
 ### ❌ Critical Implementation Gaps
 
-**Blocking Issues (MUST FIX)**:
+**Blocking Issues (MUST FIX)** - Updated 2025-10-29 after Explore agent analysis:
 - [x] ~~No source code exists~~ - **FALSE** (3 tools implemented!)
-- [ ] **CozoDB using mocks** - Real database integration missing 🚨 CRITICAL
-- [ ] **Tool 4 incomplete** - rust-analyzer integration partial ⏳ IN PROGRESS
-- [ ] **Tool 5 status unknown** - File writer needs investigation ❓ UNKNOWN
-- [ ] **Tool 6 missing** - State reset not implemented ❌ MISSING
-- [ ] **No end-to-end tests** - Pipeline integration untested 🚨 CRITICAL
+- [ ] **CozoDB using mocks** - Real database integration missing 🚨 **HIGHEST PRIORITY**
+  - Impact: Entire pipeline broken without data persistence
+  - Effort: 8-12 hours
+  - Status: Critical path blocker for all other work
+- [ ] **Tool 4 DOES NOT EXIST** - Greenfield implementation required 🚨 **CRITICAL**
+  - Not "incomplete" - crate directory doesn't exist
+  - Effort: 16-24 hours for complete implementation
+  - Status: Must build from scratch following Tool 1-3 patterns
+- [ ] **Tool 5 DOES NOT EXIST** - Greenfield implementation required 🚨 **CRITICAL**
+  - Not "unknown status" - crate directory doesn't exist
+  - Effort: 12-18 hours for complete implementation
+  - Status: Must build from scratch with ultra-minimalist principles
+- [ ] **Tool 6 DOES NOT EXIST** - Greenfield implementation required 🚨 **CRITICAL**
+  - Not "incomplete" - crate directory doesn't exist
+  - Effort: 10-16 hours for complete implementation
+  - Status: Can reuse core TemporalVersioningManager logic
+- [ ] **No end-to-end tests** - Pipeline integration untested 🚨 **CRITICAL**
+  - Effort: 16-24 hours
+  - Status: Requires all 6 tools working first
 
 **Missing Core Functionality**:
 - [ ] **Real CozoDB Storage**: Currently using mocks, cannot persist data
