@@ -321,6 +321,7 @@ impl LlmClientFactory {
 mod tests {
     use super::*;
     use parseltongue_core::entities::{EntityMetadata, Language, EntityType};
+    use crate::LlmWriterConfig;
 
     #[test]
     fn test_system_prompt_creation() {

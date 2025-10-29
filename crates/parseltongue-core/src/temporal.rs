@@ -577,11 +577,11 @@ mod tests {
         let mut manager = TemporalVersioningManager::new();
 
         // Create entity
-        let entity = CodeEntity::new(
-            "test.rs-test-function".to_string(),
+        let mut entity = CodeEntity::new(
+            "test.rs-compute_result".to_string(),
             InterfaceSignature {
                 entity_type: EntityType::Function,
-                name: "test".to_string(),
+                name: "calculate_value".to_string(),
                 visibility: Visibility::Public,
                 file_path: std::path::PathBuf::from("test.rs"),
                 line_range: LineRange::new(1, 5).unwrap(),
@@ -597,11 +597,15 @@ mod tests {
             },
         ).unwrap();
 
+        // Set current_code and future_code to satisfy validation requirements
+        entity.current_code = Some("fn test() {}".to_string());
+        entity.future_code = Some("fn test() {}".to_string());
+
         manager.add_entity(entity).unwrap();
 
         // Apply edit change
         let changes = vec![TemporalChange {
-            isgl1_key: "test.rs-test-function".to_string(),
+            isgl1_key: "test.rs-compute_result".to_string(),
             action: TemporalAction::Edit,
             future_code: Some("fn test() {}".to_string()),
             updated_signature: None,
@@ -609,7 +613,7 @@ mod tests {
 
         let affected = manager.apply_changes(changes).unwrap();
         assert_eq!(affected.len(), 1);
-        assert_eq!(affected[0], "test.rs-test-function");
+        assert_eq!(affected[0], "test.rs-compute_result");
 
         let changed_entities = manager.get_changed_entities();
         assert_eq!(changed_entities.len(), 1);
@@ -656,7 +660,7 @@ mod tests {
 
     #[test]
     fn validation_rules() {
-        let manager = TemporalVersioningManager::new();
+        let mut manager = TemporalVersioningManager::new();
 
         // Test with invalid entity (missing code when current_ind=true)
         let mut invalid_entity = CodeEntity::new(

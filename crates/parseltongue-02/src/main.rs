@@ -177,7 +177,7 @@ mod tests {
         let config = LlmWriterConfig {
             db_path: "test.db".to_string(),
             llm_endpoint: "https://api.openai.com/v1/chat/completions".to_string(),
-            llm_api_key: "".to_string(), // Empty API key
+            llm_api_key: "".to_string(), // Empty API key - should cause validation failure
             model: "gpt-4".to_string(),
             max_tokens: 4096,
             temperature: 0.7,

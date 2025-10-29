@@ -64,6 +64,10 @@ impl ToolFactory {
     /// Create a new LLM writer instance
     pub fn create_llm_writer(config: LlmWriterConfig) -> Result<Arc<TemporalWriterImpl>> {
         let llm_client = Arc::new(LlmClientImpl::new(config.clone()));
+
+        // Validate configuration before creating writer
+        llm_client.validate_config()?;
+
         let writer = Arc::new(TemporalWriterImpl::new(config, llm_client));
         Ok(writer)
     }

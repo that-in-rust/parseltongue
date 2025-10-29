@@ -162,7 +162,7 @@ impl TemporalState {
     pub fn unchanged() -> Self {
         Self {
             current_ind: true,
-            future_ind: true,
+            future_ind: true,  // Unchanged state exists in both present and future
             future_action: None,
         }
     }
@@ -786,7 +786,17 @@ mod tests {
             },
         ).unwrap();
 
-        assert!(entity.validate().is_ok());
+        // Set current_code and future_code to satisfy validation requirements
+        entity.current_code = Some("fn main() { println!(\"Hello, world!\"); }".to_string());
+        entity.future_code = Some("fn main() { println!(\"Hello, world!\"); }".to_string());
+
+        match entity.validate() {
+            Ok(()) => (),
+            Err(e) => {
+                println!("Validation error: {:?}", e);
+                panic!("Entity validation failed: {:?}", e);
+            }
+        }
 
         // Test temporal change
         entity.apply_temporal_change(

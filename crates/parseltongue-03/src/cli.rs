@@ -279,7 +279,7 @@ mod tests {
         assert!(matches!(goals[2], crate::llm_client::OptimizationGoal::PreserveConnectivity));
 
         let invalid_goals = CliConfig::parse_optimization_goals("invalid_goal,another_invalid");
-        assert_eq!(goals.len(), 2);
+        assert_eq!(invalid_goals.len(), 2);
         // Should fall back to MaximizeRelevance for invalid goals
     }
 
