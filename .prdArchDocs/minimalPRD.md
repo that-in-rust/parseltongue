@@ -162,11 +162,9 @@ This ensures LLM has exactly what it needs - no more, no less.
                             - If all validations pass, we move to next step
             - Ask user if they are satisfied with how the code is working:
                 - If yes, trigger Tool 6: `cozoDB-make-future-code-current --project-path . --database ./parseltongue.db`:
-                    - **MVP SIMPLIFIED**: Reset CodeGraph table and reingest from source files (clean operation)
-                    - Delete current temporal state (current_ind, future_ind, Future_Action, future_code)
-                    - Re-trigger Tool 1 to rebuild CodeGraph from source files
-                    - Make future_code the new current_code in all rows
-                    - **NO BACKUPS**: Clean reset operation (MVP reliability over complexity)
+                    - **ULTRA-MINIMAL**: Delete CodeGraph table + re-trigger folder-to-cozoDB-streamer (that's it!)
+                    - **CLEANEST POSSIBLE**: No temporal state management, just fresh rebuild
+                    - **MAXIMUM RELIABILITY**: Simplest operation = fewest failure points
 
 # 2.0 Detailed User Journey - Updated for Current Architecture
 
