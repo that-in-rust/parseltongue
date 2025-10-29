@@ -21,7 +21,7 @@
                     - Tool 1: `folder-to-cozoDB-streamer ./src --parsing-library tree-sitter --chunking ISGL1 --output-db ./parseltongue.db`
                         - Tool will read code from the git repo where it's located, using tree-sitter
                         - Tool will choose granularity of chunks (ISGL1 method)
-                        - Optional: Tool will call LSP (rust-analyzer) for metadata about code-chunk-raw
+                        - Tool will call LSP (rust-analyzer) for creating lsp-meta-data
                         - Tool will output aggregated-primarykey + code-chunk-raw + tree-sitter-signature + TDD_classification + lsp-meta-data (optional)
                     - `folder-to-cozoDB-streamer` creates CodeGraph (single write surface):
                         - Indexed by ISGL1 key (filepath-filename-InterfaceName)
@@ -39,7 +39,7 @@
                 - Tell user that code indexing is completed and basic analytics of the CodeGraph table is shared
                 - User is now asked to describe their bug/micro-PRD in micro-PRD.md
                 - User describes the bug in text form (examples: "Fix panic in GitHub #1234", "Fix memory leak in database connection pool")
-                    - The reasoning-LLM (default LLM via ANTHROPIC_KEY) analyzes the micro-PRD in context of ISGL1 + interface_signature + TDD_Classification + lsp_meta_data because cozo-to-context-writer places them in a json; we will ignore the Current_Code because it would unnecessarily bloat the context
+                    - The reasoning-LLM (default LLM via ANTHROPIC_KEY) analyzes the micro-PRD using CodeGraphContext.json which contains ISGL1 + interface_signature + TDD_Classification + lsp_meta_data; we will ignore the Current_Code because it would unnecessarily bloat the context
                         - Rough calculation of context in the reasoning-LLM = 1250000 tokens at 300 lines:
                             - Avg interface size is 1000 to 1500 nodes
                             - 1500 nodes x 3 tokens for ISGL1 = 4500 tokens
@@ -55,9 +55,9 @@
                         - Functionality wise
                     - After 2 iterations the reasoning-LLM will accept the micro-PRD
                     - Ask the reasoning LLM to reset the context because likely it will overflow and micro-PRD final needs to be isolated
-                - Tool 2: `cozo-to-context-writer --query "temporal reasoning query" --database ./parseltongue.db` is triggered
+                - Tool 2: `cozo-to-context-writer --query "Select * from Code_Graph where current_ind=1" --database ./parseltongue.db --output-context CodeGraphContext.json` is triggered
                     - Use TDD_idiomatic_rust_steering_doc for all cozo-to-context-writer operations while reasoning through code
-                    - Tool 2 creates a base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(ISGL1 + interface_signature + TDD_Classification + lsp_meta_data)
+                    - Tool 2 creates CodeGraphContext.json containing base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(ISGL1 + interface_signature + TDD_Classification + lsp_meta_data)
                     - Tool 2 asks the reasoning-LLM to suggest the following to the Code-Graph based on base-context-area:
                         - Step A: ISG level simulations (Temporal Versioning)
                             - Step A01: Create Edit Delete Test Interface Rows; call these changes test-interface-changes:
@@ -121,7 +121,7 @@
     - Final micro-PRD isolated for processing
 
 - Phase 3: Temporal Code Simulation
-    - Tool 2: `cozo-to-context-writer` with temporal versioning
+    - Tool 2: `cozo-to-context-writer` with temporal versioning uses CodeGraphContext.json as input for LLM reasoning
         - **Step A01**: Create test interface changes (current_ind=0, future_ind=1)
         - **Step A02**: Propagate changes to non-test interfaces
         - **Step B01**: Generate future code using hopping/blast-radius analysis
@@ -148,7 +148,7 @@
 - **Complete Tool Pipeline (6 components)**:
     - **Orchestrator**: `agent-parseltongue-reasoning-orchestrator` (External LLM coordination & workflow management)
     - Tool 1: `folder-to-cozoDB-streamer` (Code indexing)
-    - Tool 2: `cozo-to-context-writer` (Temporal reasoning & context extraction)
+    - Tool 2: `cozo-to-context-writer` (Temporal reasoning & context extraction via CodeGraphContext.json)
     - Tool 3: `rust-preflight-code-simulator` (Validation)
     - Tool 4: `cozoDB-to-code-writer` (File writing)
     - Tool 5: `cozoDB-make-future-code-current` (State reset)
@@ -174,7 +174,7 @@
 - **Manual Tools (5% of users)**:
     ```bash
     folder-to-cozoDB-streamer ./src --parsing-library tree-sitter --chunking ISGL1 --output-db ./parseltongue.db
-    cozo-to-context-writer --query "context extraction query" --database ./parseltongue.db
+    cozo-to-context-writer --query "context extraction query" --database ./parseltongue.db --output-context CodeGraphContext.json
     rust-preflight-code-simulator validation_output.json --validation-type all
     cozoDB-to-code-writer validation.json --database ./parseltongue.db
     cozoDB-make-future-code-current --project-path . --database ./parseltongue.db
