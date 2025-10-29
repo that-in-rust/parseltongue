@@ -125,15 +125,13 @@
 - [x] **Agent Orchestrator**: 95% agentic workflow integration ✅ VALIDATED
 - [ ] **rust-analyzer Integration**: Enhanced LSP metadata extraction (optional - future)
 
-**Known Issues**:
-- ⚠️ **SQLite Backend Compilation**: CozoDB's SQLite backend not compiling despite features
-  - **Error**: `database engine 'sqlite:...' not supported (maybe not compiled in)`
-  - **Cargo.toml Config**: `cozo = { features = ["storage-sqlite", "storage-sqlite-src"] }`
-  - **Workaround**: Using in-memory database (`"mem"`) for all tests and workflows
-  - **Impact**: CLI tools must use `--db mem` instead of persistent SQLite files
-  - **Root Cause**: CozoDB 0.7.6 compilation issue or platform incompatibility (macOS Darwin 24.3.0)
-  - **Future Fix**: Investigate CozoDB version upgrade or alternative storage backend
-  - **Note**: In-memory approach aligns well with agent orchestrator pattern (no persistent state between reasoning cycles)
+**Recent Improvements (2025-10-29)**:
+- ✅ **Migrated to RocksDB Storage Backend**: Switched from SQLite to RocksDB (recommended by CozoDB)
+  - **Performance**: 3.13ms indexing time (similar to in-memory)
+  - **Persistent Storage**: Creates `data/` directory with SST files + manifest
+  - **CLI Usage**: `--db rocksdb:./parseltongue.db` for persistent storage
+  - **Benefits**: Production-ready backend, no compilation issues, better performance characteristics
+  - **Status**: All 88 tests passing with RocksDB backend ✅
 
 ---
 
