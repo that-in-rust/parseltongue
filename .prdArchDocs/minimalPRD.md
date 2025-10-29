@@ -1,5 +1,52 @@
 # 1.0 Minimal User Journey
 
+## 1.0.1 MVP PRINCIPLES: MINIMALISM & RELIABILITY FIRST
+
+**TARGET USERS**: ~10 people - focus on essential functionality that works reliably
+**PHILOSOPHY**: Simplicity over complexity - each tool does ONE thing well and reliably
+
+### **TOOL SIMPLICITY RULES:**
+
+**Tool 5 (LLM-cozoDB-to-code-writer) - MINIMALIST:**
+- NO backup options (MVP doesn't need them)
+- NO multiple safety levels (complex to debug)
+- NO configuration complexity (single reliable write operation)
+- **SINGLE PURPOSE**: Write from CozoDB to files reliably
+- **EASY DEBUGGING**: Clear, traceable operations
+- **FOCUS**: Get the job done reliably, simply
+
+**Tool 6 (cozoDB-make-future-code-current) - MINIMALIST:**
+- NO backup metadata files (unnecessary complexity)
+- NO configuration options (reset should be deterministic)
+- **SINGLE PURPOSE**: Reset CodeGraph table + reingest folder
+- **CLEAN OPERATION**: Delete current state, rebuild from source files
+- **RELIABILITY**: Simpler = fewer failure points
+
+### **CONTEXT OPTIMIZATION FOR MVP:**
+
+**PRINCIPLE**: MINIMIZE LLM CONTEXT BLOAT - THIS IS EXTREMELY IMPORTANT
+
+**READING STRATEGY:**
+1. **EXCLUDE** current_code by default (major bloat source)
+2. **ALLOW** reading future_code ONLY for rows being changed
+3. **ALLOW** reading current_code ONLY for rows being changed (when absolutely needed)
+4. **FILTER**: Only load rows where `Future_Action != None` for detailed analysis
+
+**CONTEXT BLOAT PREVENTION:**
+- Default: Load only interface signatures + metadata (no code content)
+- Exception: Load future_code for rows that will actually change
+- Exception: Load current_code for changing rows (only when absolutely necessary)
+- Result: Dramatically reduced context while maintaining all necessary information
+
+**IMPLEMENTATION PATTERN:**
+```
+Step B01: filter(Future_Action != None) => (minimal data + future_code + current_code_if_needed)
+Step B02: Rubber duck debugging with optimized context
+Step B03: Write changes with minimal verification
+```
+
+This ensures LLM has exactly what it needs - no more, no less.
+
 ## 1.1 Executive Summary for Parseltongue
 - **User Segment**: Apple Silicon developers on multi-language codebases with Rust-first support
 - **Language Support**: Tree-sitter based parsing for all supported languages, with enhanced LSP integration for Rust
@@ -81,9 +128,15 @@
                                 - Addition Interfaces: New ISGL1 rows with current_ind = 0 & future_ind = 1 & Current_Code = empty & Future_Code = empty & Future_Action = Create
                                 - Deletion Interfaces: Old ISGL1 rows with current_ind = 1 & future_ind = 0 & Future_Code = empty & Future_Action = Delete
                                 - Edit Interfaces: Old ISGL1 rows with current_ind = 1 & future_ind = 1 & Future_Action = Edit
-                        - Step B: Code Simulation
-                            - Step B01: Based on filter(Future_Action != None)=>(all fields of Code_Graph including current code) + base-context-area, update future_code for all the rows that are changing:
-                                - The reasoning-LLM can use hopping or blast-radius actions on Code_Graph to fetch all information for rows where (Future_Action = None); meaning for rows which are not changing, current_code should not bloat the reasoning-LLM context
+                        - Step B: Code Simulation (Context-Optimized for MVP)
+                            - Step B01: Based on filter(Future_Action != None)=>(minimal data + future_code + current_code_if_needed) + base-context-area, update future_code for all rows that are changing:
+                                - **CONTEXT OPTIMIZATION**: Only load current_code/future_code for rows that will actually change
+                                - **DEFAULT**: Load only interface signatures + metadata (minimal bloat)
+                                - **EXCEPTION**: Load future_code for changing rows (less bloat than current_code)
+                                - **EXCEPTION**: Load current_code only when absolutely necessary for changing rows
+                                - **RESULT**: Drastically reduced context while maintaining necessary information
+                                - The reasoning-LLM can use hopping or blast-radius actions on Code_Graph to fetch additional information, but only for changing rows to prevent bloat
+                                - **CONTEXT RULE**: Non-changing rows should never load current_code or future_code into context
                                     - Hopping or blast-radius actions can be CLI options but preferably since our LLM is smart enough they need not be, and we can define them precisely in our supporting MD files
                             - Step B02: Follow rubber duck debugging to re-reason filter(Future_Action != None)=>(all fields of Code_Graph including current code) + base-context-area:
                                 - **ITERATIVE REASONING CYCLE**: This step embodies the core read-edit-read-edit mindset:
@@ -100,19 +153,20 @@
                             - If the rust-preflight-code-simulator tool fails then we go back to previous steps A01 onwards
                             - If the rust-preflight-code-simulator tool passes then we move to next step
                         - Step D: Run Tool 5: `LLM-cozoDB-to-code-writer validation.json --database ./parseltongue.db`:
-                            - Step D01: Write the changes to code files with automatic backups
-                            - Step D02: Run cargo build
-                            - Step D03: Run cargo test
-                            - Step D04: Run runtime validation (integration tests)
-                            - Step D05: Run performance benchmarks
-                            - Step D06: Run code quality checks (clippy/rustfmt)
-                            - Step D07: Run CI/CD validation
-                            - Step D08: If any validation fails, go back to previous steps A01 onwards with specific error details
-                            - Step D09: If all validations pass, we move to next step
+                            - **MVP SIMPLIFIED**: Write changes from CozoDB to code files (single reliable operation)
+                            - Step D01: Write the validated future_code to actual files (atomic operations)
+                            - Step D02: Run cargo build to verify compilation
+                            - Step D03: Run cargo test to verify functionality
+                            - **MINIMAL VERIFICATION**: Basic build/test validation (MVP approach)
+                            - If validation fails, go back to previous steps A01 onwards with specific error details
+                            - If all validations pass, we move to next step
             - Ask user if they are satisfied with how the code is working:
                 - If yes, trigger Tool 6: `cozoDB-make-future-code-current --project-path . --database ./parseltongue.db`:
-                    - `cozoDB-make-future-code-current` creates a git commit with list of changes
-                    - `cozoDB-make-future-code-current` resets the CodeGraph and updates all rows in CozoDB database, making future_code the new current_code
+                    - **MVP SIMPLIFIED**: Reset CodeGraph table and reingest from source files (clean operation)
+                    - Delete current temporal state (current_ind, future_ind, Future_Action, future_code)
+                    - Re-trigger Tool 1 to rebuild CodeGraph from source files
+                    - Make future_code the new current_code in all rows
+                    - **NO BACKUPS**: Clean reset operation (MVP reliability over complexity)
 
 # 2.0 Detailed User Journey - Updated for Current Architecture
 
