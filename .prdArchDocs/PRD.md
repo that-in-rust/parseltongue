@@ -44,10 +44,10 @@ flowchart TD
     subgraph Tools ["Parseltongue Unified Binary<br/>6-Tool Pipeline"]
         Tool1["Tool 1<br/>folder-to-cozoDB<br/>Multi-language Indexing"]
         Phase2 --> Tool2["Tool 2<br/>LLM-to-cozoDB<br/>Temporal Updates"]
-        Phase3 --> Tool3["Tool 3<br/>LLM-cozoDB-context<br/>Context Extraction"]
+        Phase3 --> Tool3["Tool 3<br/>LLM-cozoDB-to-context-writer<br/>Context Extraction"]
         Phase3 --> Tool4["Tool 4<br/>rust-preflight<br/>Enhanced Validation"]
-        Phase4 --> Tool5["Tool 5<br/>LLM-cozoDB-writer<br/>Atomic Changes"]
-        Phase5 --> Tool6["Tool 6<br/>make-future-current<br/>Database Reset"]
+        Phase4 --> Tool5["Tool 5<br/>LLM-cozoDB-to-code-writer<br/>Atomic Changes"]
+        Phase5 --> Tool6["Tool 6<br/>cozoDB-make-future-code-current<br/>Database Reset"]
     end
 
     subgraph Database ["CozoDB Temporal States"]
@@ -372,7 +372,7 @@ cp target/release/parseltongue /path/to/your/repo/
 - **Shreyas Doshi**: Prioritize first-apply correctness over speed. Design for clarity, safety, and explicit confidence gating. Time is a secondary outcome.
 - **Jeff Dean**: Make correctness the fast path. Push work to deterministic, cacheable computations (ISG, tree-sitter, RA, HNSW). Parallelize retrieval/validation; minimize token movement; measure token-per-fix and cache hit rates.
 
-**User Promise**: "When I encounter a code bug, I provide the issue details and receive a validated fix. For Rust projects, this includes comprehensive validation with full build/test automation. For other languages, core parsing and analysis ensures structural correctness with user-managed validation. Bug resolution time is reduced from manual debugging to automated analysis."
+**User Promise**: "When I encounter a code bug, the system produces a single-pass, safe, minimal diff that compiles and (when present) passes tests before applying. For Rust projects, this includes full LSP-enhanced validation; for other languages, core parsing and analysis is provided. Speed is a byproduct; correctness is the KPI"
 
 ## Local Folder Architecture
 
@@ -412,6 +412,17 @@ The `parseltongue` binary consolidates all 6 tools into a single executable with
 #### folder-to-cozoDB-streamer
 ```bash
 parseltongue folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --chunking-method <METHOD> --output-db <DATABASE_PATH>
+
+# Required Arguments:
+<FOLDER_PATH>               # Local folder path containing code (any tree-sitter supported language)
+--parsing-library <LIBRARY> # Parser: tree-sitter (supports all tree-sitter grammars)
+--chunking-method <METHOD>  # Chunking: ISGL1 (Interface-level), 300-sentences (Text-level)
+--output-db <DATABASE_PATH> # CozoDB database path
+
+# Examples:
+parseltongue folder-to-cozoDB-streamer /path/to/rust/repo --parsing-library tree-sitter --chunking-method ISGL1 --output-db ./parseltongue.db
+parseltongue folder-to-cozoDB-streamer /path/to/python/project --parsing-library tree-sitter --chunking-method ISGL1 --output-db ./parseltongue.db
+parseltongue folder-to-cozoDB-streamer /path/to/mixed/project --parsing-library tree-sitter --chunking-method ISGL1 --output-db ./parseltongue.db
 ```
 
 
@@ -419,26 +430,62 @@ parseltongue folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY>
 #### LLM-to-cozoDB-writer
 ```bash
 parseltongue LLM-to-cozoDB-writer --query-temporal <TEMPORAL_QUERY> --database <DATABASE_PATH>
+
+# Required Arguments:
+--query-temporal <TEMPORAL_QUERY>  # Temporal upsert query using CozoDbQueryRef.md patterns
+--database <DATABASE_PATH>         # CozoDB database path
+
+# Example:
+parseltongue LLM-to-cozoDB-writer --query-temporal "?[entity_id, current_ind, future_ind, future_code] := [('new_func', 0, 1, 'pub fn new_func() { ... }', 'Create')]" --database ./parseltongue.db
 ```
 
 #### LLM-cozoDB-to-context-writer
 ```bash
 parseltongue LLM-cozoDB-to-context-writer --query <COZO_QUERY> --database <DATABASE_PATH> --output-context <JSON_FILE>
+
+# Required Arguments:
+--query <COZO_QUERY>         # CozoDB query string (see CozoDbQueryRef.md)
+--database <DATABASE_PATH>   # CozoDB database path
+--output-context <JSON_FILE> # Output JSON context file for LLM (default: CodeGraphContext.json)
+
+# Example:
+parseltongue LLM-cozoDB-to-context-writer --query "?[ISGL1, interface_signature, TDD_Classification] := *Code_Graph[ISGL1, _, interface_signature, TDD_Classification]" --database ./parseltongue.db --output-context CodeGraphContext.json
 ```
 
 #### rust-preflight-code-simulator
 ```bash
 parseltongue rust-preflight-code-simulator <SIMULATION_OUTPUT> --validation-type <TYPE> --timeout <SECONDS>
+
+# Required Arguments:
+<SIMULATION_OUTPUT>          # Path to temporal simulation output from Tools 2-3
+--validation-type <TYPE>     # Type: compile, check-types, check-borrow, all
+--timeout <SECONDS>          # Timeout in seconds
 ```
 
 #### LLM-cozoDB-to-code-writer
 ```bash
 parseltongue LLM-cozoDB-to-code-writer <VALIDATION_OUTPUT> --database <DATABASE_PATH> [--backup-dir <PATH>]
+
+# Required Arguments:
+<VALIDATION_OUTPUT>          # Path to validation output from Tool 4 (or Tool 3 for non-Rust)
+--database <DATABASE_PATH>   # CozoDB database path
+
+# Optional Arguments:
+--backup-dir <PATH>          # Backup directory (default: no backups for simplicity)
+--safety-level <LEVEL>       # Safety level: basic, standard, strict (default: basic)
 ```
 
 #### cozoDB-make-future-code-current
 ```bash
 parseltongue cozoDB-make-future-code-current reset --project-path <PATH> --database <DATABASE_PATH>
+
+# Required Arguments:
+--project-path <PATH>         # Path to project directory
+
+# Optional Arguments:
+--backup-dir <PATH>            # Metadata backup directory (default: .parseltongue/metadata-backups)
+--skip-backup                  # Skip metadata backup (not recommended)
+--git-integrated               # Enable Git integration (default: true)
 ```
 
 ### Global Options (All Tools)
@@ -503,7 +550,7 @@ parseltongue cozoDB-make-future-code-current reset --project-path <PATH> --datab
 │  └─────────────────────────────────────────────────────┘   │
 │                           │                                 │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  Subcommand: cozo-to-context-writer                      │   │
+│  │  Subcommand: LLM-cozoDB-to-context-writer                │   │
 │  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
 │  │  │  Micro-PRD  │───►│  JSON Context for LLM       │  │   │
 │  │  │  + Query    │    │  (Current Code State)      │  │   │
@@ -519,7 +566,7 @@ parseltongue cozoDB-make-future-code-current reset --project-path <PATH> --datab
 │  └─────────────────────────────────────────────────────┘   │
 │                           │                                 │
 │  ┌─────────────────────────────────────────────────────┐   │
-│  │  Subcommand: cozoDB-to-code-writer                      │   │
+│  │  Subcommand: LLM-cozoDB-to-code-writer                   │   │
 │  │  ┌─────────────┐    ┌────────────────────────────┐  │   │
 │  │  │  Validated  │───►│  Modified Files +           │  │   │
 │  │  │  Changes    │    │  Optional Backups           │  │   │
@@ -538,38 +585,54 @@ parseltongue cozoDB-make-future-code-current reset --project-path <PATH> --datab
 
 ### 5-Phase User Journey
 
-**Phase 1: Project Analysis & Setup**
-- Agent validates project structure and auto-detects programming languages
-- Triggers Tool 1 to index codebase into CozoDB using tree-sitter parsing
-- Displays codebase statistics, language breakdown, and complexity assessment
-- Determines project type: Rust-enhanced vs multi-language basic support
+**Phase 1: Setup & Code Indexing**
+- User downloads parseltongue binary and sets up Claude agent
+- User confirms they are in the relevant repository
+- Code indexing begins (approximately 10 minutes)
+- Tool 1: `folder-to-cozoDB-streamer` processes codebase
+  - Uses tree-sitter parsing with ISGL1 chunking
+  - Creates CodeGraph database with interface-level indexing
+  - Optional LSP metadata extraction via rust-analyzer (Rust projects only)
 
-**Phase 2: Change Specification & Reasoning**
-- Agent elicits clear change requirements from user
-- Triggers Tool 2 to perform temporal updates in CozoDB
-- Triggers Tool 3 to extract relevant code context as JSON
-- Agent performs LLM reasoning on change requirements using 4-entity architecture
-- Generates structured change specification with confidence scoring
+**Phase 2: Bug Analysis & Micro-PRD**
+- Code indexing completes, basic analytics shared
+- User provides bug details in natural language
+  - Examples: "Fix panic in GitHub #1234", "Fix segfault from error.log"
+  - Or describes issue: "Fix memory leak in database connection pool"
+- LLM (Entity 1) analyzes bug using 4-entity architecture:
+  - **Step 1**: Uses `LLM-cozoDB-to-context-writer` to query CozoDB (Entity 2)
+  - **Step 2**: Receives structured context via CodeGraphContext.json (Entity 3)
+  - **Step 3**: Refines requirements through 2 iterations using CozoDbQueryRef.md patterns
+- Final micro-PRD isolated for processing
 
-**Phase 3: Pre-flight Validation**
-- **Rust Projects**: Agent triggers Tool 4 (rust-preflight-code-simulator) for enhanced validation
-  - Checks compilation, type safety, borrow checker using rust-analyzer
-  - Runs cargo test on simulated changes
-- **Non-Rust Projects**: Basic syntax validation and interface consistency checks
-- Returns to Phase 2 if validation fails
+**Phase 3: Temporal Code Simulation**
+- Tool 2: `LLM-to-cozoDB-writer` enables LLM to update CozoDB with temporal versioning using CozoDbQueryRef.md patterns
+  - **Step A01**: LLM generates temporal upsert queries to create test interface changes (current_ind=0, future_ind=1, Future_Action="Create")
+  - **Step A02**: LLM propagates changes to non-test interfaces based on dependency analysis
+- Tool 3: `LLM-cozoDB-to-context-writer` extracts updated context using LLM-generated queries
+  - **Step B01**: Generate future code using hopping/blast-radius analysis
+  - **Step B02**: Rubber duck debugging and confidence validation (≥80% to proceed)
 
-**Phase 4: File Writing & Testing**
-- Agent triggers Tool 5 to write changes with safety checks
-- Creates optional backups (if --backup-dir specified), applies changes atomically
-- **Rust Projects**: Runs cargo build and cargo test on real codebase
-- **Non-Rust Projects**: File integrity checks and user notification for build/test validation
-- Returns to Phase 2 if validation fails
+**Phase 4: Validation & Testing**
+- Tool 4: `rust-preflight-code-simulator` validates proposed changes (Rust projects only)
+- If validation fails, return to Phase 3 for refinement
+- Tool 5: `LLM-cozoDB-to-code-writer` applies changes with safety checks using 4-entity flow:
+  - LLM generates queries to extract validated future_code from CozoDB (Entity 2)
+  - Tool 5 writes code to actual files in codebase (Entity 4) with automatic backups
+  - Multi-layer validation:
+    - Build validation: cargo build
+    - Test validation: cargo test
+    - Runtime validation: integration tests
+    - Performance validation: benchmarks
+    - Code quality validation: clippy/rustfmt
+    - CI/CD validation: pipeline compatibility
+- Returns to Phase 3 if any validation fails
 
-**Phase 5: State Reset & Cleanup**
-- Agent asks user for satisfaction confirmation
-- Triggers Tool 6 to reset database state
-- Creates Git commit with generated changes
-- Cleans up temporary files and backups
+**Phase 5: State Reset & Completion**
+- User confirms satisfaction with changes
+- Tool 6: `cozoDB-make-future-code-current` resets database state
+- Git commit created with list of changes
+- CodeGraph updated with current state
 
 ### Tool Integration Details
 
@@ -801,47 +864,63 @@ cozoDB-make-future-code-current reset --project-path /path/to/rust/repo # (verbo
 
 ### Phase 1: Code Indexing
 
-1. **User Setup**: User arrives at Parseltongue repository
-2. **Project Detection**: Ask if user is in relevant Rust repository
-3. **Indexing Process**: Trigger Tool 1 for code indexing (≈10 minutes)
-4. **Analytics Display**: Show basic CodeGraph statistics
+1. **User Setup**: User downloads parseltongue binary and sets up Claude agent
+2. **Project Detection**: User confirms they are in the relevant repository
+3. **Indexing Process**: Tool 1 (`folder-to-cozoDB-streamer`) processes codebase (≈10 minutes)
+   - Uses tree-sitter parsing with ISGL1 chunking
+   - Creates CodeGraph database with interface-level indexing
+   - Optional LSP metadata extraction via rust-analyzer (Rust projects)
+4. **Analytics Display**: Show basic CodeGraph statistics and language breakdown
 
-### Phase 2: Change Specification
+### Phase 2: Bug Analysis & Micro-PRD
 
-1. **Micro-PRD Creation**: User describes desired changes in text form
-2. **Context Analysis**: LLM analyzes micro-PRD against CodeGraph metadata
+1. **Micro-PRD Creation**: User provides bug details in natural language
+   - Examples: "Fix panic in GitHub #1234", "Fix segfault from error.log"
+   - Or describes issue: "Fix memory leak in database connection pool"
+2. **Context Analysis**: LLM analyzes micro-PRD using 4-entity architecture:
+   - **Step 1**: Uses `LLM-cozoDB-to-context-writer` to query CozoDB
+   - **Step 2**: Receives structured context via CodeGraphContext.json
+   - **Step 3**: Refines requirements through 2 iterations using CozoDbQueryRef.md patterns
 3. **Refinement Iterations**: 2-3 iterations to clarify requirements
 4. **Context Reset**: Isolate final micro-PRD for processing
 
-### Phase 3: Code Simulation
+### Phase 3: Temporal Code Simulation
 
-1. **Tool 2 Execution**: Run cozo-code-simulation-sorcerer
-2. **ISG Simulation**: Create future interface rows with proper flags
-3. **Code Generation**: Simulate actual code changes
-4. **Validation**: Rubber duck debugging and confidence scoring
+1. **Tool 2 Execution**: `LLM-to-cozoDB-writer` enables LLM temporal versioning
+   - **Step A01**: LLM generates temporal upsert queries for test interface changes
+   - **Step A02**: LLM propagates changes to non-test interfaces based on dependency analysis
+2. **Tool 3 Execution**: `LLM-cozoDB-to-context-writer` extracts updated context
+   - **Step B01**: Generate future code using hopping/blast-radius analysis
+   - **Step B02**: Rubber duck debugging and confidence validation (≥80% to proceed)
+3. **Code Generation**: Simulate actual code changes with temporal versioning
+4. **Validation**: Confidence scoring and refinement if needed
 
-### Phase 4: Validation
+### Phase 4: Validation & Testing
 
-1. **Tool 3 Execution**: Run rust-preflight-code-simulator
-2. **Rust Validation**: Compile, type-check, borrow-check analysis
-3. **Failure Handling**: Return to Phase 3 if validation fails
-4. **Success**: Proceed to file writing
+1. **Tool 4 Execution**: `rust-preflight-code-simulator` validates proposed changes (Rust only)
+   - Compile, type-check, borrow-check analysis using rust-analyzer
+   - **Failure Handling**: Return to Phase 3 if validation fails
+2. **Tool 5 Execution**: `LLM-cozoDB-to-code-writer` applies changes with safety checks
+   - **Safety Checks**: Backup creation and validation
+   - **File Operations**: Atomic writes with rollback protection
+   - **Multi-layer Validation**:
+     - Build validation: cargo build
+     - Test validation: cargo test
+     - Runtime validation: integration tests
+     - Performance validation: benchmarks
+     - Code quality validation: clippy/rustfmt
+     - CI/CD validation: pipeline compatibility
+3. **Failure Handling**: Return to Phase 3 if any validation fails
+4. **Success**: Proceed to user confirmation
 
-### Phase 5: File Writing
-
-1. **Tool 4 Execution**: Run cozoDB-to-code-writer
-2. **Safety Checks**: Backup creation and validation
-3. **File Operations**: Atomic writes with rollback protection
-4. **Testing**: Run cargo build and cargo test
-5. **Failure Handling**: Return to Phase 3 if tests fail
-
-### Phase 6: State Reset (COMPLETED ✅)
+### Phase 5: State Reset & Completion
 
 1. **User Confirmation**: Ask if user is satisfied with changes
-2. **Tool 5 Execution**: Run cozoDB-make-future-code-current
+2. **Tool 6 Execution**: `cozoDB-make-future-code-current` resets database state
 3. **Metadata Backup**: Create timestamped MD file backups
-4. **State Reset**: Re-ingest current file state, reset flags
-5. **Git Integration**: Commit backups to repository
+4. **State Reset**: Re-ingest current file state, reset temporal flags
+5. **Git Integration**: Create git commit with list of changes
+6. **Cleanup**: CodeGraph updated with current state, temporary files cleaned
 
 ## Context Management and Performance
 
@@ -1096,6 +1175,21 @@ Following strict RED → GREEN → REFACTOR cycle:
 - [ ] Git-integrated workflow
 - [ ] Zero data loss during state resets
 - [ ] Automatic language detection and capability adaptation
+
+**Bug Fix Success Criteria (from minimalPRD.md):**
+A bug is considered fixed when:
+1. Error no longer occurs (verified through testing)
+2. Code compiles successfully
+3. All tests pass
+4. Performance regressions are resolved
+5. Code quality checks pass
+6. CI/CD pipelines complete successfully
+
+**Definition of Done for Bug Fixes:**
+- **Verification**: Error reproduction and fix validation
+- **Quality**: Compilation, testing, and code standards compliance
+- **Performance**: No regressions introduced
+- **Integration**: CI/CD pipeline compatibility maintained
 
 ## Conclusion
 
