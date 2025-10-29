@@ -125,6 +125,9 @@ pub enum TemporalAction {
     Delete,
 }
 
+/// Alias for backward compatibility
+pub type FutureAction = TemporalAction;
+
 impl TemporalAction {
     /// Validate action compatibility with temporal indicators
     pub fn validate_with_indicators(

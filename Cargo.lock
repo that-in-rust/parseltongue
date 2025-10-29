@@ -1625,6 +1625,48 @@ dependencies = [
 ]
 
 [[package]]
+name = "parseltongue-04"
+version = "0.7.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "clap",
+ "console",
+ "criterion",
+ "indicatif",
+ "parseltongue-core",
+ "proptest",
+ "serde",
+ "serde_json",
+ "syn",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tokio-test",
+]
+
+[[package]]
+name = "parseltongue-05"
+version = "0.7.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "clap",
+ "console",
+ "criterion",
+ "indicatif",
+ "parseltongue-core",
+ "proptest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tokio-test",
+]
+
+[[package]]
 name = "parseltongue-core"
 version = "0.7.0"
 dependencies = [
