@@ -42,10 +42,14 @@ flowchart TD
     end
 
     subgraph Tools ["Parseltongue Unified Binary<br/>6-Tool Pipeline"]
-        Tool1["Tool 1<br/>folder-to-cozoDB<br/>Multi-language Indexing"]
+        Tool1["Tool 1<br/>folder-to-cozoDB<br/>Multi-language Indexing<br/>(Starts immediately)"]
+
+        subgraph ParallelPrep ["Parallel Preparation"]
+            Tool1 --> |"Indexing 10min<br/>background"| UserPrepares["User prepares<br/>bug description"]
+        end
 
         subgraph IterativeCycle ["Iterative Reasoning Cycle"]
-            Phase2 --> Tool3Read["Tool 3<br/>Read Context<br/>LLM-cozoDB-to-context-writer"]
+            UserPrepares --> Tool3Read["Tool 3<br/>Read Context<br/>LLM-cozoDB-to-context-writer"]
             Tool3Read --> LLMThink["LLM Reasoning<br/>Rubber Duck Debugging"]
             LLMThink --> Tool2Edit["Tool 2<br/>Edit CozoDB<br/>LLM-to-cozoDB-writer"]
             Tool2Edit --> ConfidenceLoop{"Confidence<br/>≥80%?"}
@@ -197,9 +201,14 @@ flowchart TD
 
     subgraph PrimaryPath ["Agentic Workflow (95% of users)"]
         PrimaryWorkflow --> ClaudeStart["@agent-parseltongue-reasoning-orchestrator<br/>in Claude Code"]
-        ClaudeStart --> NaturalRequest["User: 'Fix panic in<br/>GitHub #1234' or<br/>'Fix segfault from error.log'"]
-        NaturalRequest --> AutoIndex["Auto-index codebase<br/>Tool 1: folder-to-cozoDB-streamer"]
-        AutoIndex --> MicroPRD["Create Micro-PRD<br/>Bug analysis & refinement"]
+        ClaudeStart --> RepoConfirm["Confirm git repository<br/>location"]
+        RepoConfirm --> AutoIndex["Auto-index codebase<br/>Tool 1: folder-to-cozoDB-streamer<br/>(10 minutes)"]
+
+        subgraph ParallelPreparation ["Parallel Preparation"]
+            AutoIndex --> |"Indexing runs<br/>in background"| UserThinking["User prepares<br/>bug description<br/>while indexing"]
+            UserThinking --> NaturalRequest["User: 'Fix panic in<br/>GitHub #1234' or<br/>'Fix segfault from error.log'"]
+            AutoIndex --> |"Indexing complete<br/>analytics ready"| MicroPRD["Create Micro-PRD<br/>Bug analysis & refinement"]
+        end
 
         subgraph IterativeReasoning ["Iterative LLM Reasoning Cycle"]
             MicroPRD --> Tool3Read["Tool 3: Read Context<br/>LLM-cozoDB-to-context-writer"]
@@ -600,14 +609,16 @@ parseltongue cozoDB-make-future-code-current reset --project-path <PATH> --datab
 
 ### 5-Phase User Journey
 
-**Phase 1: Setup & Code Indexing**
+**Phase 1: Repository Confirmation & Immediate Indexing**
 - User downloads parseltongue binary and sets up Claude agent
 - User confirms they are in the relevant repository
-- Code indexing begins (approximately 10 minutes)
-- Tool 1: `folder-to-cozoDB-streamer` processes codebase
+- **IMMEDIATE**: Tool 1 indexing starts (10 minutes) - no waiting for bug description
+- Tool 1: `folder-to-cozoDB-streamer` processes codebase in background
   - Uses tree-sitter parsing with ISGL1 chunking
   - Creates CodeGraph database with interface-level indexing
   - Optional LSP metadata extraction via rust-analyzer (Rust projects only)
+- **Parallel Preparation**: User prepares bug description while indexing runs
+- Indexing complete → Analytics displayed
 
 **Phase 2: Bug Analysis & Micro-PRD**
 - Code indexing completes, basic analytics shared
@@ -877,19 +888,22 @@ cozoDB-make-future-code-current reset --project-path /path/to/rust/repo # (verbo
 
 ## Detailed User Journey
 
-### Phase 1: Code Indexing
+### Phase 1: Repository Confirmation & Immediate Indexing
 
 1. **User Setup**: User downloads parseltongue binary and sets up Claude agent
-2. **Project Detection**: User confirms they are in the relevant repository
-3. **Indexing Process**: Tool 1 (`folder-to-cozoDB-streamer`) processes codebase (≈10 minutes)
+2. **Repository Confirmation**: User confirms they are in the relevant repository
+   - **IMMEDIATE ACTION**: Tool 1 (`folder-to-cozoDB-streamer`) starts indexing (≈10 minutes)
    - Uses tree-sitter parsing with ISGL1 chunking
    - Creates CodeGraph database with interface-level indexing
    - Optional LSP metadata extraction via rust-analyzer (Rust projects)
-4. **Analytics Display**: Show basic CodeGraph statistics and language breakdown
+3. **Parallel Preparation**: While indexing runs in background, user prepares bug description
+   - User has 10 minutes to think about the issue and formulate the request
+   - No waiting - system preparation happens concurrently
+4. **Indexing Complete**: Analytics displayed showing basic CodeGraph statistics and language breakdown
 
 ### Phase 2: Bug Analysis & Micro-PRD
 
-1. **Micro-PRD Creation**: User provides bug details in natural language
+1. **Micro-PRD Creation**: User provides bug details in natural language (prepared during indexing)
    - Examples: "Fix panic in GitHub #1234", "Fix segfault from error.log"
    - Or describes issue: "Fix memory leak in database connection pool"
 2. **Context Analysis**: LLM analyzes micro-PRD using 4-entity architecture:
