@@ -32,12 +32,22 @@ flowchart TD
         Orchestrator --> Phase5["Phase 5<br/>State Reset"]
     end
 
-    subgraph Tools ["Parseltongue Unified Binary"]
-        Phase1 --> Tool1["Tool 1<br/>folder-to-cozoDB<br/>Code Indexing"]
-        Phase2 --> Tool2["Tool 2<br/>cozo-to-context<br/>LLM Queries"]
-        Phase3 --> Tool3["Tool 3<br/>rust-simulator<br/>Pre-flight Check"]
-        Phase4 --> Tool4["Tool 4<br/>cozo-to-writer<br/>Atomic Changes"]
-        Phase5 --> Tool5["Tool 5<br/>make-future-current<br/>Database Reset"]
+    subgraph LanguageDetection ["Language Detection & Processing"]
+        Phase1 --> LangDetect["Auto-detect<br/>Project Languages"]
+        LangDetect --> RustFlow{"Rust<br/>Files?"}
+        RustFlow --> |"Yes"| RustPath["Rust-Enhanced<br/>Processing"]
+        RustFlow --> |"No"| MultiPath["Multi-Language<br/>Basic Processing"]
+        RustPath --> Tool1
+        MultiPath --> Tool1
+    end
+
+    subgraph Tools ["Parseltongue Unified Binary<br/>6-Tool Pipeline"]
+        Tool1["Tool 1<br/>folder-to-cozoDB<br/>Multi-language Indexing"]
+        Phase2 --> Tool2["Tool 2<br/>LLM-to-cozoDB<br/>Temporal Updates"]
+        Phase3 --> Tool3["Tool 3<br/>LLM-cozoDB-context<br/>Context Extraction"]
+        Phase3 --> Tool4["Tool 4<br/>rust-preflight<br/>Enhanced Validation"]
+        Phase4 --> Tool5["Tool 5<br/>LLM-cozoDB-writer<br/>Atomic Changes"]
+        Phase5 --> Tool6["Tool 6<br/>make-future-current<br/>Database Reset"]
     end
 
     subgraph Database ["CozoDB Temporal States"]
@@ -324,9 +334,11 @@ cp target/release/parseltongue /path/to/your/repo/
 
 ## Executive Summary
 
-**User Segment**: Apple Silicon developers fixing bugs and issues in large Rust codebases
+**User Segment**: Apple Silicon developers fixing bugs and issues in multi-language codebases with Rust-first enhanced support
 
-**Primary Use Case**: Bug fixing and issue resolution with precise problem definitions from GitHub issues, error logs, and stack traces
+**Language Support**: Tree-sitter based parsing for all supported languages, with enhanced LSP integration and validation for Rust projects
+
+**Primary Use Case**: Bug fixing and issue resolution with precise problem definitions from GitHub issues, error logs, and stack traces across tree-sitter supported languages
 
 **Platform Strategy**:
 - **Primary**: Apple Silicon (M1/M2/M3) with pre-compiled binaries and Homebrew support
@@ -339,25 +351,32 @@ cp target/release/parseltongue /path/to/your/repo/
 - **Direct Value**: Bug resolution is a primary developer task
 - **Technical Fit**: Error analysis, pattern matching, and code generation align with LLM capabilities
 - **Measurable Results**: Before/after comparison is verifiable
-- **Automated Patterns**: Common bug types can be addressed systematically
+- **Automated Patterns**: Common bug types can be addressed systematically across languages
+
+**Strategic Rationale for Multi-Language Foundation**:
+- **Tree-Sitter Architecture**: Language-agnostic parsing foundation supports all tree-sitter compatible languages
+- **Unified Interface**: Consistent workflow across different programming languages
+- **Future-Proof Design**: Easy addition of new language LSP integrations without architectural changes
+- **Developer Reality**: Most projects involve multiple languages; unified tooling provides efficiency
+- **Graceful Degradation**: Core functionality available for all languages, enhanced features for Rust
 
 **Strategic Rationale for Apple Silicon Focus**:
 - **Unified Hardware**: Consistent performance across M1/M2/M3 with unified memory architecture
-- **Developer Concentration**: Rust developers commonly use MacBooks
+- **Developer Concentration**: Multi-language developers commonly use MacBooks
 - **Simplified Distribution**: Single binary target, Homebrew integration
-- **Performance**: ARM architecture provides good performance for static analysis
+- **Performance**: ARM architecture provides good performance for static analysis across languages
 - **Support Focus**: Resources concentrated on one platform initially
 
 **Reliability-First Principle**:
 - Optimize for accurate 1-go fixes that feel trustworthy and increase user efficacy
-- Prefer CPU-bound static analysis (rust-analyzer overlays, ISG traversals) and small, local, free subagents
+- Prefer CPU-bound static analysis (tree-sitter parsing, rust-analyzer overlays, ISG traversals) and small, local, free subagents
 - Keep the reasoning LLM as lean and late as possible; minimize context/tokens; use deterministic transforms whenever feasible
 
 **Product Philosophy**:
 - **Shreyas Doshi**: Prioritize first-apply correctness over speed. Design for clarity, safety, and explicit confidence gating. Time is a secondary outcome.
-- **Jeff Dean**: Make correctness the fast path. Push work to deterministic, cacheable computations (ISG, RA, HNSW). Parallelize retrieval/validation; minimize token movement; measure token-per-fix and cache hit rates.
+- **Jeff Dean**: Make correctness the fast path. Push work to deterministic, cacheable computations (ISG, tree-sitter, RA, HNSW). Parallelize retrieval/validation; minimize token movement; measure token-per-fix and cache hit rates.
 
-**User Promise**: "When I encounter a Rust bug, I provide the issue details and receive a validated fix that compiles and passes tests. Bug resolution time is reduced from manual debugging to automated analysis."
+**User Promise**: "When I encounter a code bug, I provide the issue details and receive a validated fix. For Rust projects, this includes comprehensive validation with full build/test automation. For other languages, core parsing and analysis ensures structural correctness with user-managed validation. Bug resolution time is reduced from manual debugging to automated analysis."
 
 ## Local Folder Architecture
 
@@ -382,10 +401,15 @@ cp target/release/parseltongue /path/to/your/repo/
 ## Section 01: Command-Summary
 
 ### Overview
-This section provides a high-level command reference for the unified `parseltongue` binary with its 5 subcommands. For detailed specifications, see Section 02: Individual Tool Specifications.
+This section provides a high-level command reference for the unified `parseltongue` binary with its 6 subcommands. For detailed specifications, see Section 02: Individual Tool Specifications.
 
 **Unified Binary Architecture:**
-The `parseltongue` binary consolidates all 5 tools into a single executable with subcommands, similar to `git` and `cargo`. Each tool can be invoked as a subcommand while maintaining its exact CLI interface.
+The `parseltongue` binary consolidates all 6 tools into a single executable with subcommands, similar to `git` and `cargo`. Each tool can be invoked as a subcommand while maintaining its exact CLI interface.
+
+**Multi-Language Support:**
+- **Core Tools (1,2,3,5,6)**: Work with any tree-sitter supported language
+- **Enhanced Tool (4)**: Rust-specific preflight validation with LSP integration
+- **Automatic Detection**: System detects project languages and applies appropriate processing
 
 ### Tool Commands Matrix
 
@@ -396,9 +420,14 @@ parseltongue folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY>
 
 
 
-#### cozoDB-to-context-writer
+#### LLM-to-cozoDB-writer
 ```bash
-command-01: cozoDB-to-context-writer <MICRO_PRD> --database <DATABASE_PATH> --query <COZO_QUERY> --output-context <JSON_FILE>
+parseltongue LLM-to-cozoDB-writer --query-temporal <TEMPORAL_QUERY> --database <DATABASE_PATH>
+```
+
+#### LLM-cozoDB-to-context-writer
+```bash
+parseltongue LLM-cozoDB-to-context-writer --query <COZO_QUERY> --database <DATABASE_PATH> --output-context <JSON_FILE>
 ```
 
 #### rust-preflight-code-simulator
@@ -406,9 +435,9 @@ command-01: cozoDB-to-context-writer <MICRO_PRD> --database <DATABASE_PATH> --qu
 parseltongue rust-preflight-code-simulator <SIMULATION_OUTPUT> --validation-type <TYPE> --timeout <SECONDS>
 ```
 
-#### cozoDB-to-code-writer
+#### LLM-cozoDB-to-code-writer
 ```bash
-parseltongue cozoDB-to-code-writer <VALIDATION_OUTPUT> --database <DATABASE_PATH> [--backup-dir <PATH>]
+parseltongue LLM-cozoDB-to-code-writer <VALIDATION_OUTPUT> --database <DATABASE_PATH> [--backup-dir <PATH>]
 ```
 
 #### cozoDB-make-future-code-current
@@ -418,7 +447,8 @@ parseltongue cozoDB-make-future-code-current reset --project-path <PATH> --datab
 
 ### Global Options (All Tools)
 ```bash
---project-path <PATH>    # Path to Rust project (required)
+--project-path <PATH>    # Path to project directory (required)
+--language-detect        # Auto-detect project languages (default: enabled)
 --quiet, -q              # Minimal output
 --help, -h               # Show help
 --version                # Show version
@@ -428,9 +458,11 @@ parseltongue cozoDB-make-future-code-current reset --project-path <PATH> --datab
 
 ### Core Design Philosophy
 
-**External Orchestration + Unified Binary**
+**External Orchestration + 4-Entity Architecture**
 - **External Agent**: `agent-parseltongue-reasoning-orchestrator.md` handles complex reasoning and workflow orchestration (located in `.claude/agents/`)
-- **Unified Binary**: Single `parseltongue` executable with 5 subcommands for focused, deterministic operations
+- **Unified Binary**: Single `parseltongue` executable with 6 subcommands for focused, deterministic operations
+- **4-Entity Architecture**: Clean separation between LLM, CozoDB, Context Bridge, and Codebase
+- **Multi-Language Foundation**: Tree-sitter based parsing supports all tree-sitter compatible languages with Rust-first enhancements
 - **Clean Separation**: LLM reasoning (external) vs tool execution (internal)
 - **Shreyas Doshi Minimalism**: Simple CLI interface, smart orchestration
 - **Rust Idiomatic Design**: Follows established patterns like `git` and `cargo` with subcommand architecture
@@ -454,7 +486,7 @@ parseltongue cozoDB-make-future-code-current reset --project-path <PATH> --datab
 │                 Unified parseltongue Binary                │
 │                   ┌─────────────────────────┐               │
 │                   │    Subcommands           │               │
-│                   │  (5 Tool Functions)      │               │
+│                   │  (6 Tool Functions)      │               │
 │                   └─────────────────────────┘               │
 │                           │                                   │
 │                  ┌─────────────────────────────┐             │
@@ -511,31 +543,35 @@ parseltongue cozoDB-make-future-code-current reset --project-path <PATH> --datab
 ### 5-Phase User Journey
 
 **Phase 1: Project Analysis & Setup**
-- Agent validates Rust project structure
-- Triggers Tool 1 to index codebase into CozoDB
-- Displays codebase statistics and complexity assessment
+- Agent validates project structure and auto-detects programming languages
+- Triggers Tool 1 to index codebase into CozoDB using tree-sitter parsing
+- Displays codebase statistics, language breakdown, and complexity assessment
+- Determines project type: Rust-enhanced vs multi-language basic support
 
 **Phase 2: Change Specification & Reasoning**
 - Agent elicits clear change requirements from user
-- Triggers Tool 2 to extract relevant code context as JSON
-- Agent performs LLM reasoning on change requirements
+- Triggers Tool 2 to perform temporal updates in CozoDB
+- Triggers Tool 3 to extract relevant code context as JSON
+- Agent performs LLM reasoning on change requirements using 4-entity architecture
 - Generates structured change specification with confidence scoring
 
 **Phase 3: Pre-flight Validation**
-- Agent triggers Tool 3 to validate proposed changes
-- Checks compilation, type safety, borrow checker
-- Runs cargo test on simulated changes
+- **Rust Projects**: Agent triggers Tool 4 (rust-preflight-code-simulator) for enhanced validation
+  - Checks compilation, type safety, borrow checker using rust-analyzer
+  - Runs cargo test on simulated changes
+- **Non-Rust Projects**: Basic syntax validation and interface consistency checks
 - Returns to Phase 2 if validation fails
 
 **Phase 4: File Writing & Testing**
-- Agent triggers Tool 4 to write changes with safety checks
+- Agent triggers Tool 5 to write changes with safety checks
 - Creates optional backups (if --backup-dir specified), applies changes atomically
-- Runs cargo build and cargo test on real codebase
-- Returns to Phase 2 if tests fail
+- **Rust Projects**: Runs cargo build and cargo test on real codebase
+- **Non-Rust Projects**: File integrity checks and user notification for build/test validation
+- Returns to Phase 2 if validation fails
 
 **Phase 5: State Reset & Cleanup**
 - Agent asks user for satisfaction confirmation
-- Triggers Tool 5 to reset database state
+- Triggers Tool 6 to reset database state
 - Creates Git commit with generated changes
 - Cleans up temporary files and backups
 
@@ -543,40 +579,46 @@ parseltongue cozoDB-make-future-code-current reset --project-path <PATH> --datab
 
 #### External Orchestration Agent
 **File**: `agent-parseltongue-reasoning-orchestrator.md`
-**Purpose**: Claude Code agent that orchestrates the complete 5-tool pipeline
+**Purpose**: Claude Code agent that orchestrates the complete 6-tool pipeline with multi-language support
 **Installation**: Copy to `.claude/agents/` directory
 **Capabilities**:
-- Natural language change request processing
-- 5-phase workflow management with safety gates
+- Natural language change request processing across tree-sitter supported languages
+- 5-phase workflow management with language-specific safety gates
+- Multi-language project analysis and automatic language detection
+- 4-entity architecture coordination (LLM ↔ CozoDB ↔ Context Bridge ↔ Codebase)
 - Error recovery and rollback mechanisms
 - Git integration and user interaction
+- Graceful degradation for non-Rust projects with enhanced validation for Rust
 
 #### Individual Tool Specifications
 
 #### Tool 1: folder-to-cozoDB-streamer
 
-**Purpose**: Process local Rust codebase folders into CozoDB
+**Purpose**: Process local multi-language codebase folders into CozoDB using tree-sitter parsing
 
 ```bash
 folder-to-cozoDB-streamer <FOLDER_PATH> --parsing-library <LIBRARY> --chunking-method <METHOD> --output-db <DATABASE_PATH>
 
 # Required Arguments:
-<FOLDER_PATH>               # Local folder path containing Rust code
---parsing-library <LIBRARY> # Parser: tree-sitter, txt-parsing
+<FOLDER_PATH>               # Local folder path containing code (any tree-sitter supported language)
+--parsing-library <LIBRARY> # Parser: tree-sitter (supports all tree-sitter grammars)
 --chunking-method <METHOD>  # Chunking: ISGL1 (Interface-level), 300-sentences (Text-level)
 --output-db <DATABASE_PATH> # CozoDB database path
 
 # Examples:
 folder-to-cozoDB-streamer /path/to/rust/repo --parsing-library tree-sitter --chunking-method ISGL1 --output-db ./parseltongue.db
-folder-to-cozoDB-streamer /path/to/rust/repo --parsing-library txt-parsing --chunking-method 300-sentences --output-db ./parseltongue.db
+folder-to-cozoDB-streamer /path/to/python/project --parsing-library tree-sitter --chunking-method ISGL1 --output-db ./parseltongue.db
+folder-to-cozoDB-streamer /path/to/mixed/project --parsing-library tree-sitter --chunking-method ISGL1 --output-db ./parseltongue.db
 ```
 
 **Key Functionality**:
-- Recursive file discovery with Rust-specific filtering
-- Tree-sitter AST parsing with configurable chunking strategies
-- LSP metadata extraction (optional rust-analyzer integration)
+- Recursive file discovery with language-agnostic filtering
+- Tree-sitter AST parsing for all supported languages (Python, JavaScript, TypeScript, Go, C++, Java, Rust, etc.)
+- **Rust-Enhanced**: LSP metadata extraction via rust-analyzer integration
+- **Multi-Language**: Basic interface extraction and dependency analysis
 - TDD classification (TEST_IMPLEMENTATION vs CODE_IMPLEMENTATION)
 - CozoDB ingestion with interface signatures and metadata
+- Automatic language detection and capability reporting
 
 **ISGL1 Chunking Method Explained**:
 - **Interface Signature Graph Level 1**: Creates chunks at the interface/function level
@@ -590,28 +632,53 @@ folder-to-cozoDB-streamer /path/to/rust/repo --parsing-library txt-parsing --chu
 ISGL1 (Primary Key) | Current_Code | Future_Code | interface_signature | lsp_meta_data | TDD_Classification | current_id | future_id
 ```
 
-#### Tool 2: cozo-to-context-writer
+#### Tool 2: LLM-to-cozoDB-writer
 
-**Purpose**: Query CozoDB and export JSON context files for external LLM reasoning
+**Purpose**: Enable LLM to perform temporal versioning updates in CozoDB using structured queries
 
 ```bash
-cozo-to-context-writer <MICRO_PRD> --database <DATABASE_PATH> --query <COZO_QUERY> --output-context <JSON_FILE>
+LLM-to-cozoDB-writer --query-temporal <TEMPORAL_QUERY> --database <DATABASE_PATH>
 
 # Required Arguments:
-<MICRO_PRD>                  # Path to micro-PRD text file
---database <DATABASE_PATH>   # CozoDB database path
+--query-temporal <TEMPORAL_QUERY>  # Temporal upsert query using CozoDbQueryRef.md patterns
+--database <DATABASE_PATH>         # CozoDB database path
+
+# Example:
+LLM-to-cozoDB-writer --query-temporal "?[entity_id, current_ind, future_ind, future_code] := [('new_func', 0, 1, 'pub fn new_func() { ... }', 'Create')]" --database ./parseltongue.db
+```
+
+**Temporal Versioning Workflow**:
+1. **LLM Generates Queries**: Creates temporal upsert queries using CozoDbQueryRef.md patterns
+2. **State Management**: Sets (current_ind, future_ind, Future_Action) flags for change tracking
+3. **Create/Edit/Delete**: Handles all three operations through temporal versioning
+4. **Database Update**: Performs atomic updates to CozoDB with rollback capability
+
+**Temporal State Patterns**:
+- **Create**: (0, 1) with Future_Action="Create"
+- **Edit**: (1, 1) with Future_Action="Edit" and Future_Code populated
+- **Delete**: (1, 0) with Future_Action="Delete"
+
+#### Tool 3: LLM-cozoDB-to-context-writer
+
+**Purpose**: Extract structured context from CozoDB for external LLM reasoning
+
+```bash
+LLM-cozoDB-to-context-writer --query <COZO_QUERY> --database <DATABASE_PATH> --output-context <JSON_FILE>
+
+# Required Arguments:
 --query <COZO_QUERY>         # CozoDB query string (see CozoDbQueryRef.md)
+--database <DATABASE_PATH>   # CozoDB database path
 --output-context <JSON_FILE> # Output JSON context file for LLM (default: CodeGraphContext.json)
 
 # Example:
-cozo-to-context-writer ./micro-prd.md --database ./parseltongue.db --query "?[interface_signature {...}]" --output-context CodeGraphContext.json
+LLM-cozoDB-to-context-writer --query "?[ISGL1, interface_signature, TDD_Classification] := *Code_Graph[ISGL1, _, interface_signature, TDD_Classification]" --database ./parseltongue.db --output-context CodeGraphContext.json
 ```
 
-**LLM Integration Workflow**:
-1. **Query CozoDB**: Extract relevant CodeGraph data using LLM-specified query
+**Context Extraction Workflow**:
+1. **LLM Queries CozoDB**: Extract relevant CodeGraph data using LLM-specified query
 2. **Context Export**: Create CodeGraphContext.json with current code state
-3. **External Reasoning**: LLM agent reads PRD.md + CodeGraphContext.json + CozoDbQueryRef.md
-4. **Change Planning**: LLM performs reasoning and generates structured change specification
+3. **4-Entity Bridge**: Facilitates communication between LLM (Entity 1) and CozoDB (Entity 2)
+4. **Multi-Language Support**: Extracts ISGL1 + interface_signature + TDD_Classification + lsp_meta_data (Rust only)
 
 **JSON Context Structure**:
 ```json
@@ -620,8 +687,9 @@ cozo-to-context-writer ./micro-prd.md --database ./parseltongue.db --query "?[in
   "current_code": [
     {
       "ISGL1": "filepath-filename-InterfaceName",
-      "current_code": "existing implementation",
-      "metadata": {...}
+      "interface_signature": "function signature",
+      "TDD_Classification": "CODE_IMPLEMENTATION",
+      "lsp_meta_data": "Rust-specific type information" // Only for Rust projects
     }
   ],
   "relationships": [...],
@@ -629,34 +697,44 @@ cozo-to-context-writer ./micro-prd.md --database ./parseltongue.db --query "?[in
 }
 ```
 
-#### Subcommand: rust-preflight-code-simulator
+#### Tool 4: rust-preflight-code-simulator
 
-**Purpose**: Validate Rust code using rust-analyzer overlay
+**Purpose**: Rust-specific enhanced validation using rust-analyzer overlay
 
 ```bash
 rust-preflight-code-simulator <SIMULATION_OUTPUT> --validation-type <TYPE> --timeout <SECONDS>
 
 # Required Arguments:
-<SIMULATION_OUTPUT>          # Path to simulation output from Tool 2
+<SIMULATION_OUTPUT>          # Path to temporal simulation output from Tools 2-3
 --validation-type <TYPE>     # Type: compile, check-types, check-borrow, all
 --timeout <SECONDS>          # Timeout in seconds
 ```
 
-**Validation Types**:
-- **compile**: Syntax and basic compilation checking
-- **check-types**: Type validation and inference
-- **check-borrow**: Borrow checker verification
-- **all**: Comprehensive validation (recommended)
+**Language-Specific Validation**:
+- **Rust Projects Only**: Enhanced validation with rust-analyzer LSP integration
+- **Non-Rust Projects**: Tool 4 is skipped, basic validation handled by Tool 3
+- **Validation Types**:
+  - **compile**: Syntax and basic compilation checking
+  - **check-types**: Type validation and inference
+  - **check-borrow**: Borrow checker verification
+  - **all**: Comprehensive validation (recommended for Rust projects)
 
-#### Subcommand: cozoDB-to-code-writer (IMPLEMENTED ✅)
+**Rust-Enhanced Capabilities**:
+- Semantic analysis via rust-analyzer LSP
+- Type system validation and inference
+- Borrow checker verification
+- Cargo integration for build/test simulation
+- Performance impact analysis
 
-**Purpose**: Write validated code changes from CozoDB to actual files
+#### Tool 5: LLM-cozoDB-to-code-writer (IMPLEMENTED ✅)
+
+**Purpose**: Write validated code changes from CozoDB to actual files across all supported languages
 
 ```bash
-cozoDB-to-code-writer <VALIDATION_OUTPUT> --database <DATABASE_PATH> [--backup-dir <PATH>]
+LLM-cozoDB-to-code-writer <VALIDATION_OUTPUT> --database <DATABASE_PATH> [--backup-dir <PATH>]
 
 # Required Arguments:
-<VALIDATION_OUTPUT>          # Path to validation output from Tool 3
+<VALIDATION_OUTPUT>          # Path to validation output from Tool 4 (or Tool 3 for non-Rust)
 --database <DATABASE_PATH>   # CozoDB database path
 
 # Optional Arguments:
@@ -666,10 +744,10 @@ cozoDB-to-code-writer <VALIDATION_OUTPUT> --database <DATABASE_PATH> [--backup-d
 
 # Examples:
 # Basic usage (no backups, simple validation)
-cozoDB-to-code-writer validation.json --database ./parseltongue.db
+LLM-cozoDB-to-code-writer validation.json --database ./parseltongue.db
 
 # Production usage (with backups and strict safety)
-cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir ./backups --safety-level strict # (verbose by default)
+LLM-cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir ./backups --safety-level strict # (verbose by default)
 ```
 
 **Implementation Quality Analysis:**
@@ -688,9 +766,9 @@ cozoDB-to-code-writer validation.json --database ./parseltongue.db --backup-dir 
 - **Detailed operation reporting** with JSON metrics and operation tracking
 - **Integration with Tool 3** validation pipeline for end-to-end safety
 
-#### Subcommand: cozoDB-make-future-code-current (IMPLEMENTED ✅)
+#### Tool 6: cozoDB-make-future-code-current (IMPLEMENTED ✅)
 
-**Purpose**: Reset database state and manage metadata backups after successful code changes
+**Purpose**: Reset database state and manage metadata backups after successful code changes across all languages
 
 **State Reset Strategy**:
 - Re-triggers Tool 1 (folder-to-cozoDB-streamer) to re-ingest current file state
@@ -954,27 +1032,36 @@ Following strict RED → GREEN → REFACTOR cycle:
 
 **Tool 1**: folder-to-cozoDB-streamer
 - ✅ Complete with real CozoDB integration
-- ✅ Tree-sitter parsing, chunking, metadata extraction
+- ✅ Multi-language tree-sitter parsing, chunking, metadata extraction
 - ✅ Performance optimized streaming architecture
+- ✅ Language detection and capability reporting
 
-**Tool 2**: cozo-to-context-writer
+**Tool 2**: LLM-to-cozoDB-writer
+- 🟡 **NEEDS IMPLEMENTATION** - Temporal versioning upsert queries
+- ❌ Missing: LLM-driven temporal query execution
+- ❌ Missing: CozoDbQueryRef.md pattern integration
+- ✅ Architecture designed for 4-entity system
+
+**Tool 3**: LLM-cozoDB-to-context-writer
 - 🟡 **NEEDS REFACTOR** - Current implementation has mock LLM
 - ❌ Missing: JSON context export functionality (CodeGraphContext.json)
 - ❌ Missing: External LLM integration pattern with query control
 - ✅ ISG simulation, confidence scoring (existing)
 
-**Tool 3**: rust-preflight-code-simulator
+**Tool 4**: rust-preflight-code-simulator
 - 🟡 **PARTIAL** - rust-analyzer integration incomplete
 - ✅ Framework and validation contracts ready
 - ❌ Missing real rust-analyzer LSP communication
+- ✅ Rust-specific enhanced validation design
 
-**Tool 4**: cozoDB-to-code-writer
+**Tool 5**: LLM-cozoDB-to-code-writer
 - ✅ Complete with comprehensive safety features
+- ✅ Multi-language file writing capabilities
 - ✅ Optional backup management, atomic operations
 - ✅ Performance monitoring and reporting
 - ✅ Production-grade implementation (3,387 lines, 39% test coverage)
 
-**Tool 5**: cozoDB-make-future-code-current
+**Tool 6**: cozoDB-make-future-code-current
 - ✅ **COMPLETE** - Simplified state reset implemented
 - ✅ Git-integrated metadata backup system
 - ✅ CLI interface with comprehensive commands
@@ -996,27 +1083,33 @@ Following strict RED → GREEN → REFACTOR cycle:
 
 ### Phase Completion Criteria
 
-- [ ] All 5 tools fully functional
-- [ ] End-to-end pipeline working on real Rust codebases
+- [ ] All 6 tools fully functional
+- [ ] End-to-end pipeline working on real multi-language codebases
+- [ ] Rust-enhanced validation with rust-analyzer integration
+- [ ] Graceful degradation for non-Rust languages
 - [ ] Performance within defined contracts
 - [ ] Comprehensive test coverage
 - [ ] Complete documentation
 
 ### Project Success Criteria
 
-- [ ] Single-pass, safe, minimal diff generation
-- [ ] Real Rust codebase analysis capability
-- [ ] Sub-100k token context management
+- [ ] Single-pass, safe, minimal diff generation across languages
+- [ ] Real multi-language codebase analysis capability
+- [ ] Rust-first enhanced features with LSP integration
+- [ ] Sub-100k token context management using 4-entity architecture
 - [ ] Git-integrated workflow
 - [ ] Zero data loss during state resets
+- [ ] Automatic language detection and capability adaptation
 
 ## Conclusion
 
-The Parseltongue project implements a sophisticated 5-tool pipeline for automated Rust code modification with strong emphasis on reliability, correctness, and data safety. The simplified Tool 5 implementation provides a practical foundation that can be enhanced based on real-world usage patterns.
+The Parseltongue project implements a sophisticated 6-tool pipeline for automated multi-language code modification with Rust-first enhanced support, emphasizing reliability, correctness, and data safety. The architecture leverages tree-sitter's language-agnostic foundation while providing enhanced validation for Rust projects through LSP integration.
 
-The architecture successfully balances complexity with practicality, leveraging existing tools (Tree-sitter, rust-analyzer, CozoDB) while maintaining clean separation of concerns and comprehensive error handling.
+The 4-entity architecture successfully balances complexity with practicality, leveraging existing tools (Tree-sitter, rust-analyzer, CozoDB) while maintaining clean separation of concerns and comprehensive error handling. The graceful degradation strategy ensures core functionality is available for all tree-sitter supported languages, with enhanced features for Rust projects.
 
-**Next Priority**: Refactor Tool 2 from mock LLM to JSON context writer, then complete Tool 3 rust-analyzer integration.
+**Multi-Language Innovation**: Tree-sitter based parsing provides immediate support for Python, JavaScript, TypeScript, Go, C++, Java, and other languages, with a clear path for adding language-specific LSP integrations in the future.
+
+**Next Priority**: Implement Tool 2 (LLM-to-cozoDB-writer) for temporal versioning, refactor Tool 3 (LLM-cozoDB-to-context-writer) for proper JSON context export, and complete Tool 4 rust-analyzer integration for full Rust-enhanced validation.
 
 ## Installation & Usage
 
