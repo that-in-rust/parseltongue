@@ -56,8 +56,8 @@ flowchart TD
         end
 
         Tool4["Tool 4<br/>rust-preflight<br/>Enhanced Validation"]
-        Phase4 --> Tool5["Tool 5<br/>LLM-cozoDB-to-code-writer<br/>Atomic Changes"]
-        Phase5 --> Tool6["Tool 6<br/>cozoDB-make-future-code-current<br/>Database Reset"]
+        Phase4 --> Tool5["Tool 5<br/>LLM-cozoDB-to-code-writer<br/>Single Reliable Write<br/>(No Backup Options)"]
+        Phase5 --> Tool6["Tool 6<br/>cozoDB-make-future-code-current<br/>Delete Table +<br/>Re-trigger Indexing"]
     end
 
     subgraph Database ["CozoDB Temporal States"]
@@ -81,7 +81,7 @@ flowchart TD
 
     subgraph FileSystem ["File System Operations"]
         Tool4 --> Files["Rust Source<br/>Files"]
-        Files --> |"Atomic Writes<br/>with Backups"| Modified["Modified<br/>Files"]
+        Files --> |"Single Reliable Write<br/>(No Backup Options)"| Modified["Modified<br/>Files"]
     end
 
     subgraph Phase2Detail ["Phase 2: Detailed Reasoning"]
@@ -150,6 +150,13 @@ parseltongue reason --query "
 - **Context Filtering**: Only load relevant code for LLM reasoning
 
 ### External Agent Philosophy
+
+**MVP Ultra-Minimalist Principles (~10 users)**:
+- **Target**: ~10 users - focus on essential functionality that works reliably
+- **Philosophy**: Simplicity over complexity - each tool does ONE thing well
+- **Tool 5**: NO backup options, NO multiple safety levels, NO configuration complexity
+- **Tool 6**: NO backup metadata files, NO configuration options
+- **Goal**: Maximum reliability through simplicity
 
 **Smart Orchestration, Simple Tools**:
 - **LLM handles complexity**: Change reasoning, query generation, validation
