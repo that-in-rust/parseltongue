@@ -46,23 +46,28 @@
                 - Tell user that code indexing is completed and basic analytics of the CodeGraph table is shared
                 - User is now asked to describe their bug/micro-PRD in micro-PRD.md
                 - User describes the bug in text form (examples: "Fix panic in GitHub #1234", "Fix memory leak in database connection pool")
-                    - The reasoning-LLM (default LLM via ANTHROPIC_KEY) analyzes the micro-PRD using CodeGraphContext.json which contains ISGL1 + interface_signature + TDD_Classification + lsp_meta_data; we will ignore the Current_Code because it would unnecessarily bloat the context
-                        - Rough calculation of context in the reasoning-LLM = 1250000 tokens at 300 lines:
+                    - The reasoning-LLM (default LLM via ANTHROPIC_KEY) analyzes the micro-PRD using CodeGraphContext.json which contains ISGL1 + interface_signature + TDD_Classification + lsp_meta_data; we will **STRICTLY** exclude the Current_Code because it would catastrophically bloat the context
+                        - **CONTEXT BLOAT WARNING**: Including current_code would exponentially increase context size (potentially 500k+ tokens for 1500 interfaces)
+                        - **TOKEN CALCULATION** (Optimized without current_code):
                             - Avg interface size is 1000 to 1500 nodes
                             - 1500 nodes x 3 tokens for ISGL1 = 4500 tokens
                             - 1500 nodes x 7 tokens for interface_signature = 10500 tokens
                             - 1500 nodes x 1 tokens for TDD_Classification = 1500 tokens
                             - 1500 nodes x 15 tokens for lsp_meta_data = 22500 tokens
-                        - Total = 37.5k tokens
-                        - And micro-PRD = 5k tokens + 3 iterations = 20k tokens
-                        - Under 100k tokens
+                        - **SAFE TOTAL**: 37.5k tokens + micro-PRD (5k tokens) + iterations (15k tokens) = ~57.5k tokens
+                        - **DANGER ZONE**: Including current_code could push context to 500k+ tokens, causing failures
+                        - **CONTEXT LIMIT**: Must stay under 100k tokens for reliable LLM operation
                     - The reasoning-LLM will analyze then suggest changes to the micro-PRD to make it clearer in terms of what changes the user wants:
                         - Tests wise
                         - Behavior wise
                         - Functionality wise
                     - After 2 iterations the reasoning-LLM will accept the micro-PRD
                     - Ask the reasoning LLM to reset the context because likely it will overflow and micro-PRD final needs to be isolated
-                - Tool 3: `LLM-cozoDB-to-context-writer --query "Select * from Code_Graph where current_ind=1" --database ./parseltongue.db --output-context CodeGraphContext.json` is triggered
+                - Tool 3: `LLM-cozoDB-to-context-writer --query "Select * EXCEPT (current_code,future_code) from Code_Graph where current_ind=1" --database ./parseltongue.db --output-context CodeGraphContext.json` is triggered
+                    - **CRITICAL CONTEXT OPTIMIZATION**: We EXCLUDE current_code and future_code from ALL context extraction
+                    - **NEVER access current_code directly** - This will bloat context exponentially (current_code can be thousands of lines)
+                    - **Current_Code ACCESS RULE**: Only access current_code when absolutely necessary for specific line-level analysis, and even then, extract only the minimal required lines
+                    - **CONTEXT BLOAT PREVENTION**: current_code column is treated as "write-only" during reasoning phase
                     - Use TDD_idiomatic_rust_steering_doc for all LLM-cozoDB-to-context-writer operations while reasoning through code
                     - Tool 3 creates CodeGraphContext.json containing base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(ISGL1 + interface_signature + TDD_Classification + lsp_meta_data)
                     - Tool 2: `LLM-to-cozoDB-writer` enables the reasoning-LLM to update CozoDB with temporal versioning using upsert queries generated from CozoDbQueryRef.md patterns
@@ -81,9 +86,16 @@
                                 - The reasoning-LLM can use hopping or blast-radius actions on Code_Graph to fetch all information for rows where (Future_Action = None); meaning for rows which are not changing, current_code should not bloat the reasoning-LLM context
                                     - Hopping or blast-radius actions can be CLI options but preferably since our LLM is smart enough they need not be, and we can define them precisely in our supporting MD files
                             - Step B02: Follow rubber duck debugging to re-reason filter(Future_Action != None)=>(all fields of Code_Graph including current code) + base-context-area:
+                                - **ITERATIVE REASONING CYCLE**: This step embodies the core read-edit-read-edit mindset:
+                                - **READ**: LLM analyzes current state from context and temporal changes
+                                - **EDIT**: LLM updates CozoDB with improved temporal changes via Tool 2
+                                - **READ**: LLM extracts updated context via Tool 3 to verify changes
+                                - **REPEAT**: Continue read-edit-read-edit cycle until confident
+                                - **Confidence Threshold**: Stop when LLM confidence ≥ 80% and solution is coherent
+                                - **Iteration Count**: May repeat A01→A02→B01→B02 cycle multiple times until satisfactory
                                 - If the LLM thinks that we need to refine the solutioning further, repeat Steps A01 A02 and then basis them repeat Steps B01
                                 - If the LLM doesn't feel confident of the changes, it should speak to the user to get additional context or web help, sharing their current understanding in an MD file
-                                - If the LLM feels confident of the changes, we move to next step
+                                - **ITERATION COMPLETION**: When LLM feels confident of the changes (≥80% confidence), move to next step
                         - Step C: Tool 4: `rust-preflight-code-simulator validation_output.json --validation-type all` triggered for Rust use cases with rust-analyzer overlay:
                             - If the rust-preflight-code-simulator tool fails then we go back to previous steps A01 onwards
                             - If the rust-preflight-code-simulator tool passes then we move to next step
