@@ -1705,6 +1705,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "parseltongue-e2e-tests"
+version = "0.7.0"
+dependencies = [
+ "anyhow",
+ "parseltongue-01",
+ "parseltongue-02",
+ "parseltongue-03",
+ "parseltongue-04",
+ "parseltongue-05",
+ "parseltongue-06",
+ "parseltongue-core",
+ "serde",
+ "serde_json",
+ "syn",
+ "tempfile",
+ "tokio",
+ "tokio-test",
+]
+
+[[package]]
 name = "paste"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"

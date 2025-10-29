@@ -29,6 +29,7 @@ indicatif = "0.17"
 # Parsing dependencies
 tree-sitter = "0.20"
 tree-sitter-rust = "0.20"
+syn = { version = "2.0", features = ["full", "parsing"] }
 
 # Storage dependencies
 cozo = { version = "0.7.6", default-features = false, features = ["storage-sqlite", "storage-sqlite-src", "rayon"] }

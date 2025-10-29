@@ -1,0 +1,33 @@
+[package]
+name = "parseltongue-e2e-tests"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+# Core dependencies
+parseltongue-core = { path = "../parseltongue-core" }
+parseltongue-01 = { path = "../parseltongue-01" }
+parseltongue-02 = { path = "../parseltongue-02" }
+parseltongue-03 = { path = "../parseltongue-03" }
+parseltongue-04 = { path = "../parseltongue-04" }
+parseltongue-05 = { path = "../parseltongue-05" }
+parseltongue-06 = { path = "../parseltongue-06" }
+
+# Dependencies from workspace
+anyhow.workspace = true
+tokio = { workspace = true, features = ["full"] }
+serde.workspace = true
+serde_json.workspace = true
+
+# Testing dependencies
+tempfile.workspace = true
+syn.workspace = true
+
+[dev-dependencies]
+tokio-test.workspace = true
