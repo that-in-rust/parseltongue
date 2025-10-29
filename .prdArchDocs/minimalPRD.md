@@ -55,9 +55,10 @@
                         - Functionality wise
                     - After 2 iterations the reasoning-LLM will accept the micro-PRD
                     - Ask the reasoning LLM to reset the context because likely it will overflow and micro-PRD final needs to be isolated
-                - Tool 2: `cozo-to-context-writer --query "Select * from Code_Graph where current_ind=1" --database ./parseltongue.db --output-context CodeGraphContext.json` is triggered
-                    - Use TDD_idiomatic_rust_steering_doc for all cozo-to-context-writer operations while reasoning through code
-                    - Tool 2 creates CodeGraphContext.json containing base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(ISGL1 + interface_signature + TDD_Classification + lsp_meta_data)
+                - Tool 3: `LLM-cozoDB-to-context-writer --query "Select * from Code_Graph where current_ind=1" --database ./parseltongue.db --output-context CodeGraphContext.json` is triggered
+                    - Use TDD_idiomatic_rust_steering_doc for all LLM-cozoDB-to-context-writer operations while reasoning through code
+                    - Tool 3 creates CodeGraphContext.json containing base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(ISGL1 + interface_signature + TDD_Classification + lsp_meta_data)
+                    - Tool 2: `LLM-to-cozoDB-writer` enables the reasoning-LLM to update CozoDB with temporal versioning using upsert queries generated from CozoDbQueryRef.md patterns
                     - Tool 2 asks the reasoning-LLM to suggest the following to the Code-Graph based on base-context-area:
                         - Step A: ISG level simulations (Temporal Versioning)
                             - Step A01: Create Edit Delete Test Interface Rows; call these changes test-interface-changes:
@@ -79,7 +80,7 @@
                         - Step C: Tool 3: `rust-preflight-code-simulator validation_output.json --validation-type all` triggered for Rust use cases with rust-analyzer overlay:
                             - If the rust-preflight-code-simulator tool fails then we go back to previous steps A01 onwards
                             - If the rust-preflight-code-simulator tool passes then we move to next step
-                        - Step D: Run Tool 4: `cozoDB-to-code-writer validation.json --database ./parseltongue.db`:
+                        - Step D: Run Tool 5: `LLM-LLM-cozoDB-to-code-writer validation.json --database ./parseltongue.db`:
                             - Step D01: Write the changes to code files with automatic backups
                             - Step D02: Run cargo build
                             - Step D03: Run cargo test
@@ -121,7 +122,7 @@
     - Final micro-PRD isolated for processing
 
 - Phase 3: Temporal Code Simulation
-    - Tool 2: `cozo-to-context-writer` with temporal versioning uses CodeGraphContext.json as input for LLM reasoning
+    - Tool 3: `LLM-cozoDB-to-context-writer` with temporal versioning uses CodeGraphContext.json as input for LLM reasoning
         - **Step A01**: Create test interface changes (current_ind=0, future_ind=1)
         - **Step A02**: Propagate changes to non-test interfaces
         - **Step B01**: Generate future code using hopping/blast-radius analysis
@@ -130,7 +131,7 @@
 - Phase 4: Validation & Testing
     - Tool 3: `rust-preflight-code-simulator` validates proposed changes
     - If validation fails, return to Phase 3 for refinement
-    - Tool 4: `cozoDB-to-code-writer` applies changes with safety checks
+    - Tool 5: `LLM-cozoDB-to-code-writer` applies changes with safety checks
         - Build validation: cargo build
         - Test validation: cargo test
         - Runtime validation: integration tests
@@ -145,15 +146,60 @@
     - CodeGraph updated with current state
 
 ## 2.3 Tool Mapping to Current Architecture
-- **Complete Tool Pipeline (6 components)**:
+- **Complete Tool Pipeline (7 components)**:
     - **Orchestrator**: `agent-parseltongue-reasoning-orchestrator` (External LLM coordination & workflow management)
     - Tool 1: `folder-to-cozoDB-streamer` (Code indexing)
-    - Tool 2: `cozo-to-context-writer` (Temporal reasoning & context extraction via CodeGraphContext.json)
-    - Tool 3: `rust-preflight-code-simulator` (Validation)
-    - Tool 4: `cozoDB-to-code-writer` (File writing)
-    - Tool 5: `cozoDB-make-future-code-current` (State reset)
+    - Tool 2: `LLM-to-cozoDB-writer` (LLM upsert queries → CozoDB temporal updates)
+    - Tool 3: `LLM-cozoDB-to-context-writer` (LLM queries → CozoDB → CodeGraphContext.json)
+    - Tool 4: `rust-preflight-code-simulator` (Validation)
+    - Tool 5: `LLM-cozoDB-to-code-writer` (LLM queries → CozoDB → Code files)
+    - Tool 6: `cozoDB-make-future-code-current` (State reset)
 
-## 2.4 Temporal Versioning System
+## 2.4 Four-Entity Data Flow Architecture
+
+The Parseltongue system enables bidirectional LLM↔CozoDB communication through a clean 4-entity architecture:
+
+### **Entity 1: LLM (Claude Code + Orchestrator Agent)**
+- Role: Natural language reasoning and change specification
+- Interface: Uses `agent-parseltongue-reasoning-orchestrator.md`
+- Cannot read CozoDB directly - requires intermediate entities
+- Responsible for generating all queries using CozoDbQueryRef.md patterns
+
+### **Entity 2: CozoDB (Graph Database)**
+- Role: Stores CodeGraph with temporal versioning (current_ind, future_ind, Future_Action)
+- Schema: ISGL1 primary key + Current_Code + Future_Code + interface_signature + TDD_Classification + lsp_meta_data
+- Cannot be read directly by LLM - requires context extraction
+- Passive storage that responds to LLM-generated queries
+
+### **Entity 3: CodeGraphContext.json (Context Bridge)**
+- Role: Structured context transfer between CozoDB and LLM
+- Created by: `LLM-cozoDB-to-context-writer` (LLM queries → CozoDB → JSON)
+- Contains: ISGL1 + interface_signature + TDD_Classification + lsp_meta_data (excludes Current_Code to prevent context bloat)
+- LLM reads this directly for reasoning
+
+### **Entity 4: Codebase (Rust Source Files)**
+- Role: Actual code implementation
+- Updated by: `LLM-cozoDB-to-code-writer` (LLM queries → CozoDB → Files)
+- Read by: `folder-to-cozoDB-streamer` (Files → CozoDB)
+
+### **Data Flow Patterns**
+```
+LLM → [LLM-to-cozoDB-writer] → CozoDB (temporal upserts)
+CozoDB → [LLM-cozoDB-to-context-writer] → CodeGraphContext.json
+CodeGraphContext.json → [LLM reads directly] → LLM
+LLM → [LLM-cozoDB-to-code-writer] → CozoDB → Codebase
+Codebase → [folder-to-cozoDB-streamer] → CozoDB
+```
+
+### **Tool Responsibilities**
+- **Tool 1**: Codebase → CozoDB (indexing)
+- **Tool 2**: LLM → CozoDB via `LLM-to-cozoDB-writer` (temporal upserts)
+- **Tool 3**: LLM queries → CozoDB → CodeGraphContext.json (context extraction)
+- **Tool 4**: Validation of proposed changes
+- **Tool 5**: LLM queries → CozoDB → Code files (code writing)
+- **Tool 6**: Database state reset
+
+## 2.5 Temporal Versioning System
 - **State Tracking in CozoDB**:
     - **(1,1)**: Code exists now and continues (unchanged)
     - **(1,0)**: Code exists now but will be deleted
@@ -165,7 +211,7 @@
     - Phase 4: Future_code becomes actual code in files
     - Phase 5: Database reset makes future_code the new current_code
 
-## 2.5 Command Interface (Current)
+## 2.6 Command Interface (Current)
 - **Primary Interface (95% of users)**:
     ```bash
     @agent-parseltongue-reasoning-orchestrator "Fix panic in GitHub #1234"
@@ -173,22 +219,36 @@
 
 - **Manual Tools (5% of users)**:
     ```bash
+    # Tool 1: Index codebase
     folder-to-cozoDB-streamer ./src --parsing-library tree-sitter --chunking ISGL1 --output-db ./parseltongue.db
-    cozo-to-context-writer --query "context extraction query" --database ./parseltongue.db --output-context CodeGraphContext.json
+
+    # Tool 2: LLM upserts temporal changes to CozoDB
+    LLM-to-cozoDB-writer --query-temporal "INSERT INTO Code_Graph VALUES (...)" --database ./parseltongue.db
+
+    # Tool 3: LLM extracts context from CozoDB
+    LLM-cozoDB-to-context-writer --query "SELECT * FROM Code_Graph WHERE current_ind=1" --database ./parseltongue.db --output-context CodeGraphContext.json
+
+    # Tool 4: Validate proposed changes
     rust-preflight-code-simulator validation_output.json --validation-type all
-    cozoDB-to-code-writer validation.json --database ./parseltongue.db
+
+    # Tool 5: LLM extracts and writes code to files
+    LLM-cozoDB-to-code-writer validation.json --database ./parseltongue.db
+
+    # Tool 6: Reset database state
     cozoDB-make-future-code-current --project-path . --database ./parseltongue.db
     ```
 
-## 2.6 Integration with Current Architecture
-The minimalPRD workflow aligns with the current 6-component architecture:
-- **External Orchestrator + 5-Tool Pipeline**: Claude Code agent coordinates specialized tools
+    **Query Generation**: All LLM-generated queries use patterns from `CozoDbQueryRef.md` for consistency and correctness
+
+## 2.7 Integration with Current Architecture
+The minimalPRD workflow aligns with the current 7-component architecture:
+- **External Orchestrator + 6-Tool Pipeline**: Claude Code agent coordinates specialized tools
 - **5-Phase Process**: Matches current orchestrator workflow
 - **Temporal Versioning**: Enhanced with (current_ind, future_ind) state management
 - **Apple Silicon Focus**: Current platform strategy
 - **Bug-Fixing Priority**: Current primary use case
 
-## 2.7 Success Criteria
+## 2.8 Success Criteria
 A bug is considered fixed when:
 1. Error no longer occurs (verified through testing)
 2. Code compiles successfully
