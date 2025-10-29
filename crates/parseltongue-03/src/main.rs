@@ -238,10 +238,18 @@ mod tests {
             entity_query: "MATCH (e:Entity) RETURN e LIMIT 10".to_string(),
             max_context_tokens: 128000,
             relevance_threshold: 0.7,
-            output_dir,
+            output_dir: output_dir.clone(),
         };
 
-        let result = run_optimizer(&config, &clap::ArgMatches::default(), false, true, true).await;
+        // Build CLI matches properly instead of using default()
+        let cli = CliConfig::build_cli();
+        let matches = cli.try_get_matches_from(&[
+            "parseltongue-03",
+            "--output", &output_dir,
+            "--context-id", "test-invalid-key",
+        ]).unwrap();
+
+        let result = run_optimizer(&config, &matches, false, true, true).await;
         assert!(result.is_err());
     }
 
