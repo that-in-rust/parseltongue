@@ -1,5 +1,6 @@
 use anyhow::Result;
 use console::style;
+use parseltongue_core::storage::CozoDbStorage;
 
 mod cli;
 
@@ -23,9 +24,33 @@ async fn main() -> Result<()> {
     println!("  {} NO ROLLBACK - Permanent state reset", style("✓").green());
     println!("  {} NO COMPLEXITY - Delete → Recreate → Re-index", style("✓").green());
 
-    // TODO: Implement actual state reset
-    println!("\n{}", style("State Reset:").bold());
-    println!("  [Placeholder] - Full implementation pending");
+    // Initialize CozoDB storage
+    println!("\n{}", style("Initializing storage...").bold());
+    let storage = CozoDbStorage::new(&format!("sqlite:{}", cli.database.display())).await?;
+    if cli.verbose {
+        println!("  {} Storage initialized", style("✓").green());
+    }
+
+    // Create state reset manager
+    let manager = StateResetManager::new(storage);
+
+    // Perform state reset
+    println!("\n{}", style("Performing state reset...").bold().yellow());
+    println!("  {} Deleting CodeGraph table", style("→").cyan());
+    println!("  {} Recreating schema", style("→").cyan());
+
+    let result = manager.reset(&cli.project_path).await?;
+
+    // Display results
+    println!("\n{}", style("Reset Complete!").bold().green());
+    println!("  Success: {}", if result.success { style("✓").green() } else { style("✗").red() });
+    println!("  Entities deleted: {}", result.entities_deleted);
+    println!("  Schema recreated: {}", if result.schema_recreated { style("✓").green() } else { style("✗").red() });
+
+    println!("\n{}", style("Next Steps:").bold().yellow());
+    println!("  1. Run Tool 1 (parseltongue-01) to re-index project");
+    println!("  2. Run Tool 2 (parseltongue-02) to generate Future_Code");
+    println!("  3. Validate and write changes with Tools 4-5");
 
     Ok(())
 }

@@ -2,8 +2,6 @@ use anyhow::Result;
 use std::path::Path;
 use parseltongue_core::storage::CozoDbStorage;
 
-use crate::errors::StateResetError;
-
 /// Ultra-minimalist state reset manager
 ///
 /// NO BACKUPS - Delete and recreate only
