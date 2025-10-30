@@ -8,6 +8,7 @@ use console::style;
 use llm_cozodb_to_diff_writer::DiffGenerator;
 use parseltongue_core::storage::CozoDbStorage;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 #[derive(Parser)]
 #[command(name = "llm-cozodb-to-diff-writer")]
@@ -50,7 +51,8 @@ async fn main() -> Result<()> {
         println!("  Output: {}", cli.output.display());
     }
 
-    // Generate diff
+    // Generate diff (with dependency injection)
+    let storage = Arc::new(storage);
     let generator = DiffGenerator::new(storage);
     let diff = generator
         .generate_diff()

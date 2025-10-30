@@ -5,6 +5,7 @@
 use llm_cozodb_to_diff_writer::{DiffGenerator, Operation};
 use parseltongue_core::entities::{CodeEntity, TemporalAction, TemporalState};
 use parseltongue_core::storage::CozoDbStorage;
+use std::sync::Arc;
 
 /// Test: Generate CodeDiff for entities with Create action
 #[tokio::test]
@@ -25,7 +26,7 @@ async fn test_generate_diff_for_create_operations() {
         .expect("Failed to insert entity");
 
     // Generate diff
-    let generator = DiffGenerator::new(storage);
+    let generator = DiffGenerator::new(Arc::new(storage));
     let diff = generator
         .generate_diff()
         .await
@@ -60,7 +61,7 @@ async fn test_generate_diff_for_edit_operations() {
         .expect("Failed to insert entity");
 
     // Generate diff
-    let generator = DiffGenerator::new(storage);
+    let generator = DiffGenerator::new(Arc::new(storage));
     let diff = generator
         .generate_diff()
         .await
@@ -94,7 +95,7 @@ async fn test_generate_diff_for_delete_operations() {
         .expect("Failed to insert entity");
 
     // Generate diff
-    let generator = DiffGenerator::new(storage);
+    let generator = DiffGenerator::new(Arc::new(storage));
     let diff = generator
         .generate_diff()
         .await
@@ -128,7 +129,7 @@ async fn test_skip_unchanged_entities() {
         .expect("Failed to insert entity");
 
     // Generate diff
-    let generator = DiffGenerator::new(storage);
+    let generator = DiffGenerator::new(Arc::new(storage));
     let diff = generator
         .generate_diff()
         .await
@@ -172,7 +173,7 @@ async fn test_mixed_operations_diff() {
     storage.insert_entity(&delete).await.unwrap();
 
     // Generate diff
-    let generator = DiffGenerator::new(storage);
+    let generator = DiffGenerator::new(Arc::new(storage));
     let diff = generator
         .generate_diff()
         .await
@@ -198,7 +199,7 @@ async fn test_code_diff_json_output() {
 
     storage.insert_entity(&entity).await.unwrap();
 
-    let generator = DiffGenerator::new(storage);
+    let generator = DiffGenerator::new(Arc::new(storage));
     let diff = generator.generate_diff().await.unwrap();
 
     let json = diff.to_json_pretty().expect("JSON serialization failed");

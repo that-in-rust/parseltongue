@@ -59,7 +59,7 @@ pub mod writer;
 
 // Re-export new API
 pub use diff_generator::DiffGenerator;
-pub use diff_types::{Change, CodeDiff, DiffMetadata, Operation};
+pub use diff_types::{Change, CodeDiff, DiffMetadata, LineRange, Operation};
 
 // Legacy re-exports (deprecated)
 pub use errors::FileWriterError;

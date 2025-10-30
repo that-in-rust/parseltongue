@@ -4,6 +4,51 @@
 //!
 //! ## Purpose
 //! Define the schema for CodeDiff.json that the LLM reads to apply changes.
+//!
+//! ## Enhanced Schema (Post-TDD Refactor)
+//! - ✅ Includes `current_code` for Edit/Delete operations
+//! - ✅ Includes `line_range` for precise entity-level edits
+//! - ✅ Supports file-grouped output for easier LLM application
+//!
+//! ## Design Insights
+//!
+//! ### Why Option<String> for Code Fields?
+//!
+//! Using `Option<String>` rather than `String` for `current_code` and `future_code`
+//! enables type-level guarantees about operation semantics:
+//!
+//! ```rust,ignore
+//! // CREATE: current_code is None (entity doesn't exist)
+//! let create = Change {
+//!     current_code: None,  // Type system ensures we can't accidentally set this
+//!     future_code: Some("new code"),
+//!     // ...
+//! };
+//!
+//! // DELETE: future_code is None (entity being removed)
+//! let delete = Change {
+//!     current_code: Some("old code"),
+//!     future_code: None,  // Type system prevents setting future code for deletion
+//!     // ...
+//! };
+//! ```
+//!
+//! ### Line Range Semantics
+//!
+//! `line_range: Option<LineRange>` is:
+//! - **Some** for line-based ISGL1 keys (existing entities with known locations)
+//! - **None** for hash-based ISGL1 keys (new entities without locations yet)
+//!
+//! This distinction enables the LLM to:
+//! 1. Edit specific line ranges for EDIT/DELETE operations
+//! 2. Append new code for CREATE operations without line constraints
+//!
+//! ### Metadata-Driven Validation
+//!
+//! The `DiffMetadata` struct provides summary statistics that enable:
+//! - Pre-flight validation (e.g., "Does this diff have more than 50 changes?")
+//! - Audit trails (generated_at timestamp)
+//! - Operation breakdowns (create_count, edit_count, delete_count)
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -30,11 +75,28 @@ pub struct Change {
     /// Operation to perform
     pub operation: Operation,
 
+    /// Current code content (Some for Edit/Delete, None for Create)
+    /// Enables LLM to know exactly what code to replace
+    pub current_code: Option<String>,
+
     /// Future code content (Some for Create/Edit, None for Delete)
     pub future_code: Option<String>,
 
+    /// Line range for entity-level operations (extracted from ISGL1 key)
+    /// None for hash-based keys (Create operations)
+    pub line_range: Option<LineRange>,
+
     /// Interface signature for reference
     pub interface_signature: String,
+}
+
+/// Line range in source file
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub struct LineRange {
+    /// Start line number (inclusive)
+    pub start: u32,
+    /// End line number (inclusive)
+    pub end: u32,
 }
 
 /// Operation type
@@ -121,7 +183,9 @@ mod tests {
             isgl1_key: "test-key".to_string(),
             file_path: PathBuf::from("src/test.rs"),
             operation: Operation::Create,
+            current_code: None, // Create operations have no current code
             future_code: Some("fn test() {}".to_string()),
+            line_range: None, // Hash-based keys have no line range
             interface_signature: "fn test()".to_string(),
         };
 
@@ -143,7 +207,9 @@ mod tests {
             isgl1_key: "create-key".to_string(),
             file_path: PathBuf::from("src/new.rs"),
             operation: Operation::Create,
+            current_code: None,
             future_code: Some("fn new() {}".to_string()),
+            line_range: None,
             interface_signature: "fn new()".to_string(),
         });
 
@@ -152,7 +218,9 @@ mod tests {
             isgl1_key: "edit-key".to_string(),
             file_path: PathBuf::from("src/old.rs"),
             operation: Operation::Edit,
+            current_code: Some("fn old() {}".to_string()),
             future_code: Some("fn updated() {}".to_string()),
+            line_range: Some(LineRange { start: 10, end: 20 }),
             interface_signature: "fn updated()".to_string(),
         });
 
@@ -161,7 +229,9 @@ mod tests {
             isgl1_key: "delete-key".to_string(),
             file_path: PathBuf::from("src/gone.rs"),
             operation: Operation::Delete,
+            current_code: Some("fn gone() {}".to_string()),
             future_code: None,
+            line_range: Some(LineRange { start: 30, end: 40 }),
             interface_signature: "fn gone()".to_string(),
         });
 
@@ -179,7 +249,9 @@ mod tests {
             isgl1_key: "test-key".to_string(),
             file_path: PathBuf::from("src/test.rs"),
             operation: Operation::Create,
+            current_code: None,
             future_code: Some("fn test() {}".to_string()),
+            line_range: None,
             interface_signature: "fn test()".to_string(),
         });
 
@@ -187,5 +259,9 @@ mod tests {
         assert!(json.contains("\"changes\""));
         assert!(json.contains("\"metadata\""));
         assert!(json.contains("\"CREATE\""));
+        // Enhanced schema includes these fields
+        assert!(json.contains("\"current_code\""));
+        assert!(json.contains("\"future_code\""));
+        assert!(json.contains("\"line_range\""));
     }
 }
