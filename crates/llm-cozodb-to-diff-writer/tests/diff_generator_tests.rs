@@ -10,6 +10,7 @@ use parseltongue_core::storage::CozoDbStorage;
 #[tokio::test]
 async fn test_generate_diff_for_create_operations() {
     let storage = CozoDbStorage::new("mem").await.expect("Failed to create storage");
+    storage.create_schema().await.expect("Failed to create schema");
 
     // Insert entity with Create action
     let entity = create_test_entity(
@@ -44,6 +45,7 @@ async fn test_generate_diff_for_create_operations() {
 #[tokio::test]
 async fn test_generate_diff_for_edit_operations() {
     let storage = CozoDbStorage::new("mem").await.expect("Failed to create storage");
+    storage.create_schema().await.expect("Failed to create schema");
 
     // Insert entity with Edit action
     let entity = create_test_entity(
@@ -76,6 +78,7 @@ async fn test_generate_diff_for_edit_operations() {
 #[tokio::test]
 async fn test_generate_diff_for_delete_operations() {
     let storage = CozoDbStorage::new("mem").await.expect("Failed to create storage");
+    storage.create_schema().await.expect("Failed to create schema");
 
     // Insert entity with Delete action
     let mut entity = create_test_entity(
@@ -109,6 +112,7 @@ async fn test_generate_diff_for_delete_operations() {
 #[tokio::test]
 async fn test_skip_unchanged_entities() {
     let storage = CozoDbStorage::new("mem").await.expect("Failed to create storage");
+    storage.create_schema().await.expect("Failed to create schema");
 
     // Insert unchanged entity (no FutureAction)
     let mut entity = create_test_entity(
@@ -139,6 +143,7 @@ async fn test_skip_unchanged_entities() {
 #[tokio::test]
 async fn test_mixed_operations_diff() {
     let storage = CozoDbStorage::new("mem").await.expect("Failed to create storage");
+    storage.create_schema().await.expect("Failed to create schema");
 
     // Create
     let create = create_test_entity(
@@ -183,6 +188,7 @@ async fn test_mixed_operations_diff() {
 #[tokio::test]
 async fn test_code_diff_json_output() {
     let storage = CozoDbStorage::new("mem").await.expect("Failed to create storage");
+    storage.create_schema().await.expect("Failed to create schema");
 
     let entity = create_test_entity(
         "src_lib_rs-test-fn-abc",
