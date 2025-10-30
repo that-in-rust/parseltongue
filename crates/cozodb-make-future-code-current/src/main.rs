@@ -4,7 +4,7 @@ use parseltongue_core::storage::CozoDbStorage;
 
 mod cli;
 
-use parseltongue_06::StateResetManager;
+use cozodb_make_future_code_current::StateResetManager;
 
 #[tokio::main]
 async fn main() -> Result<()> {

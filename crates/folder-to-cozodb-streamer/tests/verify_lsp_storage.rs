@@ -50,6 +50,9 @@ impl Calculator {
     println!("  Entities created: {}", result.entities_created);
     assert!(result.entities_created >= 3, "Should have at least 3 entities (function, struct, impl)");
 
+    // Drop the streamer to release the RocksDB lock before opening a new connection
+    drop(streamer);
+
     // Now query the database to get one entity
     let db = CozoDbStorage::new(&db_path).await.unwrap();
 

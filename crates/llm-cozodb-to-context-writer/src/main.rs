@@ -4,7 +4,7 @@ use std::sync::Arc;
 use console::{style, Term};
 use anyhow::Result;
 
-use parseltongue_03::{
+use llm_cozodb_to_context_writer::{
     cli::CliConfig,
     errors::ContextWriterError,
     context_optimizer::{ContextOptimizer, ContextOptimizerImpl, ContextResult},

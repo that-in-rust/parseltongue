@@ -3,7 +3,7 @@ use console::style;
 
 mod cli;
 
-use parseltongue_05::{FileWriter, WriteSummary};
+use llm_cozodb_to_code_writer::{FileWriter, WriteSummary};
 
 #[tokio::main]
 async fn main() -> Result<()> {

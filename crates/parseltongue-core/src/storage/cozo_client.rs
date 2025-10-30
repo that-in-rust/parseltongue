@@ -253,6 +253,38 @@ impl CozoDbStorage {
         Ok(entities)
     }
 
+    /// Get all entities from database
+    ///
+    /// Returns all entities in the CodeGraph table, regardless of temporal state.
+    /// Useful for testing and diagnostic purposes.
+    pub async fn get_all_entities(&self) -> Result<Vec<CodeEntity>> {
+        let query = r#"
+            ?[ISGL1_key, Current_Code, Future_Code, interface_signature, TDD_Classification,
+              lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
+              last_modified, entity_type] :=
+            *CodeGraph{
+                ISGL1_key, Current_Code, Future_Code, interface_signature, TDD_Classification,
+                lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
+                last_modified, entity_type
+            }
+        "#;
+
+        let result = self
+            .db
+            .run_script(query, Default::default(), ScriptMutability::Immutable)
+            .map_err(|e| ParseltongError::DatabaseError {
+                operation: "get_all_entities".to_string(),
+                details: format!("Failed to query all entities: {}", e),
+            })?;
+
+        let mut entities = Vec::new();
+        for row in result.rows {
+            entities.push(self.row_to_entity(&row)?);
+        }
+
+        Ok(entities)
+    }
+
     // Helper methods for data conversion
 
     /// Convert CodeEntity to CozoDB parameters

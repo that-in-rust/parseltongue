@@ -3,7 +3,7 @@ use console::style;
 
 mod cli;
 
-use parseltongue_04::{CodeValidator, DefaultRustValidator, ValidationType};
+use rust_preflight_code_simulator::{CodeValidator, DefaultRustValidator, ValidationType};
 
 #[tokio::main]
 async fn main() -> Result<()> {

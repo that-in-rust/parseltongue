@@ -4,7 +4,7 @@ use std::sync::Arc;
 use console::{style, Term};
 use anyhow::Result;
 
-use parseltongue_02::{
+use llm_to_cozodb_writer::{
     cli::CliConfig,
     errors::LlmWriterError,
     llm_client::LlmClient,
@@ -96,7 +96,7 @@ async fn run_writer(
     verbose: bool,
     quiet: bool,
     dry_run: bool,
-) -> Result<parseltongue_02::WriterResult, LlmWriterError> {
+) -> Result<llm_to_cozodb_writer::WriterResult, LlmWriterError> {
     // Create writer instance using factory
     let writer = ToolFactory::create_llm_writer(config.clone())?;
 
