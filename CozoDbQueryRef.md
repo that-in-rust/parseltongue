@@ -2,61 +2,73 @@
 
 This document provides reference queries for the Parseltongue reasoning LLM to extract relevant code context from the CozoDB database.
 
+## ISGL1 Key Format (Updated 2025-10-30)
+
+**Format**: `{language}:{type}:{name}:{sanitized_path}:{start_line}-{end_line}`
+
+**Examples:**
+- `rust:fn:calculate_sum:src_lib_rs:42-56` - Function in Rust
+- `rust:struct:Calculator:src_types_rs:10-25` - Struct in Rust
+- `python:fn:process_data:lib_utils_py:100-120` - Function in Python
+
+**Rationale:** This format provides language-specific filtering, entity type identification, unique naming with file context, line ranges for multi-version tracking, and URL-safe characters.
+
 ## Database Schema
 
-### Primary Relation: `code_chunks`
+### Primary Relation: `CodeGraph`
 ```
-ISGL1 (Primary Key) | Current_Code | Future_Code | interface_signature | lsp_meta_data | TDD_Classification | current_id | future_id
+isgl1_key (Primary Key) | current_code | future_code | interface_signature | lsp_metadata | tdd_classification | current_ind | future_ind | future_action
 ```
 
 **Field Descriptions:**
-- `ISGL1`: Interface Signature Graph Level 1 identifier (format: `filepath-filename-InterfaceName`)
-- `Current_Code`: Current implementation code
-- `Future_Code`: Proposed future implementation (empty initially)
-- `interface_signature`: Function/method signature information
-- `lsp_meta_data`: Language Server Protocol metadata (types, dependencies)
-- `TDD_Classification`: `TEST_IMPLEMENTATION` or `CODE_IMPLEMENTATION`
-- `current_id`: Current state identifier
-- `future_id`: Future state identifier
+- `isgl1_key`: ISGL1 identifier (format above)
+- `current_code`: Current implementation code
+- `future_code`: Proposed future implementation (empty initially)
+- `interface_signature`: Function/method signature information (JSON)
+- `lsp_metadata`: Language Server Protocol metadata from rust-analyzer (JSON, optional)
+- `tdd_classification`: Object with `entity_class` ("TEST" | "CODE"), testability, complexity, dependencies, etc.
+- `current_ind`: Boolean - entity exists in current state
+- `future_ind`: Boolean - entity will exist in future state
+- `future_action`: "Create" | "Edit" | "Delete" | null
 
 ## Common Query Patterns
 
 ### 1. Basic Interface Retrieval
-```cozo
+```datalog
 # Get all current code for a specific interface
-?[ISGL1, Current_Code, interface_signature] <-
-  code_chunks {ISGL1, Current_Code, interface_signature}
+?[isgl1_key, current_code, interface_signature] :=
+    *CodeGraph{isgl1_key, current_code, interface_signature}
 
-# Filter by specific interface name pattern
-?[ISGL1, Current_Code, interface_signature] <-
-  code_chunks {ISGL1, Current_Code, interface_signature},
-  contains(ISGL1, "DatabaseConnection")
+# Filter by specific function name
+?[isgl1_key, current_code, interface_signature] :=
+    *CodeGraph{isgl1_key, current_code, interface_signature},
+    isgl1_key ~ "rust:fn:calculate_sum:.*"
 ```
 
 ### 2. Module/File Level Queries
-```cozo
-# Get all interfaces from a specific file
-?[ISGL1, Current_Code, interface_signature] <-
-  code_chunks {ISGL1, Current_Code, interface_signature},
-  contains(ISGL1, "src/database/")
+```datalog
+# Get all interfaces from a specific file (note: paths use _ not /)
+?[isgl1_key, current_code, interface_signature] :=
+    *CodeGraph{isgl1_key, current_code, interface_signature},
+    isgl1_key ~ "rust:.*:.*:src_database_.*"
 
-# Get all interfaces from a specific module
-?[ISGL1, Current_Code, interface_signature] <-
-  code_chunks {ISGL1, Current_Code, interface_signature},
-  contains(ISGL1, "mod-auth")
+# Get all functions from src/main.rs
+?[isgl1_key, interface_signature] :=
+    *CodeGraph{isgl1_key, interface_signature},
+    isgl1_key ~ "rust:fn:.*:src_main_rs:.*"
 ```
 
-### 3. Relationship-based Queries
-```cozo
-# Find all interfaces that depend on a specific type
-?[ISGL1, Current_Code, lsp_meta_data] <-
-  code_chunks {ISGL1, Current_Code, lsp_meta_data},
-  contains(lsp_meta_data, "AuthResult")
+### 3. Test-related Queries (Using entity_class)
+```datalog
+# Get all test functions
+?[isgl1_key, interface_signature, tdd_classification] :=
+    *CodeGraph{isgl1_key, interface_signature, tdd_classification},
+    tdd_classification.entity_class == "TEST"
 
-# Get test implementations for specific code
-?[ISGL1, Current_Code, TDD_Classification] <-
-  code_chunks {ISGL1, Current_Code, TDD_Classification},
-  TDD_Classification = "TEST_IMPLEMENTATION"
+# Get all production code (non-tests)
+?[isgl1_key, interface_signature, tdd_classification] :=
+    *CodeGraph{isgl1_key, interface_signature, tdd_classification},
+    tdd_classification.entity_class == "CODE"
 ```
 
 ### 4. Signature-based Queries

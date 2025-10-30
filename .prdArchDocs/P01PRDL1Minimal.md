@@ -78,7 +78,9 @@ This ensures LLM has exactly what it needs - no more, no less.
                         - Tool will call LSP (rust-analyzer) for creating lsp-meta-data
                         - Tool will output aggregated-primarykey + code-chunk-raw + tree-sitter-signature + TDD_classification + lsp_meta_data (optional)
                     - `folder-to-cozoDB-streamer` creates CodeGraph (single write surface):
-                        - Indexed by ISGL1 key (filepath-filename-InterfaceName)
+                        - Indexed by ISGL1 key format: `{language}:{type}:{name}:{sanitized_path}:{start_line}-{end_line}`
+                            - Example: `rust:fn:calculate_sum:src_lib_rs:42-56`
+                            - Rationale: More robust than simple concatenation, includes line ranges for multi-version tracking
                         - Columns (minimal, opinionated):
                             - ISGL1 primary key (aggregated-primarykey)
                                 - Current_Code (code-chunk from parsing, can be empty if upsert of new ISGL1 + other fields happen)

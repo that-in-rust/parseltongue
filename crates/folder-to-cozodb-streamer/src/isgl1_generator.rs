@@ -169,12 +169,19 @@ impl Isgl1KeyGeneratorImpl {
         language: Language,
         entities: &mut Vec<ParsedEntity>,
     ) {
-        match language {
-            Language::Rust => self.extract_rust_entities(node, source, file_path, entities),
-            Language::Python => {
-                // TODO: Implement Python entity extraction
+        // For Rust, check if this node or its siblings have attributes
+        if language == Language::Rust && node.kind() == "function_item" {
+            // Check preceding siblings for attributes
+            let has_test_attr = self.check_preceding_test_attribute(node, source);
+            self.extract_rust_function_with_test_info(node, source, file_path, entities, has_test_attr);
+        } else {
+            match language {
+                Language::Rust => self.extract_rust_entities(node, source, file_path, entities),
+                Language::Python => {
+                    // TODO: Implement Python entity extraction
+                }
+                _ => {}
             }
-            _ => {}
         }
 
         // Recursively process child nodes
@@ -184,7 +191,7 @@ impl Isgl1KeyGeneratorImpl {
         }
     }
 
-    /// Extract Rust-specific entities
+    /// Extract Rust-specific entities (structs, enums, etc. but NOT functions - those are handled separately)
     fn extract_rust_entities(
         &self,
         node: &tree_sitter::Node<'_>,
@@ -194,19 +201,7 @@ impl Isgl1KeyGeneratorImpl {
     ) {
         match node.kind() {
             "function_item" => {
-                if let Some(name) = self.extract_function_name(node, source) {
-                    let start_line = node.start_position().row + 1;
-                    let end_line = node.end_position().row + 1;
-
-                    entities.push(ParsedEntity {
-                        entity_type: EntityType::Function,
-                        name,
-                        language: Language::Rust,
-                        line_range: (start_line, end_line),
-                        file_path: file_path.to_string_lossy().to_string(),
-                        metadata: HashMap::new(),
-                    });
-                }
+                // Skip - functions are handled separately in walk_node to check attributes
             }
             "struct_item" => {
                 if let Some(name) = self.extract_struct_name(node, source) {
@@ -245,6 +240,65 @@ impl Isgl1KeyGeneratorImpl {
             }
         }
         None
+    }
+
+    /// Check if IMMEDIATE preceding sibling is a test attribute
+    fn check_preceding_test_attribute(&self, node: &tree_sitter::Node<'_>, source: &str) -> bool {
+        // Get parent to access siblings
+        let Some(parent) = node.parent() else {
+            return false;
+        };
+
+        // Find this node and check its immediate preceding sibling
+        let node_id = node.id();
+        let siblings: Vec<_> = parent.children(&mut parent.walk()).collect();
+
+        // Find index of current node
+        let node_index = siblings.iter().position(|s| s.id() == node_id);
+
+        if let Some(idx) = node_index {
+            if idx > 0 {
+                // Check immediate preceding sibling
+                let prev_sibling = &siblings[idx - 1];
+                if prev_sibling.kind() == "attribute_item" {
+                    let attr_text = &source[prev_sibling.byte_range()];
+                    if attr_text.contains("#[test]") || attr_text.contains("#[tokio::test]") || attr_text.contains("#[async_test]") {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        false
+    }
+
+    /// Extract Rust function with test information
+    fn extract_rust_function_with_test_info(
+        &self,
+        node: &tree_sitter::Node<'_>,
+        source: &str,
+        file_path: &Path,
+        entities: &mut Vec<ParsedEntity>,
+        is_test: bool,
+    ) {
+        if let Some(name) = self.extract_function_name(node, source) {
+            let start_line = node.start_position().row + 1;
+            let end_line = node.end_position().row + 1;
+
+            let mut metadata = HashMap::new();
+            if is_test {
+                metadata.insert("is_test".to_string(), "true".to_string());
+            }
+
+            entities.push(ParsedEntity {
+                entity_type: EntityType::Function,
+                name,
+                language: Language::Rust,
+                line_range: (start_line, end_line),
+                file_path: file_path.to_string_lossy().to_string(),
+                metadata,
+            });
+        }
     }
 }
 
@@ -302,5 +356,55 @@ struct TestStruct {
         let function = &entities[0];
         assert_eq!(function.entity_type, EntityType::Function);
         assert_eq!(function.name, "test_function");
+    }
+
+    #[test]
+    fn test_function_detection() {
+        let generator = Isgl1KeyGeneratorImpl::new();
+        let source = r#"
+#[test]
+fn test_something() {
+    assert_eq!(1, 1);
+}
+
+fn regular_function() {
+    println!("Hello");
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn another_test() {
+        assert!(true);
+    }
+}
+"#;
+
+        let file_path = Path::new("test.rs");
+        let entities = generator.parse_source(source, file_path).unwrap();
+
+        // Debug: print all entities
+        println!("\nExtracted {} entities:", entities.len());
+        for (i, entity) in entities.iter().enumerate() {
+            println!("  {}. {} (type: {:?}, is_test: {:?})",
+                i, entity.name, entity.entity_type, entity.metadata.get("is_test"));
+        }
+
+        // Find the test function and regular function
+        let test_fn = entities.iter().find(|e| e.name == "test_something");
+        let regular_fn = entities.iter().find(|e| e.name == "regular_function");
+
+        assert!(test_fn.is_some(), "Should find test function");
+        assert!(regular_fn.is_some(), "Should find regular function");
+
+        // Verify test function has is_test metadata
+        let test_fn = test_fn.unwrap();
+        println!("\ntest_something metadata: {:?}", test_fn.metadata);
+        assert_eq!(test_fn.metadata.get("is_test"), Some(&"true".to_string()));
+
+        // Verify regular function does NOT have is_test metadata
+        let regular_fn = regular_fn.unwrap();
+        println!("regular_function metadata: {:?}", regular_fn.metadata);
+        assert_eq!(regular_fn.metadata.get("is_test"), None);
     }
 }

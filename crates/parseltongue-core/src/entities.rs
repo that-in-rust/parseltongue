@@ -463,9 +463,29 @@ pub struct CodeEntity {
     pub metadata: EntityMetadata,
 }
 
+/// Entity classification for TDD workflow
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum EntityClass {
+    /// Test implementation (unit tests, integration tests, etc.)
+    TestImplementation,
+    /// Production code implementation
+    CodeImplementation,
+}
+
+impl fmt::Display for EntityClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            EntityClass::TestImplementation => write!(f, "TEST"),
+            EntityClass::CodeImplementation => write!(f, "CODE"),
+        }
+    }
+}
+
 /// TDD classification for test-driven development
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TddClassification {
+    /// Entity classification (test vs production code)
+    pub entity_class: EntityClass,
     /// Testability level
     pub testability: TestabilityLevel,
     /// Complexity assessment
@@ -694,6 +714,7 @@ impl CodeEntity {
 impl Default for TddClassification {
     fn default() -> Self {
         Self {
+            entity_class: EntityClass::CodeImplementation,
             testability: TestabilityLevel::Medium,
             complexity: ComplexityLevel::Simple,
             dependencies: 0,
@@ -809,5 +830,34 @@ mod tests {
 
         assert!(entity.is_modified());
         assert!(entity.effective_code().is_some());
+    }
+
+    #[test]
+    fn test_entity_class_enum() {
+        // Test that EntityClass enum exists with correct variants
+        let test_class = EntityClass::TestImplementation;
+        let code_class = EntityClass::CodeImplementation;
+
+        assert_eq!(test_class, EntityClass::TestImplementation);
+        assert_eq!(code_class, EntityClass::CodeImplementation);
+    }
+
+    #[test]
+    fn test_tdd_classification_has_entity_class_field() {
+        // Test that TddClassification has entity_class field
+        let tdd = TddClassification::default();
+
+        // Default should be CodeImplementation
+        assert_eq!(tdd.entity_class, EntityClass::CodeImplementation);
+    }
+
+    #[test]
+    fn test_entity_class_serialization() {
+        // Test that EntityClass can be serialized/deserialized
+        let test_impl = EntityClass::TestImplementation;
+        let json = serde_json::to_string(&test_impl).unwrap();
+        let deserialized: EntityClass = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(deserialized, EntityClass::TestImplementation);
     }
 }

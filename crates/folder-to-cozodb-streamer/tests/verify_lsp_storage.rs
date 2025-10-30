@@ -40,6 +40,8 @@ impl Calculator {
         max_file_size: 1024 * 1024,
         include_patterns: vec!["*.rs".to_string()],
         exclude_patterns: vec![],
+        parsing_library: "tree-sitter".to_string(),
+        chunking: "ISGL1".to_string(),
     };
 
     let streamer = ToolFactory::create_streamer(config).await.unwrap();

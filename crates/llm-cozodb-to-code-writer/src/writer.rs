@@ -138,6 +138,7 @@ mod tests {
             current_code: None,
             future_code,
             tdd_classification: TddClassification {
+                entity_class: parseltongue_core::EntityClass::CodeImplementation,
                 testability: TestabilityLevel::High,
                 complexity: ComplexityLevel::Simple,
                 dependencies: 0,
