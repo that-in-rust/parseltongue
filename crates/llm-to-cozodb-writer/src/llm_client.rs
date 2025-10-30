@@ -91,6 +91,10 @@ pub struct GeneratedChange {
     pub description: String,
     pub future_code: String,
     pub confidence: f32,
+    // Additional fields for hash-based key generation (new entities)
+    pub file_path: Option<String>,
+    pub entity_name: Option<String>,
+    pub entity_type: Option<EntityType>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -147,11 +151,19 @@ Follow these guidelines:
 5. Output changes in the specified JSON format
 
 For each change, provide:
-- The ISGL1 key being modified
+- The ISGL1 key being modified (for existing entities)
 - Type of change (add/modify/remove/optimize)
 - Brief description of the improvement
 - The complete new code implementation
 - Confidence level (0.0-1.0)
+
+**IMPORTANT for Create operations (add/AddFunction/AddStruct):**
+When suggesting new entities, you MUST provide:
+- file_path: Path where the entity will be created (e.g., "src/lib.rs")
+- entity_name: Name of the new entity (e.g., "new_feature")
+- entity_type: Type of entity (Function/Struct/Enum/Trait/Module/etc.)
+
+These fields enable hash-based key generation for new entities that don't have line numbers yet.
 
 Be conservative and prioritize correctness over aggressive optimization."#.to_string()
     }
@@ -196,14 +208,40 @@ Be conservative and prioritize correctness over aggressive optimization."#.to_st
         // Convert generated changes to temporal changes
         let mut temporal_changes = Vec::new();
         for change in generated_changes {
+            let action = match change.change_type {
+                ChangeType::ModifyFunction | ChangeType::ModifyStruct => TemporalAction::Edit,
+                ChangeType::AddFunction | ChangeType::AddStruct => TemporalAction::Create,
+                ChangeType::RemoveFunction | ChangeType::RemoveStruct => TemporalAction::Delete,
+                _ => TemporalAction::Edit,
+            };
+
+            // For Create operations, generate hash-based ISGL1 key
+            let isgl1_key = if action == TemporalAction::Create {
+                // If LLM provided file_path, entity_name, and entity_type, generate hash-based key
+                if let (Some(file_path), Some(entity_name), Some(entity_type)) =
+                    (change.file_path.as_ref(), change.entity_name.as_ref(), change.entity_type.as_ref()) {
+
+                    use parseltongue_core::entities::CodeEntity;
+                    use chrono::Utc;
+
+                    CodeEntity::generate_new_entity_key(
+                        file_path,
+                        entity_name,
+                        entity_type,
+                        Utc::now()
+                    )
+                } else {
+                    // Fallback to LLM-provided key (backward compatibility)
+                    change.isgl1_key.clone()
+                }
+            } else {
+                // For Edit/Delete operations, use existing line-based key from LLM
+                change.isgl1_key.clone()
+            };
+
             let temporal_change = TemporalChange {
-                isgl1_key: change.isgl1_key,
-                action: match change.change_type {
-                    ChangeType::ModifyFunction => TemporalAction::Edit,
-                    ChangeType::AddFunction => TemporalAction::Create,
-                    ChangeType::RemoveFunction => TemporalAction::Delete,
-                    _ => TemporalAction::Edit,
-                },
+                isgl1_key,
+                action,
                 future_code: Some(change.future_code),
                 updated_signature: None,
             };

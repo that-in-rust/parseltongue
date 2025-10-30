@@ -178,6 +178,9 @@ The Parseltongue system enables bidirectional LLM↔CozoDB communication through
 ### **Entity 2: CozoDB (Graph Database)**
 - Role: Stores CodeGraph with temporal versioning (current_ind, future_ind, Future_Action)
 - Schema: ISGL1 primary key + Current_Code + Future_Code + interface_signature + TDD_Classification + lsp_meta_data
+- **Dual ISGL1 Key Format**:
+  - **Existing Entities** (Tool 1): `rust:fn:calculate_sum:src_lib_rs:42-56` (line-based)
+  - **New Entities** (Tool 2): `src_lib_rs-new_feature-fn-abc12345` (hash-based, SHA-256 first 8 chars)
 - Cannot be read directly by LLM - requires context extraction
 - Passive storage that responds to LLM-generated queries
 
@@ -203,11 +206,76 @@ Codebase → [folder-to-cozoDB-streamer] → CozoDB
 
 ### **Tool Responsibilities**
 - **Tool 1**: Codebase → CozoDB (indexing)
+  - Generates line-based ISGL1 keys for existing entities
+  - Format: `{language}:{type}:{name}:{sanitized_path}:{start_line}-{end_line}`
 - **Tool 2**: LLM → CozoDB via `LLM-to-cozoDB-writer` (temporal upserts)
+  - Generates hash-based ISGL1 keys for new entities (Create operations)
+  - Format: `{sanitized_filepath}-{entity_name}-{entity_type}-{hash8}`
 - **Tool 3**: LLM queries → CozoDB → CodeGraphContext.json (context extraction)
 - **Tool 4**: Validation of proposed changes
 - **Tool 5**: CozoDB → CodeDiff.json via `LLM-cozodb-to-diff-writer` (diff generation, LLM applies changes)
 - **Tool 6**: Database state reset
+
+### **Hash-Based Key Generation Specification (Tool 2)**
+
+**Purpose**: Provide stable identity for new code entities before they exist in the codebase.
+
+**Problem Solved**: CRUD Create operations cannot use line-based keys because new entities don't have line numbers yet.
+
+**Implementation Location**: `parseltongue-core/src/entities.rs`
+
+**Function Signature**:
+```rust
+pub fn generate_new_entity_key(
+    file_path: &str,
+    entity_name: &str,
+    entity_type: &EntityType,
+    timestamp: DateTime<Utc>
+) -> String
+```
+
+**Algorithm**:
+1. Hash Input: Concatenate `file_path + entity_name + entity_type + timestamp`
+2. Hash Function: SHA-256
+3. Hash Output: Take first 8 characters of hex representation
+4. Key Format: `{sanitized_filepath}-{entity_name}-{type_abbrev}-{hash8}`
+
+**Type Abbreviations**:
+- Function → `fn`
+- Struct → `struct`
+- Enum → `enum`
+- Trait → `trait`
+- Impl → `impl`
+- Module → `mod`
+
+**Examples**:
+```
+Input: file_path="src/lib.rs", entity_name="new_feature", entity_type=Function, timestamp=2025-10-30T12:00:00Z
+Output: "src_lib_rs-new_feature-fn-abc12345"
+
+Input: file_path="src/models/user.rs", entity_name="UserProfile", entity_type=Struct, timestamp=2025-10-30T12:01:00Z
+Output: "src_models_user_rs-UserProfile-struct-def67890"
+```
+
+**Path Sanitization Rules**:
+- Replace `/` with `_`
+- Replace `\` with `_`
+- Replace `.` with `_`
+
+**Collision Handling**:
+- Timestamp provides uniqueness across multiple entities with same name
+- 8-character hash provides 4.3 billion possible values
+- Collision probability: negligible for typical codebase sizes
+
+**Integration Points**:
+- `LLM-to-cozoDB-writer/src/temporal_writer.rs`: Detects Create operations (current_ind=0, future_ind=1) and calls hash generator
+- `parseltongue-core/src/entities.rs`: Implements hash generation function with comprehensive tests
+
+**Dependencies Required**:
+```toml
+sha2 = "0.10"
+chrono = { version = "0.4", features = ["serde"] }
+```
 
 ## 2.7 Temporal Versioning System
 
@@ -216,15 +284,21 @@ Codebase → [folder-to-cozoDB-streamer] → CozoDB
 **Format**: State-by-state breakdown with transition patterns and use cases.
 
 - **State Tracking in CozoDB**:
-    - **(1,1)**: Code exists now and continues (unchanged)
-    - **(1,0)**: Code exists now but will be deleted
-    - **(0,1)**: Code doesn't exist but will be created
-    - **(1,1)**: Code exists and will be modified
+    - **(1,1, None)**: Code exists now and continues (unchanged)
+    - **(1,0, Delete)**: Code exists now but will be deleted
+    - **(0,1, Create)**: Code doesn't exist but will be created
+        - **KEY FORMAT**: Hash-based ISGL1 key (e.g., `src_lib_rs-new_feature-fn-abc12345`)
+        - **GENERATION**: Tool 2 generates key using SHA-256 hash at creation time
+        - **RATIONALE**: No line numbers available for new entities yet
+    - **(1,1, Edit)**: Code exists and will be modified
+        - **KEY FORMAT**: Line-based ISGL1 key from Tool 1 (e.g., `rust:fn:calculate_sum:src_lib_rs:42-56`)
 
 - **Current_Code → Future_Code Flow**:
     - Phase 2: LLM sets future_code based on bug analysis
     - Phase 4: Tool 5 generates CodeDiff.json, LLM applies future_code to actual files
     - Phase 5: Database reset makes future_code the new current_code
+        - **Note**: After reset, newly created entities are re-indexed by Tool 1 with line-based keys
+        - **Key Transition**: Hash-based keys (Create) → Line-based keys (after re-indexing)
 
 ## 2.8 Command Interface (Current)
 

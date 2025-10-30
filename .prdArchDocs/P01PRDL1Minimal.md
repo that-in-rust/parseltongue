@@ -78,9 +78,16 @@ This ensures LLM has exactly what it needs - no more, no less.
                         - Tool will call LSP (rust-analyzer) for creating lsp-meta-data
                         - Tool will output aggregated-primarykey + code-chunk-raw + tree-sitter-signature + TDD_classification + lsp_meta_data (optional)
                     - `folder-to-cozoDB-streamer` creates CodeGraph (single write surface):
-                        - Indexed by ISGL1 key format: `{language}:{type}:{name}:{sanitized_path}:{start_line}-{end_line}`
-                            - Example: `rust:fn:calculate_sum:src_lib_rs:42-56`
-                            - Rationale: More robust than simple concatenation, includes line ranges for multi-version tracking
+                        - **Dual ISGL1 Key Format Strategy**:
+                            - **Existing Entities** (indexed by Tool 1): Line-based format
+                                - Format: `{language}:{type}:{name}:{sanitized_path}:{start_line}-{end_line}`
+                                - Example: `rust:fn:calculate_sum:src_lib_rs:42-56`
+                                - Rationale: Precise location tracking for existing code with stable line numbers
+                            - **New Entities** (created by Tool 2): Hash-based format
+                                - Format: `{sanitized_filepath}-{entity_name}-{entity_type}-{hash8}`
+                                - Example: `src_lib_rs-new_feature-fn-abc12345`
+                                - Hash Algorithm: SHA-256(filepath + name + type + timestamp), first 8 characters
+                                - Rationale: Stable identity for new entities before line numbers exist, avoids CRUD Create operation failure
                         - Columns (minimal, opinionated):
                             - ISGL1 primary key (aggregated-primarykey)
                                 - Current_Code (code-chunk from parsing, can be empty if upsert of new ISGL1 + other fields happen)
@@ -124,10 +131,13 @@ This ensures LLM has exactly what it needs - no more, no less.
                         - Step A: ISG level simulations (Temporal Versioning)
                             - Step A01: Create Edit Delete Test Interface Rows; call these changes test-interface-changes:
                                 - Addition Interfaces: New ISGL1 rows with current_ind = 0 & future_ind = 1 & Current_Code = empty & Future_Code = empty & Future_Action = Create
+                                    - **KEY GENERATION**: Tool 2 generates hash-based ISGL1 keys for new entities (format: `filepath-name-type-hash8`)
+                                    - **RATIONALE**: Line numbers don't exist yet for new code, hash provides stable identity
                                 - Deletion Interfaces: Old ISGL1 rows with current_ind = 1 & future_ind = 0 & Future_Code = empty & Future_Action = Delete
                                 - Edit Interfaces: Old ISGL1 rows with current_ind = 1 & future_ind = 1 & Future_Action = Edit
                             - Step A02: Based on test-interface-changes + base-context-area, create edit delete non-test interfaces; call these rows non-test-interface-changes:
                                 - Addition Interfaces: New ISGL1 rows with current_ind = 0 & future_ind = 1 & Current_Code = empty & Future_Code = empty & Future_Action = Create
+                                    - **KEY GENERATION**: Tool 2 generates hash-based ISGL1 keys for new entities (format: `filepath-name-type-hash8`)
                                 - Deletion Interfaces: Old ISGL1 rows with current_ind = 1 & future_ind = 0 & Future_Code = empty & Future_Action = Delete
                                 - Edit Interfaces: Old ISGL1 rows with current_ind = 1 & future_ind = 1 & Future_Action = Edit
                         - Step B: Code Simulation (Context-Optimized for MVP)

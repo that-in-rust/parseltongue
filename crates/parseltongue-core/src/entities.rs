@@ -709,6 +709,84 @@ impl CodeEntity {
 
         Ok(())
     }
+
+    /// Generate hash-based ISGL1 key for new entities
+    ///
+    /// Creates stable identity keys for entities that don't exist yet in the codebase.
+    /// Uses SHA-256 hash to ensure uniqueness and collision avoidance.
+    ///
+    /// # Arguments
+    ///
+    /// * `file_path` - Path to the file where entity will be created
+    /// * `entity_name` - Name of the entity (function, struct, etc.)
+    /// * `entity_type` - Type of entity (Function, Struct, Enum, etc.)
+    /// * `timestamp` - Creation timestamp for uniqueness
+    ///
+    /// # Returns
+    ///
+    /// ISGL1 key in format: `{sanitized_filepath}-{entity_name}-{type_abbrev}-{hash8}`
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use parseltongue_core::entities::{CodeEntity, EntityType};
+    /// use chrono::Utc;
+    ///
+    /// let key = CodeEntity::generate_new_entity_key(
+    ///     "src/lib.rs",
+    ///     "new_feature",
+    ///     &EntityType::Function,
+    ///     Utc::now()
+    /// );
+    /// // Returns: "src_lib_rs-new_feature-fn-abc12345"
+    /// ```
+    pub fn generate_new_entity_key(
+        file_path: &str,
+        entity_name: &str,
+        entity_type: &EntityType,
+        timestamp: chrono::DateTime<chrono::Utc>,
+    ) -> String {
+        use sha2::{Sha256, Digest};
+
+        // Sanitize file path: replace /, \, and . with _
+        let sanitized_path = file_path
+            .replace('/', "_")
+            .replace('\\', "_")
+            .replace('.', "_");
+
+        // Get type abbreviation
+        let type_abbrev = match entity_type {
+            EntityType::Function => "fn",
+            EntityType::Method => "method",
+            EntityType::Struct => "struct",
+            EntityType::Enum => "enum",
+            EntityType::Trait => "trait",
+            EntityType::Interface => "interface",
+            EntityType::Module => "mod",
+            EntityType::ImplBlock { .. } => "impl",
+            EntityType::Macro => "macro",
+            EntityType::ProcMacro => "proc_macro",
+            EntityType::TestFunction => "test",
+            EntityType::Class => "class",
+            EntityType::Variable => "var",
+            EntityType::Constant => "const",
+        };
+
+        // Create hash input: filepath + name + type + timestamp
+        let mut hasher = Sha256::new();
+        hasher.update(file_path.as_bytes());
+        hasher.update(entity_name.as_bytes());
+        hasher.update(format!("{:?}", entity_type).as_bytes());
+        hasher.update(timestamp.to_rfc3339().as_bytes());
+
+        // Get hash result and take first 8 characters
+        let hash_bytes = hasher.finalize();
+        let hash_str = format!("{:x}", hash_bytes);
+        let short_hash = &hash_str[0..8];
+
+        // Format: sanitized_path-entity_name-type_abbrev-hash8
+        format!("{}-{}-{}-{}", sanitized_path, entity_name, type_abbrev, short_hash)
+    }
 }
 
 impl Default for TddClassification {
@@ -830,6 +908,190 @@ mod tests {
 
         assert!(entity.is_modified());
         assert!(entity.effective_code().is_some());
+    }
+
+    #[test]
+    fn test_generate_new_entity_key_basic() {
+        use chrono::TimeZone;
+
+        let timestamp = chrono::Utc.with_ymd_and_hms(2025, 10, 30, 12, 0, 0).unwrap();
+        let key = CodeEntity::generate_new_entity_key(
+            "src/lib.rs",
+            "new_feature",
+            &EntityType::Function,
+            timestamp
+        );
+
+        // Should follow format: filepath-name-type-hash8
+        assert!(key.contains("src_lib_rs"));
+        assert!(key.contains("new_feature"));
+        assert!(key.contains("-fn-"));
+
+        // Hash should be 8 characters
+        let parts: Vec<&str> = key.split('-').collect();
+        assert!(parts.len() >= 4, "Key should have at least 4 parts separated by hyphens");
+        let hash_part = parts.last().unwrap();
+        assert_eq!(hash_part.len(), 8, "Hash should be exactly 8 characters");
+    }
+
+    #[test]
+    fn test_generate_new_entity_key_different_types() {
+        use chrono::TimeZone;
+
+        let timestamp = chrono::Utc.with_ymd_and_hms(2025, 10, 30, 12, 0, 0).unwrap();
+
+        // Test Function type
+        let fn_key = CodeEntity::generate_new_entity_key(
+            "src/lib.rs",
+            "test_fn",
+            &EntityType::Function,
+            timestamp
+        );
+        assert!(fn_key.contains("-fn-"));
+
+        // Test Struct type
+        let struct_key = CodeEntity::generate_new_entity_key(
+            "src/lib.rs",
+            "TestStruct",
+            &EntityType::Struct,
+            timestamp
+        );
+        assert!(struct_key.contains("-struct-"));
+
+        // Test Enum type
+        let enum_key = CodeEntity::generate_new_entity_key(
+            "src/lib.rs",
+            "TestEnum",
+            &EntityType::Enum,
+            timestamp
+        );
+        assert!(enum_key.contains("-enum-"));
+
+        // Test Trait type
+        let trait_key = CodeEntity::generate_new_entity_key(
+            "src/lib.rs",
+            "TestTrait",
+            &EntityType::Trait,
+            timestamp
+        );
+        assert!(trait_key.contains("-trait-"));
+
+        // Test Module type
+        let mod_key = CodeEntity::generate_new_entity_key(
+            "src/lib.rs",
+            "test_module",
+            &EntityType::Module,
+            timestamp
+        );
+        assert!(mod_key.contains("-mod-"));
+    }
+
+    #[test]
+    fn test_generate_new_entity_key_path_sanitization() {
+        use chrono::TimeZone;
+
+        let timestamp = chrono::Utc.with_ymd_and_hms(2025, 10, 30, 12, 0, 0).unwrap();
+
+        // Test forward slashes
+        let key1 = CodeEntity::generate_new_entity_key(
+            "src/models/user.rs",
+            "UserProfile",
+            &EntityType::Struct,
+            timestamp
+        );
+        assert!(key1.contains("src_models_user_rs"));
+        assert!(!key1.contains('/'));
+
+        // Test dots in filename
+        assert!(key1.contains("_rs"));
+        assert!(!key1.contains(".rs"));
+
+        // Test backslashes (Windows paths)
+        let key2 = CodeEntity::generate_new_entity_key(
+            "src\\models\\user.rs",
+            "UserProfile",
+            &EntityType::Struct,
+            timestamp
+        );
+        assert!(key2.contains("src_models_user_rs"));
+        assert!(!key2.contains('\\'));
+    }
+
+    #[test]
+    fn test_generate_new_entity_key_uniqueness() {
+        use chrono::TimeZone;
+
+        // Same inputs but different timestamps should produce different keys
+        let timestamp1 = chrono::Utc.with_ymd_and_hms(2025, 10, 30, 12, 0, 0).unwrap();
+        let timestamp2 = chrono::Utc.with_ymd_and_hms(2025, 10, 30, 12, 1, 0).unwrap();
+
+        let key1 = CodeEntity::generate_new_entity_key(
+            "src/lib.rs",
+            "new_feature",
+            &EntityType::Function,
+            timestamp1
+        );
+
+        let key2 = CodeEntity::generate_new_entity_key(
+            "src/lib.rs",
+            "new_feature",
+            &EntityType::Function,
+            timestamp2
+        );
+
+        assert_ne!(key1, key2, "Different timestamps should produce different keys");
+
+        // Extract hash parts to verify they're different
+        let hash1 = key1.split('-').last().unwrap();
+        let hash2 = key2.split('-').last().unwrap();
+        assert_ne!(hash1, hash2, "Hash parts should be different");
+    }
+
+    #[test]
+    fn test_generate_new_entity_key_format() {
+        use chrono::TimeZone;
+
+        let timestamp = chrono::Utc.with_ymd_and_hms(2025, 10, 30, 12, 0, 0).unwrap();
+        let key = CodeEntity::generate_new_entity_key(
+            "src/models/user.rs",
+            "UserProfile",
+            &EntityType::Struct,
+            timestamp
+        );
+
+        // Expected format: src_models_user_rs-UserProfile-struct-abc12345
+        let parts: Vec<&str> = key.split('-').collect();
+
+        // Should have exactly 4 parts: path, name, type, hash
+        assert_eq!(parts.len(), 4, "Key should have exactly 4 hyphen-separated parts");
+
+        // Verify each part
+        assert_eq!(parts[0], "src_models_user_rs");
+        assert_eq!(parts[1], "UserProfile");
+        assert_eq!(parts[2], "struct");
+        assert_eq!(parts[3].len(), 8, "Hash should be 8 characters");
+
+        // Hash should be lowercase hexadecimal
+        assert!(parts[3].chars().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase()));
+    }
+
+    #[test]
+    fn test_generate_new_entity_key_impl_block() {
+        use chrono::TimeZone;
+
+        let timestamp = chrono::Utc.with_ymd_and_hms(2025, 10, 30, 12, 0, 0).unwrap();
+
+        // Test ImplBlock type (should default to "impl")
+        let impl_key = CodeEntity::generate_new_entity_key(
+            "src/lib.rs",
+            "MyStruct",
+            &EntityType::ImplBlock {
+                trait_name: Some("Display".to_string()),
+                struct_name: "MyStruct".to_string(),
+            },
+            timestamp
+        );
+        assert!(impl_key.contains("-impl-"));
     }
 
     #[test]
