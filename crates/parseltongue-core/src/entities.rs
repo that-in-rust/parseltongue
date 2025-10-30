@@ -161,7 +161,23 @@ pub struct TemporalState {
 }
 
 impl TemporalState {
-    /// Create new unchanged state
+    /// Create new initial state (for Tool 1 indexing)
+    ///
+    /// PRD Spec (P01:96-101): Tool 1 initializes entities as:
+    /// - current_ind: 1 (exists in current codebase)
+    /// - future_ind: 0 (future state unknown until Tool 2 processes)
+    /// - Future_Action: None
+    pub fn initial() -> Self {
+        Self {
+            current_ind: true,
+            future_ind: false,  // Future state unknown at index time
+            future_action: None,
+        }
+    }
+
+    /// Create new unchanged state (for entities reviewed by Tool 2)
+    ///
+    /// Represents: Entity exists in current codebase, LLM decided no changes needed
     pub fn unchanged() -> Self {
         Self {
             current_ind: true,
@@ -590,13 +606,18 @@ pub struct EntityMetadata {
 }
 
 impl CodeEntity {
-    /// Create new entity
+    /// Create new entity (for Tool 1 indexing)
+    ///
+    /// Initializes with TemporalState::initial() per PRD:
+    /// - current_ind: true (exists in current codebase)
+    /// - future_ind: false (future state unknown until Tool 2)
+    /// - Future_Action: None
     pub fn new(
         isgl1_key: String,
         interface_signature: InterfaceSignature,
     ) -> Result<Self> {
         let entity = Self {
-            temporal_state: TemporalState::unchanged(),
+            temporal_state: TemporalState::initial(),  // Tool 1 initial state: (1,0,None)
             interface_signature,
             current_code: None,
             future_code: None,

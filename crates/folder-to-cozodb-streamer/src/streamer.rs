@@ -159,7 +159,40 @@ impl FileStreamerImpl {
         entity.current_code = Some(code_snippet.clone());
         entity.future_code = Some(code_snippet);
 
+        // GREEN Phase: Apply TDD classification based on parsed metadata
+        entity.tdd_classification = self.classify_entity(parsed);
+
         Ok(entity)
+    }
+
+    /// Classify entity as TEST or CODE based on metadata
+    ///
+    /// FP Pattern: Pure function - deterministic classification based on metadata
+    ///
+    /// Preconditions:
+    /// - parsed.metadata contains "is_test" key if entity is a test
+    ///
+    /// Postconditions:
+    /// - Returns TddClassification with correct EntityClass
+    fn classify_entity(&self, parsed: &ParsedEntity) -> parseltongue_core::entities::TddClassification {
+        use parseltongue_core::entities::{EntityClass, TddClassification};
+
+        // Pure FP: Check metadata for test indicator
+        let is_test = parsed
+            .metadata
+            .get("is_test")
+            .map(|v| v == "true")
+            .unwrap_or(false);
+
+        // Minimal GREEN implementation: Just set entity_class
+        TddClassification {
+            entity_class: if is_test {
+                EntityClass::TestImplementation
+            } else {
+                EntityClass::CodeImplementation
+            },
+            ..TddClassification::default()
+        }
     }
 
     /// Convert Tool 1's EntityType to parseltongue-core's EntityType
