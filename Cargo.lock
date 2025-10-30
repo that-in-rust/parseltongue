@@ -1527,6 +1527,7 @@ version = "0.7.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "chrono",
  "clap",
  "console",
  "cozo",
@@ -1870,6 +1871,7 @@ dependencies = [
  "proptest",
  "serde",
  "serde_json",
+ "sha2",
  "tempfile",
  "thiserror",
  "tokio",
@@ -2351,6 +2353,8 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-test",
+ "tree-sitter",
+ "tree-sitter-rust",
 ]
 
 [[package]]

@@ -55,7 +55,7 @@ flowchart TD
             ConfidenceLoop --> |"Yes<br/>Proceed"| Tool4
         end
 
-        Tool4["Tool 4<br/>rust-preflight<br/>Enhanced Validation"]
+        Tool4["Tool 4<br/>rust-preflight<br/>Syntax Validation<br/>(Tree-sitter only, <20ms)"]
         Phase4 --> Tool5["Tool 5<br/>LLM-cozodb-to-diff-writer<br/>Generate CodeDiff.json<br/>(LLM Applies Changes)"]
         Phase5 --> Tool6["Tool 6<br/>cozoDB-make-future-code-current<br/>Delete Table +<br/>Re-trigger Indexing"]
     end

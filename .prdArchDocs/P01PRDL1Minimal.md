@@ -161,9 +161,16 @@ This ensures LLM has exactly what it needs - no more, no less.
                                 - If the LLM thinks that we need to refine the solutioning further, repeat Steps A01 A02 and then basis them repeat Steps B01
                                 - If the LLM doesn't feel confident of the changes, it should speak to the user to get additional context or web help, sharing their current understanding in an MD file
                                 - **ITERATION COMPLETION**: When LLM feels confident of the changes (≥80% confidence), move to next step
-                        - Step C: Tool 4: `rust-preflight-code-simulator validation_output.json --validation-type all` triggered for Rust use cases with rust-analyzer overlay:
-                            - If the rust-preflight-code-simulator tool fails then we go back to previous steps A01 onwards
-                            - If the rust-preflight-code-simulator tool passes then we move to next step
+                        - Step C: Tool 4: `rust-preflight-code-simulator --database ./parseltongue.db` - **SIMPLIFIED SYNTAX VALIDATION**:
+                            - **ULTRA-MINIMALIST SCOPE**: Tree-sitter syntax validation ONLY for entities with future_code
+                            - **NO cargo build/test**: Real validation happens in Step D04-D05 after file writes
+                            - **FAST**: <20ms for typical change set (50 entities)
+                            - **RATIONALE**: Interface syntax already validated in Tool 1, cargo compiler catches type/logic errors
+                            - Validates only entities with Future_Action = Create | Edit
+                            - Checks for syntax errors: missing brackets, malformed expressions, keyword typos
+                            - If syntax errors found → go back to A01 with specific line/column error details
+                            - If syntax valid → proceed to Step D (file writing)
+                            - **DOES NOT VALIDATE**: Types, imports, lifetimes, logic (cargo build handles those)
                         - Step D: Run Tool 5: `LLM-cozodb-to-diff-writer --database ./parseltongue.db --output CodeDiff.json`:
                             - **MVP SIMPLIFIED**: Generate CodeDiff.json from CozoDB (single reliable operation)
                             - Step D01: Extract entities with Future_Action != None from CozoDB

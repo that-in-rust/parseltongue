@@ -1,96 +1,124 @@
-use anyhow::Result;
+//! # Simplified Tool 4: Syntax Validator CLI
+//!
+//! Validates entities with future_code from CozoDB using tree-sitter syntax checking only.
+
+use anyhow::{Context, Result};
+use clap::Parser;
 use console::style;
+use parseltongue_core::storage::CozoDbStorage;
+use rust_preflight_code_simulator::SimpleSyntaxValidator;
 
-mod cli;
+#[derive(Parser)]
+#[command(name = "rust-preflight-code-simulator")]
+#[command(about = "Simplified syntax validation for entities with future_code")]
+struct Cli {
+    /// Path to CozoDB database
+    #[arg(long, default_value = "mem")]
+    database: String,
 
-use rust_preflight_code_simulator::{CodeValidator, DefaultRustValidator, ValidationType};
+    /// Verbose output
+    #[arg(short, long)]
+    verbose: bool,
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let cli = cli::Cli::parse_args();
-    cli.validate()?;
+    let cli = Cli::parse();
 
-    // Get code to validate
-    let code = if let Some(snippet) = &cli.code_snippet {
-        snippet.clone()
-    } else if let Some(file_path) = &cli.file {
-        std::fs::read_to_string(file_path)?
-    } else {
-        unreachable!("CLI validation ensures one of these is present")
-    };
+    println!(
+        "\n{}",
+        style("Parseltongue Tool 04: Simplified Syntax Validator")
+            .bold()
+            .cyan()
+    );
+    println!("{}", style("=".repeat(60)).dim());
+
+    // Connect to CozoDB
+    let storage = CozoDbStorage::new(&cli.database)
+        .await
+        .context("Failed to connect to CozoDB")?;
+
+    // Get entities with future_code (Create or Edit operations)
+    let changed_entities = storage
+        .get_changed_entities()
+        .await
+        .context("Failed to get changed entities from CozoDB")?;
+
+    if changed_entities.is_empty() {
+        println!(
+            "{}",
+            style("No entities with future_code found. Nothing to validate.")
+                .yellow()
+        );
+        return Ok(());
+    }
+
+    println!(
+        "\n{} entities with future_code found",
+        style(changed_entities.len()).bold()
+    );
 
     // Create validator
-    let validator = DefaultRustValidator::new();
+    let mut validator =
+        SimpleSyntaxValidator::new().context("Failed to create syntax validator")?;
 
-    // Determine validation types to run
-    let validation_types = match cli.validation_type {
-        cli::ValidationTypeArg::All => ValidationType::all(),
-        cli::ValidationTypeArg::Syntax => vec![ValidationType::Syntax],
-        cli::ValidationTypeArg::Type => vec![ValidationType::Type],
-        cli::ValidationTypeArg::BorrowChecker => vec![ValidationType::BorrowChecker],
-        cli::ValidationTypeArg::Compilation => vec![ValidationType::Compilation],
-        cli::ValidationTypeArg::Test => vec![ValidationType::Test],
-    };
+    // Validate each entity
+    let mut valid_count = 0;
+    let mut invalid_count = 0;
+    let mut error_details = Vec::new();
 
-    // Run validation
-    let report = validator.validate_specific(&code, validation_types).await?;
-
-    // Output results
-    match cli.output_format {
-        cli::OutputFormat::Json => {
-            let json = serde_json::to_string_pretty(&report)?;
-            println!("{}", json);
-        }
-        cli::OutputFormat::Text => {
-            println!("\n{}", style("Parseltongue Tool 04: Rust Preflight Code Simulator").bold().cyan());
-            println!("{}", style("=".repeat(60)).dim());
-
-            if report.overall_valid {
-                println!("{} Validation passed!", style("✓").green().bold());
-            } else {
-                println!("{} Validation failed!", style("✗").red().bold());
-            }
-
-            println!("\n{}", style("Validation Results:").bold());
-            for result in &report.individual_results {
-                let status = if result.is_valid {
-                    style("PASS").green()
-                } else {
-                    style("FAIL").red()
-                };
-                println!("  [{:?}] {} ({}ms)", result.validation_type, status, result.execution_time_ms);
-
-                if !result.errors.is_empty() && cli.verbose {
-                    for error in &result.errors {
-                        println!("    {}", style(error).red());
+    for entity in &changed_entities {
+        if let Some(future_code) = &entity.future_code {
+            match validator.validate_syntax(future_code) {
+                Ok(result) => {
+                    if result.is_valid {
+                        valid_count += 1;
+                        if cli.verbose {
+                            println!("  {} {}", style("✓").green(), entity.isgl1_key);
+                        }
+                    } else {
+                        invalid_count += 1;
+                        println!("  {} {}", style("✗").red(), entity.isgl1_key);
+                        for error in &result.errors {
+                            println!("    {}", style(error).red().dim());
+                            error_details.push((entity.isgl1_key.clone(), error.clone()));
+                        }
                     }
                 }
-            }
-
-            println!("\n{}", style("Summary:").bold());
-            println!("  Total time: {}ms", report.total_execution_time_ms);
-            println!("  Memory usage: {} bytes", report.total_memory_usage_bytes);
-
-            if !report.all_errors().is_empty() {
-                println!("\n{}", style("Errors:").red().bold());
-                for error in report.all_errors() {
-                    println!("  - {}", error);
-                }
-            }
-
-            if !report.all_warnings().is_empty() && cli.verbose {
-                println!("\n{}", style("Warnings:").yellow().bold());
-                for warning in report.all_warnings() {
-                    println!("  - {}", warning);
+                Err(e) => {
+                    invalid_count += 1;
+                    println!(
+                        "  {} {} - Validation error: {}",
+                        style("✗").red(),
+                        entity.isgl1_key,
+                        style(e).red()
+                    );
                 }
             }
         }
     }
 
-    // Exit with appropriate code
-    if report.overall_valid {
-        Ok(())
-    } else {
+    // Print summary
+    println!("\n{}", style("Summary:").bold());
+    println!("  Total entities: {}", changed_entities.len());
+    println!("  {} Valid syntax: {}", style("✓").green(), valid_count);
+    println!("  {} Invalid syntax: {}", style("✗").red(), invalid_count);
+
+    if invalid_count > 0 {
+        println!(
+            "\n{}",
+            style("Syntax validation failed. Fix errors and retry.")
+                .red()
+                .bold()
+        );
         std::process::exit(1);
+    } else {
+        println!(
+            "\n{}",
+            style("✅ All syntax checks passed! Ready for file writes (Tool 5).")
+                .green()
+                .bold()
+        );
+        Ok(())
     }
 }

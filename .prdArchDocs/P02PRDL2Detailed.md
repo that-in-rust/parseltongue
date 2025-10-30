@@ -121,8 +121,12 @@ This ensures LLM has exactly what it needs - no more, no less.
             - **ITERATION COMPLETION**: When LLM feels confident of the changes (≥80% confidence), move to next step
 
 - Phase 4: Validation & Diff Generation
-    - Tool 4: `rust-preflight-code-simulator` validates proposed changes
-    - If validation fails, return to Phase 3 for refinement
+    - Tool 4: `rust-preflight-code-simulator` performs **simplified syntax validation**:
+        - **Scope**: Tree-sitter syntax checks ONLY for entities with future_code
+        - **Speed**: <20ms for typical change set (ultra-fast feedback)
+        - **Does NOT validate**: Types, imports, lifetimes (cargo build handles these in Phase 4)
+        - **Purpose**: Quick syntax sanity check before file writes
+    - If syntax errors detected, return to Phase 3 with line/column details for refinement
     - Tool 5: `LLM-cozodb-to-diff-writer` generates diff context for LLM:
         - **SINGLE PURPOSE**: Generate CodeDiff.json from CozoDB for LLM consumption
         - Tool 5 queries CozoDB for entities with Future_Action != None
@@ -152,7 +156,7 @@ This ensures LLM has exactly what it needs - no more, no less.
     - Tool 1: `folder-to-cozoDB-streamer` (Multi-language code indexing via tree-sitter)
     - Tool 2: `LLM-to-cozoDB-writer` (LLM upsert queries → CozoDB temporal updates)
     - Tool 3: `LLM-cozoDB-to-context-writer` (LLM queries → CozoDB → CodeGraphContext.json)
-    - Tool 4: `rust-preflight-code-simulator` (Rust-specific enhanced validation)
+    - Tool 4: `rust-preflight-code-simulator` (Simplified syntax validation for entities with future_code)
     - Tool 5: `LLM-cozodb-to-diff-writer` (CozoDB → CodeDiff.json → LLM applies changes)
     - Tool 6: `cozoDB-make-future-code-current` (State reset)
 
@@ -364,29 +368,28 @@ The minimalPRD workflow aligns with the current 7-component architecture:
 - Basic syntax validation
 - File writing with atomic backups
 
-### Rust-Enhanced Support (LSP + Preflight Validation)
+### Rust-Enhanced Support (LSP Metadata)
 **Additional Rust-Specific Capabilities**:
-- Enhanced type information via rust-analyzer LSP
-- Semantic completion and error detection
-- Preflight compilation validation
-- Borrow checker integration
-- Cargo build/test automation
-- Clippy linting and rustfmt formatting
-- Performance benchmarking integration
+- Enhanced type information via rust-analyzer LSP (Tool 1 indexing)
+- Semantic metadata stored in lsp_meta_data column
+- **Note**: Validation happens via cargo build/test AFTER file writes (Step D04-D05)
+- **Rationale**: Real compilation catches all errors that matter; syntax-only validation is fast sanity check
 
 ### System Behavior by Language Type
 
 **Rust Projects**:
 ```
-🔍 Analysis: tree-sitter parsing + rust-analyzer LSP metadata
-🧪 Validation: preflight compilation + cargo test + linting
-🚀 Automation: Full build/test/deployment pipeline
+🔍 Analysis: tree-sitter parsing + rust-analyzer LSP metadata (Tool 1)
+🧪 Syntax Check: Tree-sitter validation for future_code entities (Tool 4, <20ms)
+✅ Real Validation: cargo build + cargo test AFTER file writes (Step D04-D05)
+🚀 Automation: LLM applies changes, then runs cargo for validation
 ```
 
 **Non-Rust Projects**:
 ```
 🔍 Analysis: tree-sitter parsing (no LSP metadata)
-🧪 Validation: Basic syntax validation (no preflight compilation)
+🧪 Syntax Check: Tree-sitter validation for future_code entities (Tool 4)
+✅ Real Validation: Language-specific toolchain after file writes
 🚀 Automation: File writing + user-managed build/test integration
 ```
 

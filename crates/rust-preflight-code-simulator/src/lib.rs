@@ -1,53 +1,62 @@
-//! # parseltongue-04: Rust Preflight Code Simulator
+//! # parseltongue-04: Rust Preflight Code Simulator (SIMPLIFIED)
 //!
 //! Tool 4 in the Parseltongue 6-tool pipeline for validating code changes.
 //!
-//! ## Purpose
+//! ## Purpose (Ultra-Minimalist MVP)
 //!
-//! Validates proposed code changes through a three-level validation hierarchy:
-//! 1. **Syntax Validation** - Basic parsing and syntax correctness using `syn`
-//! 2. **Build Validation** - Type checking and compilation verification
-//! 3. **Test Validation** - Test suite execution and pass/fail status
+//! **Tree-sitter syntax validation ONLY** for entities with future_code.
+//!
+//! ### What It Validates
+//! - Syntax errors: missing brackets, malformed expressions, keyword typos
+//! - Parse tree structure: valid AST generation
+//!
+//! ### What It Does NOT Validate (cargo build handles these)
+//! - Type errors
+//! - Import resolution
+//! - Lifetime issues
+//! - Logic bugs
+//!
+//! ## Performance
+//! - <20ms for typical change set (50 entities)
+//! - No cargo compilation overhead
+//! - No temporary file I/O
 //!
 //! ## Architecture
 //!
 //! Follows TDD-first principles with executable specifications:
-//! - **RED phase**: Failing tests define contracts (current state)
-//! - **GREEN phase**: Minimal implementation passes tests
-//! - **REFACTOR phase**: Idiomatic Rust patterns and optimization
+//! - **RED phase**: Failing tests define contracts
+//! - **GREEN phase**: Minimal tree-sitter implementation
+//! - **REFACTOR phase**: Idiomatic Rust patterns
 //!
 //! ## Example
 //!
 //! ```rust,ignore
-//! use parseltongue_04::{CodeValidator, DefaultRustValidator};
+//! use rust_preflight_code_simulator::SimpleSyntaxValidator;
 //!
-//! #[tokio::main]
-//! async fn main() -> anyhow::Result<()> {
-//!     let validator = DefaultRustValidator::new();
-//!     let code = r#"
-//!         fn main() {
-//!             println!("Hello, world!");
-//!         }
-//!     "#;
+//! let mut validator = SimpleSyntaxValidator::new()?;
+//! let result = validator.validate_syntax(future_code)?;
 //!
-//!     let report = validator.validate_all(code).await?;
-//!     if report.overall_valid {
-//!         println!("✓ Code validated successfully!");
-//!     } else {
-//!         println!("✗ Validation failed:");
-//!         for error in report.all_errors() {
-//!             println!("  - {}", error);
-//!         }
+//! if result.is_valid {
+//!     println!("✅ Syntax valid");
+//! } else {
+//!     for error in &result.errors {
+//!         eprintln!("❌ {}", error);
 //!     }
-//!     Ok(())
 //! }
 //! ```
 
+// Simplified validator module (tree-sitter only)
+pub mod simple_validator;
+
+// Legacy modules (kept for backward compatibility, will be removed)
 pub mod errors;
 pub mod types;
 pub mod validator;
 
-// Re-export commonly used types
+// Re-export simplified API
+pub use simple_validator::{SimpleSyntaxValidator, ValidationResult};
+
+// Legacy re-exports (deprecated)
 pub use errors::{Severity, ValidationError};
 pub use types::{ValidationOutput, ValidationReport, ValidationType};
 pub use validator::{CodeValidator, DefaultRustValidator};
