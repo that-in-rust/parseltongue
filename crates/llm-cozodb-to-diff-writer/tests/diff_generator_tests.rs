@@ -2,10 +2,9 @@
 //!
 //! Tests for CodeDiff.json generation from CozoDB
 
-use llm_cozodb_to_diff_writer::{CodeDiff, DiffGenerator, Operation};
+use llm_cozodb_to_diff_writer::{DiffGenerator, Operation};
 use parseltongue_core::entities::{CodeEntity, TemporalAction, TemporalState};
 use parseltongue_core::storage::CozoDbStorage;
-use std::path::PathBuf;
 
 /// Test: Generate CodeDiff for entities with Create action
 #[tokio::test]
@@ -210,8 +209,8 @@ async fn test_code_diff_json_output() {
 // Helper function to create test entities
 fn create_test_entity(isgl1_key: &str, future_code: Option<&str>, action: TemporalAction) -> CodeEntity {
     use parseltongue_core::entities::{
-        ChangeRisk, ComplexityLevel, EntityClass, EntityMetadata, EntityType, InterfaceSignature,
-        LanguageSpecificSignature, LineRange, RustSignature, TddClassification, TestabilityLevel,
+        ComplexityLevel, EntityClass, EntityMetadata, EntityType, InterfaceSignature,
+        LanguageSpecificSignature, LineRange, RiskLevel, RustSignature, TddClassification, TestabilityLevel,
         Visibility,
     };
     use std::path::PathBuf;
@@ -232,22 +231,21 @@ fn create_test_entity(isgl1_key: &str, future_code: Option<&str>, action: Tempor
             module_path: vec!["test".to_string()],
             documentation: None,
             language_specific: LanguageSpecificSignature::Rust(RustSignature {
-                parameters: vec![],
-                return_type: Some("()".to_string()),
                 generics: vec![],
-                where_clause: None,
-                is_async: false,
-                is_unsafe: false,
-                is_const: false,
+                lifetimes: vec![],
+                where_clauses: vec![],
+                attributes: vec![],
+                trait_impl: None,
             }),
         },
         tdd_classification: TddClassification {
             entity_class: EntityClass::CodeImplementation,
-            testability: TestabilityLevel::Untestable,
-            dependencies: 0,
-            change_risk: ChangeRisk::Low,
+            testability: TestabilityLevel::Low,
             complexity: ComplexityLevel::Simple,
+            dependencies: 0,
+            test_coverage_estimate: 0.0,
             critical_path: false,
+            change_risk: RiskLevel::Low,
         },
         lsp_metadata: None,
         temporal_state: match action {
@@ -255,6 +253,6 @@ fn create_test_entity(isgl1_key: &str, future_code: Option<&str>, action: Tempor
             TemporalAction::Edit => TemporalState::edit(),
             TemporalAction::Delete => TemporalState::delete(),
         },
-        metadata: EntityMetadata::default(),
+        metadata: EntityMetadata::new().unwrap(),
     }
 }

@@ -1,50 +1,102 @@
-use anyhow::Result;
+//! # Tool 5 CLI: CodeDiff.json Generator
+//!
+//! Generates CodeDiff.json from CozoDB for LLM consumption.
+
+use anyhow::{Context, Result};
+use clap::Parser;
 use console::style;
+use llm_cozodb_to_diff_writer::DiffGenerator;
+use parseltongue_core::storage::CozoDbStorage;
+use std::path::PathBuf;
 
-mod cli;
+#[derive(Parser)]
+#[command(name = "llm-cozodb-to-diff-writer")]
+#[command(about = "Generates CodeDiff.json from CozoDB for LLM consumption")]
+struct Cli {
+    /// Path to CozoDB database
+    #[arg(long, default_value = "./parseltongue.db")]
+    database: String,
 
-use llm_cozodb_to_code_writer::{FileWriter, WriteSummary};
+    /// Output path for CodeDiff.json
+    #[arg(long, default_value = "./CodeDiff.json")]
+    output: PathBuf,
+
+    /// Verbose output
+    #[arg(short, long)]
+    verbose: bool,
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let cli = cli::Cli::parse_args();
+    let cli = Cli::parse();
 
-    println!("\n{}", style("Parseltongue Tool 05: LLM-cozoDB-to-code-writer").bold().cyan());
-    println!("{}", style("Ultra-Minimalist File Writer").dim());
+    println!(
+        "\n{}",
+        style("Parseltongue Tool 05: LLM-cozoDB-to-diff-writer")
+            .bold()
+            .cyan()
+    );
+    println!("{}", style("CodeDiff.json Generator").dim());
     println!("{}", style("=".repeat(60)).dim());
 
-    if cli.dry_run {
-        println!("{}", style("DRY RUN MODE - No files will be modified").yellow().bold());
+    // Connect to CozoDB
+    let storage = CozoDbStorage::new(&cli.database)
+        .await
+        .context("Failed to connect to CozoDB")?;
+
+    if cli.verbose {
+        println!("\n{}", style("Configuration:").bold());
+        println!("  Database: {}", cli.database);
+        println!("  Output: {}", cli.output.display());
     }
 
-    // Create file writer
-    let writer = FileWriter::new(cli.root.clone());
+    // Generate diff
+    let generator = DiffGenerator::new(storage);
+    let diff = generator
+        .generate_diff()
+        .await
+        .context("Failed to generate CodeDiff")?;
 
-    // TODO: Query CozoDB for entities with Future_Action
-    // For now, just show configuration
-    println!("\n{}", style("Configuration:").bold());
-    println!("  Database: {}", cli.database.display());
-    println!("  Root: {}", cli.root.display());
-    println!("  Dry run: {}", cli.dry_run);
-
-    println!("\n{}", style("Ultra-Minimalist Principles:").bold().yellow());
-    println!("  {} NO BACKUPS - Direct file operations only", style("✓").green());
-    println!("  {} NO CONFIGURATION - Single reliable operation", style("✓").green());
-    println!("  {} NO ROLLBACK - Permanent changes", style("✓").green());
-    println!("  {} NO COMPLEXITY - One file = one operation", style("✓").green());
-
-    // Placeholder summary
-    let summary = WriteSummary::new();
-
+    // Display summary
     println!("\n{}", style("Summary:").bold());
-    println!("  Created: {}", summary.created);
-    println!("  Edited: {}", summary.edited);
-    println!("  Deleted: {}", summary.deleted);
-    println!("  Errors: {}", if summary.errors > 0 {
-        style(summary.errors.to_string()).red().to_string()
-    } else {
-        style(summary.errors.to_string()).green().to_string()
-    });
+    println!("  Total changes: {}", diff.metadata.total_changes);
+    println!("  {} Create: {}", style("➕").green(), diff.metadata.create_count);
+    println!("  {} Edit: {}", style("✏️ ").yellow(), diff.metadata.edit_count);
+    println!("  {} Delete: {}", style("🗑️ ").red(), diff.metadata.delete_count);
+
+    if cli.verbose && !diff.changes.is_empty() {
+        println!("\n{}", style("Changes:").bold());
+        for change in &diff.changes {
+            let icon = match change.operation {
+                llm_cozodb_to_diff_writer::Operation::Create => style("➕").green(),
+                llm_cozodb_to_diff_writer::Operation::Edit => style("✏️ ").yellow(),
+                llm_cozodb_to_diff_writer::Operation::Delete => style("🗑️ ").red(),
+            };
+            println!("  {} {}", icon, change.file_path.display());
+            if cli.verbose {
+                println!("     ISGL1: {}", change.isgl1_key);
+            }
+        }
+    }
+
+    // Write JSON to file
+    let json = diff
+        .to_json_pretty()
+        .context("Failed to serialize CodeDiff")?;
+    std::fs::write(&cli.output, json).context("Failed to write CodeDiff.json")?;
+
+    println!(
+        "\n{}",
+        style(format!("✅ CodeDiff.json written to: {}", cli.output.display()))
+            .green()
+            .bold()
+    );
+
+    println!("\n{}", style("Next Steps:").bold().cyan());
+    println!("  1. LLM reads CodeDiff.json");
+    println!("  2. LLM applies changes to codebase files");
+    println!("  3. Run cargo build to verify compilation");
+    println!("  4. Run cargo test to verify functionality");
 
     Ok(())
 }

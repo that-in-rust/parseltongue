@@ -101,43 +101,4 @@ impl DiffGenerator {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_extract_file_path_line_based() {
-        let generator = DiffGenerator {
-            storage: CozoDbStorage::new_mock(),
-        };
-
-        let path = generator
-            .extract_file_path("rust:fn:calculate_sum:src_lib_rs:42-56")
-            .unwrap();
-        assert_eq!(path, PathBuf::from("src/lib.rs"));
-    }
-
-    #[test]
-    fn test_extract_file_path_hash_based() {
-        let generator = DiffGenerator {
-            storage: CozoDbStorage::new_mock(),
-        };
-
-        let path = generator
-            .extract_file_path("src_lib_rs-new_feature-fn-abc12345")
-            .unwrap();
-        assert_eq!(path, PathBuf::from("src/lib.rs"));
-    }
-
-    #[test]
-    fn test_extract_nested_file_path() {
-        let generator = DiffGenerator {
-            storage: CozoDbStorage::new_mock(),
-        };
-
-        let path = generator
-            .extract_file_path("rust:fn:helper:src_models_user_rs:10-20")
-            .unwrap();
-        assert_eq!(path, PathBuf::from("src/models/user.rs"));
-    }
-}
+// Unit tests for extract_file_path are covered by integration tests
