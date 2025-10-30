@@ -9,13 +9,13 @@ A specialized Claude Code agent for managing automated bug fixing workflows usin
 
 ### **TOOL SIMPLICITY RULES:**
 
-**Tool 5 (LLM-cozoDB-to-code-writer) - MINIMALIST:**
+**Tool 5 (LLM-cozodb-to-diff-writer) - MINIMALIST:**
 - NO backup options (MVP doesn't need them)
 - NO multiple safety levels (complex to debug)
-- NO configuration complexity (single reliable write operation)
-- **SINGLE PURPOSE**: Write from CozoDB to files reliably
-- **EASY DEBUGGING**: Clear, traceable operations
-- **FOCUS**: Get the job done reliably, simply
+- NO configuration complexity (single reliable JSON generation)
+- **SINGLE PURPOSE**: Generate CodeDiff.json from CozoDB for LLM to apply changes
+- **EASY DEBUGGING**: Clear JSON output, inspectable by humans and LLMs
+- **FOCUS**: Provide LLM with exactly what code changes to apply
 
 **Tool 6 (cozoDB-make-future-code-current) - MINIMALIST:**
 - NO backup metadata files (unnecessary complexity)
@@ -60,7 +60,7 @@ This agent orchestrates the complete Parseltongue workflow for Apple Silicon dev
 - Dependency graph construction
 - Temporal versioning with state tracking
 - Basic syntax validation
-- **File writing with single reliable operation (NO BACKUP OPTIONS)**
+- **CodeDiff.json generation for LLM to apply changes (NO BACKUP OPTIONS)**
 - User-managed build/test integration
 
 ## Visual User Journey Workflow
@@ -113,7 +113,7 @@ flowchart TD
             ConfidenceCheck --> |"Yes<br/>Proceed"| Validation
         end
 
-        Validation --> Tool5["Tool 5: LLM-cozoDB-to-code-writer<br/>Single Reliable Write<br/>(No Backup Options)"]
+        Validation --> Tool5["Tool 5: LLM-cozodb-to-diff-writer<br/>Generate CodeDiff.json<br/>(LLM Applies Changes)"]
         Tool5 --> Tool6["Tool 6: cozoDB-make-future-code-current<br/>Delete Table +<br/>Re-trigger Indexing"]
         Tool6 --> GitCommit["Auto-git commit<br/>of changes"]
         GitCommit --> AgentSuccess["Workflow<br/>Complete"]
@@ -125,7 +125,7 @@ flowchart TD
         AdvancedChoice --> |"Custom<br/>workflow"| MixedPath["Mixed<br/>Approach"]
         AdvancedChoice --> |"Continue with<br/>agent"| NewRequest["New change<br/>request"]
 
-        CliPath --> ManualTools["folder-to-cozoDB-streamer<br/>LLM-to-cozoDB-writer<br/>LLM-cozoDB-to-context-writer<br/>rust-preflight-code-simulator<br/>LLM-cozoDB-to-code-writer<br/>cozoDB-make-future-code-current"]
+        CliPath --> ManualTools["folder-to-cozoDB-streamer<br/>LLM-to-cozoDB-writer<br/>LLM-cozoDB-to-context-writer<br/>rust-preflight-code-simulator<br/>LLM-cozodb-to-diff-writer<br/>cozoDB-make-future-code-current"]
         MixedPath --> HybridTools["Agent reasoning +<br/>manual execution"]
 
         ManualTools --> ResumeAgent["Resume agent<br/>workflow"]
@@ -183,10 +183,10 @@ Before using this agent, ensure you have:
 ```
 = Analyzing codebase...
 < Detected languages: Rust (enhanced), Python (basic)
-=Ê Found 1,247 interfaces across 89 files
+=ï¿½ Found 1,247 interfaces across 89 files
    - Rust: 892 interfaces with LSP metadata available
    - Python: 355 interfaces with tree-sitter parsing
->é Database ready: .parseltongue/parseltongue.db
+>ï¿½ Database ready: .parseltongue/parseltongue.db
  Phase 1 complete - Codebase indexed and ready
 ```
 
@@ -216,9 +216,9 @@ Before using this agent, ensure you have:
 - Provides clean, structured context without manual engineering
 
 **Temporal Versioning System**:
-- **(1,0)**: current_ind=1, future_ind=0 ’ Mark for deletion
-- **(0,1)**: current_ind=0, future_ind=1 ’ Mark for creation
-- **(1,1)**: current_ind=1, future_ind=1 ’ Mark for modification
+- **(1,0)**: current_ind=1, future_ind=0 ï¿½ Mark for deletion
+- **(0,1)**: current_ind=0, future_ind=1 ï¿½ Mark for creation
+- **(1,1)**: current_ind=1, future_ind=1 ï¿½ Mark for modification
 
 **Step A01: Test Interface Changes**
 ```bash
@@ -257,15 +257,15 @@ LLM-cozoDB-to-context-writer --query "
 
 **User Experience**:
 ```
-=Ý Processing change request: "Add async support to database layer"
->ê Step A01: Created 3 test interface changes in CozoDB
-=Ë Step A02: Propagated to 23 non-test interface changes
+=ï¿½ Processing change request: "Add async support to database layer"
+>ï¿½ Step A01: Created 3 test interface changes in CozoDB
+=ï¿½ Step A02: Propagated to 23 non-test interface changes
 =. Step B01: Generated future code using 2-hop dependency analysis
->† Step B02: Rubber duck validation complete
-=Ê Generated change specification:
-   - Modify 15 interfaces (1,1) ’ Updated future_code
-   - Add 5 new interfaces (0,1) ’ Generated from scratch
-   - Remove 3 deprecated interfaces (1,0) ’ Marked for deletion
+>ï¿½ Step B02: Rubber duck validation complete
+=ï¿½ Generated change specification:
+   - Modify 15 interfaces (1,1) ï¿½ Updated future_code
+   - Add 5 new interfaces (0,1) ï¿½ Generated from scratch
+   - Remove 3 deprecated interfaces (1,0) ï¿½ Marked for deletion
    - Confidence: 87%
 ```
 
@@ -288,7 +288,7 @@ LLM-cozoDB-to-context-writer --query "
  Type validation passed
  Borrow checker passed
  Tests passed (142/142)
-<¯ Validation successful - proceeding to file writing
+<ï¿½ Validation successful - proceeding to file writing
 
 ---
 
@@ -296,43 +296,43 @@ LLM-cozoDB-to-context-writer --query "
 < Language: Python (basic validation)
  Syntax validation passed
  Interface consistency check passed
-   Build/test validation deferred to user
-<¯ Basic validation successful - proceeding to file writing
+ï¿½  Build/test validation deferred to user
+<ï¿½ Basic validation successful - proceeding to file writing
 ```
 
-### Phase 4: File Writing & Testing
+### Phase 4: Diff Generation & File Writing
 
-**Objective**: Apply validated changes to actual files and perform minimal validation
+**Objective**: Generate CodeDiff.json for LLM to apply changes and perform minimal validation
 
 **Actions**:
-1. Run Tool 5 to write changes with **single reliable operation (NO BACKUP OPTIONS)**
-2. Apply changes atomically with **single write operation**
+1. Run Tool 5 to generate CodeDiff.json from CozoDB (entities with Future_Action != None)
+2. LLM reads CodeDiff.json and applies changes to files with **single reliable operation**
 3. **MINIMAL VERIFICATION** (MVP approach):
    - **Build Validation**: Run cargo build
    - **Test Validation**: Run cargo test
 
 **Validation Recovery Loops (MVP Simplified)**:
-- **Build fails (Rust)** ’ Fix syntax/dependency issues ’ Re-write files
-- **Tests fail (Rust)** ’ Fix logic issues ’ Back to Phase 3 (re-validation)
-- **Syntax errors (All)** ’ Fix language-specific syntax ’ Re-write files
+- **Build fails (Rust)** ï¿½ Fix syntax/dependency issues ï¿½ Re-write files
+- **Tests fail (Rust)** ï¿½ Fix logic issues ï¿½ Back to Phase 3 (re-validation)
+- **Syntax errors (All)** ï¿½ Fix language-specific syntax ï¿½ Re-write files
 
 **User Experience**:
 ```
-=Á Writing changes to files...
-=Ý Modified 23 files across 4 modules (single reliable write)
+=ï¿½ Writing changes to files...
+=ï¿½ Modified 23 files across 4 modules (single reliable write)
 < Language: Rust (enhanced validation)
 =( Building project... 
->ê Running tests...  (142/142 passed)
+>ï¿½ Running tests...  (142/142 passed)
  Minimal validation successful - changes applied!
 
 ---
 
-=Á Writing changes to files...
-=Ý Modified 15 Python files across 3 modules (single reliable write)
+=ï¿½ Writing changes to files...
+=ï¿½ Modified 15 Python files across 3 modules (single reliable write)
 < Language: Python (basic validation)
  Syntax validation passed
  Interface consistency validated
-   Please run your build/test commands to verify functionality
+ï¿½  Please run your build/test commands to verify functionality
  File writing completed - basic validation successful!
 ```
 
@@ -349,10 +349,10 @@ LLM-cozoDB-to-context-writer --query "
 **User Experience**:
 ```
 = Are you satisfied with these changes? [y/N]: y
-=Ê Resetting database state (ultra-minimal approach)...
-=Ñ  Deleted CodeGraph table
+=ï¿½ Resetting database state (ultra-minimal approach)...
+=ï¿½  Deleted CodeGraph table
 = Re-triggering folder-to-cozoDB-streamer...
-=Ý Git commit: "feat: add async support to database layer"
+=ï¿½ Git commit: "feat: add async support to database layer"
  Workflow completed successfully!
 ```
 
@@ -389,13 +389,14 @@ LLM-cozoDB-to-context-writer --query "
 - **Output**: Rust-specific validation results
 - **Language Scope**: Rust projects only (skipped for non-Rust code)
 
-### Tool 5: LLM-cozoDB-to-code-writer
-- **When**: Phase 4 (file writing)
-- **Purpose**: Write validated changes to actual files with **single reliable operation**
-- **Input**: Validated changes from CozoDB
-- **Output**: Modified files (NO BACKUP OPTIONS)
-- **Language Support**: Multi-language file writing capabilities
-- **ULTRA-MINIMAL**: NO backup options, NO multiple safety levels, NO configuration complexity
+### Tool 5: LLM-cozodb-to-diff-writer
+- **When**: Phase 4 (diff generation)
+- **Purpose**: Generate CodeDiff.json for LLM to apply changes
+- **Input**: Validated temporal state from CozoDB (entities with Future_Action != None)
+- **Output**: CodeDiff.json file with structured change instructions
+- **Language Support**: Multi-language diff context generation
+- **ULTRA-MINIMAL**: NO backup options, NO configuration complexity, single JSON output
+- **LLM Application**: LLM reads CodeDiff.json and applies changes to files
 
 ### Tool 6: cozoDB-make-future-code-current
 - **When**: Phase 5 (cleanup)
@@ -407,7 +408,7 @@ LLM-cozoDB-to-context-writer --query "
 ## Safety Mechanisms
 
 ### Atomic Operations
-- All file writes are atomic with **single reliable operation**
+- Tool 5 generates CodeDiff.json, LLM applies changes with **single reliable operation**
 - **NO BACKUP OPTIONS** (ultra-minimalist approach)
 - Database transactions ensure consistency
 
@@ -426,7 +427,7 @@ LLM-cozoDB-to-context-writer --query "
 ### Simple Interface Changes
 ```
 Request: "Add timeout parameter to all database connection methods"
-Workflow: Phase 1 ’ Phase 2(A01’A02’B01’B02) ’ Phase 3 ’ Phase 4 ’ Phase 5
+Workflow: Phase 1 ï¿½ Phase 2(A01ï¿½A02ï¿½B01ï¿½B02) ï¿½ Phase 3 ï¿½ Phase 4 ï¿½ Phase 5
 Expected Time: 5-10 minutes
 Temporal Changes: (1,1) modifications to 3 existing interfaces
 ```
@@ -434,7 +435,7 @@ Temporal Changes: (1,1) modifications to 3 existing interfaces
 ### Complex Refactoring
 ```
 Request: "Convert sync database layer to async with proper error handling"
-Workflow: Multiple iterations through Phase 2(A01’A02’B01’B02) ’ Phase 3 ’ Phase 4
+Workflow: Multiple iterations through Phase 2(A01ï¿½A02ï¿½B01ï¿½B02) ï¿½ Phase 3 ï¿½ Phase 4
 Expected Time: 20-40 minutes
 Temporal Changes:
   - Delete: (1,0) sync interfaces
@@ -445,7 +446,7 @@ Temporal Changes:
 ### Feature Addition
 ```
 Request: "Add caching layer with TTL support to HTTP client"
-Workflow: Phase 1 ’ Phase 2(multiple A01’A02’B01’B02 iterations) ’ Phase 3 ’ Phase 4 ’ Phase 5
+Workflow: Phase 1 ï¿½ Phase 2(multiple A01ï¿½A02ï¿½B01ï¿½B02 iterations) ï¿½ Phase 3 ï¿½ Phase 4 ï¿½ Phase 5
 Expected Time: 15-30 minutes
 Temporal Changes:
   - A01: Create test cache interfaces (0,1)

@@ -56,7 +56,7 @@ flowchart TD
         end
 
         Tool4["Tool 4<br/>rust-preflight<br/>Enhanced Validation"]
-        Phase4 --> Tool5["Tool 5<br/>LLM-cozoDB-to-code-writer<br/>Single Reliable Write<br/>(No Backup Options)"]
+        Phase4 --> Tool5["Tool 5<br/>LLM-cozodb-to-diff-writer<br/>Generate CodeDiff.json<br/>(LLM Applies Changes)"]
         Phase5 --> Tool6["Tool 6<br/>cozoDB-make-future-code-current<br/>Delete Table +<br/>Re-trigger Indexing"]
     end
 
@@ -80,8 +80,9 @@ flowchart TD
     end
 
     subgraph FileSystem ["File System Operations"]
-        Tool4 --> Files["Rust Source<br/>Files"]
-        Files --> |"Single Reliable Write<br/>(No Backup Options)"| Modified["Modified<br/>Files"]
+        Tool5 --> DiffJSON["CodeDiff.json"]
+        DiffJSON --> |"LLM Reads & Applies"| Files["Rust Source<br/>Files"]
+        Files --> Modified["Modified<br/>Files"]
     end
 
     subgraph Phase2Detail ["Phase 2: Detailed Reasoning"]
@@ -123,7 +124,7 @@ flowchart TD
 **State Transition Flow**:
 ```
 Phase 2: LLM sets (current_ind, future_ind, Future_Code, Future_Action)
-Phase 4: Apply changes → Files reflect future state
+Phase 4: Tool 5 generates CodeDiff.json → LLM applies changes → Files reflect future state
 Phase 5: Reset database → (1,1, current_code=Future_Code, future_ind=1)
 ```
 
@@ -154,7 +155,7 @@ parseltongue reason --query "
 **MVP Ultra-Minimalist Principles (~10 users)**:
 - **Target**: ~10 users - focus on essential functionality that works reliably
 - **Philosophy**: Simplicity over complexity - each tool does ONE thing well
-- **Tool 5**: NO backup options, NO multiple safety levels, NO configuration complexity
+- **Tool 5**: NO backup options, NO multiple safety levels, NO configuration complexity (generates CodeDiff.json for LLM)
 - **Tool 6**: NO backup metadata files, NO configuration options
 - **Goal**: Maximum reliability through simplicity
 

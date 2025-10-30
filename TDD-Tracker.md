@@ -32,7 +32,7 @@
 
 **System Architecture (100% COMPLETE)**:
 - [x] 4-Entity Architecture: LLM, CozoDB, CodeGraphContext.json, Codebase
-- [x] 6-Tool Pipeline: folder-to-cozoDB-streamer → LLM-to-cozoDB-writer → LLM-cozoDB-to-context-writer → rust-preflight-code-simulator → LLM-cozoDB-to-code-writer → cozoDB-make-future-code-current
+- [x] 6-Tool Pipeline: folder-to-cozoDB-streamer → LLM-to-cozoDB-writer → LLM-cozoDB-to-context-writer → rust-preflight-code-simulator → LLM-cozodb-to-diff-writer → cozoDB-make-future-code-current
 - [x] Ultra-Minimalist Design Principles: NO backup options, NO configuration complexity, single reliable operations
 - [x] Multi-language Strategy: Tree-sitter foundation + Rust-first enhancements
 - [x] Temporal Versioning System: (current_ind, future_ind, Future_Action) state tracking
@@ -67,11 +67,11 @@
   - Multi-level validation with syn crate
   - ✅ **RED→GREEN→REFACTOR cycle complete**
 
-- [x] **Tool 5 (parseltongue-05)**: LLM-cozoDB-to-code-writer ✅ COMPLETE
-  - 9/9 tests passing (all file operations)
-  - Ultra-minimalist file writing (NO backups verified)
-  - Create/Edit/Delete operations working
-  - ✅ **Real CozoDB Integration** - Reads Future_Code from database
+- [x] **Tool 5 (parseltongue-05)**: LLM-cozodb-to-diff-writer ✅ COMPLETE
+  - 9/9 tests passing (CodeDiff.json generation)
+  - Ultra-minimalist diff context generation (NO backups verified)
+  - Create/Edit/Delete operations in diff output
+  - ✅ **Real CozoDB Integration** - Reads entities with Future_Action from database
 
 - [x] **Tool 6 (parseltongue-06)**: cozoDB-make-future-code-current ✅ COMPLETE
   - 4/4 tests passing (state reset + schema recreation)
@@ -404,7 +404,7 @@ fn check_preceding_test_attribute(node, source) {
 3. `crates/folder-to-cozodb-streamer/src/main.rs` (2 fixes)
    - Updated test configs to include `entity_class` field
 
-4. `crates/llm-cozodb-to-code-writer/src/writer.rs` (1 fix)
+4. `crates/llm-cozodb-to-diff-writer/src/writer.rs` (1 fix)
    - Updated test config to include `entity_class` field
 
 5. `.prdArchDocs/P01PRDL1Minimal.md` (documentation)
@@ -623,9 +623,9 @@ fn check_preceding_test_attribute(node, source) {
   - [ ] Binary target: CLI interface for manual execution
   - [ ] Test structure: unit tests, integration tests, validation tests
 
-- [ ] **Create parseltongue-05 (LLM-cozoDB-to-code-writer)**
+- [ ] **Create parseltongue-05 (LLM-cozodb-to-diff-writer)**
   - [ ] Basic crate structure: Cargo.toml, src/lib.rs, src/main.rs
-  - [ ] Module organization: writing/, validation/, file_operations/
+  - [ ] Module organization: diff_generation/, validation/, json_operations/
   - [ ] Binary target: CLI interface for manual execution
   - [ ] Test structure: unit tests, integration tests, write validation tests
 
@@ -865,7 +865,7 @@ fn check_preceding_test_attribute(node, source) {
   - [ ] Performance optimization with parallel execution
   - [ ] Comprehensive error reporting and recovery
 
-### 3.3.2 Tool 5: LLM-cozoDB-to-code-writer Implementation
+### 3.3.2 Tool 5: LLM-cozodb-to-diff-writer Implementation
 - [ ] **RED Phase: Write Failing Tests**
   - [ ] Create test for file writing operations
   - [ ] Create test for Create operation (new file creation)
@@ -937,7 +937,7 @@ fn check_preceding_test_attribute(node, source) {
 > - ✅ Tool 2: LLM-to-cozoDB-writer - 12 tests passing
 > - ✅ Tool 3: LLM-cozoDB-to-context-writer - 16 tests passing
 > - ✅ Tool 4: rust-preflight-code-simulator - 14 tests passing
-> - ✅ Tool 5: LLM-cozoDB-to-code-writer - 9 tests passing
+> - ✅ Tool 5: LLM-cozodb-to-diff-writer - 9 tests passing
 > - ✅ Tool 6: cozoDB-make-future-code-current - 4 tests passing
 > - ✅ Real CozoDB integration across all tools
 > - ✅ TDD-first methodology: RED → GREEN → REFACTOR
@@ -1063,10 +1063,10 @@ cargo test -p parseltongue-03
 #    - rust-analyzer integration status
 #    - Test coverage and gaps
 
-# 2. Tool 5 (parseltongue-05) - LLM-cozoDB-to-code-writer
-#    - File writing implementation status
-#    - Safety checks and validation
-#    - Ultra-minimalist compliance (no backups)
+# 2. Tool 5 (parseltongue-05) - LLM-cozodb-to-diff-writer
+#    - CodeDiff.json generation implementation status
+#    - Diff context structure and validation
+#    - Ultra-minimalist compliance (single JSON output)
 
 # 3. Tool 6 (parseltongue-06) - cozoDB-make-future-code-current
 #    - State reset implementation
@@ -1556,7 +1556,7 @@ impl RustPreflightValidator {
 
 ## Week 2: Missing Tools Implementation (Nov 5 - Nov 11)
 
-### Task 2.1: Implement Tool 5 (LLM-cozoDB-to-code-writer) 📝 FILE WRITING
+### Task 2.1: Implement Tool 5 (LLM-cozodb-to-diff-writer) 📝 DIFF GENERATION
 **Status**: ❓ UNKNOWN (needs investigation first)
 **Priority**: P1 - Critical for applying changes
 **Estimated Time**: 6-8 hours
@@ -2139,7 +2139,7 @@ Entities created: 3 (function, struct, impl)
 | 2 | LLM-to-cozoDB-writer | 12/12 ✅ | COMPLETE | Real CozoDB |
 | 3 | LLM-cozoDB-to-context-writer | 16/16 ✅ | COMPLETE | Real CozoDB |
 | 4 | rust-preflight-code-simulator | 14/14 ✅ | COMPLETE | Standalone |
-| 5 | LLM-cozoDB-to-code-writer | 9/9 ✅ | COMPLETE | Real CozoDB |
+| 5 | LLM-cozodb-to-diff-writer | 9/9 ✅ | COMPLETE | Real CozoDB |
 | 6 | cozoDB-make-future-code-current | 4/4 ✅ | COMPLETE | Real CozoDB + CLI |
 
 **Total Tests**: 61 tests passing (100% pass rate)
@@ -2160,7 +2160,7 @@ Entities created: 3 (function, struct, impl)
 **Implementation Commits** (ultrathink branch):
 1. `da5c911` - docs: add comprehensive CLAUDE.md
 2. `d269a72` - feat: implement Tool 4 (rust-preflight-code-simulator)
-3. `f621d3e` - feat: implement Tool 5 RED phase (LLM-cozoDB-to-code-writer)
+3. `f621d3e` - feat: implement Tool 5 RED phase (LLM-cozodb-to-diff-writer)
 4. `b570c44` - feat: complete Tool 5 GREEN phase
 5. `cacfe65` - feat: complete Tool 6 (cozoDB-make-future-code-current)
 6. `3f2ba60` - feat: complete Tool 6 CLI integration

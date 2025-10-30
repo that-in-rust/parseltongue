@@ -4,7 +4,7 @@
 ## MVP Ultra-Minimalist Principles (~10 users)
 **Target**: ~10 users - focus on essential functionality that works reliably
 **Philosophy**: Simplicity over complexity - each tool does ONE thing well
-**Tool 5 (LLM-cozoDB-to-code-writer)**: NO backup options, NO multiple safety levels, NO configuration complexity
+**Tool 5 (LLM-cozodb-to-diff-writer)**: NO backup options, NO multiple safety levels, NO configuration complexity (generates CodeDiff.json for LLM)
 **Tool 6 (cozoDB-make-future-code-current)**: NO backup metadata files, NO configuration options - Delete table + re-trigger indexing
 **Goal**: Maximum reliability through ultra-minimalist approach
 
@@ -29,7 +29,7 @@ folder-to-cozoDB-streamer ./src --parsing-library tree-sitter --chunking ISGL1 -
 LLM-to-cozoDB-writer --query-temporal "INSERT INTO Code_Graph VALUES (...)" --database ./parseltongue.db
 LLM-cozoDB-to-context-writer --query "SELECT * FROM Code_Graph WHERE current_ind=1" --database ./parseltongue.db --output-context CodeGraphContext.json
 rust-preflight-code-simulator validation_output.json --validation-type all
-LLM-cozoDB-to-code-writer validation.json --database ./parseltongue.db
+LLM-cozodb-to-diff-writer --database ./parseltongue.db --output CodeDiff.json
 cozoDB-make-future-code-current --project-path . --database ./parseltongue.db
 
 # Mixed approach (agent reasoning + manual execution)

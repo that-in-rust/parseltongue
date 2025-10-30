@@ -7,13 +7,13 @@
 
 ### **TOOL SIMPLICITY RULES:**
 
-**Tool 5 (LLM-cozoDB-to-code-writer) - MINIMALIST:**
+**Tool 5 (LLM-cozodb-to-diff-writer) - MINIMALIST:**
 - NO backup options (MVP doesn't need them)
 - NO multiple safety levels (complex to debug)
-- NO configuration complexity (single reliable write operation)
-- **SINGLE PURPOSE**: Write from CozoDB to files reliably
-- **EASY DEBUGGING**: Clear, traceable operations
-- **FOCUS**: Get the job done reliably, simply
+- NO configuration complexity (single reliable JSON generation)
+- **SINGLE PURPOSE**: Generate CodeDiff.json from CozoDB for LLM to apply changes
+- **EASY DEBUGGING**: Clear JSON output, inspectable by humans and LLMs
+- **FOCUS**: Provide LLM with exactly what code changes to apply
 
 **Tool 6 (cozoDB-make-future-code-current) - MINIMALIST:**
 - NO backup metadata files (unnecessary complexity)
@@ -154,11 +154,13 @@ This ensures LLM has exactly what it needs - no more, no less.
                         - Step C: Tool 4: `rust-preflight-code-simulator validation_output.json --validation-type all` triggered for Rust use cases with rust-analyzer overlay:
                             - If the rust-preflight-code-simulator tool fails then we go back to previous steps A01 onwards
                             - If the rust-preflight-code-simulator tool passes then we move to next step
-                        - Step D: Run Tool 5: `LLM-cozoDB-to-code-writer validation.json --database ./parseltongue.db`:
-                            - **MVP SIMPLIFIED**: Write changes from CozoDB to code files (single reliable operation)
-                            - Step D01: Write the validated future_code to actual files (atomic operations)
-                            - Step D02: Run cargo build to verify compilation
-                            - Step D03: Run cargo test to verify functionality
+                        - Step D: Run Tool 5: `LLM-cozodb-to-diff-writer --database ./parseltongue.db --output CodeDiff.json`:
+                            - **MVP SIMPLIFIED**: Generate CodeDiff.json from CozoDB (single reliable operation)
+                            - Step D01: Extract entities with Future_Action != None from CozoDB
+                            - Step D02: Generate structured CodeDiff.json with future_code, file paths, and operations (Create/Edit/Delete)
+                            - Step D03: LLM reads CodeDiff.json and applies changes to codebase files
+                            - Step D04: LLM runs cargo build to verify compilation
+                            - Step D05: LLM runs cargo test to verify functionality
                             - **MINIMAL VERIFICATION**: Basic build/test validation (MVP approach)
                             - If validation fails, go back to previous steps A01 onwards with specific error details
                             - If all validations pass, we move to next step

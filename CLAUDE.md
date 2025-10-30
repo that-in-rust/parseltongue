@@ -100,7 +100,7 @@ Codebase → [Tool 1] → CozoDB → [Tool 2] → CozoDB → [Tool 3] → Contex
 
 4. **parseltongue-04** (rust-preflight-code-simulator): Validate proposed changes through syntax → build → test pipeline. Rust-first with graceful degradation for other languages. **NOT YET IMPLEMENTED**.
 
-5. **parseltongue-05** (LLM-cozoDB-to-code-writer): Write Future_Code to actual files. Ultra-minimalist: NO backups, direct file operations. **NOT YET IMPLEMENTED**.
+5. **parseltongue-05** (LLM-cozodb-to-diff-writer): Generate CodeDiff.json from CozoDB for LLM consumption. LLM reads JSON and applies changes to files. Ultra-minimalist: NO backups, single JSON output. **NOT YET IMPLEMENTED**.
 
 6. **parseltongue-06** (cozoDB-make-future-code-current): Reset temporal state by deleting CodeGraph table and re-indexing. Ultra-minimalist: NO backup metadata. **NOT YET IMPLEMENTED**.
 
