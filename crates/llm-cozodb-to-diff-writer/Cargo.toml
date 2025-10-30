@@ -1,5 +1,5 @@
 [package]
-name = "llm-cozodb-to-code-writer"
+name = "llm-cozodb-to-diff-writer"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -7,8 +7,8 @@ license.workspace = true
 repository.workspace = true
 homepage.workspace = true
 rust-version.workspace = true
-description = "Ultra-minimalist file writer for Parseltongue - writes code from CozoDB to files"
-keywords = ["file-writer", "cozodb", "ultra-minimalist", "parseltongue"]
+description = "CodeDiff.json generator for Parseltongue - generates diff context from CozoDB for LLM consumption"
+keywords = ["diff-generator", "cozodb", "ultra-minimalist", "parseltongue"]
 categories = ["development-tools"]
 
 [dependencies]
@@ -34,11 +34,11 @@ tempfile.workspace = true
 tokio-test.workspace = true
 
 [[bin]]
-name = "llm-cozodb-to-code-writer"
+name = "llm-cozodb-to-diff-writer"
 path = "src/main.rs"
 
 [lib]
-name = "llm_cozodb_to_code_writer"
+name = "llm_cozodb_to_diff_writer"
 path = "src/lib.rs"
 
 [package.metadata.docs.rs]

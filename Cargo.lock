@@ -560,6 +560,7 @@ dependencies = [
  "async-trait",
  "clap",
  "console",
+ "folder-to-cozodb-streamer",
  "parseltongue-core",
  "serde",
  "serde_json",
@@ -1476,27 +1477,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
 
 [[package]]
-name = "llm-cozodb-to-code-writer"
-version = "0.7.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "clap",
- "console",
- "criterion",
- "indicatif",
- "parseltongue-core",
- "proptest",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "tokio",
- "tokio-test",
-]
-
-[[package]]
 name = "llm-cozodb-to-context-writer"
 version = "0.7.0"
 dependencies = [
@@ -1519,6 +1499,27 @@ dependencies = [
  "tokio",
  "tokio-test",
  "uuid",
+]
+
+[[package]]
+name = "llm-cozodb-to-diff-writer"
+version = "0.7.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "clap",
+ "console",
+ "criterion",
+ "indicatif",
+ "parseltongue-core",
+ "proptest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tokio-test",
 ]
 
 [[package]]
@@ -1888,8 +1889,8 @@ dependencies = [
  "anyhow",
  "cozodb-make-future-code-current",
  "folder-to-cozodb-streamer",
- "llm-cozodb-to-code-writer",
  "llm-cozodb-to-context-writer",
+ "llm-cozodb-to-diff-writer",
  "llm-to-cozodb-writer",
  "parseltongue-core",
  "rust-preflight-code-simulator",

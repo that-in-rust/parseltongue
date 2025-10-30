@@ -16,6 +16,10 @@ pub struct Cli {
     /// Enable verbose output
     #[arg(short, long)]
     pub verbose: bool,
+
+    /// Automatically re-index after reset (PRD-compliant)
+    #[arg(long, default_value_t = true)]
+    pub reindex: bool,
 }
 
 impl Cli {

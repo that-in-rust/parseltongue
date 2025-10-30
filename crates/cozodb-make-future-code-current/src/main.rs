@@ -5,6 +5,7 @@ use parseltongue_core::storage::CozoDbStorage;
 mod cli;
 
 use cozodb_make_future_code_current::StateResetManager;
+use folder_to_cozodb_streamer::{streamer::FileStreamer, StreamerConfig, ToolFactory};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -47,10 +48,40 @@ async fn main() -> Result<()> {
     println!("  Entities deleted: {}", result.entities_deleted);
     println!("  Schema recreated: {}", if result.schema_recreated { style("✓").green() } else { style("✗").red() });
 
-    println!("\n{}", style("Next Steps:").bold().yellow());
-    println!("  1. Run Tool 1 (parseltongue-01) to re-index project");
-    println!("  2. Run Tool 2 (parseltongue-02) to generate Future_Code");
-    println!("  3. Validate and write changes with Tools 4-5");
+    // PRD-compliant re-indexing (Tool 1 integration)
+    if cli.reindex {
+        println!("\n{}", style("Re-indexing project (Tool 1)...").bold().yellow());
+
+        // Configure Tool 1 with same database
+        let indexer_config = StreamerConfig {
+            root_dir: cli.project_path.clone(),
+            db_path: format!("rocksdb:{}", cli.database.display()),
+            max_file_size: 1024 * 1024, // 1MB default
+            include_patterns: vec!["*.rs".to_string()],
+            exclude_patterns: vec!["target/**".to_string()],
+            parsing_library: "tree-sitter".to_string(),
+            chunking: "ISGL1".to_string(),
+        };
+
+        // Run Tool 1 streaming
+        let streamer = ToolFactory::create_streamer(indexer_config).await?;
+        let index_result = streamer.stream_directory().await?;
+
+        if cli.verbose {
+            println!("  {} Files processed: {}", style("✓").green(), index_result.processed_files);
+            println!("  {} Entities created: {}", style("✓").green(), index_result.entities_created);
+        }
+
+        println!("\n{}", style("Complete Cycle Finished!").bold().green());
+        println!("  {} Reset complete", style("✓").green());
+        println!("  {} Re-indexing complete", style("✓").green());
+        println!("  {} Ready for next iteration", style("✓").green());
+    } else {
+        println!("\n{}", style("Next Steps (Manual):").bold().yellow());
+        println!("  1. Run Tool 1 (folder-to-cozodb-streamer) to re-index project");
+        println!("  2. Run Tool 2 (LLM-to-cozoDB-writer) to generate Future_Code");
+        println!("  3. Validate and write changes with Tools 4-5");
+    }
 
     Ok(())
 }
