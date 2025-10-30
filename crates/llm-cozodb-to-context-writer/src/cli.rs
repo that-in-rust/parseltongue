@@ -1,7 +1,6 @@
 //! Command-line interface for parseltongue-03.
 
 use clap::{Arg, Command};
-use std::path::PathBuf;
 
 use crate::ContextWriterConfig;
 
@@ -22,6 +21,7 @@ impl CliConfig {
                 Arg::new("database")
                     .short('b')
                     .long("db")
+                    .alias("database")
                     .value_name("PATH")
                     .help("Database file path")
                     .default_value("parseltongue.db"),
@@ -72,8 +72,8 @@ impl CliConfig {
                     .short('q')
                     .long("query")
                     .value_name("QUERY")
-                    .help("Query to select entity graph for context generation")
-                    .default_value("MATCH (e:Entity)-[r:RELATED_TO]->(n:Entity) RETURN e, r, n LIMIT 100"),
+                    .help("CozoDB query for context extraction (PRD: excludes Current_Code/Future_Code)")
+                    .default_value("SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph WHERE current_ind=1"),
             )
             .arg(
                 Arg::new("max-context-tokens")

@@ -60,6 +60,14 @@ pub enum ContextWriterError {
     /// Timeout errors
     #[error("Operation timed out: {operation} after {seconds}s")]
     TimeoutError { operation: String, seconds: u64 },
+
+    /// Context size exceeds token limit (PRD requirement)
+    #[error("Context too large: {actual} tokens > {limit} token limit")]
+    ContextTooLarge { actual: usize, limit: usize },
+
+    /// Database connection or operation errors
+    #[error("Database error: {reason}")]
+    DatabaseError { reason: String },
 }
 
 /// Error recovery strategies

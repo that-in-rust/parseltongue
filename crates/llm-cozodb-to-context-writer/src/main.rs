@@ -1,13 +1,12 @@
 //! Main entry point for parseltongue-03.
 
-use std::sync::Arc;
 use console::{style, Term};
 use anyhow::Result;
 
 use llm_cozodb_to_context_writer::{
     cli::CliConfig,
     errors::ContextWriterError,
-    context_optimizer::{ContextOptimizer, ContextOptimizerImpl, ContextResult},
+    context_optimizer::{ContextOptimizer, ContextResult},
     llm_client::ContextLlmClient,
     ToolFactory,
     ContextWriterConfig,
@@ -15,7 +14,7 @@ use llm_cozodb_to_context_writer::{
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let term = Term::stdout();
+    let _term = Term::stdout();
 
     // Parse CLI arguments
     let cli = CliConfig::build_cli();
@@ -98,8 +97,8 @@ async fn run_optimizer(
     quiet: bool,
     dry_run: bool,
 ) -> Result<ContextResult, ContextWriterError> {
-    // Create optimizer instance using factory
-    let optimizer = ToolFactory::create_context_optimizer(config.clone())?;
+    // Create optimizer instance using async factory (with dependency injection)
+    let optimizer = ToolFactory::create_context_optimizer(config.clone()).await?;
 
     if verbose && !quiet {
         println!("Configuration:");

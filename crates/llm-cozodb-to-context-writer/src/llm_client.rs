@@ -1,13 +1,12 @@
 //! LLM client for context generation and optimization.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::errors::*;
-use parseltongue_core::entities::{CodeEntity, EntityType, Language, EntityMetadata, TemporalAction, InterfaceSignature, Visibility, LineRange};
+use parseltongue_core::entities::CodeEntity;
 
 /// Context optimization request
 #[derive(Debug, Clone, Serialize, Deserialize)]

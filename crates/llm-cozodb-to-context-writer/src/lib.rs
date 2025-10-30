@@ -9,8 +9,8 @@
 #![warn(rust_2018_idioms)]
 #![allow(missing_docs)]
 
-use std::collections::HashMap;
 use std::sync::Arc;
+use serde::{Deserialize, Serialize};
 
 pub mod cli;
 pub mod context_optimizer;
@@ -68,10 +68,18 @@ impl Default for ContextWriterConfig {
 pub struct ToolFactory;
 
 impl ToolFactory {
-    /// Create a new context optimizer instance
-    pub fn create_context_optimizer(config: ContextWriterConfig) -> Result<Arc<ContextOptimizerImpl>> {
+    /// Create a new context optimizer instance (async factory method)
+    pub async fn create_context_optimizer(config: ContextWriterConfig) -> Result<Arc<ContextOptimizerImpl>> {
+        // Create storage instance
+        let storage = parseltongue_core::storage::CozoDbStorage::new(&config.db_path)
+            .await
+            .map_err(|e| ContextWriterError::DatabaseError {
+                reason: format!("Failed to create storage: {}", e)
+            })?;
+
+        let storage = Arc::new(storage);
         let llm_client = Arc::new(ContextLlmClientImpl::new(config.clone()));
-        let optimizer = Arc::new(ContextOptimizerImpl::new(config, llm_client));
+        let optimizer = Arc::new(ContextOptimizerImpl::new(storage, config, llm_client));
         Ok(optimizer)
     }
 
@@ -79,4 +87,31 @@ impl ToolFactory {
     pub fn create_llm_client(config: ContextWriterConfig) -> Arc<ContextLlmClientImpl> {
         ContextLlmClientFactory::new(config)
     }
+}
+
+/// Minimal entity representation (PRD-compliant: excludes current_code/future_code)
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct MinimalEntity {
+    /// ISGL1 primary key
+    pub isgl1_key: String,
+    /// Interface signature (formatted string)
+    pub interface_signature: String,
+    /// TDD classification (formatted string)
+    pub tdd_classification: String,
+    /// Optional LSP metadata
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lsp_metadata: Option<String>,
+}
+
+/// CodeGraphContext output format (PRD specification)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CodeGraphContext {
+    /// Minimal entities (ONLY: ISGL1, interface, TDD, LSP - NO code fields)
+    pub entities: Vec<MinimalEntity>,
+    /// Total number of entities
+    pub entity_count: usize,
+    /// Estimated token count
+    pub token_count: usize,
+    /// Generation timestamp
+    pub generated_at: String,
 }

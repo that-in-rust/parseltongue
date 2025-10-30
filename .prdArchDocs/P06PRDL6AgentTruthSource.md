@@ -24,6 +24,41 @@ A specialized Claude Code agent for managing automated bug fixing workflows usin
 - **CLEAN OPERATION**: Delete current state, rebuild from source files
 - **RELIABILITY**: Simpler = fewer failure points
 
+### **CONTEXT OPTIMIZATION FOR MVP:**
+
+**PRINCIPLE**: MINIMIZE LLM CONTEXT BLOAT - THIS IS EXTREMELY IMPORTANT
+
+**READING STRATEGY:**
+1. **EXCLUDE** current_code by default (major bloat source)
+2. **ALLOW** reading future_code ONLY for rows being changed
+3. **ALLOW** reading current_code ONLY for rows being changed (when absolutely needed)
+4. **FILTER**: Only load rows where `Future_Action != None` for detailed analysis
+
+**CONTEXT BLOAT PREVENTION:**
+- Default: Load only interface signatures + metadata (no code content)
+- Exception: Load future_code for rows that will actually change
+- Exception: Load current_code for changing rows (only when absolutely necessary)
+- Result: Dramatically reduced context while maintaining all necessary information
+
+**TOKEN CALCULATION** (Optimized without current_code):
+- Avg interface size is 1000 to 1500 nodes
+- 1500 nodes × 3 tokens for ISGL1 = 4,500 tokens
+- 1500 nodes × 7 tokens for interface_signature = 10,500 tokens
+- 1500 nodes × 1 tokens for TDD_Classification = 1,500 tokens
+- 1500 nodes × 15 tokens for lsp_meta_data = 22,500 tokens
+- **SAFE TOTAL**: 37.5k tokens + micro-PRD (5k tokens) + iterations (15k tokens) = ~57.5k tokens
+- **DANGER ZONE**: Including current_code could push context to 500k+ tokens, causing failures
+- **CONTEXT LIMIT**: Must stay under 100k tokens for reliable LLM operation
+
+**IMPLEMENTATION PATTERN:**
+```
+Step B01: filter(Future_Action != None) => (minimal data + future_code + current_code_if_needed)
+Step B02: Rubber duck debugging with optimized context
+Step B03: Write changes with minimal verification
+```
+
+This ensures LLM has exactly what it needs - no more, no less.
+
 ## Purpose
 
 This agent orchestrates the complete Parseltongue workflow for Apple Silicon developers who need systematic bug fixes in multi-language codebases with enhanced support for Rust. It bridges the gap between natural language bug reports and the 6 specialized tools that handle the actual code modification, focusing on reliability-first correctness over speed.
@@ -269,16 +304,21 @@ LLM-cozoDB-to-context-writer --query "
    - Confidence: 87%
 ```
 
-### Phase 3: Pre-flight Validation
+### Phase 3: Syntax Validation (Ultra-Minimalist)
 
-**Objective**: Validate that proposed changes are syntactically correct and safe
+**Objective**: Validate that proposed future_code is syntactically correct before file writing
 
 **Actions**:
-1. Run Tool 4 (rust-preflight-code-simulator) for Rust projects (Tool 4 skipped for non-Rust)
-2. **Rust Projects**: Check compilation, type safety, and borrow checker
-3. **All Projects**: Basic syntax validation and interface consistency
-4. **Rust Projects**: Run cargo test on simulated changes
-5. Return to Phase 2 if validation fails
+1. Run Tool 4 (rust-preflight-code-simulator) on entities with Future_Action != None
+2. **Tree-sitter syntax validation ONLY**: Check for missing brackets, malformed expressions, keyword typos
+3. **NO compilation/type/borrow checking**: Deferred to Phase 4 after file writing (simpler, faster)
+4. Return to Phase 2 if syntax errors found with specific line/column details
+
+**Rationale** (from P01PRDL1Minimal.md):
+- Interface syntax already validated in Tool 1 during indexing
+- Cargo compiler catches type/logic errors more reliably after files are written
+- Ultra-minimalist: <20ms validation vs multi-second compilation
+- Simpler = fewer failure points
 
 **User Experience**:
 ```
@@ -364,6 +404,16 @@ LLM-cozoDB-to-context-writer --query "
 - **Input**: Project folder path (any tree-sitter supported language)
 - **Output**: CozoDB database with multi-language code graph
 - **Language Support**: All tree-sitter supported languages with enhanced LSP metadata for Rust
+- **ISGL1 Key Format Strategy**:
+  - **Existing Entities** (indexed by Tool 1): Line-based format
+    - Format: `{language}:{type}:{name}:{sanitized_path}:{start_line}-{end_line}`
+    - Example: `rust:fn:calculate_sum:src_lib_rs:42-56`
+    - Rationale: Precise location tracking for existing code with stable line numbers
+  - **New Entities** (created by Tool 2): Hash-based format
+    - Format: `{sanitized_filepath}-{entity_name}-{entity_type}-{hash8}`
+    - Example: `src_lib_rs-new_feature-fn-abc12345`
+    - Hash Algorithm: SHA-256(filepath + name + type + timestamp), first 8 characters
+    - Rationale: Stable identity for new entities before line numbers exist, avoids CRUD Create operation failure
 
 ### Tool 2: LLM-to-cozoDB-writer
 - **When**: Phase 2 (temporal reasoning & database updates)
@@ -383,11 +433,14 @@ LLM-cozoDB-to-context-writer --query "
   - Context filtering: Only load relevant code for LLM reasoning
 
 ### Tool 4: rust-preflight-code-simulator
-- **When**: Phase 3 (validation for Rust projects only)
-- **Purpose**: Rust-specific enhanced validation (compilation, type checking, borrow checking)
-- **Input**: Simulated changes for Rust code
-- **Output**: Rust-specific validation results
-- **Language Scope**: Rust projects only (skipped for non-Rust code)
+- **When**: Phase 3 (syntax validation before file writing)
+- **Purpose**: **ULTRA-MINIMALIST SYNTAX VALIDATION ONLY** - Tree-sitter syntax checking for entities with future_code
+- **Input**: Entities with Future_Action = Create | Edit from CozoDB
+- **Output**: Syntax validation results (pass/fail with line/column error details)
+- **Scope**: Multi-language syntax validation using tree-sitter
+- **Performance**: <20ms for typical change set (50 entities)
+- **DOES NOT VALIDATE**: Types, imports, lifetimes, logic (cargo build handles those in Phase 4)
+- **Rationale**: Interface syntax already validated in Tool 1, cargo compiler catches type/logic errors after file writing
 
 ### Tool 5: LLM-cozodb-to-diff-writer
 - **When**: Phase 4 (diff generation)

@@ -5,13 +5,12 @@ use std::time::{Duration, Instant};
 use std::path::Path;
 use std::collections::HashMap;
 use console::style;
-use indicatif::{ProgressBar, ProgressStyle};
-use async_trait::async_trait;
-use rayon::prelude::*;
 
 use crate::errors::*;
 use crate::llm_client::*;
+use crate::{CodeGraphContext, MinimalEntity};
 use parseltongue_core::entities::{CodeEntity, EntityType, InterfaceSignature, Visibility, LineRange};
+use parseltongue_core::storage::CozoDbStorage;
 
 /// Context optimizer interface
 #[async_trait::async_trait]
@@ -71,24 +70,161 @@ pub struct GraphMetadata {
     pub analysis_timestamp: std::time::SystemTime,
 }
 
-/// Context optimizer implementation
+/// Context optimizer implementation (with Dependency Injection)
 pub struct ContextOptimizerImpl {
+    storage: Arc<CozoDbStorage>,
     config: crate::ContextWriterConfig,
     llm_client: Arc<ContextLlmClientImpl>,
     stats: std::sync::Mutex<ContextOptimizerStats>,
 }
 
 impl ContextOptimizerImpl {
-    /// Create new context optimizer
+    /// Create new context optimizer (with injected storage)
     pub fn new(
+        storage: Arc<CozoDbStorage>,
         config: crate::ContextWriterConfig,
         llm_client: Arc<ContextLlmClientImpl>,
     ) -> Self {
         Self {
+            storage,
             config,
             llm_client,
             stats: std::sync::Mutex::new(ContextOptimizerStats::default()),
         }
+    }
+
+    /// Convert CodeEntity to MinimalEntity (PRD-compliant: excludes current_code/future_code)
+    fn entity_to_minimal(&self, entity: &CodeEntity) -> MinimalEntity {
+        MinimalEntity {
+            isgl1_key: entity.isgl1_key.clone(),
+            interface_signature: format!(
+                "{:?} {}",
+                entity.interface_signature.entity_type,
+                entity.interface_signature.name
+            ),
+            tdd_classification: format!("{:?}", entity.tdd_classification.entity_class),
+            lsp_metadata: entity.lsp_metadata.as_ref().map(|m| format!("{:?}", m)),
+        }
+    }
+
+    /// Estimate token count for CodeGraphContext
+    fn estimate_tokens(&self, context: &CodeGraphContext) -> usize {
+        // Rough estimate: 1 token ≈ 4 characters
+        let json = serde_json::to_string(context).unwrap_or_default();
+        json.len() / 4
+    }
+
+    /// Generate context directly from CozoDB (simplified, PRD-compliant approach)
+    async fn generate_context_from_db_simple(&self, output_path: &str) -> Result<ContextResult> {
+        let start_time = Instant::now();
+        let mut errors = Vec::new();
+
+        println!("{}", style("Starting context generation from CozoDB...").blue().bold());
+
+        // Use injected storage (Dependency Injection pattern)
+        // Get all entities from CozoDB
+        let all_entities = self.storage.get_all_entities()
+            .await
+            .map_err(|e| {
+                let error_msg = format!("Failed to query entities: {}", e);
+                errors.push(error_msg.clone());
+                ContextWriterError::DatabaseError {
+                    reason: error_msg
+                }
+            })?;
+
+        // Filter to current_ind=true only (PRD requirement)
+        let current_entities: Vec<CodeEntity> = all_entities
+            .into_iter()
+            .filter(|e| e.temporal_state.current_ind)
+            .collect();
+
+        println!("{} entities with current_ind=true", current_entities.len());
+
+        // Convert to MinimalEntity (excludes current_code/future_code)
+        let minimal_entities: Vec<MinimalEntity> = current_entities
+            .iter()
+            .map(|e| self.entity_to_minimal(e))
+            .collect();
+
+        // Create CodeGraphContext
+        let context = CodeGraphContext {
+            entities: minimal_entities.clone(),
+            entity_count: minimal_entities.len(),
+            token_count: 0, // Will be updated after estimation
+            generated_at: chrono::Utc::now().to_rfc3339(),
+        };
+
+        // Estimate tokens
+        let token_count = self.estimate_tokens(&context);
+
+        // Check token limit (PRD requirement: <100k tokens)
+        if token_count > self.config.max_context_tokens {
+            return Err(ContextWriterError::ContextTooLarge {
+                actual: token_count,
+                limit: self.config.max_context_tokens,
+            });
+        }
+
+        // Update context with token count
+        let context = CodeGraphContext {
+            token_count,
+            ..context
+        };
+
+        // Write context file
+        self.write_context_file_simple(&context, output_path).await?;
+
+        let generation_time = start_time.elapsed();
+
+        println!("\n{}", style("Context Generation Summary:").green().bold());
+        println!("Entities processed: {}", current_entities.len());
+        println!("Tokens generated: {}", token_count);
+        println!("Output file: {}", output_path);
+        println!("Generation time: {:?}", generation_time);
+
+        // Update statistics
+        self.update_stats(current_entities.len(), token_count, 0.0, generation_time);
+
+        Ok(ContextResult {
+            context_id: uuid::Uuid::new_v4().to_string(),
+            output_path: output_path.to_string(),
+            entities_processed: current_entities.len(),
+            entities_optimized: minimal_entities.len(),
+            tokens_generated: token_count,
+            optimization_ratio: 0.0,
+            generation_time,
+            errors,
+        })
+    }
+
+    /// Write CodeGraphContext to file (simplified)
+    async fn write_context_file_simple(&self, context: &CodeGraphContext, output_path: &str) -> Result<()> {
+        // Create output directory if needed
+        if let Some(parent) = Path::new(output_path).parent() {
+            tokio::fs::create_dir_all(parent).await.map_err(|e| {
+                ContextWriterError::FileError {
+                    path: parent.to_string_lossy().to_string(),
+                    reason: format!("Failed to create directory: {}", e),
+                }
+            })?;
+        }
+
+        let json = serde_json::to_string_pretty(context).map_err(|e| {
+            ContextWriterError::SerializationError {
+                data: "CodeGraphContext".to_string(),
+                reason: format!("Failed to serialize: {}", e),
+            }
+        })?;
+
+        tokio::fs::write(output_path, json).await.map_err(|e| {
+            ContextWriterError::FileError {
+                path: output_path.to_string(),
+                reason: format!("Failed to write file: {}", e),
+            }
+        })?;
+
+        Ok(())
     }
 
     /// Query entity graph from database
@@ -183,7 +319,7 @@ impl ContextOptimizerImpl {
     }
 
     /// Identify connectivity clusters in the graph
-    fn identify_connectivity_clusters(&self, entities: &[CodeEntity], relationships: &[EntityRelationship]) -> Vec<Vec<String>> {
+    fn identify_connectivity_clusters(&self, entities: &[CodeEntity], _relationships: &[EntityRelationship]) -> Vec<Vec<String>> {
         if entities.is_empty() {
             return vec![];
         }
@@ -254,111 +390,8 @@ impl ContextOptimizerImpl {
 #[async_trait::async_trait]
 impl ContextOptimizer for ContextOptimizerImpl {
     async fn generate_context(&self, output_path: &str) -> Result<ContextResult> {
-        let start_time = Instant::now();
-        let mut errors = Vec::new();
-
-        println!(
-            "{}",
-            style("Starting context generation...").blue().bold()
-        );
-
-        // Setup progress bar
-        let pb = ProgressBar::new_spinner();
-        pb.set_style(
-            ProgressStyle::default_spinner()
-                .template("{spinner:.green} [{elapsed_precise}] {msg}")
-                .unwrap()
-        );
-        pb.set_message("Querying entity graph...");
-
-        // Query entity graph from database
-        let graph = self.query_entity_graph().await.map_err(|e| {
-            let error_msg = format!("Failed to query entity graph: {}", e);
-            pb.println(format!("{} {}", style("⚠").yellow().for_stderr().to_string(), error_msg.clone()));
-            errors.push(error_msg.clone());
-            e
-        })?;
-
-        pb.set_message(format!("Processing {} entities...", graph.entities.len()));
-
-        if graph.entities.is_empty() {
-            pb.finish_with_message("No entities found for context generation");
-            return Ok(ContextResult {
-                context_id: uuid::Uuid::new_v4().to_string(),
-                output_path: output_path.to_string(),
-                entities_processed: 0,
-                entities_optimized: 0,
-                tokens_generated: 0,
-                optimization_ratio: 0.0,
-                generation_time: start_time.elapsed(),
-                errors,
-            });
-        }
-
-        // Create context optimization request
-        let request = ContextOptimizationRequest {
-            entities: graph.entities.clone(),
-            relationships: graph.relationships.clone(),
-            target_context_size: self.config.max_context_tokens,
-            focus_areas: vec!["core_types".to_string(), "implementations".to_string()],
-            optimization_goals: vec![
-                OptimizationGoal::MinimizeSize,
-                OptimizationGoal::MaximizeRelevance,
-                OptimizationGoal::PreserveConnectivity,
-            ],
-        };
-
-        pb.set_message("Optimizing context with LLM...");
-
-        // Generate optimized context
-        let response = self.llm_client.optimize_context(request).await.map_err(|e| {
-            let error_msg = format!("Context optimization failed: {}", e);
-            pb.println(format!("{} {}", style("⚠").yellow().for_stderr().to_string(), error_msg.clone()));
-            errors.push(error_msg.clone());
-            e
-        })?;
-
-        pb.set_message("Writing context file...");
-
-        // Write optimized context to file
-        self.write_context_file(&response, output_path).await.map_err(|e| {
-            let error_msg = format!("Failed to write context file: {}", e);
-            pb.println(format!("{} {}", style("⚠").yellow().for_stderr().to_string(), error_msg.clone()));
-            errors.push(error_msg.clone());
-            e
-        })?;
-
-        pb.finish_with_message("Context generation completed");
-
-        let generation_time = start_time.elapsed();
-        let entities_optimized = response.optimized_entities.len();
-        let tokens_generated = response.context_metadata.token_count;
-        let optimization_ratio = response.pruning_summary.pruning_ratio;
-
-        // Print summary
-        println!("\n{}", style("Context Generation Summary:").green().bold());
-        println!("Context ID: {}", response.context_metadata.context_id);
-        println!("Entities processed: {}", graph.metadata.total_entities);
-        println!("Entities optimized: {}", entities_optimized);
-        println!("Tokens generated: {}", tokens_generated);
-        println!("Optimization ratio: {:.2}%", optimization_ratio * 100.0);
-        println!("Confidence score: {:.2}", response.confidence_score);
-        println!("Output file: {}", output_path);
-        println!("Generation time: {:?}", generation_time);
-
-        // Update statistics
-        self.update_stats(graph.metadata.total_entities, tokens_generated, optimization_ratio, generation_time);
-
-        Ok(ContextResult {
-            context_id: response.context_metadata.context_id,
-            output_path: output_path.to_string(),
-            entities_processed: graph.metadata.total_entities,
-            entities_optimized,
-            tokens_generated,
-            optimization_ratio,
-            generation_time,
-            errors,
-        })
+        // Use simplified, PRD-compliant approach (no LLM calls)
+        self.generate_context_from_db_simple(output_path).await
     }
 
     async fn generate_context_for_entities(&self, entities: &[CodeEntity], output_path: &str) -> Result<ContextResult> {
@@ -366,7 +399,7 @@ impl ContextOptimizer for ContextOptimizerImpl {
         let mut errors = Vec::new();
 
         // Create simple relationships for provided entities
-        let relationships = entities.iter().enumerate().map(|(i, entity)| {
+        let relationships = entities.iter().enumerate().map(|(_i, entity)| {
             EntityRelationship {
                 source_id: entity.isgl1_key.clone(),
                 target_id: entity.isgl1_key.clone(),
@@ -428,12 +461,20 @@ impl ContextOptimizer for ContextOptimizerImpl {
 pub struct ContextOptimizerFactory;
 
 impl ContextOptimizerFactory {
-    /// Create new context optimizer instance
-    pub fn new(
+    /// Create new context optimizer instance (with async storage creation)
+    pub async fn new(
         config: crate::ContextWriterConfig,
         llm_client: Arc<ContextLlmClientImpl>,
-    ) -> Arc<ContextOptimizerImpl> {
-        Arc::new(ContextOptimizerImpl::new(config, llm_client))
+    ) -> Result<Arc<ContextOptimizerImpl>> {
+        // Create storage instance for dependency injection
+        let storage = CozoDbStorage::new(&config.db_path)
+            .await
+            .map_err(|e| ContextWriterError::DatabaseError {
+                reason: format!("Failed to create storage: {}", e)
+            })?;
+        let storage = Arc::new(storage);
+
+        Ok(Arc::new(ContextOptimizerImpl::new(storage, config, llm_client)))
     }
 }
 
@@ -443,47 +484,67 @@ mod tests {
 
     #[tokio::test]
     async fn test_context_generation() {
+        // Create in-memory storage for testing
+        let storage = CozoDbStorage::new("mem").await.unwrap();
+        storage.create_schema().await.unwrap();
+        let storage = Arc::new(storage);
+
         let config = crate::ContextWriterConfig::default();
         let llm_client = crate::ToolFactory::create_llm_client(config.clone());
-        let optimizer = ContextOptimizerImpl::new(config, llm_client);
+        let optimizer = ContextOptimizerImpl::new(storage, config, llm_client);
 
         let temp_dir = tempfile::tempdir().unwrap();
         let output_path = temp_dir.path().join("test_context.json").to_string_lossy().to_string();
 
-        // Note: This test would require a mock LLM client for real testing
-        // For now, it demonstrates the interface
-        let _result = optimizer.generate_context(&output_path).await;
+        // Test with real CozoDB (empty database)
+        let result = optimizer.generate_context(&output_path).await;
+        // Should succeed with 0 entities
+        assert!(result.is_ok());
     }
 
     #[test]
     fn test_graph_analysis() {
-        let config = crate::ContextWriterConfig::default();
-        let llm_client = crate::ToolFactory::create_llm_client(config.clone());
-        let optimizer = ContextOptimizerImpl::new(config, llm_client);
+        // Create runtime for async test
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            let storage = CozoDbStorage::new("mem").await.unwrap();
+            let storage = Arc::new(storage);
 
-        let entities = optimizer.create_sample_entities().unwrap();
-        let relationships = optimizer.create_sample_relationships(&entities);
+            let config = crate::ContextWriterConfig::default();
+            let llm_client = crate::ToolFactory::create_llm_client(config.clone());
+            let optimizer = ContextOptimizerImpl::new(storage, config, llm_client);
 
-        let density = optimizer.calculate_graph_density(&entities, &relationships);
-        assert!(density >= 0.0 && density <= 1.0);
+            let entities = optimizer.create_sample_entities().unwrap();
+            let relationships = optimizer.create_sample_relationships(&entities);
 
-        let avg_degree = optimizer.calculate_average_degree(&entities, &relationships);
-        assert!(avg_degree >= 0.0);
+            let density = optimizer.calculate_graph_density(&entities, &relationships);
+            assert!(density >= 0.0 && density <= 1.0);
+
+            let avg_degree = optimizer.calculate_average_degree(&entities, &relationships);
+            assert!(avg_degree >= 0.0);
+        });
     }
 
     #[test]
     fn test_statistics_tracking() {
-        let config = crate::ContextWriterConfig::default();
-        let llm_client = crate::ToolFactory::create_llm_client(config.clone());
-        let optimizer = ContextOptimizerImpl::new(config, llm_client);
+        // Create runtime for async test
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            let storage = CozoDbStorage::new("mem").await.unwrap();
+            let storage = Arc::new(storage);
 
-        let initial_stats = optimizer.get_stats();
-        assert_eq!(initial_stats.contexts_generated, 0);
+            let config = crate::ContextWriterConfig::default();
+            let llm_client = crate::ToolFactory::create_llm_client(config.clone());
+            let optimizer = ContextOptimizerImpl::new(storage, config, llm_client);
 
-        optimizer.update_stats(10, 1000, 0.3, Duration::from_secs(5));
-        let updated_stats = optimizer.get_stats();
-        assert_eq!(updated_stats.contexts_generated, 1);
-        assert_eq!(updated_stats.entities_processed, 10);
-        assert_eq!(updated_stats.tokens_generated, 1000);
+            let initial_stats = optimizer.get_stats();
+            assert_eq!(initial_stats.contexts_generated, 0);
+
+            optimizer.update_stats(10, 1000, 0.3, Duration::from_secs(5));
+            let updated_stats = optimizer.get_stats();
+            assert_eq!(updated_stats.contexts_generated, 1);
+            assert_eq!(updated_stats.entities_processed, 10);
+            assert_eq!(updated_stats.tokens_generated, 1000);
+        });
     }
 }
