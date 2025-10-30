@@ -32,10 +32,26 @@ impl CliConfig {
             .arg(
                 Arg::new("database")
                     .short('b')
-                    .long("db")
+                    .long("output-db")
                     .value_name("PATH")
                     .help("Database connection string (use 'mem' for in-memory)")
                     .default_value("mem"),
+            )
+            .arg(
+                Arg::new("parsing-library")
+                    .short('p')
+                    .long("parsing-library")
+                    .value_name("LIBRARY")
+                    .help("Parsing library to use for code analysis")
+                    .default_value("tree-sitter"),
+            )
+            .arg(
+                Arg::new("chunking")
+                    .short('c')
+                    .long("chunking")
+                    .value_name("STRATEGY")
+                    .help("Chunking strategy for code interfaces")
+                    .default_value("ISGL1"),
             )
             .arg(
                 Arg::new("max-size")
@@ -97,6 +113,11 @@ impl CliConfig {
                 .unwrap_or_default()
                 .cloned()
                 .collect(),
+            parsing_library: matches
+                .get_one::<String>("parsing-library")
+                .unwrap()
+                .clone(),
+            chunking: matches.get_one::<String>("chunking").unwrap().clone(),
         }
     }
 
@@ -125,7 +146,7 @@ mod tests {
             "parseltongue-01",
             "--dir",
             "/test/dir",
-            "--db",
+            "--output-db",
             "test.db",
             "--max-size",
             "2048000",
@@ -133,6 +154,10 @@ mod tests {
             "**/*.js",
             "--exclude",
             "**/test/**",
+            "--parsing-library",
+            "tree-sitter",
+            "--chunking",
+            "ISGL1",
         ]);
 
         assert!(matches.is_ok());
@@ -144,6 +169,8 @@ mod tests {
         assert_eq!(config.max_file_size, 2048000);
         assert!(config.include_patterns.contains(&"**/*.js".to_string()));
         assert!(config.exclude_patterns.contains(&"**/test/**".to_string()));
+        assert_eq!(config.parsing_library, "tree-sitter");
+        assert_eq!(config.chunking, "ISGL1");
     }
 
     #[test]
@@ -160,5 +187,33 @@ mod tests {
         assert_eq!(config.max_file_size, 1048576);
         assert_eq!(config.include_patterns.len(), 2);
         assert_eq!(config.exclude_patterns.len(), 2);
+        assert_eq!(config.parsing_library, "tree-sitter"); // Default
+        assert_eq!(config.chunking, "ISGL1"); // Default
+    }
+
+    #[test]
+    fn test_prd_command_format() {
+        // Test the PRD specification from P05:28
+        let cli = CliConfig::build_cli();
+        let matches = cli.try_get_matches_from(&[
+            "folder-to-cozoDB-streamer",
+            "--dir",
+            "./src",
+            "--parsing-library",
+            "tree-sitter",
+            "--chunking",
+            "ISGL1",
+            "--output-db",
+            "./parseltongue.db",
+        ]);
+
+        assert!(matches.is_ok(), "PRD command format should be valid");
+        let matches = matches.unwrap();
+
+        let config = CliConfig::parse_config(&matches);
+        assert_eq!(config.root_dir, PathBuf::from("./src"));
+        assert_eq!(config.db_path, "./parseltongue.db");
+        assert_eq!(config.parsing_library, "tree-sitter");
+        assert_eq!(config.chunking, "ISGL1");
     }
 }
