@@ -2,7 +2,9 @@
 
 ### Complete System Workflow
 
-```mermaid
+
+
+``` mermaid
 ---
 config:
   flowchart:
