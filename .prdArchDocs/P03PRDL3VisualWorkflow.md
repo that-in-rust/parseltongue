@@ -172,4 +172,3 @@ parseltongue reason --query "
 4. **Tool Results → User Feedback** (All phases)
 
 This architecture enables sophisticated code modification while keeping each tool simple, focused, and reliable.
-
