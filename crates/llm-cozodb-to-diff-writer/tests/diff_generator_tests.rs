@@ -3,7 +3,7 @@
 //! Tests for CodeDiff.json generation from CozoDB
 
 use llm_cozodb_to_diff_writer::{CodeDiff, DiffGenerator, Operation};
-use parseltongue_core::entities::{CodeEntity, FutureAction, TemporalState};
+use parseltongue_core::entities::{CodeEntity, TemporalAction, TemporalState};
 use parseltongue_core::storage::CozoDbStorage;
 use std::path::PathBuf;
 
@@ -16,7 +16,7 @@ async fn test_generate_diff_for_create_operations() {
     let entity = create_test_entity(
         "src_lib_rs-new_feature-fn-abc123",
         Some("fn new_feature() { println!(\"New!\"); }"),
-        FutureAction::Create,
+        TemporalAction::Create,
     );
 
     storage
@@ -50,7 +50,7 @@ async fn test_generate_diff_for_edit_operations() {
     let entity = create_test_entity(
         "rust:fn:calculate_sum:src_lib_rs:42-56",
         Some("fn calculate_sum(a: i32, b: i32) -> i32 { a + b /* fixed */ }"),
-        FutureAction::Edit,
+        TemporalAction::Edit,
     );
 
     storage
@@ -82,7 +82,7 @@ async fn test_generate_diff_for_delete_operations() {
     let mut entity = create_test_entity(
         "rust:fn:obsolete:src_lib_rs:100-110",
         None, // No future_code for delete
-        FutureAction::Delete,
+        TemporalAction::Delete,
     );
     entity.future_code = None; // Delete doesn't need future code
 
@@ -115,9 +115,9 @@ async fn test_skip_unchanged_entities() {
     let mut entity = create_test_entity(
         "rust:fn:unchanged:src_lib_rs:10-20",
         Some("fn unchanged() {}"),
-        FutureAction::Create, // Will be overridden
+        TemporalAction::Create, // Will be overridden
     );
-    entity.temporal_state = TemporalState::Unchanged;
+    entity.temporal_state = TemporalState::unchanged();
 
     storage
         .insert_entity(&entity)
@@ -145,21 +145,21 @@ async fn test_mixed_operations_diff() {
     let create = create_test_entity(
         "src_lib_rs-new_func-fn-xyz789",
         Some("fn new_func() {}"),
-        FutureAction::Create,
+        TemporalAction::Create,
     );
 
     // Edit
     let edit = create_test_entity(
         "rust:fn:existing:src_lib_rs:50-60",
         Some("fn existing() { /* updated */ }"),
-        FutureAction::Edit,
+        TemporalAction::Edit,
     );
 
     // Delete
     let mut delete = create_test_entity(
         "rust:fn:old:src_lib_rs:70-80",
         None,
-        FutureAction::Delete,
+        TemporalAction::Delete,
     );
     delete.future_code = None;
 
@@ -188,7 +188,7 @@ async fn test_code_diff_json_output() {
     let entity = create_test_entity(
         "src_lib_rs-test-fn-abc",
         Some("fn test() {}"),
-        FutureAction::Create,
+        TemporalAction::Create,
     );
 
     storage.insert_entity(&entity).await.unwrap();
@@ -208,32 +208,53 @@ async fn test_code_diff_json_output() {
 }
 
 // Helper function to create test entities
-fn create_test_entity(isgl1_key: &str, future_code: Option<&str>, action: FutureAction) -> CodeEntity {
-    use parseltongue_core::entities::{EntityClass, TddClassification, TestabilityLevel};
+fn create_test_entity(isgl1_key: &str, future_code: Option<&str>, action: TemporalAction) -> CodeEntity {
+    use parseltongue_core::entities::{
+        ChangeRisk, ComplexityLevel, EntityClass, EntityMetadata, EntityType, InterfaceSignature,
+        LanguageSpecificSignature, LineRange, RustSignature, TddClassification, TestabilityLevel,
+        Visibility,
+    };
+    use std::path::PathBuf;
 
     CodeEntity {
         isgl1_key: isgl1_key.to_string(),
         current_code: Some("old code".to_string()),
         future_code: future_code.map(|s| s.to_string()),
-        interface_signature: parseltongue_core::entities::InterfaceSignature {
-            raw: format!("fn {}", isgl1_key),
-            return_type: None,
-            parameters: vec![],
+        interface_signature: InterfaceSignature {
+            entity_type: EntityType::Function,
+            name: isgl1_key.to_string(),
+            visibility: Visibility::Public,
+            file_path: PathBuf::from("src/test.rs"),
+            line_range: LineRange {
+                start: 1,
+                end: 10,
+            },
+            module_path: vec!["test".to_string()],
+            documentation: None,
+            language_specific: LanguageSpecificSignature::Rust(RustSignature {
+                parameters: vec![],
+                return_type: Some("()".to_string()),
+                generics: vec![],
+                where_clause: None,
+                is_async: false,
+                is_unsafe: false,
+                is_const: false,
+            }),
         },
         tdd_classification: TddClassification {
             entity_class: EntityClass::CodeImplementation,
             testability: TestabilityLevel::Untestable,
             dependencies: 0,
-            change_risk: parseltongue_core::entities::ChangeRisk::Low,
-            complexity: parseltongue_core::entities::ComplexityLevel::Simple,
+            change_risk: ChangeRisk::Low,
+            complexity: ComplexityLevel::Simple,
             critical_path: false,
         },
         lsp_metadata: None,
         temporal_state: match action {
-            FutureAction::Create => TemporalState::WillBeCreated,
-            FutureAction::Edit => TemporalState::WillBeModified,
-            FutureAction::Delete => TemporalState::WillBeDeleted,
+            TemporalAction::Create => TemporalState::create(),
+            TemporalAction::Edit => TemporalState::edit(),
+            TemporalAction::Delete => TemporalState::delete(),
         },
-        metadata: Default::default(),
+        metadata: EntityMetadata::default(),
     }
 }

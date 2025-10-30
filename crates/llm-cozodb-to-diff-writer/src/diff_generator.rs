@@ -3,7 +3,7 @@
 //! Generates CodeDiff.json from CozoDB entities with future_code.
 
 use anyhow::{Context, Result};
-use parseltongue_core::entities::{CodeEntity, FutureAction, TemporalState};
+use parseltongue_core::entities::{CodeEntity, TemporalAction};
 use parseltongue_core::storage::CozoDbStorage;
 use std::path::PathBuf;
 
@@ -42,17 +42,23 @@ impl DiffGenerator {
 
     /// Convert CodeEntity to Change
     fn entity_to_change(&self, entity: &CodeEntity) -> Result<Option<Change>> {
-        // Determine operation from temporal state
-        let operation = match entity.temporal_state {
-            TemporalState::WillBeCreated => Operation::Create,
-            TemporalState::WillBeModified => Operation::Edit,
-            TemporalState::WillBeDeleted => Operation::Delete,
-            TemporalState::Unchanged => return Ok(None), // Skip unchanged
-            _ => return Ok(None), // Skip other states
+        // Determine operation from temporal state's future_action
+        let operation = match entity.temporal_state.future_action {
+            Some(TemporalAction::Create) => Operation::Create,
+            Some(TemporalAction::Edit) => Operation::Edit,
+            Some(TemporalAction::Delete) => Operation::Delete,
+            None => return Ok(None), // Skip entities with no future action (unchanged)
         };
 
         // Extract file path from ISGL1 key
         let file_path = self.extract_file_path(&entity.isgl1_key)?;
+
+        // Format interface signature from components
+        let interface_signature = format!(
+            "{:?} {}",
+            entity.interface_signature.entity_type,
+            entity.interface_signature.name
+        );
 
         // Create change
         let change = Change {
@@ -60,7 +66,7 @@ impl DiffGenerator {
             file_path,
             operation,
             future_code: entity.future_code.clone(),
-            interface_signature: entity.interface_signature.raw.clone(),
+            interface_signature,
         };
 
         Ok(Some(change))
