@@ -259,3 +259,162 @@ async fn test_both_schemas_can_coexist() {
         user_relations
     );
 }
+
+// ================== Phase 1.4: Edge Insertion API Tests ==================
+
+#[tokio::test]
+async fn test_insert_single_dependency_edge() {
+    // RED: Edge insertion not yet tested
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    let edge = DependencyEdge::builder()
+        .from_key("rust:fn:main:src_main_rs:1-10")
+        .to_key("rust:fn:helper:src_helper_rs:5-20")
+        .edge_type(EdgeType::Calls)
+        .source_location("src/main.rs:3:15")
+        .build()
+        .unwrap();
+
+    // Insert edge
+    db.insert_edge(&edge).await.unwrap();
+
+    // Verify insertion by querying (will implement query methods later)
+    // For now, just verify no error occurred
+}
+
+#[tokio::test]
+async fn test_insert_edge_without_source_location() {
+    // Test: Edge insertion works with optional source_location = None
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    let edge = DependencyEdge::builder()
+        .from_key("rust:struct:MyStruct:src_lib_rs:10-20")
+        .to_key("rust:trait:MyTrait:src_lib_rs:5-8")
+        .edge_type(EdgeType::Implements)
+        .build()
+        .unwrap();
+
+    db.insert_edge(&edge).await.unwrap();
+}
+
+#[tokio::test]
+async fn test_insert_duplicate_edge_is_idempotent() {
+    // Test: Inserting same edge twice should succeed (upsert semantics)
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    let edge = DependencyEdge::builder()
+        .from_key("A")
+        .to_key("B")
+        .edge_type(EdgeType::Uses)
+        .build()
+        .unwrap();
+
+    // Insert twice - should succeed both times
+    db.insert_edge(&edge).await.unwrap();
+    db.insert_edge(&edge).await.unwrap();
+}
+
+#[tokio::test]
+async fn test_batch_insert_edges() {
+    // RED: Batch insertion not yet tested
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    let edges = vec![
+        DependencyEdge::builder()
+            .from_key("rust:fn:main:src_main_rs:1-10")
+            .to_key("rust:fn:helper:src_helper_rs:5-20")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:helper:src_helper_rs:5-20")
+            .to_key("rust:fn:util:src_util_rs:1-5")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:main:src_main_rs:1-10")
+            .to_key("rust:struct:Config:src_config_rs:1-20")
+            .edge_type(EdgeType::Uses)
+            .build()
+            .unwrap(),
+    ];
+
+    db.insert_edges_batch(&edges).await.unwrap();
+}
+
+#[tokio::test]
+async fn test_batch_insert_empty_slice() {
+    // Test: Batch insert with empty slice should succeed (no-op)
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    let edges: Vec<DependencyEdge> = vec![];
+    db.insert_edges_batch(&edges).await.unwrap();
+}
+
+#[tokio::test]
+async fn test_single_edge_insert_performance_contract() {
+    // Performance Contract: Single insert <5ms (D10 specification)
+    use std::time::Instant;
+
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    let edge = DependencyEdge::builder()
+        .from_key("A")
+        .to_key("B")
+        .edge_type(EdgeType::Calls)
+        .build()
+        .unwrap();
+
+    // Warm up
+    db.insert_edge(&edge).await.unwrap();
+
+    // Measure
+    let start = Instant::now();
+    db.insert_edge(&edge).await.unwrap();
+    let elapsed = start.elapsed();
+
+    assert!(
+        elapsed.as_millis() < 5,
+        "Single edge insert took {:?}, expected <5ms",
+        elapsed
+    );
+}
+
+#[tokio::test]
+async fn test_batch_insert_performance_contract() {
+    // Performance Contract: Batch insert (100 edges) <50ms (D10 specification)
+    use std::time::Instant;
+
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Generate 100 edges
+    let edges: Vec<DependencyEdge> = (0..100)
+        .map(|i| {
+            DependencyEdge::builder()
+                .from_key(format!("entity_{}", i))
+                .to_key(format!("entity_{}", i + 1))
+                .edge_type(EdgeType::Calls)
+                .build()
+                .unwrap()
+        })
+        .collect();
+
+    // Measure
+    let start = Instant::now();
+    db.insert_edges_batch(&edges).await.unwrap();
+    let elapsed = start.elapsed();
+
+    assert!(
+        elapsed.as_millis() < 50,
+        "Batch insert (100 edges) took {:?}, expected <50ms",
+        elapsed
+    );
+}
