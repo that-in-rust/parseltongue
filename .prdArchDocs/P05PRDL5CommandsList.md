@@ -4,8 +4,8 @@
 ## MVP Ultra-Minimalist Principles (~10 users)
 **Target**: ~10 users - focus on essential functionality that works reliably
 **Philosophy**: Simplicity over complexity - each tool does ONE thing well
-**Tool 5 (LLM-cozodb-to-diff-writer)**: NO backup options, NO multiple safety levels, NO configuration complexity (generates CodeDiff.json for LLM)
-**Tool 6 (cozoDB-make-future-code-current)**: NO backup metadata files, NO configuration options - Delete table + re-trigger indexing
+**`llm-cozodb-to-diff-writer` (LLM-cozodb-to-diff-writer)**: NO backup options, NO multiple safety levels, NO configuration complexity (generates CodeDiff.json for LLM)
+**`cozodb-make-future-code-current` (cozoDB-make-future-code-current)**: NO backup metadata files, NO configuration options - Delete table + re-trigger indexing
 **Goal**: Maximum reliability through ultra-minimalist approach
 
 #### **Primary Interface: Bug Fixing Workflow (95% of users)**

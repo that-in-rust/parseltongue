@@ -7,7 +7,7 @@
 
 ### **TOOL SIMPLICITY RULES:**
 
-**Tool 5 (LLM-cozodb-to-diff-writer) - MINIMALIST:**
+**`llm-cozodb-to-diff-writer` - MINIMALIST:**
 - NO backup options (MVP doesn't need them)
 - NO multiple safety levels (complex to debug)
 - NO configuration complexity (single reliable JSON generation)
@@ -15,7 +15,7 @@
 - **EASY DEBUGGING**: Clear JSON output, inspectable by humans and LLMs
 - **FOCUS**: Provide LLM with exactly what code changes to apply
 
-**Tool 6 (cozoDB-make-future-code-current) - MINIMALIST:**
+**`cozodb-make-future-code-current` - MINIMALIST:**
 - NO backup metadata files (unnecessary complexity)
 - NO configuration options (reset should be deterministic)
 - **SINGLE PURPOSE**: Reset CodeGraph table + reingest folder
@@ -72,18 +72,18 @@ This ensures LLM has exactly what it needs - no more, no less.
         - Tell user that code indexing has begun and will take 10 minutes
             - For the Rust repository:
                 - Trigger the following tools:
-                    - Tool 1: `folder-to-cozoDB-streamer ./src --parsing-library tree-sitter --chunking ISGL1 --output-db ./parseltongue.db`
+                    - `folder-to-cozodb-streamer ./src --parsing-library tree-sitter --chunking ISGL1 --output-db ./parseltongue.db`
                         - Tool will read code from the git repo where it's located, using tree-sitter
                         - Tool will choose granularity of chunks (ISGL1 method)
                         - Tool will call LSP (rust-analyzer) for creating lsp-meta-data
                         - Tool will output aggregated-primarykey + code-chunk-raw + tree-sitter-signature + TDD_classification + lsp_meta_data (optional)
                     - `folder-to-cozoDB-streamer` creates CodeGraph (single write surface):
                         - **Dual ISGL1 Key Format Strategy**:
-                            - **Existing Entities** (indexed by Tool 1): Line-based format
+                            - **Existing Entities** (indexed by `folder-to-cozodb-streamer`): Line-based format
                                 - Format: `{language}:{type}:{name}:{sanitized_path}:{start_line}-{end_line}`
                                 - Example: `rust:fn:calculate_sum:src_lib_rs:42-56`
                                 - Rationale: Precise location tracking for existing code with stable line numbers
-                            - **New Entities** (created by Tool 2): Hash-based format
+                            - **New Entities** (created by `llm-to-cozodb-writer`): Hash-based format
                                 - Format: `{sanitized_filepath}-{entity_name}-{entity_type}-{hash8}`
                                 - Example: `src_lib_rs-new_feature-fn-abc12345`
                                 - Hash Algorithm: SHA-256(filepath + name + type + timestamp), first 8 characters
@@ -119,25 +119,25 @@ This ensures LLM has exactly what it needs - no more, no less.
                         - Functionality wise
                     - After 2 iterations the reasoning-LLM will accept the micro-PRD
                     - Ask the reasoning LLM to reset the context because likely it will overflow and micro-PRD final needs to be isolated
-                - Tool 3: `LLM-cozoDB-to-context-writer --query "Select * EXCEPT (current_code,future_code) from Code_Graph where current_ind=1" --database ./parseltongue.db --output-context CodeGraphContext.json` is triggered
+                - `llm-cozodb-to-context-writer`: `LLM-cozoDB-to-context-writer --query "Select * EXCEPT (current_code,future_code) from Code_Graph where current_ind=1" --database ./parseltongue.db --output-context CodeGraphContext.json` is triggered
                     - **CRITICAL CONTEXT OPTIMIZATION**: We EXCLUDE current_code and future_code from ALL context extraction
                     - **NEVER access current_code directly** - This will bloat context exponentially (current_code can be thousands of lines)
                     - **Current_Code ACCESS RULE**: Only access current_code when absolutely necessary for specific line-level analysis, and even then, extract only the minimal required lines
                     - **CONTEXT BLOAT PREVENTION**: current_code column is treated as "write-only" during reasoning phase
                     - Use TDD_idiomatic_rust_steering_doc for all LLM-cozoDB-to-context-writer operations while reasoning through code
-                    - Tool 3 creates CodeGraphContext.json containing base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(ISGL1 + interface_signature + TDD_Classification + lsp_meta_data)
-                    - Tool 2: `LLM-to-cozoDB-writer` enables the reasoning-LLM to update CozoDB with temporal versioning using upsert queries generated from CozoDbQueryRef.md patterns
-                    - Tool 2 asks the reasoning-LLM to suggest the following to the Code-Graph based on base-context-area:
+                    - `llm-cozodb-to-context-writer` creates CodeGraphContext.json containing base-context-area which is micro-PRD + filter(Code_Graph with current_ind=1)=>(ISGL1 + interface_signature + TDD_Classification + lsp_meta_data)
+                    - `llm-to-cozodb-writer`: `LLM-to-cozoDB-writer` enables the reasoning-LLM to update CozoDB with temporal versioning using upsert queries generated from CozoDbQueryRef.md patterns
+                    - `llm-to-cozodb-writer` asks the reasoning-LLM to suggest the following to the Code-Graph based on base-context-area:
                         - Step A: ISG level simulations (Temporal Versioning)
                             - Step A01: Create Edit Delete Test Interface Rows; call these changes test-interface-changes:
                                 - Addition Interfaces: New ISGL1 rows with current_ind = 0 & future_ind = 1 & Current_Code = empty & Future_Code = empty & Future_Action = Create
-                                    - **KEY GENERATION**: Tool 2 generates hash-based ISGL1 keys for new entities (format: `filepath-name-type-hash8`)
+                                    - **KEY GENERATION**: `llm-to-cozodb-writer` generates hash-based ISGL1 keys for new entities (format: `filepath-name-type-hash8`)
                                     - **RATIONALE**: Line numbers don't exist yet for new code, hash provides stable identity
                                 - Deletion Interfaces: Old ISGL1 rows with current_ind = 1 & future_ind = 0 & Future_Code = empty & Future_Action = Delete
                                 - Edit Interfaces: Old ISGL1 rows with current_ind = 1 & future_ind = 1 & Future_Action = Edit
                             - Step A02: Based on test-interface-changes + base-context-area, create edit delete non-test interfaces; call these rows non-test-interface-changes:
                                 - Addition Interfaces: New ISGL1 rows with current_ind = 0 & future_ind = 1 & Current_Code = empty & Future_Code = empty & Future_Action = Create
-                                    - **KEY GENERATION**: Tool 2 generates hash-based ISGL1 keys for new entities (format: `filepath-name-type-hash8`)
+                                    - **KEY GENERATION**: `llm-to-cozodb-writer` generates hash-based ISGL1 keys for new entities (format: `filepath-name-type-hash8`)
                                 - Deletion Interfaces: Old ISGL1 rows with current_ind = 1 & future_ind = 0 & Future_Code = empty & Future_Action = Delete
                                 - Edit Interfaces: Old ISGL1 rows with current_ind = 1 & future_ind = 1 & Future_Action = Edit
                         - Step B: Code Simulation (Context-Optimized for MVP)
@@ -153,25 +153,25 @@ This ensures LLM has exactly what it needs - no more, no less.
                             - Step B02: Follow rubber duck debugging to re-reason filter(Future_Action != None)=>(all fields of Code_Graph including current code) + base-context-area:
                                 - **ITERATIVE REASONING CYCLE**: This step embodies the core read-edit-read-edit mindset:
                                 - **READ**: LLM analyzes current state from context and temporal changes
-                                - **EDIT**: LLM updates CozoDB with improved temporal changes via Tool 2
-                                - **READ**: LLM extracts updated context via Tool 3 to verify changes
+                                - **EDIT**: LLM updates CozoDB with improved temporal changes via `llm-to-cozodb-writer`
+                                - **READ**: LLM extracts updated context via `llm-cozodb-to-context-writer` to verify changes
                                 - **REPEAT**: Continue read-edit-read-edit cycle until confident
                                 - **Confidence Threshold**: Stop when LLM confidence ≥ 80% and solution is coherent
                                 - **Iteration Count**: May repeat A01→A02→B01→B02 cycle multiple times until satisfactory
                                 - If the LLM thinks that we need to refine the solutioning further, repeat Steps A01 A02 and then basis them repeat Steps B01
                                 - If the LLM doesn't feel confident of the changes, it should speak to the user to get additional context or web help, sharing their current understanding in an MD file
                                 - **ITERATION COMPLETION**: When LLM feels confident of the changes (≥80% confidence), move to next step
-                        - Step C: Tool 4: `rust-preflight-code-simulator --database ./parseltongue.db` - **SIMPLIFIED SYNTAX VALIDATION**:
+                        - Step C: `rust-preflight-code-simulator`: `rust-preflight-code-simulator --database ./parseltongue.db` - **SIMPLIFIED SYNTAX VALIDATION**:
                             - **ULTRA-MINIMALIST SCOPE**: Tree-sitter syntax validation ONLY for entities with future_code
                             - **NO cargo build/test**: Real validation happens in Step D04-D05 after file writes
                             - **FAST**: <20ms for typical change set (50 entities)
-                            - **RATIONALE**: Interface syntax already validated in Tool 1, cargo compiler catches type/logic errors
+                            - **RATIONALE**: Interface syntax already validated in `folder-to-cozodb-streamer`, cargo compiler catches type/logic errors
                             - Validates only entities with Future_Action = Create | Edit
                             - Checks for syntax errors: missing brackets, malformed expressions, keyword typos
                             - If syntax errors found → go back to A01 with specific line/column error details
                             - If syntax valid → proceed to Step D (file writing)
                             - **DOES NOT VALIDATE**: Types, imports, lifetimes, logic (cargo build handles those)
-                        - Step D: Run Tool 5: `LLM-cozodb-to-diff-writer --database ./parseltongue.db --output CodeDiff.json`:
+                        - Step D: Run `llm-cozodb-to-diff-writer`: `LLM-cozodb-to-diff-writer --database ./parseltongue.db --output CodeDiff.json`:
                             - **MVP SIMPLIFIED**: Generate CodeDiff.json from CozoDB (single reliable operation)
                             - Step D01: Extract entities with Future_Action != None from CozoDB
                             - Step D02: Generate structured CodeDiff.json with future_code, file paths, and operations (Create/Edit/Delete)
@@ -182,7 +182,7 @@ This ensures LLM has exactly what it needs - no more, no less.
                             - If validation fails, go back to previous steps A01 onwards with specific error details
                             - If all validations pass, we move to next step
             - Ask user if they are satisfied with how the code is working:
-                - If yes, trigger Tool 6: `cozoDB-make-future-code-current --project-path . --database ./parseltongue.db`:
+                - If yes, trigger `cozodb-make-future-code-current`: `cozoDB-make-future-code-current --project-path . --database ./parseltongue.db`:
                     - **ULTRA-MINIMAL**: Delete CodeGraph table + re-trigger folder-to-cozoDB-streamer (that's it!)
                     - **CLEANEST POSSIBLE**: No temporal state management, just fresh rebuild
                     - **MAXIMUM RELIABILITY**: Simplest operation = fewest failure points

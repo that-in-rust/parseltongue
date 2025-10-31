@@ -42,24 +42,24 @@ flowchart TD
     end
 
     subgraph Tools ["Parseltongue Unified Binary<br/>6-Tool Pipeline"]
-        Tool1["Tool 1<br/>folder-to-cozoDB<br/>Multi-language Indexing<br/>(Starts immediately)"]
+        Tool1["`folder-to-cozodb-streamer`<br/>folder-to-cozoDB<br/>Multi-language Indexing<br/>(Starts immediately)"]
 
         subgraph ParallelPrep ["Parallel Preparation"]
             Tool1 --> |"Indexing 10min<br/>background"| UserPrepares["User prepares<br/>bug description"]
         end
 
         subgraph IterativeCycle ["Iterative Reasoning Cycle"]
-            UserPrepares --> Tool3Read["Tool 3<br/>Read Context<br/>LLM-cozoDB-to-context-writer"]
+            UserPrepares --> Tool3Read["`llm-cozodb-to-context-writer`<br/>Read Context<br/>LLM-cozoDB-to-context-writer"]
             Tool3Read --> LLMThink["LLM Reasoning<br/>Rubber Duck Debugging"]
-            LLMThink --> Tool2Edit["Tool 2<br/>Edit CozoDB<br/>LLM-to-cozoDB-writer"]
+            LLMThink --> Tool2Edit["`llm-to-cozodb-writer`<br/>Edit CozoDB<br/>LLM-to-cozoDB-writer"]
             Tool2Edit --> ConfidenceLoop{"Confidence<br/>≥80%?"}
             ConfidenceLoop --> |"No<br/>Refine"| Tool3Read
             ConfidenceLoop --> |"Yes<br/>Proceed"| Tool4
         end
 
-        Tool4["Tool 4<br/>rust-preflight<br/>Syntax Validation<br/>(Tree-sitter only, <20ms)"]
-        Phase4 --> Tool5["Tool 5<br/>LLM-cozodb-to-diff-writer<br/>Generate CodeDiff.json<br/>(LLM Applies Changes)"]
-        Phase5 --> Tool6["Tool 6<br/>cozoDB-make-future-code-current<br/>Delete Table +<br/>Re-trigger Indexing"]
+        Tool4["`rust-preflight-code-simulator`<br/>rust-preflight<br/>Syntax Validation<br/>(Tree-sitter only, <20ms)"]
+        Phase4 --> Tool5["`llm-cozodb-to-diff-writer`<br/>LLM-cozodb-to-diff-writer<br/>Generate CodeDiff.json<br/>(LLM Applies Changes)"]
+        Phase5 --> Tool6["`cozodb-make-future-code-current`<br/>cozoDB-make-future-code-current<br/>Delete Table +<br/>Re-trigger Indexing"]
     end
 
     subgraph Database ["CozoDB Temporal States"]
@@ -126,7 +126,7 @@ flowchart TD
 **State Transition Flow**:
 ```
 Phase 2: LLM sets (current_ind, future_ind, Future_Code, Future_Action)
-Phase 4: Tool 5 generates CodeDiff.json → LLM applies changes → Files reflect future state
+Phase 4: `llm-cozodb-to-diff-writer` generates CodeDiff.json → LLM applies changes → Files reflect future state
 Phase 5: Reset database → (1,1, current_code=Future_Code, future_ind=1)
 ```
 
@@ -157,8 +157,8 @@ parseltongue reason --query "
 **MVP Ultra-Minimalist Principles (~10 users)**:
 - **Target**: ~10 users - focus on essential functionality that works reliably
 - **Philosophy**: Simplicity over complexity - each tool does ONE thing well
-- **Tool 5**: NO backup options, NO multiple safety levels, NO configuration complexity (generates CodeDiff.json for LLM)
-- **Tool 6**: NO backup metadata files, NO configuration options
+- **`llm-cozodb-to-diff-writer`**: NO backup options, NO multiple safety levels, NO configuration complexity (generates CodeDiff.json for LLM)
+- **`cozodb-make-future-code-current`**: NO backup metadata files, NO configuration options
 - **Goal**: Maximum reliability through simplicity
 
 **Smart Orchestration, Simple Tools**:

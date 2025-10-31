@@ -11,7 +11,7 @@
 
 ### **TOOL SIMPLICITY RULES:**
 
-**Tool 5 (LLM-cozodb-to-diff-writer) - MINIMALIST:**
+**`llm-cozodb-to-diff-writer` (LLM-cozodb-to-diff-writer) - MINIMALIST:**
 - NO backup options (MVP doesn't need them)
 - NO multiple safety levels (complex to debug)
 - NO configuration complexity (single reliable JSON generation)
@@ -19,7 +19,7 @@
 - **EASY DEBUGGING**: Clear JSON output, inspectable by humans and LLMs
 - **FOCUS**: Provide LLM with exactly what code changes to apply
 
-**Tool 6 (cozoDB-make-future-code-current) - MINIMALIST:**
+**`cozodb-make-future-code-current` (cozoDB-make-future-code-current) - MINIMALIST:**
 - NO backup metadata files (unnecessary complexity)
 - NO configuration options (reset should be deterministic)
 - **SINGLE PURPOSE**: Reset CodeGraph table + reingest folder
@@ -83,7 +83,7 @@ This ensures LLM has exactly what it needs - no more, no less.
     - User downloads parseltongue binary and sets up Claude agent
     - User confirms they are in the relevant Rust repository
     - Code indexing begins (approximately 10 minutes)
-        - Tool 1: `folder-to-cozoDB-streamer` processes codebase
+        - `folder-to-cozodb-streamer`: `folder-to-cozoDB-streamer` processes codebase
             - Uses tree-sitter parsing with ISGL1 chunking
             - Creates CodeGraph database with interface-level indexing
             - Optional LSP metadata extraction via rust-analyzer
@@ -100,10 +100,10 @@ This ensures LLM has exactly what it needs - no more, no less.
     - Final micro-PRD isolated for processing
 
 - Phase 3: Temporal Code Simulation
-    - Tool 2: `LLM-to-cozoDB-writer` enables LLM to update CozoDB with temporal versioning using CozoDbQueryRef.md patterns
+    - `llm-to-cozodb-writer`: `LLM-to-cozoDB-writer` enables LLM to update CozoDB with temporal versioning using CozoDbQueryRef.md patterns
         - **Step A01**: LLM generates temporal upsert queries to create test interface changes (current_ind=0, future_ind=1, Future_Action="Create")
         - **Step A02**: LLM propagates changes to non-test interfaces based on dependency analysis
-    - Tool 3: `LLM-cozoDB-to-context-writer` extracts updated context using LLM-generated queries
+    - `llm-cozodb-to-context-writer`: `LLM-cozoDB-to-context-writer` extracts updated context using LLM-generated queries
         - **Step B01**: Generate future code using hopping/blast-radius analysis:
             - LLM queries CozoDB for dependency chains using ISG patterns from archive
             - Applies proven hopping/blast-radius algorithms converted to CozoDB queries
@@ -111,8 +111,8 @@ This ensures LLM has exactly what it needs - no more, no less.
         - **Step B02**: Rubber duck debugging and confidence validation (≥80% to proceed)
             - **ITERATIVE REASONING CYCLE**: This step embodies the core read-edit-read-edit mindset:
             - **READ**: LLM analyzes current state from context and temporal changes
-            - **EDIT**: LLM updates CozoDB with improved temporal changes via Tool 2
-            - **READ**: LLM extracts updated context via Tool 3 to verify changes
+            - **EDIT**: LLM updates CozoDB with improved temporal changes via `llm-to-cozodb-writer`
+            - **READ**: LLM extracts updated context via `llm-cozodb-to-context-writer` to verify changes
             - **REPEAT**: Continue read-edit-read-edit cycle until confident
             - **Confidence Threshold**: Stop when LLM confidence ≥ 80% and solution is coherent
             - **Iteration Count**: May repeat A01→A02→B01→B02 cycle multiple times until satisfactory
@@ -121,15 +121,15 @@ This ensures LLM has exactly what it needs - no more, no less.
             - **ITERATION COMPLETION**: When LLM feels confident of the changes (≥80% confidence), move to next step
 
 - Phase 4: Validation & Diff Generation
-    - Tool 4: `rust-preflight-code-simulator` performs **simplified syntax validation**:
+    - `rust-preflight-code-simulator`: `rust-preflight-code-simulator` performs **simplified syntax validation**:
         - **Scope**: Tree-sitter syntax checks ONLY for entities with future_code
         - **Speed**: <20ms for typical change set (ultra-fast feedback)
         - **Does NOT validate**: Types, imports, lifetimes (cargo build handles these in Phase 4)
         - **Purpose**: Quick syntax sanity check before file writes
     - If syntax errors detected, return to Phase 3 with line/column details for refinement
-    - Tool 5: `LLM-cozodb-to-diff-writer` generates diff context for LLM:
+    - `llm-cozodb-to-diff-writer`: `LLM-cozodb-to-diff-writer` generates diff context for LLM:
         - **SINGLE PURPOSE**: Generate CodeDiff.json from CozoDB for LLM consumption
-        - Tool 5 queries CozoDB for entities with Future_Action != None
+        - `llm-cozodb-to-diff-writer` queries CozoDB for entities with Future_Action != None
         - Generates structured CodeDiff.json with file paths, operations, and future_code
         - LLM (Entity 1) reads CodeDiff.json and applies changes to codebase (Entity 4)
         - **MINIMAL VERIFICATION**: Basic build/test validation by LLM (MVP approach)
@@ -138,7 +138,7 @@ This ensures LLM has exactly what it needs - no more, no less.
 
 - Phase 5: State Reset & Completion
     - User confirms satisfaction with changes
-    - Tool 6: `cozoDB-make-future-code-current` resets database state using ultra-minimalist approach:
+    - `cozodb-make-future-code-current`: `cozoDB-make-future-code-current` resets database state using ultra-minimalist approach:
         - **ULTRA-MINIMAL**: Delete CodeGraph table + re-trigger folder-to-cozoDB-streamer (that's it!)
         - **CLEANEST POSSIBLE**: No temporal state management, just fresh rebuild
         - **MAXIMUM RELIABILITY**: Simplest operation = fewest failure points
@@ -153,16 +153,16 @@ This ensures LLM has exactly what it needs - no more, no less.
 
 - **Complete Tool Pipeline (7 components)**:
     - **Orchestrator**: `agent-parseltongue-reasoning-orchestrator` (External LLM coordination & workflow management)
-    - Tool 1: `folder-to-cozoDB-streamer` (Multi-language code indexing via tree-sitter)
-    - Tool 2: `LLM-to-cozoDB-writer` (LLM upsert queries → CozoDB temporal updates)
-    - Tool 3: `LLM-cozoDB-to-context-writer` (LLM queries → CozoDB → CodeGraphContext.json)
-    - Tool 4: `rust-preflight-code-simulator` (Simplified syntax validation for entities with future_code)
-    - Tool 5: `LLM-cozodb-to-diff-writer` (CozoDB → CodeDiff.json → LLM applies changes)
-    - Tool 6: `cozoDB-make-future-code-current` (State reset)
+    - `folder-to-cozodb-streamer`: `folder-to-cozoDB-streamer` (Multi-language code indexing via tree-sitter)
+    - `llm-to-cozodb-writer`: `LLM-to-cozoDB-writer` (LLM upsert queries → CozoDB temporal updates)
+    - `llm-cozodb-to-context-writer`: `LLM-cozoDB-to-context-writer` (LLM queries → CozoDB → CodeGraphContext.json)
+    - `rust-preflight-code-simulator`: `rust-preflight-code-simulator` (Simplified syntax validation for entities with future_code)
+    - `llm-cozodb-to-diff-writer`: `LLM-cozodb-to-diff-writer` (CozoDB → CodeDiff.json → LLM applies changes)
+    - `cozodb-make-future-code-current`: `cozoDB-make-future-code-current` (State reset)
 
 **Language Support Levels**:
 - **Multi-Language Core**: Tools 1, 2, 3, 5, 6 work with any tree-sitter supported language
-- **Rust-Enhanced**: Tool 4 provides Rust-specific validation and LSP integration
+- **Rust-Enhanced**: `rust-preflight-code-simulator` provides Rust-specific validation and LSP integration
 - **Graceful Degradation**: Non-Rust projects get core functionality without Rust-specific validation
 
 ## 2.6 Four-Entity Data Flow Architecture
@@ -183,8 +183,8 @@ The Parseltongue system enables bidirectional LLM↔CozoDB communication through
 - Role: Stores CodeGraph with temporal versioning (current_ind, future_ind, Future_Action)
 - Schema: ISGL1 primary key + Current_Code + Future_Code + interface_signature + TDD_Classification + lsp_meta_data
 - **Dual ISGL1 Key Format**:
-  - **Existing Entities** (Tool 1): `rust:fn:calculate_sum:src_lib_rs:42-56` (line-based)
-  - **New Entities** (Tool 2): `src_lib_rs-new_feature-fn-abc12345` (hash-based, SHA-256 first 8 chars)
+  - **Existing Entities** (`folder-to-cozodb-streamer`): `rust:fn:calculate_sum:src_lib_rs:42-56` (line-based)
+  - **New Entities** (`llm-to-cozodb-writer`): `src_lib_rs-new_feature-fn-abc12345` (hash-based, SHA-256 first 8 chars)
 - Cannot be read directly by LLM - requires context extraction
 - Passive storage that responds to LLM-generated queries
 
@@ -209,18 +209,18 @@ Codebase → [folder-to-cozoDB-streamer] → CozoDB
 ```
 
 ### **Tool Responsibilities**
-- **Tool 1**: Codebase → CozoDB (indexing)
+- **`folder-to-cozodb-streamer`**: Codebase → CozoDB (indexing)
   - Generates line-based ISGL1 keys for existing entities
   - Format: `{language}:{type}:{name}:{sanitized_path}:{start_line}-{end_line}`
-- **Tool 2**: LLM → CozoDB via `LLM-to-cozoDB-writer` (temporal upserts)
+- **`llm-to-cozodb-writer`**: LLM → CozoDB via `LLM-to-cozoDB-writer` (temporal upserts)
   - Generates hash-based ISGL1 keys for new entities (Create operations)
   - Format: `{sanitized_filepath}-{entity_name}-{entity_type}-{hash8}`
-- **Tool 3**: LLM queries → CozoDB → CodeGraphContext.json (context extraction)
-- **Tool 4**: Validation of proposed changes
-- **Tool 5**: CozoDB → CodeDiff.json via `LLM-cozodb-to-diff-writer` (diff generation, LLM applies changes)
-- **Tool 6**: Database state reset
+- **`llm-cozodb-to-context-writer`**: LLM queries → CozoDB → CodeGraphContext.json (context extraction)
+- **`rust-preflight-code-simulator`**: Validation of proposed changes
+- **`llm-cozodb-to-diff-writer`**: CozoDB → CodeDiff.json via `LLM-cozodb-to-diff-writer` (diff generation, LLM applies changes)
+- **`cozodb-make-future-code-current`**: Database state reset
 
-### **Hash-Based Key Generation Specification (Tool 2)**
+### **Hash-Based Key Generation Specification (`llm-to-cozodb-writer`)**
 
 **Purpose**: Provide stable identity for new code entities before they exist in the codebase.
 
@@ -292,16 +292,16 @@ chrono = { version = "0.4", features = ["serde"] }
     - **(1,0, Delete)**: Code exists now but will be deleted
     - **(0,1, Create)**: Code doesn't exist but will be created
         - **KEY FORMAT**: Hash-based ISGL1 key (e.g., `src_lib_rs-new_feature-fn-abc12345`)
-        - **GENERATION**: Tool 2 generates key using SHA-256 hash at creation time
+        - **GENERATION**: `llm-to-cozodb-writer` generates key using SHA-256 hash at creation time
         - **RATIONALE**: No line numbers available for new entities yet
     - **(1,1, Edit)**: Code exists and will be modified
-        - **KEY FORMAT**: Line-based ISGL1 key from Tool 1 (e.g., `rust:fn:calculate_sum:src_lib_rs:42-56`)
+        - **KEY FORMAT**: Line-based ISGL1 key from `folder-to-cozodb-streamer` (e.g., `rust:fn:calculate_sum:src_lib_rs:42-56`)
 
 - **Current_Code → Future_Code Flow**:
     - Phase 2: LLM sets future_code based on bug analysis
-    - Phase 4: Tool 5 generates CodeDiff.json, LLM applies future_code to actual files
+    - Phase 4: `llm-cozodb-to-diff-writer` generates CodeDiff.json, LLM applies future_code to actual files
     - Phase 5: Database reset makes future_code the new current_code
-        - **Note**: After reset, newly created entities are re-indexed by Tool 1 with line-based keys
+        - **Note**: After reset, newly created entities are re-indexed by `folder-to-cozodb-streamer` with line-based keys
         - **Key Transition**: Hash-based keys (Create) → Line-based keys (after re-indexing)
 
 ## 2.8 Command Interface (Current)
@@ -317,22 +317,22 @@ chrono = { version = "0.4", features = ["serde"] }
 
 - **Manual Tools (5% of users)**:
     ```bash
-    # Tool 1: Index codebase
+    # `folder-to-cozodb-streamer`: Index codebase
     folder-to-cozoDB-streamer ./src --parsing-library tree-sitter --chunking ISGL1 --output-db ./parseltongue.db
 
-    # Tool 2: LLM upserts temporal changes to CozoDB
+    # `llm-to-cozodb-writer`: LLM upserts temporal changes to CozoDB
     LLM-to-cozoDB-writer --query-temporal "INSERT INTO Code_Graph VALUES (...)" --database ./parseltongue.db
 
-    # Tool 3: LLM extracts context from CozoDB
+    # `llm-cozodb-to-context-writer`: LLM extracts context from CozoDB
     LLM-cozoDB-to-context-writer --query "SELECT * FROM Code_Graph WHERE current_ind=1" --database ./parseltongue.db --output-context CodeGraphContext.json
 
-    # Tool 4: Validate proposed changes
+    # `rust-preflight-code-simulator`: Validate proposed changes
     rust-preflight-code-simulator validation_output.json --validation-type all
 
-    # Tool 5: Generate CodeDiff.json for LLM to apply changes
+    # `llm-cozodb-to-diff-writer`: Generate CodeDiff.json for LLM to apply changes
     LLM-cozodb-to-diff-writer --database ./parseltongue.db --output CodeDiff.json
 
-    # Tool 6: Reset database state
+    # `cozodb-make-future-code-current`: Reset database state
     cozoDB-make-future-code-current --project-path . --database ./parseltongue.db
     ```
 
@@ -370,7 +370,7 @@ The minimalPRD workflow aligns with the current 7-component architecture:
 
 ### Rust-Enhanced Support (LSP Metadata)
 **Additional Rust-Specific Capabilities**:
-- Enhanced type information via rust-analyzer LSP (Tool 1 indexing)
+- Enhanced type information via rust-analyzer LSP (`folder-to-cozodb-streamer` indexing)
 - Semantic metadata stored in lsp_meta_data column
 - **Note**: Validation happens via cargo build/test AFTER file writes (Step D04-D05)
 - **Rationale**: Real compilation catches all errors that matter; syntax-only validation is fast sanity check
@@ -379,8 +379,8 @@ The minimalPRD workflow aligns with the current 7-component architecture:
 
 **Rust Projects**:
 ```
-🔍 Analysis: tree-sitter parsing + rust-analyzer LSP metadata (Tool 1)
-🧪 Syntax Check: Tree-sitter validation for future_code entities (Tool 4, <20ms)
+🔍 Analysis: tree-sitter parsing + rust-analyzer LSP metadata (`folder-to-cozodb-streamer`)
+🧪 Syntax Check: Tree-sitter validation for future_code entities (`rust-preflight-code-simulator`, <20ms)
 ✅ Real Validation: cargo build + cargo test AFTER file writes (Step D04-D05)
 🚀 Automation: LLM applies changes, then runs cargo for validation
 ```
@@ -388,7 +388,7 @@ The minimalPRD workflow aligns with the current 7-component architecture:
 **Non-Rust Projects**:
 ```
 🔍 Analysis: tree-sitter parsing (no LSP metadata)
-🧪 Syntax Check: Tree-sitter validation for future_code entities (Tool 4)
+🧪 Syntax Check: Tree-sitter validation for future_code entities (`rust-preflight-code-simulator`)
 ✅ Real Validation: Language-specific toolchain after file writes
 🚀 Automation: File writing + user-managed build/test integration
 ```
