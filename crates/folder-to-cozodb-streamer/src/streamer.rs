@@ -404,8 +404,8 @@ impl FileStreamer for FileStreamerImpl {
         // Read file content
         let content = self.read_file_content(file_path).await?;
 
-        // Parse code entities
-        let parsed_entities = self.key_generator.parse_source(&content, file_path)?;
+        // Parse code entities AND dependencies (two-pass extraction)
+        let (parsed_entities, dependencies) = self.key_generator.parse_source(&content, file_path)?;
 
         let mut entities_created = 0;
         let mut errors: Vec<String> = Vec::new();
@@ -440,6 +440,27 @@ impl FileStreamer for FileStreamerImpl {
                 Err(e) => {
                     let error_msg = format!("Failed to convert entity {}: {}", isgl1_key, e);
                     errors.push(error_msg);
+                }
+            }
+        }
+
+        // Batch insert dependencies after all entities are stored
+        if !dependencies.is_empty() {
+            // First need to create schema for dependencies if not exists
+            if let Err(e) = self.db.create_dependency_edges_schema().await {
+                // Schema might already exist - that's ok
+                if !e.to_string().contains("already exists") && !e.to_string().contains("conflicts with an existing") {
+                    errors.push(format!("Failed to create dependency schema: {}", e));
+                }
+            }
+
+            // Insert dependency edges
+            match self.db.insert_edges_batch(&dependencies).await {
+                Ok(_) => {
+                    // Successfully inserted dependencies
+                }
+                Err(e) => {
+                    errors.push(format!("Failed to insert {} dependencies: {}", dependencies.len(), e));
                 }
             }
         }
