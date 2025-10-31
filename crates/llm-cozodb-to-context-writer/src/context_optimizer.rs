@@ -303,6 +303,63 @@ impl ContextOptimizerImpl {
         ]
     }
 
+    /// Fetch real dependency relationships from CozoDB
+    ///
+    /// Replaces dummy `create_sample_relationships()` with actual dependency data
+    /// from the CozoDB dependency tracking system implemented in Phase 3.
+    ///
+    /// # Implementation
+    /// - Queries CozoDB's `get_forward_dependencies()` for each entity
+    /// - Maps parseltongue-core `EdgeType` to Tool 3 `RelationshipType`
+    /// - Currently maps all edges to `RelationshipType::Calls` (can be extended)
+    ///
+    /// # Returns
+    /// Vector of `EntityRelationship` objects representing actual code dependencies.
+    /// Returns empty vector if no entities provided or no dependencies found.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let entities = vec![entity_a, entity_b];
+    /// let relationships = optimizer.fetch_real_dependencies(&entities).await?;
+    /// // Returns actual dependencies from CozoDB dependency graph
+    /// ```
+    ///
+    /// # Phase 4.1: TDD Integration (REFACTOR phase)
+    async fn fetch_real_dependencies(&self, entities: &[CodeEntity]) -> Result<Vec<EntityRelationship>> {
+        use parseltongue_core::entities::EdgeType;
+
+        if entities.is_empty() {
+            return Ok(vec![]);
+        }
+
+        let mut relationships = Vec::new();
+
+        // For each entity, get its forward dependencies
+        for entity in entities {
+            match self.storage.get_forward_dependencies(&entity.isgl1_key).await {
+                Ok(deps) => {
+                    // Create EntityRelationship for each dependency
+                    for dep_key in deps {
+                        // Check if the dependency is in our entity set (optional filtering)
+                        relationships.push(EntityRelationship {
+                            source_id: entity.isgl1_key.clone(),
+                            target_id: dep_key,
+                            relationship_type: RelationshipType::Calls, // Default to Calls for now
+                            strength: 1.0,
+                            context: Some("dependency edge".to_string()),
+                        });
+                    }
+                }
+                Err(e) => {
+                    // Log error but continue processing other entities
+                    eprintln!("Warning: Failed to fetch dependencies for {}: {}", entity.isgl1_key, e);
+                }
+            }
+        }
+
+        Ok(relationships)
+    }
+
     /// Calculate centrality scores for entities
     fn calculate_centrality_scores(&self, entities: &[CodeEntity], relationships: &[EntityRelationship]) -> HashMap<String, f32> {
         let mut scores = HashMap::new();
@@ -546,5 +603,170 @@ mod tests {
             assert_eq!(updated_stats.entities_processed, 10);
             assert_eq!(updated_stats.tokens_generated, 1000);
         });
+    }
+
+    // ================== Phase 4.1: Real Dependency Integration Tests ==================
+
+    #[tokio::test]
+    async fn test_fetch_real_dependencies_from_cozodb() {
+        // RED: Test real dependency fetching from CozoDB
+        use parseltongue_core::entities::DependencyEdge;
+
+        // Create in-memory storage and set up dependency schema
+        let storage = CozoDbStorage::new("mem").await.unwrap();
+        storage.create_schema().await.unwrap();
+        storage.create_dependency_edges_schema().await.unwrap();
+
+        // Insert test entities and dependencies
+        let entity_a = CodeEntity::new(
+            "rust:fn:function_a:test_rs:1-10".to_string(),
+            InterfaceSignature {
+                entity_type: EntityType::Function,
+                name: "function_a".to_string(),
+                visibility: Visibility::Public,
+                file_path: "test.rs".into(),
+                line_range: LineRange::new(1, 10).unwrap(),
+                module_path: vec![],
+                documentation: None,
+                language_specific: parseltongue_core::entities::LanguageSpecificSignature::Rust(
+                    parseltongue_core::entities::RustSignature {
+                        generics: vec![],
+                        lifetimes: vec![],
+                        where_clauses: vec![],
+                        attributes: vec![],
+                        trait_impl: None,
+                    }
+                ),
+            },
+        ).unwrap();
+
+        let entity_b = CodeEntity::new(
+            "rust:fn:function_b:test_rs:20-30".to_string(),
+            InterfaceSignature {
+                entity_type: EntityType::Function,
+                name: "function_b".to_string(),
+                visibility: Visibility::Public,
+                file_path: "test.rs".into(),
+                line_range: LineRange::new(20, 30).unwrap(),
+                module_path: vec![],
+                documentation: None,
+                language_specific: parseltongue_core::entities::LanguageSpecificSignature::Rust(
+                    parseltongue_core::entities::RustSignature {
+                        generics: vec![],
+                        lifetimes: vec![],
+                        where_clauses: vec![],
+                        attributes: vec![],
+                        trait_impl: None,
+                    }
+                ),
+            },
+        ).unwrap();
+
+        storage.insert_entity(&entity_a).await.unwrap();
+        storage.insert_entity(&entity_b).await.unwrap();
+
+        // Insert dependency: A calls B
+        let edge = DependencyEdge::builder()
+            .from_key("rust:fn:function_a:test_rs:1-10")
+            .to_key("rust:fn:function_b:test_rs:20-30")
+            .edge_type(parseltongue_core::entities::EdgeType::Calls)
+            .build()
+            .unwrap();
+        storage.insert_edge(&edge).await.unwrap();
+
+        // Create optimizer with populated storage
+        let storage = Arc::new(storage);
+        let config = crate::ContextWriterConfig::default();
+        let llm_client = crate::ToolFactory::create_llm_client(config.clone());
+        let optimizer = ContextOptimizerImpl::new(storage, config, llm_client);
+
+        // Test: Fetch real dependencies
+        let entities = vec![entity_a, entity_b];
+        let relationships = optimizer.fetch_real_dependencies(&entities).await.unwrap();
+
+        // Verify: Should find 1 relationship (A -> B)
+        assert_eq!(relationships.len(), 1, "Should find 1 dependency relationship");
+        assert_eq!(relationships[0].source_id, "rust:fn:function_a:test_rs:1-10");
+        assert_eq!(relationships[0].target_id, "rust:fn:function_b:test_rs:20-30");
+        assert!(matches!(relationships[0].relationship_type, RelationshipType::Calls));
+    }
+
+    #[tokio::test]
+    async fn test_fetch_dependencies_with_empty_entities() {
+        // RED: Test edge case with empty entity list
+        let storage = CozoDbStorage::new("mem").await.unwrap();
+        let storage = Arc::new(storage);
+
+        let config = crate::ContextWriterConfig::default();
+        let llm_client = crate::ToolFactory::create_llm_client(config.clone());
+        let optimizer = ContextOptimizerImpl::new(storage, config, llm_client);
+
+        // Test with empty entities
+        let relationships = optimizer.fetch_real_dependencies(&[]).await.unwrap();
+
+        assert_eq!(relationships.len(), 0, "Empty entities should return empty relationships");
+    }
+
+    #[tokio::test]
+    async fn test_fetch_dependencies_multiple_edges() {
+        // RED: Test with multiple dependencies per entity
+        use parseltongue_core::entities::DependencyEdge;
+
+        let storage = CozoDbStorage::new("mem").await.unwrap();
+        storage.create_schema().await.unwrap();
+        storage.create_dependency_edges_schema().await.unwrap();
+
+        // Create entity A that calls both B and C
+        let entity_a = CodeEntity::new(
+            "rust:fn:a:test_rs:1-10".to_string(),
+            InterfaceSignature {
+                entity_type: EntityType::Function,
+                name: "a".to_string(),
+                visibility: Visibility::Public,
+                file_path: "test.rs".into(),
+                line_range: LineRange::new(1, 10).unwrap(),
+                module_path: vec![],
+                documentation: None,
+                language_specific: parseltongue_core::entities::LanguageSpecificSignature::Rust(
+                    parseltongue_core::entities::RustSignature {
+                        generics: vec![],
+                        lifetimes: vec![],
+                        where_clauses: vec![],
+                        attributes: vec![],
+                        trait_impl: None,
+                    }
+                ),
+            },
+        ).unwrap();
+
+        storage.insert_entity(&entity_a).await.unwrap();
+
+        // Insert multiple dependencies: A -> B, A -> C
+        let edges = vec![
+            DependencyEdge::builder()
+                .from_key("rust:fn:a:test_rs:1-10")
+                .to_key("rust:fn:b:test_rs:20-30")
+                .edge_type(parseltongue_core::entities::EdgeType::Calls)
+                .build().unwrap(),
+            DependencyEdge::builder()
+                .from_key("rust:fn:a:test_rs:1-10")
+                .to_key("rust:fn:c:test_rs:40-50")
+                .edge_type(parseltongue_core::entities::EdgeType::Calls)
+                .build().unwrap(),
+        ];
+        storage.insert_edges_batch(&edges).await.unwrap();
+
+        // Create optimizer and fetch dependencies
+        let storage = Arc::new(storage);
+        let config = crate::ContextWriterConfig::default();
+        let llm_client = crate::ToolFactory::create_llm_client(config.clone());
+        let optimizer = ContextOptimizerImpl::new(storage, config, llm_client);
+
+        let relationships = optimizer.fetch_real_dependencies(&[entity_a]).await.unwrap();
+
+        // Verify: Should find 2 relationships
+        assert_eq!(relationships.len(), 2, "Should find 2 dependencies");
+        assert!(relationships.iter().any(|r| r.target_id == "rust:fn:b:test_rs:20-30"));
+        assert!(relationships.iter().any(|r| r.target_id == "rust:fn:c:test_rs:40-50"));
     }
 }
