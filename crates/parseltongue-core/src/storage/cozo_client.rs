@@ -244,6 +244,135 @@ impl CozoDbStorage {
         Ok(())
     }
 
+    /// Calculate blast radius: Find all entities within N hops of a changed entity.
+    ///
+    /// Uses CozoDB recursive Datalog queries to perform bounded BFS graph traversal,
+    /// returning all reachable entities with their minimum distance from the source.
+    ///
+    /// # Performance Contract
+    /// - 5 hops on 10k node graph: <50ms (D10 PRD requirement)
+    /// - Bounded traversal prevents runaway queries on cyclic graphs
+    ///
+    /// # Arguments
+    /// * `changed_key` - ISGL1 key of the entity that changed (source node)
+    /// * `max_hops` - Maximum number of hops to traverse (1-based distance limit)
+    ///
+    /// # Returns
+    /// Vector of (ISGL1_key, distance) tuples sorted by distance.
+    /// Returns empty vector if `max_hops == 0`.
+    ///
+    /// # Algorithm
+    /// 1. **Base case**: Direct dependents at distance 1
+    /// 2. **Recursive case**: Follow edges incrementing distance up to `max_hops`
+    /// 3. **Aggregation**: Min distance per node (handles diamond/multi-path dependencies)
+    ///
+    /// # Example
+    /// ```
+    /// use parseltongue_core::storage::CozoDbStorage;
+    /// use parseltongue_core::entities::{DependencyEdge, EdgeType};
+    ///
+    /// # tokio_test::block_on(async {
+    /// let storage = CozoDbStorage::new("mem").await.unwrap();
+    /// storage.create_dependency_edges_schema().await.unwrap();
+    ///
+    /// // Given: A -> B -> C -> D
+    /// let ab = DependencyEdge::builder()
+    ///     .from_key("rust:fn:a:test_rs:1-5")
+    ///     .to_key("rust:fn:b:test_rs:6-10")
+    ///     .edge_type(EdgeType::Calls)
+    ///     .build().unwrap();
+    /// let bc = DependencyEdge::builder()
+    ///     .from_key("rust:fn:b:test_rs:6-10")
+    ///     .to_key("rust:fn:c:test_rs:11-15")
+    ///     .edge_type(EdgeType::Calls)
+    ///     .build().unwrap();
+    /// storage.insert_edge(&ab).await.unwrap();
+    /// storage.insert_edge(&bc).await.unwrap();
+    ///
+    /// // Query: blast_radius("A", 2) returns B and C
+    /// let affected = storage.calculate_blast_radius(
+    ///     "rust:fn:a:test_rs:1-5",
+    ///     2
+    /// ).await.unwrap();
+    ///
+    /// assert_eq!(affected.len(), 2);
+    /// assert_eq!(affected[0].0, "rust:fn:b:test_rs:6-10");
+    /// assert_eq!(affected[0].1, 1);
+    /// assert_eq!(affected[1].0, "rust:fn:c:test_rs:11-15");
+    /// assert_eq!(affected[1].1, 2);
+    /// # });
+    /// ```
+    pub async fn calculate_blast_radius(
+        &self,
+        changed_key: &str,
+        max_hops: usize,
+    ) -> Result<Vec<(String, usize)>> {
+        // Validation
+        if max_hops == 0 {
+            return Ok(Vec::new());
+        }
+
+        // CozoDB recursive query for bounded BFS
+        // Strategy: Iteratively hop through edges, tracking minimum distance
+        let query = format!(
+            r#"
+            # Recursive blast radius query
+            # Find all nodes reachable from start_node within max_hops
+
+            # Base case: Starting node at distance 0
+            reachable[to_key, distance] := *DependencyEdges{{from_key, to_key}},
+                                            from_key == $start_key,
+                                            distance = 1
+
+            # Recursive case: Follow edges, incrementing distance
+            reachable[to_key, new_distance] := reachable[from, dist],
+                                                *DependencyEdges{{from_key: from, to_key}},
+                                                dist < $max_hops,
+                                                new_distance = dist + 1
+
+            # Aggregate to get minimum distance for each node
+            ?[node, min_dist] := reachable[node, dist],
+                                 min_dist = min(dist)
+
+            :order min_dist
+            "#
+        );
+
+        let mut params = BTreeMap::new();
+        params.insert("start_key".to_string(), DataValue::Str(changed_key.into()));
+        params.insert("max_hops".to_string(), DataValue::from(max_hops as i64));
+
+        let result = self
+            .db
+            .run_script(&query, params, ScriptMutability::Immutable)
+            .map_err(|e| ParseltongError::DependencyError {
+                operation: "calculate_blast_radius".to_string(),
+                reason: format!("Failed to execute blast radius query: {}", e),
+            })?;
+
+        // Parse results into (key, distance) tuples
+        let mut affected = Vec::new();
+        for row in result.rows {
+            if row.len() >= 2 {
+                if let (Some(DataValue::Str(node)), Some(distance_val)) =
+                    (row.get(0), row.get(1))
+                {
+                    // Distance is stored as Num enum (Int or Float)
+                    let distance = match distance_val {
+                        DataValue::Num(n) => match n {
+                            cozo::Num::Int(i) => *i as usize,
+                            cozo::Num::Float(f) => *f as usize,
+                        },
+                        _ => continue,
+                    };
+                    affected.push((node.to_string(), distance));
+                }
+            }
+        }
+
+        Ok(affected)
+    }
+
     /// List all relations in the database
     pub async fn list_relations(&self) -> Result<Vec<String>> {
         let result = self

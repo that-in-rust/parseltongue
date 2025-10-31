@@ -418,3 +418,140 @@ async fn test_batch_insert_performance_contract() {
         elapsed
     );
 }
+
+// ================== Phase 3: Query Implementation Tests ==================
+
+#[tokio::test]
+async fn test_blast_radius_single_hop() {
+    // RED: Blast radius query not yet implemented
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Create test graph: A -> B -> C
+    let edges = vec![
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:B:test_rs:10-15")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:B:test_rs:10-15")
+            .to_key("rust:fn:C:test_rs:20-25")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+    ];
+
+    db.insert_edges_batch(&edges).await.unwrap();
+
+    // Query: 1-hop from A should return only B
+    let affected = db.calculate_blast_radius("rust:fn:A:test_rs:1-5", 1).await.unwrap();
+
+    assert_eq!(affected.len(), 1, "Should find 1 entity within 1 hop");
+    assert_eq!(affected[0].0, "rust:fn:B:test_rs:10-15");
+    assert_eq!(affected[0].1, 1, "Distance should be 1");
+}
+
+#[tokio::test]
+async fn test_blast_radius_multi_hop() {
+    // RED: Multi-hop blast radius
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Create test graph: A -> B -> C -> D
+    let edges = vec![
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:B:test_rs:10-15")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:B:test_rs:10-15")
+            .to_key("rust:fn:C:test_rs:20-25")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:C:test_rs:20-25")
+            .to_key("rust:fn:D:test_rs:30-35")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+    ];
+
+    db.insert_edges_batch(&edges).await.unwrap();
+
+    // Query: 2-hop from A should return B and C
+    let affected = db.calculate_blast_radius("rust:fn:A:test_rs:1-5", 2).await.unwrap();
+
+    assert_eq!(affected.len(), 2, "Should find 2 entities within 2 hops");
+
+    // Check we have B at distance 1 and C at distance 2
+    let b = affected.iter().find(|(k, _)| k.contains("fn:B:"));
+    let c = affected.iter().find(|(k, _)| k.contains("fn:C:"));
+
+    assert!(b.is_some(), "Should find B");
+    assert_eq!(b.unwrap().1, 1, "B should be at distance 1");
+
+    assert!(c.is_some(), "Should find C");
+    assert_eq!(c.unwrap().1, 2, "C should be at distance 2");
+}
+
+#[tokio::test]
+async fn test_blast_radius_branching() {
+    // Test diamond pattern: A -> B, A -> C, B -> D, C -> D
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    let edges = vec![
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:B:test_rs:10-15")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:C:test_rs:20-25")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:B:test_rs:10-15")
+            .to_key("rust:fn:D:test_rs:30-35")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:C:test_rs:20-25")
+            .to_key("rust:fn:D:test_rs:30-35")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+    ];
+
+    db.insert_edges_batch(&edges).await.unwrap();
+
+    // Query: 2-hop from A should return B, C at distance 1, and D at distance 2 (min distance)
+    let affected = db.calculate_blast_radius("rust:fn:A:test_rs:1-5", 2).await.unwrap();
+
+    assert_eq!(affected.len(), 3, "Should find 3 entities (B, C, D)");
+
+    // D should have minimum distance of 2 (even though reachable via two paths)
+    let d = affected.iter().find(|(k, _)| k.contains("fn:D:"));
+    assert!(d.is_some(), "Should find D");
+    assert_eq!(d.unwrap().1, 2, "D should be at minimum distance 2");
+}
+
+#[tokio::test]
+async fn test_blast_radius_zero_hops() {
+    // Edge case: 0 hops should return empty
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    let affected = db.calculate_blast_radius("rust:fn:A:test_rs:1-5", 0).await.unwrap();
+
+    assert_eq!(affected.len(), 0, "0 hops should return empty");
+}
