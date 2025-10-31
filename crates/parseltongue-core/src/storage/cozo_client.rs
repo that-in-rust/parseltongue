@@ -373,6 +373,148 @@ impl CozoDbStorage {
         Ok(affected)
     }
 
+    /// Get forward dependencies: entities that this entity directly depends on (outgoing edges).
+    ///
+    /// Returns all entities reachable in exactly 1 hop following outgoing edges from this entity.
+    /// This is a simple 1-hop query useful for understanding what a function/module directly uses.
+    ///
+    /// # Arguments
+    /// * `isgl1_key` - ISGL1 key of the entity to query
+    ///
+    /// # Returns
+    /// Vector of ISGL1 keys that this entity depends on. Returns empty vector if no dependencies exist.
+    ///
+    /// # Example
+    /// ```
+    /// use parseltongue_core::storage::CozoDbStorage;
+    /// use parseltongue_core::entities::{DependencyEdge, EdgeType};
+    ///
+    /// # tokio_test::block_on(async {
+    /// let storage = CozoDbStorage::new("mem").await.unwrap();
+    /// storage.create_dependency_edges_schema().await.unwrap();
+    ///
+    /// // Create: A calls B and C
+    /// let edges = vec![
+    ///     DependencyEdge::builder()
+    ///         .from_key("rust:fn:A:test_rs:1-5")
+    ///         .to_key("rust:fn:B:test_rs:10-15")
+    ///         .edge_type(EdgeType::Calls)
+    ///         .build().unwrap(),
+    ///     DependencyEdge::builder()
+    ///         .from_key("rust:fn:A:test_rs:1-5")
+    ///         .to_key("rust:fn:C:test_rs:20-25")
+    ///         .edge_type(EdgeType::Calls)
+    ///         .build().unwrap(),
+    /// ];
+    /// storage.insert_edges_batch(&edges).await.unwrap();
+    ///
+    /// // Query: What does A depend on?
+    /// let deps = storage.get_forward_dependencies("rust:fn:A:test_rs:1-5").await.unwrap();
+    /// assert_eq!(deps.len(), 2); // A depends on B and C
+    /// assert!(deps.contains(&"rust:fn:B:test_rs:10-15".to_string()));
+    /// assert!(deps.contains(&"rust:fn:C:test_rs:20-25".to_string()));
+    /// # });
+    /// ```
+    ///
+    /// # See Also
+    /// - [`get_reverse_dependencies`] for finding what depends on this entity
+    /// - [`calculate_blast_radius`] for multi-hop impact analysis
+    pub async fn get_forward_dependencies(&self, isgl1_key: &str) -> Result<Vec<String>> {
+        let query = "?[to_key] := *DependencyEdges{from_key, to_key}, from_key == $key";
+
+        let mut params = BTreeMap::new();
+        params.insert("key".to_string(), DataValue::Str(isgl1_key.into()));
+
+        let result = self
+            .db
+            .run_script(query, params, ScriptMutability::Immutable)
+            .map_err(|e| ParseltongError::DependencyError {
+                operation: "get_forward_dependencies".to_string(),
+                reason: format!("Failed to query forward dependencies: {}", e),
+            })?;
+
+        // Extract to_key values from results
+        let mut dependencies = Vec::new();
+        for row in result.rows {
+            if let Some(DataValue::Str(key)) = row.first() {
+                dependencies.push(key.to_string());
+            }
+        }
+
+        Ok(dependencies)
+    }
+
+    /// Get reverse dependencies: entities that directly depend on this entity (incoming edges).
+    ///
+    /// Returns all entities that have outgoing edges pointing to this entity.
+    /// This is a simple 1-hop query useful for finding "who calls this function".
+    ///
+    /// # Arguments
+    /// * `isgl1_key` - ISGL1 key of the entity to query
+    ///
+    /// # Returns
+    /// Vector of ISGL1 keys that depend on this entity. Returns empty vector if no dependents exist.
+    ///
+    /// # Example
+    /// ```
+    /// use parseltongue_core::storage::CozoDbStorage;
+    /// use parseltongue_core::entities::{DependencyEdge, EdgeType};
+    ///
+    /// # tokio_test::block_on(async {
+    /// let storage = CozoDbStorage::new("mem").await.unwrap();
+    /// storage.create_dependency_edges_schema().await.unwrap();
+    ///
+    /// // Create: A and B both call C
+    /// let edges = vec![
+    ///     DependencyEdge::builder()
+    ///         .from_key("rust:fn:A:test_rs:1-5")
+    ///         .to_key("rust:fn:C:test_rs:20-25")
+    ///         .edge_type(EdgeType::Calls)
+    ///         .build().unwrap(),
+    ///     DependencyEdge::builder()
+    ///         .from_key("rust:fn:B:test_rs:10-15")
+    ///         .to_key("rust:fn:C:test_rs:20-25")
+    ///         .edge_type(EdgeType::Calls)
+    ///         .build().unwrap(),
+    /// ];
+    /// storage.insert_edges_batch(&edges).await.unwrap();
+    ///
+    /// // Query: Who depends on C?
+    /// let dependents = storage.get_reverse_dependencies("rust:fn:C:test_rs:20-25").await.unwrap();
+    /// assert_eq!(dependents.len(), 2); // A and B both call C
+    /// assert!(dependents.contains(&"rust:fn:A:test_rs:1-5".to_string()));
+    /// assert!(dependents.contains(&"rust:fn:B:test_rs:10-15".to_string()));
+    /// # });
+    /// ```
+    ///
+    /// # See Also
+    /// - [`get_forward_dependencies`] for finding what this entity depends on
+    /// - [`calculate_blast_radius`] for multi-hop impact analysis
+    pub async fn get_reverse_dependencies(&self, isgl1_key: &str) -> Result<Vec<String>> {
+        let query = "?[from_key] := *DependencyEdges{from_key, to_key}, to_key == $key";
+
+        let mut params = BTreeMap::new();
+        params.insert("key".to_string(), DataValue::Str(isgl1_key.into()));
+
+        let result = self
+            .db
+            .run_script(query, params, ScriptMutability::Immutable)
+            .map_err(|e| ParseltongError::DependencyError {
+                operation: "get_reverse_dependencies".to_string(),
+                reason: format!("Failed to query reverse dependencies: {}", e),
+            })?;
+
+        // Extract from_key values from results
+        let mut dependents = Vec::new();
+        for row in result.rows {
+            if let Some(DataValue::Str(key)) = row.first() {
+                dependents.push(key.to_string());
+            }
+        }
+
+        Ok(dependents)
+    }
+
     /// List all relations in the database
     pub async fn list_relations(&self) -> Result<Vec<String>> {
         let result = self

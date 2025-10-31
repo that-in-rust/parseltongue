@@ -555,3 +555,149 @@ async fn test_blast_radius_zero_hops() {
 
     assert_eq!(affected.len(), 0, "0 hops should return empty");
 }
+
+// ================== Phase 3.2: Forward/Reverse Dependencies Tests ==================
+
+#[tokio::test]
+async fn test_forward_dependencies_single() {
+    // RED: Test forward dependencies (outgoing edges)
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Create: A -> B
+    let edge = DependencyEdge::builder()
+        .from_key("rust:fn:A:test_rs:1-5")
+        .to_key("rust:fn:B:test_rs:10-15")
+        .edge_type(EdgeType::Calls)
+        .build()
+        .unwrap();
+    db.insert_edge(&edge).await.unwrap();
+
+    // Query: A's forward dependencies should return [B]
+    let deps = db.get_forward_dependencies("rust:fn:A:test_rs:1-5").await.unwrap();
+
+    assert_eq!(deps.len(), 1, "A should depend on 1 entity");
+    assert_eq!(deps[0], "rust:fn:B:test_rs:10-15");
+}
+
+#[tokio::test]
+async fn test_reverse_dependencies_single() {
+    // RED: Test reverse dependencies (incoming edges)
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Create: A -> B
+    let edge = DependencyEdge::builder()
+        .from_key("rust:fn:A:test_rs:1-5")
+        .to_key("rust:fn:B:test_rs:10-15")
+        .edge_type(EdgeType::Calls)
+        .build()
+        .unwrap();
+    db.insert_edge(&edge).await.unwrap();
+
+    // Query: B's reverse dependencies should return [A]
+    let deps = db.get_reverse_dependencies("rust:fn:B:test_rs:10-15").await.unwrap();
+
+    assert_eq!(deps.len(), 1, "B should have 1 dependent");
+    assert_eq!(deps[0], "rust:fn:A:test_rs:1-5");
+}
+
+#[tokio::test]
+async fn test_forward_dependencies_multiple() {
+    // RED: Test multiple forward dependencies
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Create: A -> B, A -> C, A -> D
+    let edges = vec![
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:B:test_rs:10-15")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:C:test_rs:20-25")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:D:test_rs:30-35")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+    ];
+    db.insert_edges_batch(&edges).await.unwrap();
+
+    // Query: A should depend on B, C, D
+    let deps = db.get_forward_dependencies("rust:fn:A:test_rs:1-5").await.unwrap();
+
+    assert_eq!(deps.len(), 3, "A should depend on 3 entities");
+    assert!(deps.contains(&"rust:fn:B:test_rs:10-15".to_string()));
+    assert!(deps.contains(&"rust:fn:C:test_rs:20-25".to_string()));
+    assert!(deps.contains(&"rust:fn:D:test_rs:30-35".to_string()));
+}
+
+#[tokio::test]
+async fn test_reverse_dependencies_multiple() {
+    // RED: Test multiple reverse dependencies
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Create: A -> D, B -> D, C -> D
+    let edges = vec![
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:D:test_rs:30-35")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:B:test_rs:10-15")
+            .to_key("rust:fn:D:test_rs:30-35")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:C:test_rs:20-25")
+            .to_key("rust:fn:D:test_rs:30-35")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+    ];
+    db.insert_edges_batch(&edges).await.unwrap();
+
+    // Query: D should have A, B, C as dependents
+    let deps = db.get_reverse_dependencies("rust:fn:D:test_rs:30-35").await.unwrap();
+
+    assert_eq!(deps.len(), 3, "D should have 3 dependents");
+    assert!(deps.contains(&"rust:fn:A:test_rs:1-5".to_string()));
+    assert!(deps.contains(&"rust:fn:B:test_rs:10-15".to_string()));
+    assert!(deps.contains(&"rust:fn:C:test_rs:20-25".to_string()));
+}
+
+#[tokio::test]
+async fn test_forward_dependencies_empty() {
+    // RED: Test entity with no forward dependencies
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Query entity with no outgoing edges
+    let deps = db.get_forward_dependencies("rust:fn:X:test_rs:1-5").await.unwrap();
+
+    assert_eq!(deps.len(), 0, "Entity with no outgoing edges should return empty");
+}
+
+#[tokio::test]
+async fn test_reverse_dependencies_empty() {
+    // RED: Test entity with no reverse dependencies
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Query entity with no incoming edges
+    let deps = db.get_reverse_dependencies("rust:fn:X:test_rs:1-5").await.unwrap();
+
+    assert_eq!(deps.len(), 0, "Entity with no incoming edges should return empty");
+}
