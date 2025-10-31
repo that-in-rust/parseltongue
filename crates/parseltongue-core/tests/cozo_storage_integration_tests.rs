@@ -701,3 +701,138 @@ async fn test_reverse_dependencies_empty() {
 
     assert_eq!(deps.len(), 0, "Entity with no incoming edges should return empty");
 }
+
+// ================== Phase 3.3: Transitive Closure Tests ==================
+
+#[tokio::test]
+async fn test_transitive_closure_chain() {
+    // RED: Transitive closure for simple chain
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Create: A -> B -> C -> D
+    let edges = vec![
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:B:test_rs:10-15")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:B:test_rs:10-15")
+            .to_key("rust:fn:C:test_rs:20-25")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:C:test_rs:20-25")
+            .to_key("rust:fn:D:test_rs:30-35")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+    ];
+    db.insert_edges_batch(&edges).await.unwrap();
+
+    // Query: All reachable from A should be [B, C, D]
+    let reachable = db.get_transitive_closure("rust:fn:A:test_rs:1-5").await.unwrap();
+
+    assert_eq!(reachable.len(), 3, "Should reach B, C, D from A");
+    assert!(reachable.contains(&"rust:fn:B:test_rs:10-15".to_string()));
+    assert!(reachable.contains(&"rust:fn:C:test_rs:20-25".to_string()));
+    assert!(reachable.contains(&"rust:fn:D:test_rs:30-35".to_string()));
+}
+
+#[tokio::test]
+async fn test_transitive_closure_branching() {
+    // RED: Transitive closure with diamond pattern
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Create diamond: A -> B, A -> C, B -> D, C -> D
+    let edges = vec![
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:B:test_rs:10-15")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:C:test_rs:20-25")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:B:test_rs:10-15")
+            .to_key("rust:fn:D:test_rs:30-35")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:C:test_rs:20-25")
+            .to_key("rust:fn:D:test_rs:30-35")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+    ];
+    db.insert_edges_batch(&edges).await.unwrap();
+
+    // Query: All reachable from A should be [B, C, D] (D counted once despite two paths)
+    let reachable = db.get_transitive_closure("rust:fn:A:test_rs:1-5").await.unwrap();
+
+    assert_eq!(reachable.len(), 3, "Should reach B, C, D from A");
+    assert!(reachable.contains(&"rust:fn:B:test_rs:10-15".to_string()));
+    assert!(reachable.contains(&"rust:fn:C:test_rs:20-25".to_string()));
+    assert!(reachable.contains(&"rust:fn:D:test_rs:30-35".to_string()));
+}
+
+#[tokio::test]
+async fn test_transitive_closure_cycle() {
+    // RED: Transitive closure must handle cycles correctly
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Create cycle: A -> B -> C -> A (should not infinite loop)
+    let edges = vec![
+        DependencyEdge::builder()
+            .from_key("rust:fn:A:test_rs:1-5")
+            .to_key("rust:fn:B:test_rs:10-15")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:B:test_rs:10-15")
+            .to_key("rust:fn:C:test_rs:20-25")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+        DependencyEdge::builder()
+            .from_key("rust:fn:C:test_rs:20-25")
+            .to_key("rust:fn:A:test_rs:1-5")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap(),
+    ];
+    db.insert_edges_batch(&edges).await.unwrap();
+
+    // Query: Should return B, C, A (the cycle) without hanging
+    let reachable = db.get_transitive_closure("rust:fn:A:test_rs:1-5").await.unwrap();
+
+    // In a cycle, all nodes are reachable from any node (including starting node via cycle)
+    assert_eq!(reachable.len(), 3, "Should reach B, C, and A (cycle)");
+    assert!(reachable.contains(&"rust:fn:A:test_rs:1-5".to_string()));
+    assert!(reachable.contains(&"rust:fn:B:test_rs:10-15".to_string()));
+    assert!(reachable.contains(&"rust:fn:C:test_rs:20-25".to_string()));
+}
+
+#[tokio::test]
+async fn test_transitive_closure_empty() {
+    // RED: Entity with no outgoing edges
+    let db = CozoDbStorage::new("mem").await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Query entity with no dependencies
+    let reachable = db.get_transitive_closure("rust:fn:X:test_rs:1-5").await.unwrap();
+
+    assert_eq!(reachable.len(), 0, "No outgoing edges means empty closure");
+}

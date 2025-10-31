@@ -515,6 +515,117 @@ impl CozoDbStorage {
         Ok(dependents)
     }
 
+    /// Get transitive closure: all entities reachable from this entity (unbounded).
+    ///
+    /// Returns ALL entities reachable by recursively following dependency edges,
+    /// without any hop limit. Uses CozoDB's recursive Datalog for efficient graph traversal.
+    /// Automatically handles cycles without infinite loops.
+    ///
+    /// # Use Cases
+    /// - Full impact analysis: "If I change this function, what ALL code might be affected?"
+    /// - Dependency tree extraction for LLM context
+    /// - Reachability analysis for refactoring safety
+    ///
+    /// # Arguments
+    /// * `isgl1_key` - ISGL1 key of the starting entity
+    ///
+    /// # Returns
+    /// Vector of all reachable ISGL1 keys. May include the starting node if it's part of a cycle.
+    /// Returns empty vector if no outgoing edges exist.
+    ///
+    /// # Example
+    /// ```
+    /// use parseltongue_core::storage::CozoDbStorage;
+    /// use parseltongue_core::entities::{DependencyEdge, EdgeType};
+    ///
+    /// # tokio_test::block_on(async {
+    /// let storage = CozoDbStorage::new("mem").await.unwrap();
+    /// storage.create_dependency_edges_schema().await.unwrap();
+    ///
+    /// // Create chain: A -> B -> C -> D
+    /// let edges = vec![
+    ///     DependencyEdge::builder()
+    ///         .from_key("rust:fn:A:test_rs:1-5")
+    ///         .to_key("rust:fn:B:test_rs:10-15")
+    ///         .edge_type(EdgeType::Calls)
+    ///         .build().unwrap(),
+    ///     DependencyEdge::builder()
+    ///         .from_key("rust:fn:B:test_rs:10-15")
+    ///         .to_key("rust:fn:C:test_rs:20-25")
+    ///         .edge_type(EdgeType::Calls)
+    ///         .build().unwrap(),
+    ///     DependencyEdge::builder()
+    ///         .from_key("rust:fn:C:test_rs:20-25")
+    ///         .to_key("rust:fn:D:test_rs:30-35")
+    ///         .edge_type(EdgeType::Calls)
+    ///         .build().unwrap(),
+    /// ];
+    /// storage.insert_edges_batch(&edges).await.unwrap();
+    ///
+    /// // Query: What's ALL code reachable from A?
+    /// let reachable = storage.get_transitive_closure("rust:fn:A:test_rs:1-5").await.unwrap();
+    ///
+    /// // Returns B, C, D (all transitively reachable nodes)
+    /// assert_eq!(reachable.len(), 3);
+    /// assert!(reachable.contains(&"rust:fn:B:test_rs:10-15".to_string()));
+    /// assert!(reachable.contains(&"rust:fn:C:test_rs:20-25".to_string()));
+    /// assert!(reachable.contains(&"rust:fn:D:test_rs:30-35".to_string()));
+    /// # });
+    /// ```
+    ///
+    /// # Algorithm
+    /// Uses CozoDB recursive rules for unbounded graph traversal:
+    /// 1. **Base case**: Direct outgoing edges from start node
+    /// 2. **Recursive case**: Transitively follow all edges
+    /// 3. **Termination**: CozoDB's fixed-point semantics guarantee termination (even with cycles)
+    ///
+    /// # Performance Notes
+    /// - Result size grows with graph connectivity
+    /// - For large graphs, consider [`calculate_blast_radius`] with hop limits
+    /// - Cycle handling is automatic and efficient (no explicit visited set needed)
+    ///
+    /// # See Also
+    /// - [`calculate_blast_radius`] for bounded multi-hop queries with distance tracking
+    /// - [`get_forward_dependencies`] for simple 1-hop queries
+    pub async fn get_transitive_closure(&self, isgl1_key: &str) -> Result<Vec<String>> {
+        // CozoDB recursive query for unbounded reachability
+        let query = r#"
+            # Transitive closure: Find all nodes reachable from start node
+
+            # Base case: Direct edges from start node
+            reachable[to_key] := *DependencyEdges{from_key, to_key},
+                                 from_key == $start_key
+
+            # Recursive case: Follow edges transitively (CozoDB handles cycle termination)
+            reachable[to_key] := reachable[from],
+                                 *DependencyEdges{from_key: from, to_key}
+
+            # Return all unique reachable nodes
+            ?[node] := reachable[node]
+        "#;
+
+        let mut params = BTreeMap::new();
+        params.insert("start_key".to_string(), DataValue::Str(isgl1_key.into()));
+
+        let result = self
+            .db
+            .run_script(query, params, ScriptMutability::Immutable)
+            .map_err(|e| ParseltongError::DependencyError {
+                operation: "get_transitive_closure".to_string(),
+                reason: format!("Failed to compute transitive closure: {}", e),
+            })?;
+
+        // Extract all reachable keys
+        let mut reachable = Vec::new();
+        for row in result.rows {
+            if let Some(DataValue::Str(key)) = row.first() {
+                reachable.push(key.to_string());
+            }
+        }
+
+        Ok(reachable)
+    }
+
     /// List all relations in the database
     pub async fn list_relations(&self) -> Result<Vec<String>> {
         let result = self
