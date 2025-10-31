@@ -93,6 +93,157 @@ impl CozoDbStorage {
         Ok(())
     }
 
+    /// Create DependencyEdges schema for code dependency graph
+    ///
+    /// Implements dependency tracking with composite key (from_key, to_key, edge_type).
+    /// Indices automatically created on key fields for O(log n) query performance.
+    ///
+    /// # Schema
+    /// - **Keys**: from_key, to_key, edge_type (composite key for uniqueness)
+    /// - **Fields**: source_location (optional line/column info)
+    ///
+    /// # Performance Contracts
+    /// - Single insert: <5ms (D10 specification)
+    /// - Batch insert (100 edges): <50ms (D10 specification)
+    ///
+    /// # Example
+    /// ```ignore
+    /// let storage = CozoDbStorage::new("mem").await?;
+    /// storage.create_dependency_edges_schema().await?;
+    /// // Now ready to insert edges
+    /// ```
+    pub async fn create_dependency_edges_schema(&self) -> Result<()> {
+        let schema = r#"
+            :create DependencyEdges {
+                from_key: String,
+                to_key: String,
+                edge_type: String
+                =>
+                source_location: String?
+            }
+        "#;
+
+        self.db
+            .run_script(schema, Default::default(), ScriptMutability::Mutable)
+            .map_err(|e| ParseltongError::DependencyError {
+                operation: "create_dependency_edges_schema".to_string(),
+                reason: format!("Failed to create DependencyEdges schema: {}", e),
+            })?;
+
+        Ok(())
+    }
+
+    /// Insert a single dependency edge
+    ///
+    /// # Performance Contract
+    /// - Single insert: <5ms (D10 specification)
+    ///
+    /// # Example
+    /// ```ignore
+    /// use parseltongue_core::entities::{DependencyEdge, EdgeType};
+    ///
+    /// let edge = DependencyEdge::builder()
+    ///     .from_key("rust:fn:main:src_main_rs:1-10")
+    ///     .to_key("rust:fn:helper:src_helper_rs:5-20")
+    ///     .edge_type(EdgeType::Calls)
+    ///     .build()?;
+    ///
+    /// storage.insert_edge(&edge).await?;
+    /// ```
+    pub async fn insert_edge(&self, edge: &DependencyEdge) -> Result<()> {
+        let query = r#"
+            ?[from_key, to_key, edge_type, source_location] <-
+            [[$from_key, $to_key, $edge_type, $source_location]]
+
+            :put DependencyEdges {
+                from_key, to_key, edge_type =>
+                source_location
+            }
+        "#;
+
+        let mut params = BTreeMap::new();
+        params.insert("from_key".to_string(), DataValue::Str(edge.from_key.as_ref().into()));
+        params.insert("to_key".to_string(), DataValue::Str(edge.to_key.as_ref().into()));
+        params.insert("edge_type".to_string(), DataValue::Str(edge.edge_type.as_str().into()));
+        params.insert(
+            "source_location".to_string(),
+            edge.source_location
+                .as_ref()
+                .map(|s| DataValue::Str(s.as_str().into()))
+                .unwrap_or(DataValue::Null),
+        );
+
+        self.db
+            .run_script(query, params, ScriptMutability::Mutable)
+            .map_err(|e| ParseltongError::DependencyError {
+                operation: "insert_edge".to_string(),
+                reason: format!("Failed to insert dependency edge: {}", e),
+            })?;
+
+        Ok(())
+    }
+
+    /// Insert multiple dependency edges in a batch
+    ///
+    /// # Performance Contract
+    /// - Batch insert (100 edges): <50ms (D10 specification)
+    ///
+    /// # Example
+    /// ```ignore
+    /// let edges = vec![
+    ///     DependencyEdge::builder()
+    ///         .from_key("A").to_key("B").edge_type(EdgeType::Calls).build()?,
+    ///     DependencyEdge::builder()
+    ///         .from_key("B").to_key("C").edge_type(EdgeType::Uses).build()?,
+    /// ];
+    /// storage.insert_edges_batch(&edges).await?;
+    /// ```
+    pub async fn insert_edges_batch(&self, edges: &[DependencyEdge]) -> Result<()> {
+        if edges.is_empty() {
+            return Ok(());
+        }
+
+        // Build query with inline data for batch insert
+        let query = format!(
+            r#"
+            ?[from_key, to_key, edge_type, source_location] <- [{}]
+
+            :put DependencyEdges {{
+                from_key, to_key, edge_type =>
+                source_location
+            }}
+            "#,
+            edges
+                .iter()
+                .map(|edge| {
+                    let source_loc = edge
+                        .source_location
+                        .as_ref()
+                        .map(|s| format!("'{}'", s.replace('\'', "\\'")))
+                        .unwrap_or_else(|| "null".to_string());
+
+                    format!(
+                        "['{}', '{}', '{}', {}]",
+                        edge.from_key.as_ref().replace('\'', "\\'"),
+                        edge.to_key.as_ref().replace('\'', "\\'"),
+                        edge.edge_type.as_str(),
+                        source_loc
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+
+        self.db
+            .run_script(&query, Default::default(), ScriptMutability::Mutable)
+            .map_err(|e| ParseltongError::DependencyError {
+                operation: "insert_edges_batch".to_string(),
+                reason: format!("Failed to batch insert {} edges: {}", edges.len(), e),
+            })?;
+
+        Ok(())
+    }
+
     /// List all relations in the database
     pub async fn list_relations(&self) -> Result<Vec<String>> {
         let result = self

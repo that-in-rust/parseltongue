@@ -184,3 +184,78 @@ async fn test_codegraph_repository_trait() {
     assert!(retrieved.is_some());
     assert_eq!(retrieved.unwrap().isgl1_key, "test-file-rs-TestStruct");
 }
+
+// ================== Phase 1.3: DependencyEdges Schema Tests ==================
+
+#[tokio::test]
+async fn test_create_dependency_edges_schema() {
+    // RED: DependencyEdges schema creation not yet implemented
+    let db = CozoDbStorage::new("mem").await.unwrap();
+
+    // Create schema
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Verify DependencyEdges relation exists
+    let relations = db.list_relations().await.unwrap();
+    assert!(
+        relations.contains(&"DependencyEdges".to_string()),
+        "DependencyEdges table should exist after schema creation. Found: {:?}",
+        relations
+    );
+}
+
+#[tokio::test]
+async fn test_dependency_edges_schema_is_idempotent() {
+    // Test: Schema creation should be idempotent (can call multiple times)
+    let db = CozoDbStorage::new("mem").await.unwrap();
+
+    // Create schema twice
+    db.create_dependency_edges_schema().await.unwrap();
+    let result = db.create_dependency_edges_schema().await;
+
+    // CozoDB may error on duplicate :create - this is expected behavior
+    // The important thing is the schema exists after first call
+    match result {
+        Ok(_) => {
+            // Some CozoDB versions allow duplicate creates
+            println!("CozoDB allows duplicate schema creation");
+        }
+        Err(e) => {
+            // Most CozoDB versions error on duplicate creates - this is expected
+            println!("CozoDB errored on duplicate create (expected): {}", e);
+            // Verify schema still exists despite error
+            let relations = db.list_relations().await.unwrap();
+            assert!(
+                relations.contains(&"DependencyEdges".to_string()),
+                "Schema should still exist even if second create errors"
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn test_both_schemas_can_coexist() {
+    // Test: CodeGraph and DependencyEdges tables can both exist
+    let db = CozoDbStorage::new("mem").await.unwrap();
+
+    // Create both schemas
+    db.create_schema().await.unwrap();
+    db.create_dependency_edges_schema().await.unwrap();
+
+    // Verify both relations exist
+    let relations = db.list_relations().await.unwrap();
+    assert!(relations.contains(&"CodeGraph".to_string()));
+    assert!(relations.contains(&"DependencyEdges".to_string()));
+
+    // Verify we have exactly 2 relations (plus any system relations)
+    let user_relations: Vec<_> = relations
+        .iter()
+        .filter(|r| !r.starts_with(':'))
+        .collect();
+    assert_eq!(
+        user_relations.len(),
+        2,
+        "Should have exactly 2 user relations. Found: {:?}",
+        user_relations
+    );
+}

@@ -90,6 +90,45 @@ pub enum ParseltongError {
     SerializationError {
         details: String,
     },
+
+    /// Dependency tracking errors
+    ///
+    /// # Example
+    /// ```
+    /// use parseltongue_core::error::ParseltongError;
+    ///
+    /// let error = ParseltongError::DependencyError {
+    ///     operation: "insert_edge".to_string(),
+    ///     reason: "source entity does not exist".to_string(),
+    /// };
+    /// assert!(error.to_string().contains("Dependency error"));
+    /// ```
+    #[error("Dependency error: {operation} - {reason}")]
+    DependencyError {
+        operation: String,
+        reason: String,
+    },
+
+    /// Circular dependency detected
+    #[error("Circular dependency detected: {path}")]
+    CircularDependency {
+        path: String,
+    },
+
+    /// Duplicate dependency edge
+    #[error("Duplicate dependency edge: {from_key} -> {to_key} ({edge_type})")]
+    DuplicateEdge {
+        from_key: String,
+        to_key: String,
+        edge_type: String,
+    },
+
+    /// Missing dependency target
+    #[error("Dependency target not found: {to_key} referenced from {from_key}")]
+    MissingDependencyTarget {
+        from_key: String,
+        to_key: String,
+    },
 }
 
 /// Result type alias for convenience
@@ -161,5 +200,71 @@ mod tests {
     fn recovery_action_default_is_sensible() {
         let default_action = RecoveryAction::default();
         assert!(matches!(default_action, RecoveryAction::RetryWithBackoff(_)));
+    }
+
+    // ================== Phase 1.2: Dependency Error Tests ==================
+
+    #[test]
+    fn test_dependency_error_formatting() {
+        let error = ParseltongError::DependencyError {
+            operation: "insert_edge".to_string(),
+            reason: "source entity does not exist".to_string(),
+        };
+
+        let formatted = error.to_string();
+        assert!(formatted.contains("Dependency error"));
+        assert!(formatted.contains("insert_edge"));
+        assert!(formatted.contains("source entity does not exist"));
+    }
+
+    #[test]
+    fn test_circular_dependency_error() {
+        let error = ParseltongError::CircularDependency {
+            path: "A -> B -> C -> A".to_string(),
+        };
+
+        let formatted = error.to_string();
+        assert!(formatted.contains("Circular dependency detected"));
+        assert!(formatted.contains("A -> B -> C -> A"));
+    }
+
+    #[test]
+    fn test_duplicate_edge_error() {
+        let error = ParseltongError::DuplicateEdge {
+            from_key: "rust:fn:main:src_main_rs:1-10".to_string(),
+            to_key: "rust:fn:helper:src_helper_rs:5-20".to_string(),
+            edge_type: "Calls".to_string(),
+        };
+
+        let formatted = error.to_string();
+        assert!(formatted.contains("Duplicate dependency edge"));
+        assert!(formatted.contains("rust:fn:main:src_main_rs:1-10"));
+        assert!(formatted.contains("rust:fn:helper:src_helper_rs:5-20"));
+        assert!(formatted.contains("Calls"));
+    }
+
+    #[test]
+    fn test_missing_dependency_target_error() {
+        let error = ParseltongError::MissingDependencyTarget {
+            from_key: "rust:fn:main:src_main_rs:1-10".to_string(),
+            to_key: "rust:fn:nonexistent:src_helper_rs:5-20".to_string(),
+        };
+
+        let formatted = error.to_string();
+        assert!(formatted.contains("Dependency target not found"));
+        assert!(formatted.contains("rust:fn:nonexistent:src_helper_rs:5-20"));
+        assert!(formatted.contains("referenced from"));
+        assert!(formatted.contains("rust:fn:main:src_main_rs:1-10"));
+    }
+
+    #[test]
+    fn test_dependency_error_is_error_trait() {
+        let error = ParseltongError::DependencyError {
+            operation: "query_dependencies".to_string(),
+            reason: "invalid hop count".to_string(),
+        };
+
+        // Verify it implements std::error::Error
+        let _: &dyn std::error::Error = &error;
     }
 }
