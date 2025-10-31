@@ -87,6 +87,7 @@ This ensures LLM has exactly what it needs - no more, no less.
             - Uses tree-sitter parsing with ISGL1 chunking
             - Creates CodeGraph database with interface-level indexing
             - Optional LSP metadata extraction via rust-analyzer
+            - **Phase 2: Dependency Extraction** - Extracts dependency relationships (function calls, struct usage, trait implementations) and stores in DependencyEdges table
 
 - Phase 2: Bug Analysis & Micro-PRD
     - Code indexing completes, basic analytics shared
@@ -104,9 +105,12 @@ This ensures LLM has exactly what it needs - no more, no less.
         - **Step A01**: LLM generates temporal upsert queries to create test interface changes (current_ind=0, future_ind=1, Future_Action="Create")
         - **Step A02**: LLM propagates changes to non-test interfaces based on dependency analysis
     - `llm-cozodb-to-context-writer`: `LLM-cozoDB-to-context-writer` extracts updated context using LLM-generated queries
-        - **Step B01**: Generate future code using hopping/blast-radius analysis:
-            - LLM queries CozoDB for dependency chains using ISG patterns from archive
-            - Applies proven hopping/blast-radius algorithms converted to CozoDB queries
+        - **Step B01**: Generate future code using dependency analysis:
+            - **Phase 3: Dependency Query System** - LLM uses recursive Datalog queries for:
+                - Blast radius calculation (5-hop bounded BFS, <50ms for 10k nodes)
+                - Forward/reverse dependencies (1-hop, <20ms for 10k nodes)
+                - Transitive closure (unbounded, <50ms for 1k nodes with cycle handling)
+            - **Phase 4.1: Real Dependency Integration** - Tool 3 fetches actual dependencies from CozoDB
             - Generates minimal, focused future_code for (current_ind=1, future_ind=1) entities
         - **Step B02**: Rubber duck debugging and confidence validation (≥80% to proceed)
             - **ITERATIVE REASONING CYCLE**: This step embodies the core read-edit-read-edit mindset:
@@ -209,13 +213,16 @@ Codebase → [folder-to-cozoDB-streamer] → CozoDB
 ```
 
 ### **Tool Responsibilities**
-- **`folder-to-cozodb-streamer`**: Codebase → CozoDB (indexing)
+- **`folder-to-cozodb-streamer`**: Codebase → CozoDB (indexing + dependency extraction)
   - Generates line-based ISGL1 keys for existing entities
   - Format: `{language}:{type}:{name}:{sanitized_path}:{start_line}-{end_line}`
+  - **Phase 2**: Extracts dependencies (Calls, Uses, Implements, TraitBound) → DependencyEdges table
 - **`llm-to-cozodb-writer`**: LLM → CozoDB via `LLM-to-cozoDB-writer` (temporal upserts)
   - Generates hash-based ISGL1 keys for new entities (Create operations)
   - Format: `{sanitized_filepath}-{entity_name}-{entity_type}-{hash8}`
 - **`llm-cozodb-to-context-writer`**: LLM queries → CozoDB → CodeGraphContext.json (context extraction)
+  - **Phase 4.1**: Fetches real dependency relationships from DependencyEdges table
+  - **Phase 3**: Supports dependency queries (blast radius, forward/reverse deps, transitive closure)
 - **`rust-preflight-code-simulator`**: Validation of proposed changes
 - **`llm-cozodb-to-diff-writer`**: CozoDB → CodeDiff.json via `LLM-cozodb-to-diff-writer` (diff generation, LLM applies changes)
 - **`cozodb-make-future-code-current`**: Database state reset

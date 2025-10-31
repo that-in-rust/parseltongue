@@ -13,9 +13,9 @@ All tools are run via `cargo run --package <tool-name> -- [OPTIONS]`
 
 | # | Tool | Binary | Purpose | Status |
 |---|------|--------|---------|--------|
-| 1 | folder-to-cozodb-streamer | `parseltongue-01` | Index codebase → CozoDB | ✅ Complete |
+| 1 | folder-to-cozodb-streamer | `parseltongue-01` | Index codebase + dependencies → CozoDB | ✅ Complete (Phase 2: Dependency extraction) |
 | 2 | llm-to-cozodb-writer | `parseltongue-02` | LLM changes → CozoDB temporal | ✅ Complete |
-| 3 | llm-cozodb-to-context-writer | `parseltongue-03` | CozoDB → CodeGraphContext.json | ✅ Complete |
+| 3 | llm-cozodb-to-context-writer | `parseltongue-03` | CozoDB → CodeGraphContext.json + real deps | ✅ Complete (Phase 4.1: Real dependency integration) |
 | 4 | rust-preflight-code-simulator | (binary) | Validate syntax | ✅ Complete |
 | 5 | llm-cozodb-to-diff-writer | (binary) | CozoDB → CodeDiff.json | ✅ Complete |
 | 6 | cozodb-make-future-code-current | (binary) | Reset state & re-index | ✅ Complete |
@@ -82,6 +82,13 @@ export OPENAI_API_KEY="sk-..."  # For Tools 2 & 3
 - Tool 4: O(n) validation
 - Tool 5: <100ms diff generation
 
+### Dependency Query Performance (Phase 3)
+
+- Blast Radius (5 hops, 10k nodes): <50ms (validated: 8ms in release mode)
+- Forward Dependencies (1 hop, 10k nodes): <20ms (validated: 12ms in release mode)
+- Transitive Closure (1k nodes): <50ms (validated: 12ms in release mode)
+- All queries use CozoDB recursive Datalog with fixed-point semantics
+
 ## Exit Codes
 
 - `0`: Success
@@ -101,11 +108,12 @@ export OPENAI_API_KEY="sk-..."  # For Tools 2 & 3
 
 Pipeline execution order:
 ```
-Tool 1: Index → CozoDB
+Tool 1: Index + Dependencies → CozoDB (Phase 2: Dependency extraction)
   ↓
 Tool 2: LLM reasoning → Temporal updates
   ↓
-Tool 3: Context generation → JSON
+Tool 3: Context generation → JSON (Phase 4.1: Real dependency relationships)
+  │        (Dependency queries: blast radius, forward/reverse deps, transitive closure)
   ↓
 Tool 4: Validation → Syntax check
   ↓
