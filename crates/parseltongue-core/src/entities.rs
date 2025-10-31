@@ -835,6 +835,261 @@ impl EntityMetadata {
     }
 }
 
+// ============================================================================
+// Dependency Tracking Types (Phase 1, Task 1.1)
+// ============================================================================
+
+/// Newtype for ISGL1 keys (S77 Pattern A.5: Type safety)
+///
+/// Enforces non-empty string invariant and provides type-safe wrapper
+/// to prevent mixing ISGL1 keys with regular strings.
+///
+/// # Examples
+///
+/// ```
+/// use parseltongue_core::entities::Isgl1Key;
+///
+/// // Valid key creation
+/// let key = Isgl1Key::new("rust:fn:main:src_main_rs:1-10").unwrap();
+/// assert_eq!(key.as_str(), "rust:fn:main:src_main_rs:1-10");
+///
+/// // Empty key rejected
+/// assert!(Isgl1Key::new("").is_err());
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(transparent)]
+pub struct Isgl1Key(String);
+
+impl Isgl1Key {
+    /// Creates new ISGL1 key, validating non-empty
+    ///
+    /// # Errors
+    ///
+    /// Returns `InvalidIsgl1Key` if the key is empty.
+    pub fn new(key: impl Into<String>) -> Result<Self> {
+        let key = key.into();
+        if key.is_empty() {
+            Err(ParseltongError::InvalidIsgl1Key {
+                key,
+                reason: "ISGL1 key cannot be empty".to_string(),
+            })
+        } else {
+            Ok(Self(key))
+        }
+    }
+
+    /// Creates key without validation (for trusted sources like database reads)
+    ///
+    /// # Safety
+    ///
+    /// Caller must ensure the key is non-empty.
+    pub fn new_unchecked(key: impl Into<String>) -> Self {
+        Self(key.into())
+    }
+
+    /// Returns key as string slice
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    /// Consumes the Isgl1Key and returns the inner String
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+}
+
+// S77 Pattern A.2: Accept AsRef<str> in APIs
+impl AsRef<str> for Isgl1Key {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::fmt::Display for Isgl1Key {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+/// Edge types in dependency graph
+///
+/// Represents the type of relationship between two code entities.
+///
+/// # Examples
+///
+/// ```
+/// use parseltongue_core::entities::EdgeType;
+///
+/// let edge_type = EdgeType::Calls;
+/// assert_eq!(edge_type.as_str(), "Calls");
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum EdgeType {
+    /// Function call relationship (A calls B)
+    Calls,
+    /// Usage relationship (A uses B's type/interface)
+    Uses,
+    /// Trait implementation (A implements trait B)
+    Implements,
+}
+
+// S77 Pattern A.1: Expression-oriented code
+impl EdgeType {
+    /// Returns string representation of edge type
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Calls => "Calls",
+            Self::Uses => "Uses",
+            Self::Implements => "Implements",
+        }
+    }
+}
+
+// S77 Pattern A.4: From/TryFrom for conversions
+impl From<EdgeType> for String {
+    fn from(edge_type: EdgeType) -> Self {
+        edge_type.as_str().to_owned()
+    }
+}
+
+impl std::str::FromStr for EdgeType {
+    type Err = ParseltongError;
+
+    fn from_str(s: &str) -> Result<Self> {
+        match s {
+            "Calls" => Ok(Self::Calls),
+            "Uses" => Ok(Self::Uses),
+            "Implements" => Ok(Self::Implements),
+            _ => Err(ParseltongError::ValidationError {
+                field: "edge_type".to_string(),
+                expected: "Calls, Uses, or Implements".to_string(),
+                actual: s.to_owned(),
+            }),
+        }
+    }
+}
+
+impl std::fmt::Display for EdgeType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+/// Dependency edge between two code entities
+///
+/// Represents a directed relationship in the code dependency graph.
+///
+/// # Examples
+///
+/// ```
+/// use parseltongue_core::entities::{DependencyEdge, EdgeType};
+///
+/// let edge = DependencyEdge::builder()
+///     .from_key("rust:fn:main:src_main_rs:1-10")
+///     .to_key("rust:fn:helper:src_main_rs:20-30")
+///     .edge_type(EdgeType::Calls)
+///     .source_location("src/main.rs:5")
+///     .build()
+///     .unwrap();
+///
+/// assert_eq!(edge.edge_type, EdgeType::Calls);
+/// assert_eq!(edge.from_key.as_str(), "rust:fn:main:src_main_rs:1-10");
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DependencyEdge {
+    /// Source entity ISGL1 key
+    pub from_key: Isgl1Key,
+    /// Target entity ISGL1 key
+    pub to_key: Isgl1Key,
+    /// Type of dependency relationship
+    pub edge_type: EdgeType,
+    /// Source code location where relationship occurs (optional)
+    pub source_location: Option<String>,
+}
+
+impl DependencyEdge {
+    /// Creates new dependency edge (validated)
+    pub fn new(
+        from_key: impl Into<String>,
+        to_key: impl Into<String>,
+        edge_type: EdgeType,
+        source_location: Option<String>,
+    ) -> Result<Self> {
+        Ok(Self {
+            from_key: Isgl1Key::new(from_key)?,
+            to_key: Isgl1Key::new(to_key)?,
+            edge_type,
+            source_location,
+        })
+    }
+
+    /// Returns a builder for constructing dependency edges
+    pub fn builder() -> DependencyEdgeBuilder {
+        DependencyEdgeBuilder::default()
+    }
+}
+
+/// Builder for DependencyEdge (S77 Pattern: Builder for ergonomics)
+#[derive(Default)]
+pub struct DependencyEdgeBuilder {
+    from_key: Option<String>,
+    to_key: Option<String>,
+    edge_type: Option<EdgeType>,
+    source_location: Option<String>,
+}
+
+impl DependencyEdgeBuilder {
+    /// Sets the source entity key
+    pub fn from_key(mut self, key: impl Into<String>) -> Self {
+        self.from_key = Some(key.into());
+        self
+    }
+
+    /// Sets the target entity key
+    pub fn to_key(mut self, key: impl Into<String>) -> Self {
+        self.to_key = Some(key.into());
+        self
+    }
+
+    /// Sets the edge type
+    pub fn edge_type(mut self, edge_type: EdgeType) -> Self {
+        self.edge_type = Some(edge_type);
+        self
+    }
+
+    /// Sets the source location (optional)
+    pub fn source_location(mut self, location: impl Into<String>) -> Self {
+        self.source_location = Some(location.into());
+        self
+    }
+
+    /// Builds the DependencyEdge
+    ///
+    /// # Errors
+    ///
+    /// Returns error if required fields are missing or invalid.
+    pub fn build(self) -> Result<DependencyEdge> {
+        DependencyEdge::new(
+            self.from_key.ok_or_else(|| ParseltongError::ValidationError {
+                field: "from_key".to_string(),
+                expected: "non-empty string".to_string(),
+                actual: "None".to_string(),
+            })?,
+            self.to_key.ok_or_else(|| ParseltongError::ValidationError {
+                field: "to_key".to_string(),
+                expected: "non-empty string".to_string(),
+                actual: "None".to_string(),
+            })?,
+            self.edge_type.ok_or_else(|| ParseltongError::ValidationError {
+                field: "edge_type".to_string(),
+                expected: "EdgeType".to_string(),
+                actual: "None".to_string(),
+            })?,
+            self.source_location,
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1142,5 +1397,167 @@ mod tests {
         let deserialized: EntityClass = serde_json::from_str(&json).unwrap();
 
         assert_eq!(deserialized, EntityClass::TestImplementation);
+    }
+
+    // ========================================================================
+    // Phase 1, Task 1.1 Tests: Domain Types (RED → GREEN → REFACTOR)
+    // ========================================================================
+
+    #[test]
+    fn test_isgl1_key_validates_non_empty() {
+        // RED: This validates the non-empty invariant
+        let result = Isgl1Key::new("");
+        assert!(result.is_err(), "Empty key should be rejected");
+
+        // Valid key
+        let key = Isgl1Key::new("rust:fn:main:src_main_rs:1-10").unwrap();
+        assert_eq!(key.as_str(), "rust:fn:main:src_main_rs:1-10");
+    }
+
+    #[test]
+    fn test_isgl1_key_as_ref() {
+        // S77 Pattern A.2: Accept AsRef<str> in APIs
+        let key = Isgl1Key::new("test_key").unwrap();
+        let s: &str = key.as_ref();
+        assert_eq!(s, "test_key");
+    }
+
+    #[test]
+    fn test_isgl1_key_display() {
+        let key = Isgl1Key::new("test_key").unwrap();
+        assert_eq!(format!("{}", key), "test_key");
+    }
+
+    #[test]
+    fn test_edge_type_roundtrip() {
+        use std::str::FromStr;
+
+        // Test all variants
+        for edge_type in [EdgeType::Calls, EdgeType::Uses, EdgeType::Implements] {
+            let s = edge_type.as_str();
+            let parsed = EdgeType::from_str(s).unwrap();
+            assert_eq!(parsed, edge_type);
+
+            // Test String conversion
+            let string: String = edge_type.into();
+            assert_eq!(string, s);
+        }
+
+        // Invalid edge type
+        assert!(EdgeType::from_str("Invalid").is_err());
+    }
+
+    #[test]
+    fn test_edge_type_display() {
+        assert_eq!(format!("{}", EdgeType::Calls), "Calls");
+        assert_eq!(format!("{}", EdgeType::Uses), "Uses");
+        assert_eq!(format!("{}", EdgeType::Implements), "Implements");
+    }
+
+    #[test]
+    fn test_dependency_edge_builder() {
+        let edge = DependencyEdge::builder()
+            .from_key("from")
+            .to_key("to")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap();
+
+        assert_eq!(edge.from_key.as_str(), "from");
+        assert_eq!(edge.to_key.as_str(), "to");
+        assert_eq!(edge.edge_type, EdgeType::Calls);
+        assert_eq!(edge.source_location, None);
+    }
+
+    #[test]
+    fn test_dependency_edge_builder_with_location() {
+        let edge = DependencyEdge::builder()
+            .from_key("rust:fn:main:src_main_rs:1-10")
+            .to_key("rust:fn:helper:src_main_rs:20-30")
+            .edge_type(EdgeType::Calls)
+            .source_location("src/main.rs:5")
+            .build()
+            .unwrap();
+
+        assert_eq!(edge.source_location, Some("src/main.rs:5".to_string()));
+    }
+
+    #[test]
+    fn test_dependency_edge_builder_missing_field() {
+        // Missing to_key
+        let result = DependencyEdge::builder()
+            .from_key("from")
+            .edge_type(EdgeType::Calls)
+            .build();
+
+        assert!(result.is_err(), "Should fail when to_key is missing");
+
+        // Missing from_key
+        let result = DependencyEdge::builder()
+            .to_key("to")
+            .edge_type(EdgeType::Calls)
+            .build();
+
+        assert!(result.is_err(), "Should fail when from_key is missing");
+
+        // Missing edge_type
+        let result = DependencyEdge::builder()
+            .from_key("from")
+            .to_key("to")
+            .build();
+
+        assert!(result.is_err(), "Should fail when edge_type is missing");
+    }
+
+    #[test]
+    fn test_dependency_edge_new() {
+        let edge = DependencyEdge::new(
+            "from",
+            "to",
+            EdgeType::Uses,
+            Some("location".to_string()),
+        ).unwrap();
+
+        assert_eq!(edge.from_key.as_str(), "from");
+        assert_eq!(edge.to_key.as_str(), "to");
+        assert_eq!(edge.edge_type, EdgeType::Uses);
+        assert_eq!(edge.source_location, Some("location".to_string()));
+    }
+
+    #[test]
+    fn test_dependency_edge_rejects_empty_keys() {
+        // Empty from_key
+        let result = DependencyEdge::new(
+            "",
+            "to",
+            EdgeType::Calls,
+            None,
+        );
+        assert!(result.is_err(), "Should reject empty from_key");
+
+        // Empty to_key
+        let result = DependencyEdge::new(
+            "from",
+            "",
+            EdgeType::Calls,
+            None,
+        );
+        assert!(result.is_err(), "Should reject empty to_key");
+    }
+
+    #[test]
+    fn test_dependency_edge_serialization() {
+        // Test that DependencyEdge can be serialized/deserialized
+        let edge = DependencyEdge::builder()
+            .from_key("from")
+            .to_key("to")
+            .edge_type(EdgeType::Calls)
+            .build()
+            .unwrap();
+
+        let json = serde_json::to_string(&edge).unwrap();
+        let deserialized: DependencyEdge = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(deserialized, edge);
     }
 }
