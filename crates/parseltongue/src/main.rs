@@ -10,10 +10,137 @@
 
 use clap::{Arg, ArgMatches, Command};
 use console::style;
-use anyhow::Result;
+use anyhow::{Result, Context};
+use std::path::PathBuf;
+use std::collections::HashMap;
 
 // Import traits to enable trait methods
 use pt01_folder_to_cozodb_streamer::streamer::FileStreamer;
+
+// Import core types for entity construction
+use parseltongue_core::entities::{
+    CodeEntity, TemporalState, InterfaceSignature, EntityType, Visibility,
+    LineRange, Language, LanguageSpecificSignature, RustSignature,
+    TddClassification, EntityClass, TestabilityLevel, ComplexityLevel, RiskLevel,
+    EntityMetadata,
+};
+
+/// Build a new CodeEntity for CREATE action
+///
+/// # Functional Composition Pattern (S01 Philosophy)
+/// Pure function that constructs CodeEntity from minimal inputs:
+/// - ISGL1 key parsing (filepath-filename-interface)
+/// - Auto-generation of required fields with sensible defaults
+/// - Temporal state initialization for CREATE (0,1,Create)
+///
+/// # Arguments
+/// * `isgl1_key` - Entity key in format: "filepath-filename-interface" or full ISGL1 format
+/// * `future_code` - Code content for the new entity
+///
+/// # Returns
+/// * `Result<CodeEntity>` - Constructed entity ready for insertion
+fn build_create_entity(isgl1_key: &str, future_code: String) -> Result<CodeEntity> {
+    // Parse file path and entity name from ISGL1 key
+    let (file_path, entity_name, language) = parse_isgl1_key_components(isgl1_key)?;
+
+    // Calculate hash before consuming future_code
+    let content_hash = calculate_hash(&future_code);
+    let now = chrono::Utc::now();
+
+    // Construct entity using functional composition
+    let entity = CodeEntity {
+        isgl1_key: isgl1_key.to_string(),
+        temporal_state: TemporalState::create(),
+        interface_signature: InterfaceSignature {
+            entity_type: EntityType::Function, // Default to Function
+            name: entity_name,
+            visibility: Visibility::Public,
+            file_path,
+            line_range: LineRange::new(1, 1)?, // Placeholder until actual insertion
+            module_path: vec![],
+            documentation: None,
+            language_specific: build_default_language_signature(language),
+        },
+        current_code: None, // CREATE action means no current code
+        future_code: Some(future_code),
+        tdd_classification: TddClassification {
+            entity_class: EntityClass::CodeImplementation,
+            testability: TestabilityLevel::Medium,
+            complexity: ComplexityLevel::Simple,
+            dependencies: 0,
+            test_coverage_estimate: 0.0,
+            critical_path: false,
+            change_risk: RiskLevel::Low,
+        },
+        lsp_metadata: None,
+        metadata: EntityMetadata {
+            created_at: now,
+            modified_at: now,
+            content_hash,
+            additional: HashMap::new(),
+        },
+    };
+
+    Ok(entity)
+}
+
+/// Parse ISGL1 key into components (pure function)
+fn parse_isgl1_key_components(key: &str) -> Result<(PathBuf, String, Language)> {
+    // Support both simple "filepath-filename-interface" and full ISGL1 formats
+    let parts: Vec<&str> = key.split(':').collect();
+
+    let (file_str, name) = if parts.len() >= 4 {
+        // Full format: "rust:fn:name:file_path:start-end"
+        (parts[3], parts[2].to_string())
+    } else {
+        // Simple format: "filepath-filename-interface" - parse backwards
+        let segments: Vec<&str> = key.rsplitn(3, '-').collect();
+        if segments.len() < 2 {
+            anyhow::bail!("Invalid ISGL1 key format. Expected 'filepath-filename-interface' or 'lang:type:name:path:range'");
+        }
+        let interface = segments[0];
+        let filepath = segments[2];
+        (filepath, interface.to_string())
+    };
+
+    let file_path = PathBuf::from(file_str);
+
+    // Infer language from file extension
+    let language = Language::from_file_path(&file_path)
+        .unwrap_or(Language::Rust); // Default to Rust if cannot infer
+
+    Ok((file_path, name, language))
+}
+
+/// Build default language-specific signature (pure function)
+fn build_default_language_signature(language: Language) -> LanguageSpecificSignature {
+    match language {
+        Language::Rust => LanguageSpecificSignature::Rust(RustSignature {
+            generics: vec![],
+            lifetimes: vec![],
+            where_clauses: vec![],
+            attributes: vec![],
+            trait_impl: None,
+        }),
+        _ => LanguageSpecificSignature::Rust(RustSignature {
+            generics: vec![],
+            lifetimes: vec![],
+            where_clauses: vec![],
+            attributes: vec![],
+            trait_impl: None,
+        }), // Default to Rust signature for now
+    }
+}
+
+/// Calculate content hash (pure function)
+fn calculate_hash(content: &str) -> String {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    let mut hasher = DefaultHasher::new();
+    content.hash(&mut hasher);
+    format!("{:x}", hasher.finish())
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -272,12 +399,22 @@ async fn run_llm_to_cozodb_writer(matches: &ArgMatches) -> Result<()> {
     match action.as_str() {
         "create" => {
             println!("  Creating entity: {}", entity_key);
-            println!("  Future code: {} bytes", future_code.unwrap().len());
-            // For MVP: creating new entity requires full entity data structure
-            // This is a simplified implementation - in practice, you'd parse the ISGL1 key
-            // and construct a proper CodeEntity
-            eprintln!("{}", style("⚠️  CREATE action requires full entity construction - not yet implemented").yellow());
-            eprintln!("    Hint: First index the codebase, then use EDIT to modify entities");
+            let future_code_content = future_code.unwrap().clone();
+            println!("  Future code: {} bytes", future_code_content.len());
+
+            // Build new entity using functional composition
+            let entity = build_create_entity(&entity_key, future_code_content)
+                .with_context(|| format!("Failed to construct entity from key: {}", entity_key))?;
+
+            // Persist to database
+            storage.insert_entity(&entity)
+                .await
+                .with_context(|| "Failed to insert new entity into database")?;
+
+            println!("{}", style("✓ Entity created successfully").green());
+            println!("  Temporal state: Create pending (current_ind=false, future_ind=true)");
+            println!("  Entity type: {:?}", entity.interface_signature.entity_type);
+            println!("  File path: {}", entity.interface_signature.file_path.display());
         }
         "edit" => {
             println!("  Editing entity: {}", entity_key);
