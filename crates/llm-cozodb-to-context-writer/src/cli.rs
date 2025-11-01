@@ -146,6 +146,14 @@ impl CliConfig {
                     .action(clap::ArgAction::SetTrue)
                     .conflicts_with("verbose"),
             )
+            .arg(
+                Arg::new("include-current-code")
+                    .long("include-current-code")
+                    .value_name("0|1")
+                    .help("Include Current_Code in context (0=exclude for token optimization, 1=include for debugging)")
+                    .value_parser(["0", "1"])
+                    .default_value("0"),
+            )
     }
 
     /// Parse CLI arguments into ContextWriterConfig
@@ -165,6 +173,57 @@ impl CliConfig {
             max_context_tokens: *matches.get_one::<usize>("max-context-tokens").unwrap(),
             relevance_threshold: *matches.get_one::<f32>("relevance-threshold").unwrap(),
             output_dir: matches.get_one::<String>("output").unwrap().clone(),
+        }
+    }
+
+    /// Parse --include-current-code flag value (S01: Simple boolean conversion)
+    ///
+    /// # Preconditions
+    /// - Value must be "0" or "1" (enforced by clap value_parser)
+    ///
+    /// # Returns
+    /// - false when value = "0" (exclude Current_Code for token optimization)
+    /// - true when value = "1" (include Current_Code for debugging)
+    ///
+    /// # Examples
+    /// ```ignore
+    /// let matches = cli.try_get_matches_from(&["tool", "--include-current-code", "1"]);
+    /// let include = CliConfig::parse_include_current_code(&matches.unwrap());
+    /// assert_eq!(include, true);
+    /// ```
+    pub fn parse_include_current_code(matches: &clap::ArgMatches) -> bool {
+        matches
+            .get_one::<String>("include-current-code")
+            .map(|s| s == "1")
+            .unwrap_or(false)
+    }
+
+    /// Build context query based on --include-current-code flag (pure function)
+    ///
+    /// Following S01 Executable Specifications:
+    /// - include_current_code = false: Exclude Current_Code (saves ~500k tokens)
+    /// - include_current_code = true: Include Current_Code (for debugging)
+    ///
+    /// # Returns
+    /// SQL/Datalog query string for CozoDB
+    ///
+    /// # Examples
+    /// ```ignore
+    /// // Token-optimized query (default)
+    /// let query = CliConfig::build_context_query(false);
+    /// assert!(query.contains("EXCEPT") && query.contains("Current_Code"));
+    ///
+    /// // Full data query (debugging)
+    /// let query = CliConfig::build_context_query(true);
+    /// assert!(!query.contains("EXCEPT (Current_Code"));
+    /// ```
+    pub fn build_context_query(include_current_code: bool) -> String {
+        if include_current_code {
+            // Include Current_Code (debugging mode)
+            "SELECT * EXCEPT (Future_Code) FROM CodeGraph WHERE current_ind=1".to_string()
+        } else {
+            // Exclude Current_Code (token optimization - default)
+            "SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph WHERE current_ind=1".to_string()
         }
     }
 
