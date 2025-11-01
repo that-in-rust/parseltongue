@@ -233,7 +233,10 @@ async fn run_folder_to_cozodb_streamer(matches: &ArgMatches) -> Result<()> {
 }
 
 async fn run_llm_to_cozodb_writer(matches: &ArgMatches) -> Result<()> {
-    let entity = matches.get_one::<String>("entity").unwrap();
+    use parseltongue_core::storage::CozoDbStorage;
+    use parseltongue_core::entities::{TemporalAction, TemporalState};
+
+    let entity_key = matches.get_one::<String>("entity").unwrap();
     let action = matches.get_one::<String>("action").unwrap();
     let future_code = matches.get_one::<String>("future-code");
     let db = matches.get_one::<String>("db").unwrap();
@@ -246,17 +249,67 @@ async fn run_llm_to_cozodb_writer(matches: &ArgMatches) -> Result<()> {
         std::process::exit(1);
     }
 
-    // TODO: Call llm-to-cozodb-writer library function
-    // For now, print what would be done
-    println!("  Entity: {}", entity);
-    println!("  Action: {}", action);
-    if let Some(code) = future_code {
-        println!("  Future code: {} bytes", code.len());
-    }
-    println!("  Database: {}", db);
+    // Connect to database
+    let storage = CozoDbStorage::new(db)
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
 
-    println!("{}", style("✓ Write completed (placeholder)").green());
-    println!("⚠️  Tool 2 integration pending - see issue tracker");
+    // Process action
+    match action.as_str() {
+        "create" => {
+            println!("  Creating entity: {}", entity_key);
+            println!("  Future code: {} bytes", future_code.unwrap().len());
+            // For MVP: creating new entity requires full entity data structure
+            // This is a simplified implementation - in practice, you'd parse the ISGL1 key
+            // and construct a proper CodeEntity
+            eprintln!("{}", style("⚠️  CREATE action requires full entity construction - not yet implemented").yellow());
+            eprintln!("    Hint: First index the codebase, then use EDIT to modify entities");
+        }
+        "edit" => {
+            println!("  Editing entity: {}", entity_key);
+
+            // Fetch existing entity
+            let mut entity = storage.get_entity(entity_key)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to fetch entity: {}", e))?;
+
+            // Update future_code
+            entity.future_code = Some(future_code.unwrap().clone());
+
+            // Set temporal action
+            entity.temporal_state.future_action = Some(TemporalAction::Edit);
+            entity.temporal_state.future_ind = true;
+
+            // Persist updated entity back to database
+            storage.update_entity_internal(&entity)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to persist entity changes: {}", e))?;
+
+            println!("{}", style("✓ Entity updated with future code").green());
+            println!("  Temporal state: Edit pending (future_ind=true)");
+        }
+        "delete" => {
+            println!("  Deleting entity: {}", entity_key);
+
+            // Fetch existing entity
+            let mut entity = storage.get_entity(entity_key)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to fetch entity: {}", e))?;
+
+            // Mark for deletion via temporal state
+            entity.temporal_state.future_ind = false;
+            entity.temporal_state.future_action = Some(TemporalAction::Delete);
+
+            // Persist updated entity
+            storage.update_entity_internal(&entity)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to mark for deletion: {}", e))?;
+
+            println!("{}", style("✓ Entity marked for deletion").green());
+            println!("  Temporal state: Delete pending (future_ind=false)");
+        }
+        _ => unreachable!("clap validation should prevent this"),
+    }
 
     Ok(())
 }
