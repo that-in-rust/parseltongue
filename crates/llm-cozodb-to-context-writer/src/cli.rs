@@ -11,7 +11,7 @@ impl CliConfig {
     /// Build CLI application
     pub fn build_cli() -> Command {
         Command::new("parseltongue-03")
-            .version("0.7.0")
+            .version("0.7.1")
             .author("Parseltongue Team")
             .about("Tool 03: LLM-cozoDB-to-context-writer")
             .long_about(
@@ -210,7 +210,7 @@ impl CliConfig {
 
     /// Print version information
     pub fn print_version() {
-        println!("parseltongue-03 version 0.7.0");
+        println!("parseltongue-03 version 0.7.1");
     }
 }
 
