@@ -1,89 +1,103 @@
 # Example 2: CLI Cleanup - Using Parseltongue on Itself
 
-## Goal
-Remove unused command-line arguments from Parseltongue codebase.
+## Problem Statement
+Many CLI arguments exist across the 6 tools, but some may be unused. Remove unnecessary arguments.
 
-## Planning: Commands & Reasoning
+## Approach: Use Parseltongue Context Only
+**Constraint**: Don't read source files directly. Use only Parseltongue-exported context to understand code.
+
+---
+
+## Phase 1: Index and Understand Structure
 
 ### Step 1: Index Codebase
 ```bash
 ../target/release/parseltongue folder-to-cozodb-streamer ../crates \
   --db rocksdb:parseltongue-analysis.db
 ```
-**Why**: Create ISG of all CLI definitions across 6 tools. ISGL1 keys will identify all `clap` argument definitions.
 
-**Expected**: ~200-300 entities (functions, structs, CLI args from all 6 tools).
+**Expected**: ~200-300 entities (all CLI definitions, main functions, struct fields)
 
 ---
 
-### Step 2: Export All Entities
+### Step 2: Export All Entity Signatures
 ```bash
 ../target/release/parseltongue llm-cozodb-to-context-writer \
-  --output step2-all-entities.json \
-  --db rocksdb:parseltongue-analysis.db \
-  --filter all
-```
-**Why**: Inspect what was indexed. Look for CLI argument structs (clap derives) and their usage.
-
-**Expected**: JSON with interface signatures showing all command-line args.
-
----
-
-### Step 3: Identify Unused Args
-**Manual Analysis**: Review `step2-all-entities.json` and source code to identify:
-- Which CLI args are defined but never accessed
-- Which fields in `Cli` structs are unused
-
-**Expected Findings**: Document specific args to remove (e.g., `--verbose` flags that aren't checked).
-
----
-
-### Step 4: Propose Deletions (Tool 2)
-```bash
-../target/release/parseltongue llm-to-cozodb-writer \
-  --entity "rust:field:unused_arg:crates_tool1_src_cli_rs:15-17" \
-  --action "delete" \
+  --output . \
   --db rocksdb:parseltongue-analysis.db
+# Uses default: excludes Current_Code, loads signatures only
+# Generates: context_{uuid}_{timestamp}.json
 ```
-**Why**: Mark unused CLI fields for deletion. Set `future_ind=0`, `future_action=Delete`.
 
-**Expected**: Temporal state updated for each unused arg.
+**What to look for in generated JSON**:
+- Entities with `clap::Arg` in signatures
+- Struct fields defining CLI arguments
+- Function signatures showing argument usage
+
+**Expected**: Interface signatures showing CLI arg definitions and usage
 
 ---
 
-### Step 5: Validate Syntax (Tool 4)
+## Phase 2: Analyze Unused Arguments
+
+**Manual analysis of the generated JSON**:
+1. List all CLI arg definitions (struct fields, Arg::new() calls)
+2. Search for each arg name in function signatures
+3. If arg appears ONLY in definition, never in usage → **unused candidate**
+
+**Document findings**: Which args are unused in which tools
+
+---
+
+## Phase 3: Plan Removal (Create Temporal Changes)
+
+### Step 4: Mark Unused Args for Deletion
+For each unused argument found, plan the deletion:
+
+**Example** (if we find `--verbose` is unused in Tool 2):
+```bash
+# This would be done via direct CozoDB updates since Tool 2
+# is for LLM batch processing, not single-entity marking
+```
+
+**Create list**: Document which args to remove in which tools
+
+---
+
+## Phase 4: Validate and Apply
+
+### Step 5: Validate Syntax
 ```bash
 ../target/release/parseltongue rust-preflight-code-simulator \
   --db rocksdb:parseltongue-analysis.db
 ```
-**Why**: Verify deletions don't break struct syntax.
 
-**Expected**: ✓ Syntax valid (or errors to fix).
+**Expected**: All syntax valid after deletions
 
 ---
 
-### Step 6: Generate Diff (Tool 5)
+### Step 6: Generate Diff
 ```bash
 ../target/release/parseltongue llm-cozodb-to-diff-writer \
-  --output step6-CodeDiff.json \
+  --output ./CodeDiff.json \
   --db rocksdb:parseltongue-analysis.db
 ```
-**Why**: Get structured diff showing what to delete.
 
-**Expected**: `CodeDiff.json` with Delete operations for unused args.
+**Expected**: CodeDiff.json showing Delete operations for unused CLI args
 
 ---
 
-### Step 7: Apply Changes
-**Manual**: Read `step6-CodeDiff.json` and remove the identified unused arguments from source files.
+## Key Insight: Parseltongue as Analysis Tool
 
-**Verify**:
-```bash
-cargo build --workspace
-cargo test --workspace
-```
+By using **only exported context** (interface signatures, entity relationships), we can:
+- Understand CLI argument definitions
+- Trace usage through function signatures
+- Identify unused arguments
+- Plan deletions
+
+**No source file reading needed** - the interface signatures tell us everything!
 
 ---
 
 ## Status
-🟡 Ready to start - awaiting execution
+🟡 Ready to start - Phase 1: Indexing
