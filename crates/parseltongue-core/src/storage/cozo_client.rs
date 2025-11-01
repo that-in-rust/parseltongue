@@ -626,6 +626,20 @@ impl CozoDbStorage {
         Ok(reachable)
     }
 
+    /// Execute raw Datalog query (S01 ultra-minimalist - direct CozoDB access)
+    ///
+    /// For Tool 2 --query interface. Executes user-provided Datalog directly.
+    /// NO query validation, NO safety checks - trust the user (S01 principle).
+    pub async fn execute_query(&self, query: &str) -> Result<()> {
+        self.db
+            .run_script(query, Default::default(), ScriptMutability::Mutable)
+            .map_err(|e| ParseltongError::DatabaseError {
+                operation: "execute_query".to_string(),
+                details: format!("Datalog query failed: {}", e),
+            })?;
+        Ok(())
+    }
+
     /// List all relations in the database
     pub async fn list_relations(&self) -> Result<Vec<String>> {
         let result = self

@@ -1,20 +1,17 @@
 //! Main entry point for parseltongue-02.
 //!
-//! S01 Ultra-Minimalist Implementation:
+//! S01 Ultra-Minimalist Implementation with Progressive Disclosure:
+//! - Simple Interface (80%): --entity --action --future-code
+//! - Advanced Interface (20%): --query (raw Datalog)
 //! - NO automatic LLM calls (LLM runs externally, passes changes via CLI)
 //! - Direct CozoDB writes only
-//! - Matches unified binary pattern (parseltongue/src/main.rs)
 
-use console::style;
 use anyhow::Result;
+use console::style;
 
-use llm_to_cozodb_writer::{
-    cli::CliConfig,
-    LlmWriterConfig,
-};
+use llm_to_cozodb_writer::{cli::CliConfig, InterfaceMode};
 
 use parseltongue_core::storage::CozoDbStorage;
-use parseltongue_core::entities::TemporalAction;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -24,14 +21,21 @@ async fn main() -> Result<()> {
 
     match matches {
         Ok(matches) => {
-            let config = CliConfig::parse_config(&matches);
+            // Parse interface mode (Simple or Advanced)
+            let mode = CliConfig::parse_interface_mode(&matches);
 
-            println!("{}", style("Running Tool 2: llm-to-cozodb-writer").cyan());
+            println!(
+                "{}",
+                style("Running Tool 2: llm-to-cozodb-writer").cyan()
+            );
 
-            // Run writer with simple pattern
-            match run_writer(&config).await {
+            // Execute based on interface mode
+            match run_writer(mode).await {
                 Ok(()) => {
-                    println!("{}", style("✓ Entity updated successfully").green().bold());
+                    println!(
+                        "{}",
+                        style("✓ Entity updated successfully").green().bold()
+                    );
                     Ok(())
                 }
                 Err(e) => {
@@ -48,116 +52,89 @@ async fn main() -> Result<()> {
     }
 }
 
-/// Run the writer with ultra-minimalist pattern (S01)
+/// Run the writer with Progressive Disclosure pattern (S01)
 ///
-/// Matches the implementation in parseltongue/src/main.rs (unified binary)
-async fn run_writer(config: &LlmWriterConfig) -> Result<()> {
-    // Validate future-code requirement
-    if (config.action == "create" || config.action == "edit") && config.future_code.is_none() {
-        eprintln!("{}", style("Error: --future-code required for create/edit actions").red());
-        std::process::exit(1);
-    }
+/// Supports two interfaces:
+/// - Simple: Generates Datalog from --entity --action --future-code
+/// - Advanced: Executes raw --query Datalog
+///
+/// NO validation, NO safety checks - trust the user (S01 principle)
+async fn run_writer(mode: InterfaceMode) -> Result<()> {
+    // Extract database path and query based on interface mode
+    let (db_path, query) = match &mode {
+        InterfaceMode::Simple(config) => {
+            println!("  Using Simple Interface (Create/Edit/Delete)");
+            println!("  Entity: {}", config.entity_key);
+            println!("  Action: {:?}", config.action);
+            let query = config.to_datalog();
+            (&config.db_path, query)
+        }
+        InterfaceMode::Advanced(config) => {
+            println!("  Using Advanced Interface (Raw Datalog)");
+            (&config.db_path, config.query.clone())
+        }
+    };
 
     // Connect to database
-    let storage = CozoDbStorage::new(&config.db_path)
+    let storage = CozoDbStorage::new(db_path)
         .await
         .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
 
-    // Process action
-    match config.action.as_str() {
-        "create" => {
-            println!("  Creating entity: {}", config.entity_key);
-            println!("  Future code: {} bytes", config.future_code.as_ref().unwrap().len());
-            eprintln!("{}", style("⚠️  CREATE action requires full entity construction - not yet implemented").yellow());
-            eprintln!("    Hint: First index the codebase, then use EDIT to modify entities");
-            Ok(())
-        }
-        "edit" => {
-            println!("  Editing entity: {}", config.entity_key);
+    println!("  Executing Datalog query...");
 
-            // Fetch existing entity
-            let mut entity = storage.get_entity(&config.entity_key)
-                .await
-                .map_err(|e| anyhow::anyhow!("Failed to fetch entity: {}", e))?;
+    // Execute Datalog query via CozoDB (S01: trust the user)
+    storage
+        .execute_query(&query)
+        .await
+        .map_err(|e| anyhow::anyhow!("Query execution failed: {}", e))?;
 
-            // Update future_code
-            entity.future_code = Some(config.future_code.as_ref().unwrap().clone());
-
-            // Set temporal action
-            entity.temporal_state.future_action = Some(TemporalAction::Edit);
-            entity.temporal_state.future_ind = true;
-
-            // Persist updated entity back to database
-            storage.update_entity_internal(&entity)
-                .await
-                .map_err(|e| anyhow::anyhow!("Failed to persist entity changes: {}", e))?;
-
-            println!("{}", style("✓ Entity updated with future code").green());
-            println!("  Temporal state: Edit pending (future_ind=true)");
-            Ok(())
-        }
-        "delete" => {
-            println!("  Deleting entity: {}", config.entity_key);
-
-            // Fetch existing entity
-            let mut entity = storage.get_entity(&config.entity_key)
-                .await
-                .map_err(|e| anyhow::anyhow!("Failed to fetch entity: {}", e))?;
-
-            // Mark for deletion via temporal state
-            entity.temporal_state.future_ind = false;
-            entity.temporal_state.future_action = Some(TemporalAction::Delete);
-
-            // Persist updated entity
-            storage.update_entity_internal(&entity)
-                .await
-                .map_err(|e| anyhow::anyhow!("Failed to mark for deletion: {}", e))?;
-
-            println!("{}", style("✓ Entity marked for deletion").green());
-            println!("  Temporal state: Delete pending (future_ind=false)");
-            Ok(())
-        }
-        _ => unreachable!("clap validation should prevent this"),
-    }
+    println!(
+        "{}",
+        style("✓ Datalog query executed successfully").green()
+    );
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use llm_to_cozodb_writer::{AdvancedQueryConfig, EntityAction, SimpleUpdateConfig};
 
     #[test]
-    fn test_config_validation_edit_requires_code() {
-        let config = LlmWriterConfig {
-            entity_key: "rust:fn:test:lib_rs:10-15".to_string(),
-            action: "edit".to_string(),
-            future_code: None,  // Missing code for edit
-            db_path: "mem".to_string(),
+    fn test_simple_interface_mode() {
+        let config = SimpleUpdateConfig {
+            entity_key: "rust:fn:test:lib_rs:1-5".to_string(),
+            action: EntityAction::Edit,
+            future_code: Some("fn test() {}".to_string()),
+            db_path: "test.db".to_string(),
         };
 
-        // Should require future_code for edit action
-        assert!(config.future_code.is_none());
-        assert_eq!(config.action, "edit");
+        let mode = InterfaceMode::Simple(config.clone());
+
+        match mode {
+            InterfaceMode::Simple(c) => {
+                assert_eq!(c.entity_key, "rust:fn:test:lib_rs:1-5");
+                assert_eq!(c.db_path, "test.db");
+            }
+            _ => panic!("Expected Simple mode"),
+        }
     }
 
     #[test]
-    fn test_config_validation_delete_no_code() {
-        let config = LlmWriterConfig {
-            entity_key: "rust:fn:old:lib_rs:20-25".to_string(),
-            action: "delete".to_string(),
-            future_code: None,  // Delete doesn't need code
-            db_path: "mem".to_string(),
+    fn test_advanced_interface_mode() {
+        let config = AdvancedQueryConfig {
+            query: "?[a] := [[1]]".to_string(),
+            db_path: "test.db".to_string(),
         };
 
-        // Delete should not need future_code
-        assert!(config.future_code.is_none());
-        assert_eq!(config.action, "delete");
-    }
+        let mode = InterfaceMode::Advanced(config);
 
-    #[test]
-    fn test_config_default() {
-        let config = LlmWriterConfig::default();
-        assert_eq!(config.db_path, "parseltongue.db");
-        assert_eq!(config.action, "edit");
-        assert!(config.future_code.is_none());
+        match mode {
+            InterfaceMode::Advanced(c) => {
+                assert_eq!(c.query, "?[a] := [[1]]");
+                assert_eq!(c.db_path, "test.db");
+            }
+            _ => panic!("Expected Advanced mode"),
+        }
     }
 }

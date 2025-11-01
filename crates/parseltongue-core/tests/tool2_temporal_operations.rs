@@ -108,7 +108,7 @@ async fn test_tool2_edit_operation() {
 async fn test_tool2_delete_operation() {
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
-    let mut storage = CozoDbStorage::new(&format!("rocksdb:{}", db_path.display()))
+    let storage = CozoDbStorage::new(&format!("rocksdb:{}", db_path.display()))
         .await
         .unwrap();
 
@@ -149,7 +149,7 @@ async fn test_tool2_delete_operation() {
 async fn test_tool2_create_operation_with_hash_key() {
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
-    let mut storage = CozoDbStorage::new(&format!("rocksdb:{}", db_path.display()))
+    let storage = CozoDbStorage::new(&format!("rocksdb:{}", db_path.display()))
         .await
         .unwrap();
 
@@ -221,7 +221,7 @@ async fn test_tool2_create_operation_with_hash_key() {
 async fn test_tool1_tool2_integration() {
     let temp_dir = TempDir::new().unwrap();
     let db_path = temp_dir.path().join("test.db");
-    let mut storage = CozoDbStorage::new(&format!("rocksdb:{}", db_path.display()))
+    let storage = CozoDbStorage::new(&format!("rocksdb:{}", db_path.display()))
         .await
         .unwrap();
 
@@ -318,4 +318,116 @@ async fn test_tool1_tool2_integration() {
     // Verify get_changed_entities returns 3 entities (Edit, Delete, Create)
     let changed = storage.get_changed_entities().await.unwrap();
     assert_eq!(changed.len(), 3, "Should have 3 entities with pending changes");
+}
+
+/// Scenario 5: Direct Datalog Query Execution - Simple Query
+///
+/// Tests the new S01 ultra-minimalist interface via execute_query()
+/// This validates that the execute_query() method can run valid Datalog
+#[tokio::test]
+async fn test_execute_query_simple_query() {
+    let temp_dir = TempDir::new().unwrap();
+    let db_path = temp_dir.path().join("test.db");
+    let storage = CozoDbStorage::new(&format!("rocksdb:{}", db_path.display()))
+        .await
+        .unwrap();
+
+    // Create schema
+    storage.create_schema().await.unwrap();
+
+    // Execute: Simple read query to verify execute_query works
+    let query = r#"
+        ?[ISGL1_key, current_ind, future_ind] :=
+        *CodeGraph{
+            ISGL1_key, current_ind, future_ind
+        }
+    "#;
+
+    let result = storage.execute_query(query).await;
+    assert!(result.is_ok(), "Valid Datalog read query should execute successfully");
+}
+
+/// Scenario 6: Direct Datalog Query Execution - List Relations
+///
+/// Tests that execute_query can run system queries
+#[tokio::test]
+async fn test_execute_query_list_relations() {
+    let temp_dir = TempDir::new().unwrap();
+    let db_path = temp_dir.path().join("test.db");
+    let storage = CozoDbStorage::new(&format!("rocksdb:{}", db_path.display()))
+        .await
+        .unwrap();
+
+    storage.create_schema().await.unwrap();
+
+    // Execute: CozoDB system query to list all relations
+    let query = "::relations";
+
+    let result = storage.execute_query(query).await;
+    assert!(result.is_ok(), "System query should execute successfully");
+}
+
+/// Scenario 7: Error Handling - Invalid Datalog Syntax
+///
+/// Tests that execute_query properly propagates CozoDB errors
+#[tokio::test]
+async fn test_execute_query_invalid_syntax() {
+    let temp_dir = TempDir::new().unwrap();
+    let db_path = temp_dir.path().join("test.db");
+    let storage = CozoDbStorage::new(&format!("rocksdb:{}", db_path.display()))
+        .await
+        .unwrap();
+
+    storage.create_schema().await.unwrap();
+
+    // Execute: Invalid Datalog query
+    let invalid_query = "THIS IS NOT VALID DATALOG SYNTAX !!!";
+
+    let result = storage.execute_query(invalid_query).await;
+
+    // Verify: Returns DatabaseError with details
+    assert!(result.is_err(), "Invalid Datalog should return error");
+
+    let err = result.unwrap_err();
+    let err_string = format!("{:?}", err);
+    assert!(
+        err_string.contains("DatabaseError") || err_string.contains("execute_query"),
+        "Error should be DatabaseError from execute_query operation"
+    );
+    assert!(
+        err_string.contains("Datalog query failed"),
+        "Error should mention Datalog query failure"
+    );
+}
+
+/// Scenario 8: Query Execution - Filtered Read
+///
+/// Tests query with filter conditions
+#[tokio::test]
+async fn test_execute_query_with_filter() {
+    let temp_dir = TempDir::new().unwrap();
+    let db_path = temp_dir.path().join("test.db");
+    let storage = CozoDbStorage::new(&format!("rocksdb:{}", db_path.display()))
+        .await
+        .unwrap();
+
+    storage.create_schema().await.unwrap();
+
+    // Setup: Insert entities
+    let entity1 = create_test_entity("fn1", "src/a.rs", (1, 5));
+    let entity2 = create_test_entity("fn2", "src/b.rs", (10, 15));
+    storage.insert_entity(&entity1).await.unwrap();
+    storage.insert_entity(&entity2).await.unwrap();
+
+    // Execute: Query with filter (find entities where current_ind is true)
+    let query = r#"
+        ?[ISGL1_key, current_ind] :=
+        *CodeGraph{
+            ISGL1_key, current_ind
+        },
+        current_ind == true
+    "#;
+
+    let result = storage.execute_query(query).await;
+    assert!(result.is_ok(), "Filtered query should execute successfully");
 }
