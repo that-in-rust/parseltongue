@@ -15,9 +15,11 @@
 ## TOOL 3 BEHAVIOR
 
 Tool 3 (`llm-cozodb-to-context-writer`):
+- **Purpose**: Extract entities from CozoDB → JSON file for LLM to read
 - **Input**: `--db` (database path), `--query` (optional SQL), `--output` (directory)
-- **Output**: Writes JSON file to directory: `context_{id}_{timestamp}.json`
+- **Output**: Writes JSON file: `context_{id}_{timestamp}.json`
 - **Default query**: `SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph WHERE current_ind=1`
+- **Workflow**: Database → JSON file → **LLM reads JSON** to understand codebase
 
 ---
 
