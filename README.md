@@ -40,15 +40,15 @@ All in **one unified binary** with self-documenting command names.
 
 ---
 
-## The 6 Tools
+## The 6 Tools (Workflow-Ordered)
 
 **All in one unified binary:**
-1. `folder-to-cozodb-streamer` - Index codebase
-2. `llm-to-cozodb-writer` - Write temporal changes
-3. `llm-cozodb-to-context-writer` - Export entities to JSON
-4. `rust-preflight-code-simulator` - Validate syntax
-5. `llm-cozodb-to-diff-writer` - Generate CodeDiff.json
-6. `cozodb-make-future-code-current` - Reset database state
+1. `pt01-folder-to-cozodb-streamer` - Index codebase (Ingest)
+2. `pt02-llm-cozodb-to-context-writer` - Export entities to JSON (Read)
+3. `pt03-llm-to-cozodb-writer` - Write temporal changes (Edit)
+4. `pt04-syntax-preflight-validator` - Validate syntax (Validate)
+5. `pt05-llm-cozodb-to-diff-writer` - Generate CodeDiff.json (Diff)
+6. `pt06-cozodb-make-future-code-current` - Reset database state (Reset)
 
 ---
 
@@ -71,33 +71,37 @@ You have a simple greeter library with 4 functions:
 ### The Pipeline
 
 ```bash
-# 1. Index the codebase (4 functions discovered)
-parseltongue folder-to-cozodb-streamer greeter --db rocksdb:demo.db
+# 1. INGEST: Index the codebase (4 functions discovered)
+parseltongue pt01-folder-to-cozodb-streamer greeter --db rocksdb:demo.db
 # → 4 entities created
 
-# 2. Export all entities to see what was indexed
-parseltongue llm-cozodb-to-context-writer \
-  --output all-entities.json \
+# 2. READ: Export all entities to see what was indexed
+parseltongue pt02-llm-cozodb-to-context-writer \
+  --output ./contexts \
   --db rocksdb:demo.db
-# → Uses default query (excludes code, signatures only)
+# → Uses default query (excludes Current_Code, signatures only)
+# → Generates: ./contexts/context_{uuid}_{timestamp}.json
 
-# 3. Fix the hello() function (manual write to database)
-# Note: Tool 2 is for LLM batch processing. For demos, entities are updated directly in CozoDB.
-# The temporal state is updated: future_action="Edit", future_code contains the fix
+# 3. EDIT: Fix the hello() function (simple interface)
+parseltongue pt03-llm-to-cozodb-writer \
+  --entity "rust:fn:hello:greeter_src_lib_rs:4-6" \
+  --action edit \
+  --future-code 'pub fn hello() -> &'"'"'static str { "Hello!" }' \
+  --db rocksdb:demo.db
 # → Temporal state: Edit pending (future_ind=true)
 
-# 4. Validate syntax of the fix
-parseltongue rust-preflight-code-simulator --db rocksdb:demo.db
+# 4. VALIDATE: Check syntax of the fix
+parseltongue pt04-syntax-preflight-validator --db rocksdb:demo.db
 # → ✓ All syntax validations passed
 
-# 5. Generate CodeDiff.json for LLM to apply
-parseltongue llm-cozodb-to-diff-writer \
+# 5. DIFF: Generate CodeDiff.json for LLM to apply
+parseltongue pt05-llm-cozodb-to-diff-writer \
   --output CodeDiff.json \
   --db rocksdb:demo.db
-# → CodeDiff.json generated (1 edit)
+# → CodeDiff.json generated (1 edit with before/after)
 
-# 6. (Optional) Reset database to start fresh
-parseltongue cozodb-make-future-code-current \
+# 6. RESET: (Optional) Reset database to start fresh
+parseltongue pt06-cozodb-make-future-code-current \
   --project greeter \
   --db rocksdb:demo.db
 # → 4 entities deleted, schema recreated
@@ -149,18 +153,20 @@ rust:fn:hello:greeter_src_lib_rs:4-6
 └─ Language
 ```
 
-### Data Flow
+### Data Flow (Workflow Order)
 
 ```
-Codebase → Tool 1 (Index) → CozoDB
-                              ↓
-                    Tool 2 (Write Changes)
-                              ↓
-           Tool 3 (Export) ← CozoDB → Tool 4 (Validate)
-                              ↓
-                    Tool 5 (Generate Diff)
-                              ↓
-                    Tool 6 (Reset State)
+Codebase → pt01 (Ingest) → CozoDB
+                             ↓
+                   pt02 (Read/Export) → JSON for LLM
+                             ↓
+                   pt03 (Edit/Write) ← LLM Changes
+                             ↓
+                   pt04 (Validate) → Syntax Check
+                             ↓
+                   pt05 (Diff) → CodeDiff.json
+                             ↓
+                   pt06 (Reset) → Clean State
 ```
 
 ---
@@ -206,14 +212,14 @@ Tool performance on greeter demo (4 entities):
 ```
 parseltongue/
 ├── crates/
-│   ├── parseltongue/           # Unified binary (all 6 tools)
-│   ├── parseltongue-core/      # Shared types, storage, entities
-│   ├── folder-to-cozodb-streamer/       # Tool 1
-│   ├── llm-to-cozodb-writer/            # Tool 2
-│   ├── llm-cozodb-to-context-writer/    # Tool 3
-│   ├── rust-preflight-code-simulator/   # Tool 4
-│   ├── llm-cozodb-to-diff-writer/       # Tool 5
-│   └── cozodb-make-future-code-current/ # Tool 6
+│   ├── parseltongue/                         # Unified binary (all 6 tools)
+│   ├── parseltongue-core/                    # Shared types, storage, entities
+│   ├── pt01-folder-to-cozodb-streamer/       # Tool 1: Ingest
+│   ├── pt02-llm-cozodb-to-context-writer/    # Tool 2: Read
+│   ├── pt03-llm-to-cozodb-writer/            # Tool 3: Edit
+│   ├── pt04-syntax-preflight-validator/      # Tool 4: Validate
+│   ├── pt05-llm-cozodb-to-diff-writer/       # Tool 5: Diff
+│   └── pt06-cozodb-make-future-code-current/ # Tool 6: Reset
 ├── demo-walkthrough/           # Complete example with artifacts
 └── examples/calculator/        # Additional example (deliberate bug)
 ```
@@ -222,13 +228,13 @@ parseltongue/
 
 ## Command Reference
 
-### Tool 1: folder-to-cozodb-streamer
+### pt01: folder-to-cozodb-streamer (INGEST)
 ```bash
 # Index current directory (default)
-parseltongue folder-to-cozodb-streamer .
+parseltongue pt01-folder-to-cozodb-streamer .
 
 # Index specific directory with custom database
-parseltongue folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --verbose
+parseltongue pt01-folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --verbose
 ```
 **What it does:** Indexes codebase into CozoDB with ISGL1 keys. Processes ALL files - tree-sitter determines what it can parse.
 
@@ -238,46 +244,126 @@ parseltongue folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --verbo
 - `--verbose` - Show detailed output
 - `--quiet` - Suppress output
 
-### Tool 2: llm-to-cozodb-writer
-```bash
-parseltongue llm-to-cozodb-writer \
-  --entity <isgl1-key> \
-  --action <create|edit|delete> \
-  --future-code <code> \
-  --db <database>
-```
-Writes temporal changes to database.
+---
 
-### Tool 3: llm-cozodb-to-context-writer
+### pt02: llm-cozodb-to-context-writer (READ)
 ```bash
-parseltongue llm-cozodb-to-context-writer \
-  --output <json-file> \
-  --db <database> \
-  --filter <all|changed|current>
-```
-Exports entities to JSON for inspection.
+# Default: Export signatures only (token-optimized ~37.5k for 1500 entities)
+parseltongue pt02-llm-cozodb-to-context-writer \
+  --output ./contexts \
+  --db rocksdb:analysis.db
 
-### Tool 4: rust-preflight-code-simulator
-```bash
-parseltongue rust-preflight-code-simulator --db <database> [--verbose]
-```
-Validates syntax of future_code using tree-sitter.
+# Include Current_Code for debugging (~500k tokens - use sparingly!)
+parseltongue pt02-llm-cozodb-to-context-writer \
+  --output ./contexts \
+  --db rocksdb:analysis.db \
+  --include-current-code 1
 
-### Tool 5: llm-cozodb-to-diff-writer
-```bash
-parseltongue llm-cozodb-to-diff-writer \
-  --output <json-file> \
-  --db <database>
+# Advanced: Custom query to filter specific entities
+parseltongue pt02-llm-cozodb-to-context-writer \
+  --query "SELECT * FROM CodeGraph WHERE Future_Action IS NOT NULL" \
+  --output ./contexts \
+  --db rocksdb:analysis.db
 ```
-Generates CodeDiff.json with current_code vs. future_code.
 
-### Tool 6: cozodb-make-future-code-current
-```bash
-parseltongue cozodb-make-future-code-current \
-  --project <directory> \
-  --db <database>
+**What it does:** Exports entities to JSON for LLM consumption. Uses default query that excludes `Current_Code` to save tokens.
+
+**Arguments:**
+- `--output` - Output directory [default: `./contexts`]
+- `--db` - Database path [default: `parseltongue.db`]
+- `--include-current-code` - Include Current_Code field (0=exclude, 1=include) [default: 0]
+- `--query` - Custom SQL query (overrides default)
+
+**Default query:**
+```sql
+SELECT * EXCEPT (Current_Code, Future_Code)
+FROM CodeGraph
+WHERE current_ind=1
 ```
-Resets database state (deletes all entities, NO backups).
+
+---
+
+### pt03: llm-to-cozodb-writer (EDIT)
+
+**Simple Interface (80% of use cases):**
+```bash
+# Create new entity
+parseltongue pt03-llm-to-cozodb-writer \
+  --entity "rust:fn:new_func:src_lib_rs:10-15" \
+  --action create \
+  --future-code "pub fn new_func() { println!(\"Hello\"); }" \
+  --db rocksdb:analysis.db
+
+# Edit existing entity
+parseltongue pt03-llm-to-cozodb-writer \
+  --entity "rust:fn:hello:greeter_src_lib_rs:4-6" \
+  --action edit \
+  --future-code "pub fn hello() -> &'static str { \"Hello!\" }" \
+  --db rocksdb:analysis.db
+
+# Delete entity
+parseltongue pt03-llm-to-cozodb-writer \
+  --entity "rust:fn:old_func:src_lib_rs:20-25" \
+  --action delete \
+  --db rocksdb:analysis.db
+```
+
+**Advanced Interface (20% - raw Datalog):**
+```bash
+parseltongue pt03-llm-to-cozodb-writer \
+  --query "?[...] := [[...]] :put CodeGraph {...}" \
+  --db rocksdb:analysis.db
+```
+
+**Arguments:**
+- `--entity` - ISGL1 key of entity to modify
+- `--action` - Action: create, edit, or delete
+- `--future-code` - Future code content (required for create/edit)
+- `--query` - Raw Datalog query (advanced users)
+- `--db` - Database path [default: `parseltongue.db`]
+
+---
+
+### pt04: syntax-preflight-validator (VALIDATE)
+```bash
+parseltongue pt04-syntax-preflight-validator --db rocksdb:analysis.db [--verbose]
+```
+
+**What it does:** Validates syntax of all `Future_Code` using tree-sitter. Multi-language ready (currently Rust implemented).
+
+**Arguments:**
+- `--db` - Database path [default: `parseltongue.db`]
+- `--verbose` - Show detailed validation output
+
+---
+
+### pt05: llm-cozodb-to-diff-writer (DIFF)
+```bash
+parseltongue pt05-llm-cozodb-to-diff-writer \
+  --output CodeDiff.json \
+  --db rocksdb:analysis.db
+```
+
+**What it does:** Generates CodeDiff.json with current_code vs. future_code for all entities with Future_Action set.
+
+**Arguments:**
+- `--output` - Output file path [default: `CodeDiff.json`]
+- `--db` - Database path [default: `parseltongue.db`]
+
+---
+
+### pt06: cozodb-make-future-code-current (RESET)
+```bash
+parseltongue pt06-cozodb-make-future-code-current \
+  --project ./greeter \
+  --db rocksdb:analysis.db
+```
+
+**What it does:** Resets database state (deletes CodeGraph table, re-indexes project). **NO backups** - ultra-minimalist.
+
+**Arguments:**
+- `--project` - Project directory to re-index
+- `--db` - Database path [default: `parseltongue.db`]
 
 ---
 

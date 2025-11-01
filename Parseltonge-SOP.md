@@ -20,14 +20,14 @@ All Parseltongue tools use the unified binary:
 parseltongue <tool-name> [arguments]
 ```
 
-### Tool 1: folder-to-cozodb-streamer
+### Tool 1: pt01-folder-to-cozodb-streamer
 
 ```bash
 # Index current directory (default)
-parseltongue folder-to-cozodb-streamer .
+parseltongue pt01-folder-to-cozodb-streamer .
 
 # Index specific directory with custom database
-parseltongue folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --verbose
+parseltongue pt01-folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --verbose
 ```
 
 **Key points:**
@@ -37,13 +37,14 @@ parseltongue folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --verbo
 
 ---
 
-## TOOL 3 BEHAVIOR
+## TOOL 2 BEHAVIOR
 
-Tool 3 (`llm-cozodb-to-context-writer`):
+Tool 2 (`pt02-llm-cozodb-to-context-writer`):
 - **Purpose**: Extract entities from CozoDB → JSON file for LLM to read
-- **Input**: `--db` (database path), `--query` (optional SQL), `--output` (directory)
+- **Input**: `--db` (database path), `--query` (optional SQL), `--output` (directory), `--include-current-code` (0 or 1)
 - **Output**: Writes JSON file: `context_{id}_{timestamp}.json`
 - **Default query**: `SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph WHERE current_ind=1`
+- **Token optimization**: Use `--include-current-code 0` (default) to exclude Current_Code, saves ~500k tokens
 - **Workflow**: Database → JSON file → **LLM reads JSON** to understand codebase
 
 ---
@@ -56,10 +57,11 @@ Tool 3 (`llm-cozodb-to-context-writer`):
 **Token Cost**: ~37.5k for 1500 entities
 
 ```bash
-parseltongue llm-cozodb-to-context-writer \
+parseltongue pt02-llm-cozodb-to-context-writer \
   --output ./contexts \
   --db rocksdb:analysis.db
 # Generates: ./contexts/context_{uuid}_{timestamp}.json
+# Default: --include-current-code 0 (excludes Current_Code)
 ```
 
 **What happens**: Uses default query (already excludes code!)
@@ -77,7 +79,7 @@ WHERE current_ind=1
 **Token Cost**: ~10k additional (only changed rows)
 
 ```bash
-parseltongue llm-cozodb-to-context-writer \
+parseltongue pt02-llm-cozodb-to-context-writer \
   --query "SELECT * FROM CodeGraph WHERE Future_Action IS NOT NULL" \
   --output ./contexts \
   --db rocksdb:analysis.db
@@ -93,7 +95,7 @@ parseltongue llm-cozodb-to-context-writer \
 **Token Cost**: ~100 tokens
 
 ```bash
-parseltongue llm-cozodb-to-context-writer \
+parseltongue pt02-llm-cozodb-to-context-writer \
   --query "SELECT * FROM CodeGraph WHERE isgl1_key = 'rust:fn:calculate:src_lib_rs:42-56'" \
   --output ./contexts \
   --db rocksdb:analysis.db
@@ -109,7 +111,7 @@ parseltongue llm-cozodb-to-context-writer \
 **Token Cost**: ~50k for 1500 entities
 
 ```bash
-parseltongue llm-cozodb-to-context-writer \
+parseltongue pt02-llm-cozodb-to-context-writer \
   --query "SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph" \
   --output ./contexts \
   --db rocksdb:analysis.db
@@ -119,11 +121,29 @@ parseltongue llm-cozodb-to-context-writer \
 
 ---
 
+### Pattern 5: Include Current_Code for Debugging (USE SPARINGLY!)
+
+**When**: Need to debug by seeing actual current code for all entities
+**Token Cost**: ~500k for 1500 entities (13x larger!)
+
+```bash
+parseltongue pt02-llm-cozodb-to-context-writer \
+  --output ./contexts \
+  --db rocksdb:analysis.db \
+  --include-current-code 1
+# Uses modified query: SELECT * EXCEPT (Future_Code) FROM CodeGraph WHERE current_ind=1
+```
+
+**Why dangerous**: Includes Current_Code for ALL entities → massive token explosion
+**When to use**: Only for debugging when signatures alone aren't enough
+
+---
+
 ## ANTI-PATTERN (NEVER DO THIS!)
 
 ```bash
 # ❌ CONTEXT EXPLOSION - 500k+ tokens
-parseltongue llm-cozodb-to-context-writer \
+parseltongue pt02-llm-cozodb-to-context-writer \
   --query "SELECT * FROM CodeGraph" \
   --output ./contexts \
   --db rocksdb:analysis.db
@@ -137,17 +157,19 @@ parseltongue llm-cozodb-to-context-writer \
 
 ```bash
 # Iteration 1: Overview (Pattern 1 - no code)
-parseltongue llm-cozodb-to-context-writer \
+parseltongue pt02-llm-cozodb-to-context-writer \
   --output ./contexts \
   --db rocksdb:analysis.db
 
-# Mark changes with Tool 2 (query selects entities to process)
-parseltongue llm-to-cozodb-writer \
-  --query "SELECT * FROM CodeGraph WHERE current_ind=1 LIMIT 10" \
+# Mark changes with Tool 3 (simple interface)
+parseltongue pt03-llm-to-cozodb-writer \
+  --entity "rust:fn:hello:greeter_src_lib_rs:4-6" \
+  --action edit \
+  --future-code "pub fn hello() -> &'static str { \"Hello!\" }" \
   --db rocksdb:analysis.db
 
 # Iteration 2: Review changes (Pattern 2 - with code)
-parseltongue llm-cozodb-to-context-writer \
+parseltongue pt02-llm-cozodb-to-context-writer \
   --query "SELECT * FROM CodeGraph WHERE Future_Action IS NOT NULL" \
   --output ./contexts \
   --db rocksdb:analysis.db
