@@ -366,51 +366,183 @@ async fn run_llm_cozodb_to_context_writer(matches: &ArgMatches) -> Result<()> {
 }
 
 async fn run_rust_preflight_code_simulator(matches: &ArgMatches) -> Result<()> {
+    use parseltongue_core::storage::CozoDbStorage;
+    use rust_preflight_code_simulator::SimpleSyntaxValidator;
+
     let db = matches.get_one::<String>("db").unwrap();
     let verbose = matches.get_flag("verbose");
 
     println!("{}", style("Running Tool 4: rust-preflight-code-simulator").cyan());
-
-    // TODO: Call rust-preflight-code-simulator library function
     println!("  Database: {}", db);
-    if verbose {
-        println!("  Verbose: enabled");
+
+    // Connect to database
+    let storage = CozoDbStorage::new(db)
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
+
+    // Fetch changed entities (those with future_action set)
+    let entities = storage.get_changed_entities().await?;
+
+    if entities.is_empty() {
+        println!("{}", style("ℹ No entities with pending changes found").yellow());
+        return Ok(());
     }
 
-    println!("{}", style("✓ Validation passed (placeholder)").green());
-    println!("⚠️  Tool 4 integration pending - see issue tracker");
+    println!("  Validating {} changed entities...", entities.len());
+
+    // Create syntax validator
+    let mut validator = SimpleSyntaxValidator::new()
+        .map_err(|e| anyhow::anyhow!("Failed to create validator: {}", e))?;
+
+    let mut total_validated = 0;
+    let mut total_errors = 0;
+    let mut validation_details = Vec::new();
+
+    // Validate each entity's future_code
+    for entity in &entities {
+        if let Some(future_code) = &entity.future_code {
+            total_validated += 1;
+
+            let result = validator.validate_syntax(future_code)
+                .map_err(|e| anyhow::anyhow!("Validation failed for {}: {}", entity.isgl1_key, e))?;
+
+            if !result.is_valid {
+                total_errors += 1;
+
+                if verbose {
+                    eprintln!("{} {}", style("✗").red(), entity.isgl1_key);
+                    for error in &result.errors {
+                        eprintln!("  {}", style(error).red());
+                    }
+                }
+
+                validation_details.push((entity.isgl1_key.clone(), result.errors));
+            } else if verbose {
+                println!("{} {}", style("✓").green(), entity.isgl1_key);
+            }
+        }
+    }
+
+    // Print summary
+    println!();
+    if total_errors == 0 {
+        println!("{}", style("✓ All syntax validations passed").green().bold());
+        println!("  Entities validated: {}", total_validated);
+    } else {
+        eprintln!("{}", style("✗ Syntax validation failed").red().bold());
+        eprintln!("  Entities validated: {}", total_validated);
+        eprintln!("  Entities with errors: {}", total_errors);
+
+        if !verbose {
+            eprintln!();
+            eprintln!("Failed entities:");
+            for (key, errors) in &validation_details {
+                eprintln!("  {} {}", style("✗").red(), key);
+                for error in errors {
+                    eprintln!("    {}", error);
+                }
+            }
+        }
+
+        return Err(anyhow::anyhow!("Syntax validation failed for {} entities", total_errors));
+    }
 
     Ok(())
 }
 
 async fn run_llm_cozodb_to_diff_writer(matches: &ArgMatches) -> Result<()> {
+    use parseltongue_core::storage::CozoDbStorage;
+    use llm_cozodb_to_diff_writer::DiffGenerator;
+    use std::sync::Arc;
+
     let output = matches.get_one::<String>("output").unwrap();
     let db = matches.get_one::<String>("db").unwrap();
 
     println!("{}", style("Running Tool 5: llm-cozodb-to-diff-writer").cyan());
-
-    // TODO: Call llm-cozodb-to-diff-writer library function
     println!("  Database: {}", db);
     println!("  Output: {}", output);
 
-    println!("{}", style("✓ Diff generated (placeholder)").green());
-    println!("⚠️  Tool 5 integration pending - see issue tracker");
+    // Connect to database
+    let storage = Arc::new(
+        CozoDbStorage::new(db)
+            .await
+            .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?
+    );
+
+    // Create diff generator with dependency injection
+    let generator = DiffGenerator::new(storage);
+
+    // Generate CodeDiff from changed entities
+    let diff = generator.generate_diff()
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to generate diff: {}", e))?;
+
+    if diff.changes.is_empty() {
+        println!("{}", style("ℹ No changes found in database").yellow());
+        return Ok(());
+    }
+
+    // Serialize to JSON
+    let json = diff.to_json_pretty()
+        .map_err(|e| anyhow::anyhow!("Failed to serialize diff to JSON: {}", e))?;
+
+    // Write to file
+    std::fs::write(output, json)
+        .map_err(|e| anyhow::anyhow!("Failed to write to file: {}", e))?;
+
+    println!("{}", style("✓ CodeDiff.json generated").green());
+    println!("  Output file: {}", output);
+    println!("  Changes included: {}", diff.changes.len());
+
+    // Print summary by operation
+    let mut creates = 0;
+    let mut edits = 0;
+    let mut deletes = 0;
+    for change in &diff.changes {
+        match change.operation {
+            llm_cozodb_to_diff_writer::Operation::Create => creates += 1,
+            llm_cozodb_to_diff_writer::Operation::Edit => edits += 1,
+            llm_cozodb_to_diff_writer::Operation::Delete => deletes += 1,
+        }
+    }
+    println!("    Creates: {}", creates);
+    println!("    Edits: {}", edits);
+    println!("    Deletes: {}", deletes);
 
     Ok(())
 }
 
 async fn run_cozodb_make_future_code_current(matches: &ArgMatches) -> Result<()> {
+    use parseltongue_core::storage::CozoDbStorage;
+    use cozodb_make_future_code_current::StateResetManager;
+    use std::path::Path;
+
     let project = matches.get_one::<String>("project").unwrap();
     let db = matches.get_one::<String>("db").unwrap();
 
     println!("{}", style("Running Tool 6: cozodb-make-future-code-current").cyan());
-
-    // TODO: Call cozodb-make-future-code-current library function
     println!("  Project: {}", project);
     println!("  Database: {}", db);
 
-    println!("{}", style("✓ Reset completed (placeholder)").green());
-    println!("⚠️  Tool 6 integration pending - see issue tracker");
+    // Connect to database
+    let storage = CozoDbStorage::new(db)
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
+
+    // Create state reset manager
+    let reset_manager = StateResetManager::new(storage);
+
+    // Reset database state (delete all entities, recreate schema)
+    let result = reset_manager.reset(Path::new(project))
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to reset database state: {}", e))?;
+
+    println!("{}", style("✓ Database reset completed").green().bold());
+    println!("  Entities deleted: {}", result.entities_deleted);
+    println!("  Schema recreated: {}", if result.schema_recreated { "yes" } else { "no" });
+    println!();
+    println!("{}", style("Next step: Re-index the codebase").cyan());
+    println!("  Run: parseltongue folder-to-cozodb-streamer {} --db {}", project, db);
 
     Ok(())
 }
