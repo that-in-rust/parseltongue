@@ -4,6 +4,30 @@
 
 ---
 
+## Quick Install (macOS Apple Silicon)
+
+```bash
+# Download the latest binary for macOS ARM64 (M1/M2/M3)
+curl -L https://github.com/that-in-rust/parseltongue/releases/latest/download/parseltongue-macos-arm64 -o parseltongue
+
+# Make it executable
+chmod +x parseltongue
+
+# Move to your PATH (optional)
+sudo mv parseltongue /usr/local/bin/
+
+# Verify installation
+parseltongue --help
+```
+
+**Or build from source:**
+```bash
+cargo build --release
+./target/release/parseltongue --help
+```
+
+---
+
 ## What Problem Does It Solve?
 
 LLMs need to understand and modify code across large codebases. Parseltongue provides a 6-tool pipeline that:
@@ -16,17 +40,9 @@ All in **one unified binary** with self-documenting command names.
 
 ---
 
-## Quick Start
+## The 6 Tools
 
-```bash
-# Build the unified binary
-cargo build --release
-
-# See all commands
-./target/release/parseltongue --help
-```
-
-**The 6 Tools:**
+**All in one unified binary:**
 1. `folder-to-cozodb-streamer` - Index codebase
 2. `llm-to-cozodb-writer` - Write temporal changes
 3. `llm-cozodb-to-context-writer` - Export entities to JSON
