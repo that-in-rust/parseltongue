@@ -13,7 +13,7 @@ use console::style;
 use anyhow::Result;
 
 // Import traits to enable trait methods
-use folder_to_cozodb_streamer::streamer::FileStreamer;
+use pt01_folder_to_cozodb_streamer::streamer::FileStreamer;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -211,7 +211,7 @@ async fn run_folder_to_cozodb_streamer(matches: &ArgMatches) -> Result<()> {
     println!("{}", style("Running Tool 1: folder-to-cozodb-streamer").cyan());
 
     // Create config (S01 ultra-minimalist: let tree-sitter decide what to parse)
-    let config = folder_to_cozodb_streamer::StreamerConfig {
+    let config = pt01_folder_to_cozodb_streamer::StreamerConfig {
         root_dir: std::path::PathBuf::from(directory),
         db_path: db.clone(),
         max_file_size: 100 * 1024 * 1024,  // 100MB - no artificial limits
@@ -231,7 +231,7 @@ async fn run_folder_to_cozodb_streamer(matches: &ArgMatches) -> Result<()> {
     };
 
     // Create and run streamer
-    let streamer = folder_to_cozodb_streamer::ToolFactory::create_streamer(config.clone()).await?;
+    let streamer = pt01_folder_to_cozodb_streamer::ToolFactory::create_streamer(config.clone()).await?;
     let result = streamer.stream_directory().await?;
 
     if !quiet {
@@ -381,7 +381,7 @@ async fn run_llm_cozodb_to_context_writer(matches: &ArgMatches) -> Result<()> {
 
 async fn run_rust_preflight_code_simulator(matches: &ArgMatches) -> Result<()> {
     use parseltongue_core::storage::CozoDbStorage;
-    use rust_preflight_code_simulator::SimpleSyntaxValidator;
+    use pt04_syntax_preflight_validator::SimpleSyntaxValidator;
 
     let db = matches.get_one::<String>("db").unwrap();
     let verbose = matches.get_flag("verbose");
@@ -466,7 +466,7 @@ async fn run_rust_preflight_code_simulator(matches: &ArgMatches) -> Result<()> {
 
 async fn run_llm_cozodb_to_diff_writer(matches: &ArgMatches) -> Result<()> {
     use parseltongue_core::storage::CozoDbStorage;
-    use llm_cozodb_to_diff_writer::DiffGenerator;
+    use pt05_llm_cozodb_to_diff_writer::DiffGenerator;
     use std::sync::Arc;
 
     let output = matches.get_one::<String>("output").unwrap();
@@ -514,9 +514,9 @@ async fn run_llm_cozodb_to_diff_writer(matches: &ArgMatches) -> Result<()> {
     let mut deletes = 0;
     for change in &diff.changes {
         match change.operation {
-            llm_cozodb_to_diff_writer::Operation::Create => creates += 1,
-            llm_cozodb_to_diff_writer::Operation::Edit => edits += 1,
-            llm_cozodb_to_diff_writer::Operation::Delete => deletes += 1,
+            pt05_llm_cozodb_to_diff_writer::Operation::Create => creates += 1,
+            pt05_llm_cozodb_to_diff_writer::Operation::Edit => edits += 1,
+            pt05_llm_cozodb_to_diff_writer::Operation::Delete => deletes += 1,
         }
     }
     println!("    Creates: {}", creates);
@@ -528,7 +528,7 @@ async fn run_llm_cozodb_to_diff_writer(matches: &ArgMatches) -> Result<()> {
 
 async fn run_cozodb_make_future_code_current(matches: &ArgMatches) -> Result<()> {
     use parseltongue_core::storage::CozoDbStorage;
-    use cozodb_make_future_code_current::StateResetManager;
+    use pt06_cozodb_make_future_code_current::StateResetManager;
     use std::path::Path;
 
     let project = matches.get_one::<String>("project").unwrap();

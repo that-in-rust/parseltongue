@@ -1,0 +1,48 @@
+[
+  {
+    "isgl1_key": "rust:fn:build_cli:crates_llm-to-cozodb-writer_src_cli_rs:54-95",
+    "temporal_state": {
+      "current_ind": true,
+      "future_ind": true,
+      "future_action": "Edit"
+    },
+    "interface_signature": {
+      "entity_type": "Function",
+      "name": "build_cli",
+      "visibility": "Public",
+      "file_path": "crates/llm-to-cozodb-writer/src/cli.rs",
+      "line_range": {
+        "start": 54,
+        "end": 95
+      },
+      "module_path": [],
+      "documentation": null,
+      "language_specific": {
+        "language": "rust",
+        "generics": [],
+        "lifetimes": [],
+        "where_clauses": [],
+        "attributes": [],
+        "trait_impl": null
+      }
+    },
+    "current_code": "    pub fn build_cli() -> Command {\n        Command::new(\"parseltongue-02\")\n            .version(\"0.7.1\")\n            .author(\"Parseltongue Team\")\n            .about(\"Tool 02: LLM-to-cozoDB-writer\")\n            .long_about(\n                \"Ultra-minimalist tool for writing temporal code changes to CozoDB.\\n\\\n                \\n\\\n                Examples:\\n  \\\n                llm-to-cozodb-writer --entity \\\"rust:fn:hello:lib_rs:4-6\\\" --action edit --future-code 'pub fn hello() {}'\\n  \\\n                llm-to-cozodb-writer --entity \\\"rust:fn:new_func:lib_rs:10-15\\\" --action create --future-code 'pub fn new_func() {}'\\n  \\\n                llm-to-cozodb-writer --entity \\\"rust:fn:old_func:lib_rs:20-25\\\" --action delete --db rocksdb:demo.db\",\n            )\n            .arg(\n                Arg::new(\"entity\")\n                    .long(\"entity\")\n                    .value_name(\"ISGL1_KEY\")\n                    .help(\"ISGL1 key of entity (e.g., 'rust:fn:hello:lib_rs:4-6')\")\n                    .required(true),\n            )\n            .arg(\n                Arg::new(\"action\")\n                    .long(\"action\")\n                    .value_name(\"ACTION\")\n                    .help(\"Temporal action type\")\n                    .value_parser([\"create\", \"edit\", \"delete\"])\n                    .required(true),\n            )\n            .arg(\n                Arg::new(\"future-code\")\n                    .long(\"future-code\")\n                    .value_name(\"CODE\")\n                    .help(\"Future code content (required for create/edit actions)\"),\n            )\n            .arg(\n                Arg::new(\"database\")\n                    .long(\"db\")\n                    .value_name(\"PATH\")\n                    .help(\"Database file path\")\n                    .default_value(\"parseltongue.db\"),\n            )\n    }",
+    "future_code": "pub fn build_cli_UPDATED() -> Command { Command::new(\"test\") }",
+    "tdd_classification": {
+      "entity_class": "CodeImplementation",
+      "testability": "Medium",
+      "complexity": "Simple",
+      "dependencies": 0,
+      "test_coverage_estimate": 0.0,
+      "critical_path": false,
+      "change_risk": "Medium"
+    },
+    "lsp_metadata": null,
+    "metadata": {
+      "created_at": "2025-11-01T10:29:16.450171Z",
+      "modified_at": "2025-11-01T10:29:16.450180Z",
+      "content_hash": "",
+      "additional": {}
+    }
+  }
+]
