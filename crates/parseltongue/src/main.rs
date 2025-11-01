@@ -315,19 +315,52 @@ async fn run_llm_to_cozodb_writer(matches: &ArgMatches) -> Result<()> {
 }
 
 async fn run_llm_cozodb_to_context_writer(matches: &ArgMatches) -> Result<()> {
+    use parseltongue_core::storage::CozoDbStorage;
+    use std::io::Write;
+
     let output = matches.get_one::<String>("output").unwrap();
     let db = matches.get_one::<String>("db").unwrap();
     let filter = matches.get_one::<String>("filter").unwrap();
 
     println!("{}", style("Running Tool 3: llm-cozodb-to-context-writer").cyan());
-
-    // TODO: Call llm-cozodb-to-context-writer library function
     println!("  Database: {}", db);
     println!("  Filter: {}", filter);
     println!("  Output: {}", output);
 
-    println!("{}", style("✓ Context generated (placeholder)").green());
-    println!("⚠️  Tool 3 integration pending - see issue tracker");
+    // Connect to database
+    let storage = CozoDbStorage::new(db)
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
+
+    // Fetch entities based on filter
+    let entities = match filter.as_str() {
+        "all" => storage.get_all_entities().await?,
+        "changed" => storage.get_changed_entities().await?,
+        "current" => {
+            // For MVP: "current" means entities where current_ind=true
+            storage.get_all_entities().await?
+                .into_iter()
+                .filter(|e| e.temporal_state.current_ind)
+                .collect()
+        }
+        _ => unreachable!("clap validation should prevent this"),
+    };
+
+    println!("  Found {} entities", entities.len());
+
+    // Write to JSON file
+    let json = serde_json::to_string_pretty(&entities)
+        .map_err(|e| anyhow::anyhow!("Failed to serialize entities: {}", e))?;
+
+    let mut file = std::fs::File::create(output)
+        .map_err(|e| anyhow::anyhow!("Failed to create output file: {}", e))?;
+
+    file.write_all(json.as_bytes())
+        .map_err(|e| anyhow::anyhow!("Failed to write to file: {}", e))?;
+
+    println!("{}", style("✓ Context JSON written").green());
+    println!("  Output file: {}", output);
+    println!("  Entities exported: {}", entities.len());
 
     Ok(())
 }

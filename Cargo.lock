@@ -1877,7 +1877,9 @@ dependencies = [
  "llm-cozodb-to-context-writer",
  "llm-cozodb-to-diff-writer",
  "llm-to-cozodb-writer",
+ "parseltongue-core",
  "rust-preflight-code-simulator",
+ "serde_json",
  "tokio",
 ]
 

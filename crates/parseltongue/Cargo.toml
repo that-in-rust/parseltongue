@@ -14,6 +14,9 @@ path = "src/main.rs"
 clap = { workspace = true }
 console = { workspace = true }
 
+# Core library (provides storage, entities, traits)
+parseltongue-core = { path = "../parseltongue-core" }
+
 # Import all tool crates as libraries
 folder-to-cozodb-streamer = { path = "../folder-to-cozodb-streamer" }
 llm-to-cozodb-writer = { path = "../llm-to-cozodb-writer" }
@@ -25,3 +28,4 @@ cozodb-make-future-code-current = { path = "../cozodb-make-future-code-current" 
 # Core dependencies
 anyhow = { workspace = true }
 tokio = { workspace = true }
+serde_json = { workspace = true }
