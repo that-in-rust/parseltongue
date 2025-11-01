@@ -2,7 +2,21 @@
 //!
 //! Ultra-minimalist streaming tool that reads code files from a directory,
 //! generates ISGL1 keys using tree-sitter, and stores them in CozoDB.
-//! Following TDD-first principles with executable specifications.
+//!
+//! ## CLI Examples
+//!
+//! ```bash
+//! # Index current directory (default)
+//! parseltongue folder-to-cozodb-streamer .
+//!
+//! # Index specific directory with custom database
+//! parseltongue folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --verbose
+//! ```
+//!
+//! ## How it Works
+//!
+//! Processes ALL files (`*` pattern) - tree-sitter determines what it can parse.
+//! Gracefully skips non-code files (.md, .json, .toml, etc.).
 
 #![warn(clippy::all)]
 #![warn(rust_2018_idioms)]

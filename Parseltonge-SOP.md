@@ -12,6 +12,31 @@
 
 ---
 
+## CLI COMMAND FORMAT
+
+All Parseltongue tools use the unified binary:
+
+```bash
+parseltongue <tool-name> [arguments]
+```
+
+### Tool 1: folder-to-cozodb-streamer
+
+```bash
+# Index current directory (default)
+parseltongue folder-to-cozodb-streamer .
+
+# Index specific directory with custom database
+parseltongue folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --verbose
+```
+
+**Key points:**
+- `<directory>` is positional [default: `.`]
+- Processes ALL files - tree-sitter determines what it can parse
+- Gracefully skips non-code files (.md, .json, .toml, etc.)
+
+---
+
 ## TOOL 3 BEHAVIOR
 
 Tool 3 (`llm-cozodb-to-context-writer`):

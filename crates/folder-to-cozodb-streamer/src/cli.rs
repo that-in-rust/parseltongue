@@ -1,4 +1,23 @@
 //! Command-line interface for parseltongue-01.
+//!
+//! # CLI Architecture
+//!
+//! This crate has two CLI modes:
+//!
+//! 1. **Unified Binary** (production): Defined in `parseltongue/src/main.rs`
+//!    - Usage: `parseltongue folder-to-cozodb-streamer <directory> [--db <path>] [--verbose] [--quiet]`
+//!    - `<directory>` is a required positional argument
+//!
+//! 2. **Standalone Binary** (development): Defined in this file
+//!    - Same CLI as unified binary (for consistency)
+//!    - Internal fields (max_file_size, include_patterns, etc.) use hardcoded defaults
+//!
+//! ## Philosophy (S01 Ultra-Minimalist)
+//!
+//! Following ultra-minimalist principles:
+//! - NO unused arguments (removed: --parsing-library, --chunking, --max-size, --include, --exclude)
+//! - NO configuration complexity
+//! - Hardcoded sensible defaults matching unified binary
 
 use clap::{Arg, Command};
 use std::path::PathBuf;
@@ -23,62 +42,16 @@ impl CliConfig {
             )
             .arg(
                 Arg::new("directory")
-                    .short('d')
-                    .long("dir")
-                    .value_name("DIR")
-                    .help("Root directory to scan for code files")
-                    .default_value("."),
+                    .help("Directory to index")
+                    .required(true)
+                    .index(1),
             )
             .arg(
                 Arg::new("database")
-                    .short('b')
-                    .long("output-db")
+                    .long("db")
                     .value_name("PATH")
                     .help("Database connection string (use 'mem' for in-memory)")
                     .default_value("mem"),
-            )
-            .arg(
-                Arg::new("parsing-library")
-                    .short('p')
-                    .long("parsing-library")
-                    .value_name("LIBRARY")
-                    .help("Parsing library to use for code analysis")
-                    .default_value("tree-sitter"),
-            )
-            .arg(
-                Arg::new("chunking")
-                    .short('c')
-                    .long("chunking")
-                    .value_name("STRATEGY")
-                    .help("Chunking strategy for code interfaces")
-                    .default_value("ISGL1"),
-            )
-            .arg(
-                Arg::new("max-size")
-                    .short('s')
-                    .long("max-size")
-                    .value_name("BYTES")
-                    .help("Maximum file size to process")
-                    .value_parser(clap::value_parser!(usize))
-                    .default_value("1048576"),
-            )
-            .arg(
-                Arg::new("include")
-                    .short('i')
-                    .long("include")
-                    .value_name("PATTERN")
-                    .help("File patterns to include (can be used multiple times)")
-                    .action(clap::ArgAction::Append)
-                    .default_values(&["*.rs", "*.py"]),
-            )
-            .arg(
-                Arg::new("exclude")
-                    .short('e')
-                    .long("exclude")
-                    .value_name("PATTERN")
-                    .help("File patterns to exclude (can be used multiple times)")
-                    .action(clap::ArgAction::Append)
-                    .default_values(&["target/**", "node_modules/**"]),
             )
             .arg(
                 Arg::new("verbose")
@@ -98,26 +71,32 @@ impl CliConfig {
     }
 
     /// Parse CLI arguments into StreamerConfig
+    ///
+    /// Uses hardcoded defaults for internal fields (matching unified binary behavior):
+    /// - max_file_size: 100MB (ultra-minimalist: let tree-sitter decide what to parse)
+    /// - include_patterns: ALL files (tree-sitter handles unsupported files gracefully)
+    /// - exclude_patterns: Common build/dependency dirs only
+    /// - parsing_library: "tree-sitter"
+    /// - chunking: "ISGL1"
     pub fn parse_config(matches: &clap::ArgMatches) -> StreamerConfig {
         StreamerConfig {
             root_dir: PathBuf::from(matches.get_one::<String>("directory").unwrap()),
             db_path: matches.get_one::<String>("database").unwrap().clone(),
-            max_file_size: *matches.get_one::<usize>("max-size").unwrap(),
-            include_patterns: matches
-                .get_many::<String>("include")
-                .unwrap_or_default()
-                .cloned()
-                .collect(),
-            exclude_patterns: matches
-                .get_many::<String>("exclude")
-                .unwrap_or_default()
-                .cloned()
-                .collect(),
-            parsing_library: matches
-                .get_one::<String>("parsing-library")
-                .unwrap()
-                .clone(),
-            chunking: matches.get_one::<String>("chunking").unwrap().clone(),
+            // Hardcoded defaults (S01 ultra-minimalist - NO artificial limits)
+            max_file_size: 100 * 1024 * 1024,  // 100MB - let tree-sitter decide
+            include_patterns: vec!["*".to_string()],  // ALL files - tree-sitter handles it
+            exclude_patterns: vec![
+                "target".to_string(),      // Rust build
+                "node_modules".to_string(), // Node.js dependencies
+                ".git".to_string(),        // Git metadata
+                "build".to_string(),       // Generic build dir
+                "dist".to_string(),        // Distribution files
+                "__pycache__".to_string(), // Python cache
+                ".venv".to_string(),       // Python virtual env
+                "venv".to_string(),        // Python virtual env
+            ],
+            parsing_library: "tree-sitter".to_string(),
+            chunking: "ISGL1".to_string(),
         }
     }
 
@@ -144,31 +123,24 @@ mod tests {
         let cli = CliConfig::build_cli();
         let matches = cli.try_get_matches_from(&[
             "parseltongue-01",
-            "--dir",
-            "/test/dir",
-            "--output-db",
+            "/test/dir",  // Positional argument (matches unified binary)
+            "--db",
             "test.db",
-            "--max-size",
-            "2048000",
-            "--include",
-            "**/*.js",
-            "--exclude",
-            "**/test/**",
-            "--parsing-library",
-            "tree-sitter",
-            "--chunking",
-            "ISGL1",
         ]);
 
         assert!(matches.is_ok());
         let matches = matches.unwrap();
 
         let config = CliConfig::parse_config(&matches);
+        // Check CLI arguments
         assert_eq!(config.root_dir, PathBuf::from("/test/dir"));
         assert_eq!(config.db_path, "test.db");
-        assert_eq!(config.max_file_size, 2048000);
-        assert!(config.include_patterns.contains(&"**/*.js".to_string()));
-        assert!(config.exclude_patterns.contains(&"**/test/**".to_string()));
+
+        // Check hardcoded defaults (S01 ultra-minimalist - NO artificial limits)
+        assert_eq!(config.max_file_size, 100 * 1024 * 1024);  // 100MB
+        assert_eq!(config.include_patterns, vec!["*".to_string()]);  // ALL files
+        assert!(config.exclude_patterns.contains(&"target".to_string()));
+        assert!(config.exclude_patterns.contains(&"node_modules".to_string()));
         assert_eq!(config.parsing_library, "tree-sitter");
         assert_eq!(config.chunking, "ISGL1");
     }
@@ -176,43 +148,48 @@ mod tests {
     #[test]
     fn test_default_config() {
         let cli = CliConfig::build_cli();
-        let matches = cli.try_get_matches_from(&["parseltongue-01"]);
+        let matches = cli.try_get_matches_from(&[
+            "parseltongue-01",
+            ".",  // Directory is now required (positional argument)
+        ]);
 
         assert!(matches.is_ok());
         let matches = matches.unwrap();
 
         let config = CliConfig::parse_config(&matches);
+        // Check CLI defaults
         assert_eq!(config.root_dir, PathBuf::from("."));
         assert_eq!(config.db_path, "mem");
-        assert_eq!(config.max_file_size, 1048576);
-        assert_eq!(config.include_patterns.len(), 2);
-        assert_eq!(config.exclude_patterns.len(), 2);
-        assert_eq!(config.parsing_library, "tree-sitter"); // Default
-        assert_eq!(config.chunking, "ISGL1"); // Default
+
+        // Check hardcoded defaults (S01 ultra-minimalist - NO artificial limits)
+        assert_eq!(config.max_file_size, 100 * 1024 * 1024);  // 100MB
+        assert_eq!(config.include_patterns, vec!["*".to_string()]);  // ALL files
+        assert!(config.exclude_patterns.contains(&"target".to_string()));
+        assert!(config.exclude_patterns.contains(&"node_modules".to_string()));
+        assert_eq!(config.parsing_library, "tree-sitter");
+        assert_eq!(config.chunking, "ISGL1");
     }
 
     #[test]
     fn test_prd_command_format() {
-        // Test the PRD specification from P05:28
+        // Test ultra-minimalist CLI (S01 principle)
         let cli = CliConfig::build_cli();
         let matches = cli.try_get_matches_from(&[
             "folder-to-cozoDB-streamer",
-            "--dir",
-            "./src",
-            "--parsing-library",
-            "tree-sitter",
-            "--chunking",
-            "ISGL1",
-            "--output-db",
+            "./src",  // Positional argument (matches unified binary)
+            "--db",
             "./parseltongue.db",
         ]);
 
-        assert!(matches.is_ok(), "PRD command format should be valid");
+        assert!(matches.is_ok(), "Ultra-minimalist command should be valid");
         let matches = matches.unwrap();
 
         let config = CliConfig::parse_config(&matches);
+        // Check CLI arguments
         assert_eq!(config.root_dir, PathBuf::from("./src"));
         assert_eq!(config.db_path, "./parseltongue.db");
+
+        // Check hardcoded defaults (S01 ultra-minimalist)
         assert_eq!(config.parsing_library, "tree-sitter");
         assert_eq!(config.chunking, "ISGL1");
     }

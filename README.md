@@ -224,9 +224,19 @@ parseltongue/
 
 ### Tool 1: folder-to-cozodb-streamer
 ```bash
-parseltongue folder-to-cozodb-streamer <directory> --db <database>
+# Index current directory (default)
+parseltongue folder-to-cozodb-streamer .
+
+# Index specific directory with custom database
+parseltongue folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --verbose
 ```
-Indexes codebase into CozoDB with ISGL1 keys.
+**What it does:** Indexes codebase into CozoDB with ISGL1 keys. Processes ALL files - tree-sitter determines what it can parse.
+
+**Arguments:**
+- `<directory>` - Directory to index [default: `.`]
+- `--db` - Database path [default: `parseltongue.db`]
+- `--verbose` - Show detailed output
+- `--quiet` - Suppress output
 
 ### Tool 2: llm-to-cozodb-writer
 ```bash

@@ -66,10 +66,15 @@ fn build_cli() -> Command {
         .subcommand(
             Command::new("folder-to-cozodb-streamer")
                 .about("Tool 1: Stream folder contents to CozoDB with ISGL1 keys")
+                .long_about(
+                    "Examples:\n  \
+                    parseltongue folder-to-cozodb-streamer .            # Index current directory\n  \
+                    parseltongue folder-to-cozodb-streamer ./src --db rocksdb:analysis.db --verbose"
+                )
                 .arg(
                     Arg::new("directory")
-                        .help("Directory to index")
-                        .required(true)
+                        .help("Directory to index [default: current directory]")
+                        .default_value(".")
                         .index(1),
                 )
                 .arg(
@@ -205,13 +210,22 @@ async fn run_folder_to_cozodb_streamer(matches: &ArgMatches) -> Result<()> {
 
     println!("{}", style("Running Tool 1: folder-to-cozodb-streamer").cyan());
 
-    // Create config
+    // Create config (S01 ultra-minimalist: let tree-sitter decide what to parse)
     let config = folder_to_cozodb_streamer::StreamerConfig {
         root_dir: std::path::PathBuf::from(directory),
         db_path: db.clone(),
-        max_file_size: 1024 * 1024,
-        include_patterns: vec!["*.rs".to_string()],  // Simplified pattern that works with current matcher
-        exclude_patterns: vec!["target".to_string()],  // Simplified exclude pattern
+        max_file_size: 100 * 1024 * 1024,  // 100MB - no artificial limits
+        include_patterns: vec!["*".to_string()],  // ALL files - tree-sitter handles it
+        exclude_patterns: vec![
+            "target".to_string(),
+            "node_modules".to_string(),
+            ".git".to_string(),
+            "build".to_string(),
+            "dist".to_string(),
+            "__pycache__".to_string(),
+            ".venv".to_string(),
+            "venv".to_string(),
+        ],
         parsing_library: "tree-sitter".to_string(),
         chunking: "ISGL1".to_string(),
     };

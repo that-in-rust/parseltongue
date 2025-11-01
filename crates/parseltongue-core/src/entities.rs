@@ -1168,6 +1168,9 @@ mod tests {
         entity.current_code = Some("fn main() { println!(\"Hello, world!\"); }".to_string());
         entity.future_code = Some("fn main() { println!(\"Hello, world!\"); }".to_string());
 
+        // Set to unchanged state since both codes are the same
+        entity.temporal_state = TemporalState::unchanged();
+
         match entity.validate() {
             Ok(()) => (),
             Err(e) => {

@@ -284,7 +284,9 @@ async fn test_end_to_end_tool1_tool2_tool3_pipeline() {
              e1_final.temporal_state.current_ind,
              e1_final.temporal_state.future_ind,
              e1_final.temporal_state.future_action);
-    assert_eq!(e1_final.temporal_state, (true, true, Some(TemporalAction::Edit)).into());
+    assert_eq!(e1_final.temporal_state.current_ind, true);
+    assert_eq!(e1_final.temporal_state.future_ind, true);
+    assert_eq!(e1_final.temporal_state.future_action, Some(TemporalAction::Edit));
 
     let e2_final = storage.get_entity(&key2).await.unwrap();
     println!("\n  Entity 2 ({}): UNCHANGED", e2_final.interface_signature.name);
@@ -292,7 +294,9 @@ async fn test_end_to_end_tool1_tool2_tool3_pipeline() {
              e2_final.temporal_state.current_ind,
              e2_final.temporal_state.future_ind,
              e2_final.temporal_state.future_action);
-    assert_eq!(e2_final.temporal_state, (true, false, None).into());
+    assert_eq!(e2_final.temporal_state.current_ind, true);
+    assert_eq!(e2_final.temporal_state.future_ind, false);
+    assert_eq!(e2_final.temporal_state.future_action, None);
 
     let e3_final = storage.get_entity(&key3).await.unwrap();
     println!("\n  Entity 3 ({}): DELETED", e3_final.interface_signature.name);
@@ -300,7 +304,9 @@ async fn test_end_to_end_tool1_tool2_tool3_pipeline() {
              e3_final.temporal_state.current_ind,
              e3_final.temporal_state.future_ind,
              e3_final.temporal_state.future_action);
-    assert_eq!(e3_final.temporal_state, (true, false, Some(TemporalAction::Delete)).into());
+    assert_eq!(e3_final.temporal_state.current_ind, true);
+    assert_eq!(e3_final.temporal_state.future_ind, false);
+    assert_eq!(e3_final.temporal_state.future_action, Some(TemporalAction::Delete));
 
     let e_new_final = storage.get_entity(&new_key).await.unwrap();
     println!("\n  Entity 4 ({}): CREATED", e_new_final.interface_signature.name);
@@ -308,7 +314,9 @@ async fn test_end_to_end_tool1_tool2_tool3_pipeline() {
              e_new_final.temporal_state.current_ind,
              e_new_final.temporal_state.future_ind,
              e_new_final.temporal_state.future_action);
-    assert_eq!(e_new_final.temporal_state, (false, true, Some(TemporalAction::Create)).into());
+    assert_eq!(e_new_final.temporal_state.current_ind, false);
+    assert_eq!(e_new_final.temporal_state.future_ind, true);
+    assert_eq!(e_new_final.temporal_state.future_action, Some(TemporalAction::Create));
 
     // ═══════════════════════════════════════════════════════════════
     // FINAL SUMMARY

@@ -895,8 +895,9 @@ async fn generate_large_graph(
 }
 
 #[tokio::test]
+#[ignore] // Performance test - run with: cargo test --release -- --ignored
 async fn test_blast_radius_performance_10k_nodes() {
-    // RED: Validate performance contract - <50ms for 5-hop on 10k nodes
+    // RED: Validate performance contract - <50ms for 5-hop on 10k nodes (release mode only)
     let db = CozoDbStorage::new("mem").await.unwrap();
     db.create_dependency_edges_schema().await.unwrap();
 
@@ -977,8 +978,9 @@ async fn test_transitive_closure_performance_1k_nodes() {
 }
 
 #[tokio::test]
+#[ignore] // Performance test - run with: cargo test --release -- --ignored
 async fn test_forward_dependencies_performance_10k_nodes() {
-    // RED: Validate 1-hop query performance at scale
+    // RED: Validate 1-hop query performance at scale (release mode only)
     let db = CozoDbStorage::new("mem").await.unwrap();
     db.create_dependency_edges_schema().await.unwrap();
 
