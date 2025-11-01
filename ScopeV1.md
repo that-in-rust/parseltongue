@@ -1,16 +1,24 @@
-- **User Segment**: Apple Silicon developers on multi-language codebases with Rust-first support
+# Parseltongue Introduction
+
+- **User Segment**: Developers on multi-language codebases with Rust-first support
 - **Language Support**: Tree-sitter based parsing for all supported languages, with enhanced LSP integration for Rust
 - **Reliability-First Principle**:
-    - Prefer CPU-bound static analysis (tree-sitter parsing, ISG traversals) and small, local, free subagents
+    - Prefer CPU-bound static analysis (tree-sitter parsing, ISG traversals)
     - Keep the reasoning LLM as lean and late as possible; minimize context/tokens; use deterministic transforms whenever feasible
 - **Shreyas Doshi (product framing)**: Prioritize first-apply correctness over speed. Design for clarity, safety, and explicit confidence gating. Time is a secondary outcome
-- **Jeff Dean (systems framing)**: Make correctness the fast path. Push work to deterministic, cacheable computations (ISG, tree-sitter, HNSW). Parallelize retrieval/validation; minimize token movement; measure token-per-fix and cache hit rates
-- **User Promise**: "When I encounter a code bug, the system produces a single-pass, safe, minimal diff that compiles and (when present) passes tests before applying. For Rust projects, this includes full LSP-enhanced validation; for other languages, core parsing and analysis is provided. Speed is a byproduct; correctness is the KPI"
+- **Jeff Dean (systems framing)**: Make correctness the fast path. Push work to deterministic, cacheable computations (ISG, tree-sitter, HNSW) so you can reason the whole codebase inside the small context window of current LLMs
+- **User Promise**: "These tools help me query the codebase at a higher level such that the LLMs can have an aggregate view of the codebase without reading every line of code, thus helping me fix bugs and add features on a large codebase which was previously un-understood due to the context window constraint of the current LLMs "
 
 
 ## Three Ways Developers Use Codebases
 
 Developers approaching a codebase need different things at different times. The common thread: getting reliable answers without reading thousands of lines of code.
+
+1. Understanding a new codebase
+2. Fixing bugs or adding features
+3. Modifying code safely
+
+
 
 ### Understanding a new codebase
 

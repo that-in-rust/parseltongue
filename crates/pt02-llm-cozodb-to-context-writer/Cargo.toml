@@ -9,37 +9,27 @@ homepage.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-# Core dependencies
+# Core dependencies (L1)
 parseltongue-core = { path = "../parseltongue-core" }
-anyhow.workspace = true
-thiserror.workspace = true
+
+# Error handling (S01 principle #6)
+anyhow.workspace = true        # For application errors (main.rs)
+thiserror.workspace = true     # For library errors (errors.rs)
+
+# Serialization (L2)
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
+
+# Async runtime (L2)
 tokio = { workspace = true, features = ["full"] }
 
-# LLM communication dependencies
-reqwest = { version = "0.11", features = ["json"] }
-uuid = { version = "1.0", features = ["v4", "serde"] }
-
-# Storage dependencies
-cozo = { workspace = true }
-
-# CLI dependencies
+# CLI dependencies (L3)
 clap = { workspace = true, features = ["derive"] }
 console.workspace = true
-indicatif.workspace = true
-async-trait.workspace = true
-chrono = { version = "0.4", features = ["serde"] }
-
-# Context optimization dependencies
-rayon = "1.7"
 
 [dev-dependencies]
-criterion.workspace = true
-proptest.workspace = true
 tempfile.workspace = true
 tokio-test.workspace = true
-async-trait.workspace = true
 
 [[bin]]
 name = "pt02-llm-cozodb-to-context-writer"

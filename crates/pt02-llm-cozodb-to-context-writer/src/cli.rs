@@ -1,388 +1,71 @@
-//! Command-line interface for parseltongue-03.
+//! Command-line interface for pt02-llm-cozodb-to-context-writer.
+//!
+//! # CLI Architecture (S01 Ultra-Minimalist)
+//!
+//! Following ultra-minimalist principles:
+//! - NO LLM configuration (LLM runs externally)
+//! - NO optimization settings (just dump the data)
+//! - 3 arguments total: --output, --db, --filter
+//!
+//! ## Examples
+//!
+//! ```bash
+//! # Export all entities
+//! pt02-llm-cozodb-to-context-writer --output context.json
+//!
+//! # Export only changed entities
+//! pt02-llm-cozodb-to-context-writer --output changes.json --filter changed
+//!
+//! # Export with specific database
+//! pt02-llm-cozodb-to-context-writer --output out.json --db rocksdb:analysis.db
+//! ```
 
 use clap::{Arg, Command};
-
-use crate::ContextWriterConfig;
 
 /// CLI configuration builder
 pub struct CliConfig;
 
 impl CliConfig {
-    /// Build CLI application
+    /// Build CLI application (S01: Ultra-minimalist - only 3 args)
     pub fn build_cli() -> Command {
-        Command::new("parseltongue-03")
-            .version("0.7.1")
+        Command::new("pt02-llm-cozodb-to-context-writer")
+            .version("0.8.1")
             .author("Parseltongue Team")
-            .about("Tool 03: LLM-cozoDB-to-context-writer")
+            .about("Tool 02: Export entity graphs from CozoDB to JSON")
             .long_about(
-                "Ultra-minimalist context optimization tool that reads entity graphs from CozoDB,\\n\\\n                generates optimized CodeGraphContext.json files using LLM reasoning, and writes\\n\\\n                them for consumption by other tools. Following TDD-first principles with\\n\\\n                executable specifications.",
+                "Ultra-minimalist database export tool.\n\
+                \n\
+                Exports CodeGraph entities from CozoDB to JSON format.\n\
+                No LLM calls, no HTTP requests, just simple DB-to-JSON export.\n\
+                \n\
+                Examples:\n  \
+                pt02-llm-cozodb-to-context-writer --output context.json\n  \
+                pt02-llm-cozodb-to-context-writer --output changes.json --filter changed\n  \
+                pt02-llm-cozodb-to-context-writer --output out.json --db rocksdb:analysis.db\n\
+                ",
             )
             .arg(
-                Arg::new("database")
-                    .short('b')
+                Arg::new("output")
+                    .long("output")
+                    .short('o')
+                    .value_name("PATH")
+                    .help("Output JSON file path")
+                    .required(true),
+            )
+            .arg(
+                Arg::new("db")
                     .long("db")
-                    .alias("database")
                     .value_name("PATH")
                     .help("Database file path")
                     .default_value("parseltongue.db"),
             )
             .arg(
-                Arg::new("endpoint")
-                    .short('e')
-                    .long("endpoint")
-                    .value_name("URL")
-                    .help("LLM API endpoint")
-                    .default_value("https://api.openai.com/v1/chat/completions"),
+                Arg::new("filter")
+                    .long("filter")
+                    .value_name("FILTER")
+                    .help("Entity filter: all, changed, or current")
+                    .value_parser(["all", "changed", "current"])
+                    .default_value("all"),
             )
-            .arg(
-                Arg::new("api-key")
-                    .short('k')
-                    .long("api-key")
-                    .value_name("KEY")
-                    .help("LLM API key (or set OPENAI_API_KEY env var)"),
-            )
-            .arg(
-                Arg::new("model")
-                    .short('m')
-                    .long("model")
-                    .value_name("MODEL")
-                    .help("LLM model to use")
-                    .default_value("gpt-4"),
-            )
-            .arg(
-                Arg::new("max-tokens")
-                    .short('t')
-                    .long("max-tokens")
-                    .value_name("TOKENS")
-                    .help("Maximum tokens per request")
-                    .value_parser(clap::value_parser!(usize))
-                    .default_value("8192"),
-            )
-            .arg(
-                Arg::new("temperature")
-                    .short('T')
-                    .long("temperature")
-                    .value_name("TEMP")
-                    .help("Temperature for LLM generation (0.0-1.0)")
-                    .value_parser(clap::value_parser!(f32))
-                    .default_value("0.3"),
-            )
-            .arg(
-                Arg::new("query")
-                    .short('q')
-                    .long("query")
-                    .value_name("QUERY")
-                    .help("CozoDB query for context extraction (PRD: excludes Current_Code/Future_Code)")
-                    .default_value("SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph WHERE current_ind=1"),
-            )
-            .arg(
-                Arg::new("max-context-tokens")
-                    .short('c')
-                    .long("max-context-tokens")
-                    .value_name("TOKENS")
-                    .help("Maximum context size in tokens")
-                    .value_parser(clap::value_parser!(usize))
-                    .default_value("128000"),
-            )
-            .arg(
-                Arg::new("relevance-threshold")
-                    .short('r')
-                    .long("relevance-threshold")
-                    .value_name("THRESHOLD")
-                    .help("Relevance threshold for entity inclusion (0.0-1.0)")
-                    .value_parser(clap::value_parser!(f32))
-                    .default_value("0.7"),
-            )
-            .arg(
-                Arg::new("output")
-                    .short('o')
-                    .long("output")
-                    .value_name("PATH")
-                    .help("Output directory for context files")
-                    .default_value("./contexts"),
-            )
-            .arg(
-                Arg::new("context-id")
-                    .short('i')
-                    .long("context-id")
-                    .value_name("ID")
-                    .help("Custom context ID (auto-generated if not provided)"),
-            )
-            .arg(
-                Arg::new("focus-areas")
-                    .short('f')
-                    .long("focus-areas")
-                    .value_name("AREAS")
-                    .help("Comma-separated focus areas for optimization")
-                    .default_value("core_types,implementations"),
-            )
-            .arg(
-                Arg::new("optimization-goals")
-                    .short('g')
-                    .long("optimization-goals")
-                    .value_name("GOALS")
-                    .help("Comma-separated optimization goals")
-                    .default_value("minimize_size,maximize_relevance,preserve_connectivity"),
-            )
-            .arg(
-                Arg::new("dry-run")
-                    .short('d')
-                    .long("dry-run")
-                    .help("Generate context but don't write to file")
-                    .action(clap::ArgAction::SetTrue),
-            )
-            .arg(
-                Arg::new("verbose")
-                    .short('v')
-                    .long("verbose")
-                    .help("Enable verbose output")
-                    .action(clap::ArgAction::SetTrue),
-            )
-            .arg(
-                Arg::new("quiet")
-                    .short('Q')
-                    .long("quiet")
-                    .help("Suppress output except errors")
-                    .action(clap::ArgAction::SetTrue)
-                    .conflicts_with("verbose"),
-            )
-            .arg(
-                Arg::new("include-current-code")
-                    .long("include-current-code")
-                    .value_name("0|1")
-                    .help("Include Current_Code in context (0=exclude for token optimization, 1=include for debugging)")
-                    .value_parser(["0", "1"])
-                    .default_value("0"),
-            )
-    }
-
-    /// Parse CLI arguments into ContextWriterConfig
-    pub fn parse_config(matches: &clap::ArgMatches) -> ContextWriterConfig {
-        ContextWriterConfig {
-            db_path: matches.get_one::<String>("database").unwrap().clone(),
-            llm_endpoint: matches.get_one::<String>("endpoint").unwrap().clone(),
-            llm_api_key: matches
-                .get_one::<String>("api-key")
-                .cloned()
-                .or_else(|| std::env::var("OPENAI_API_KEY").ok())
-                .unwrap_or_default(),
-            model: matches.get_one::<String>("model").unwrap().clone(),
-            max_tokens: *matches.get_one::<usize>("max-tokens").unwrap(),
-            temperature: *matches.get_one::<f32>("temperature").unwrap(),
-            entity_query: matches.get_one::<String>("query").unwrap().clone(),
-            max_context_tokens: *matches.get_one::<usize>("max-context-tokens").unwrap(),
-            relevance_threshold: *matches.get_one::<f32>("relevance-threshold").unwrap(),
-            output_dir: matches.get_one::<String>("output").unwrap().clone(),
-        }
-    }
-
-    /// Parse --include-current-code flag value (S01: Simple boolean conversion)
-    ///
-    /// # Preconditions
-    /// - Value must be "0" or "1" (enforced by clap value_parser)
-    ///
-    /// # Returns
-    /// - false when value = "0" (exclude Current_Code for token optimization)
-    /// - true when value = "1" (include Current_Code for debugging)
-    ///
-    /// # Examples
-    /// ```ignore
-    /// let matches = cli.try_get_matches_from(&["tool", "--include-current-code", "1"]);
-    /// let include = CliConfig::parse_include_current_code(&matches.unwrap());
-    /// assert_eq!(include, true);
-    /// ```
-    pub fn parse_include_current_code(matches: &clap::ArgMatches) -> bool {
-        matches
-            .get_one::<String>("include-current-code")
-            .map(|s| s == "1")
-            .unwrap_or(false)
-    }
-
-    /// Build context query based on --include-current-code flag (pure function)
-    ///
-    /// Following S01 Executable Specifications:
-    /// - include_current_code = false: Exclude Current_Code (saves ~500k tokens)
-    /// - include_current_code = true: Include Current_Code (for debugging)
-    ///
-    /// # Returns
-    /// SQL/Datalog query string for CozoDB
-    ///
-    /// # Examples
-    /// ```ignore
-    /// // Token-optimized query (default)
-    /// let query = CliConfig::build_context_query(false);
-    /// assert!(query.contains("EXCEPT") && query.contains("Current_Code"));
-    ///
-    /// // Full data query (debugging)
-    /// let query = CliConfig::build_context_query(true);
-    /// assert!(!query.contains("EXCEPT (Current_Code"));
-    /// ```
-    pub fn build_context_query(include_current_code: bool) -> String {
-        if include_current_code {
-            // Include Current_Code (debugging mode)
-            "SELECT * EXCEPT (Future_Code) FROM CodeGraph WHERE current_ind=1".to_string()
-        } else {
-            // Exclude Current_Code (token optimization - default)
-            "SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph WHERE current_ind=1".to_string()
-        }
-    }
-
-    /// Parse focus areas from CLI argument
-    pub fn parse_focus_areas(areas_str: &str) -> Vec<String> {
-        areas_str
-            .split(',')
-            .map(|s| s.trim().to_string())
-            .filter(|s| !s.is_empty())
-            .collect()
-    }
-
-    /// Parse optimization goals from CLI argument
-    pub fn parse_optimization_goals(goals_str: &str) -> Vec<crate::llm_client::OptimizationGoal> {
-        goals_str
-            .split(',')
-            .map(|s| s.trim().to_lowercase())
-            .filter(|s| !s.is_empty())
-            .map(|goal| match goal.as_str() {
-                "minimize_size" => crate::llm_client::OptimizationGoal::MinimizeSize,
-                "maximize_relevance" => crate::llm_client::OptimizationGoal::MaximizeRelevance,
-                "preserve_connectivity" => crate::llm_client::OptimizationGoal::PreserveConnectivity,
-                "focus_on_types" => crate::llm_client::OptimizationGoal::FocusOnTypes,
-                "focus_on_functions" => crate::llm_client::OptimizationGoal::FocusOnFunctions,
-                "balance_complexity" => crate::llm_client::OptimizationGoal::BalanceComplexity,
-                _ => crate::llm_client::OptimizationGoal::MaximizeRelevance, // default fallback
-            })
-            .collect()
-    }
-
-    /// Generate output file path
-    pub fn generate_output_path(output_dir: &str, context_id: &str) -> String {
-        let timestamp = chrono::Utc::now().format("%Y%m%d_%H%M%S");
-        format!("{}/context_{}_{}.json", output_dir, context_id, timestamp)
-    }
-
-    /// Print usage information
-    pub fn print_usage() {
-        let mut cli = Self::build_cli();
-        cli.print_help().unwrap();
-        println!();
-    }
-
-    /// Print version information
-    pub fn print_version() {
-        println!("parseltongue-03 version 0.7.1");
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_cli_config_parsing() {
-        let cli = CliConfig::build_cli();
-        let matches = cli.try_get_matches_from(&[
-            "parseltongue-03",
-            "--db",
-            "test.db",
-            "--endpoint",
-            "https://api.example.com/v1/chat",
-            "--api-key",
-            "test-key-123",
-            "--model",
-            "gpt-3.5-turbo",
-            "--max-tokens",
-            "4096",
-            "--temperature",
-            "0.2",
-            "--max-context-tokens",
-            "64000",
-            "--relevance-threshold",
-            "0.8",
-            "--output",
-            "./test_contexts",
-        ]);
-
-        assert!(matches.is_ok());
-        let matches = matches.unwrap();
-
-        let config = CliConfig::parse_config(&matches);
-        assert_eq!(config.db_path, "test.db");
-        assert_eq!(config.llm_endpoint, "https://api.example.com/v1/chat");
-        assert_eq!(config.llm_api_key, "test-key-123");
-        assert_eq!(config.model, "gpt-3.5-turbo");
-        assert_eq!(config.max_tokens, 4096);
-        assert_eq!(config.temperature, 0.2);
-        assert_eq!(config.max_context_tokens, 64000);
-        assert_eq!(config.relevance_threshold, 0.8);
-        assert_eq!(config.output_dir, "./test_contexts");
-    }
-
-    #[test]
-    fn test_focus_areas_parsing() {
-        let areas = CliConfig::parse_focus_areas("core_types, implementations, tests");
-        assert_eq!(areas.len(), 3);
-        assert_eq!(areas[0], "core_types");
-        assert_eq!(areas[1], "implementations");
-        assert_eq!(areas[2], "tests");
-
-        let empty_areas = CliConfig::parse_focus_areas("");
-        assert_eq!(empty_areas.len(), 0);
-    }
-
-    #[test]
-    fn test_optimization_goals_parsing() {
-        let goals = CliConfig::parse_optimization_goals("minimize_size,maximize_relevance,preserve_connectivity");
-        assert_eq!(goals.len(), 3);
-        assert!(matches!(goals[0], crate::llm_client::OptimizationGoal::MinimizeSize));
-        assert!(matches!(goals[1], crate::llm_client::OptimizationGoal::MaximizeRelevance));
-        assert!(matches!(goals[2], crate::llm_client::OptimizationGoal::PreserveConnectivity));
-
-        let invalid_goals = CliConfig::parse_optimization_goals("invalid_goal,another_invalid");
-        assert_eq!(invalid_goals.len(), 2);
-        // Should fall back to MaximizeRelevance for invalid goals
-    }
-
-    #[test]
-    fn test_output_path_generation() {
-        let context_id = "test_context_123";
-        let output_path = CliConfig::generate_output_path("./contexts", context_id);
-
-        assert!(output_path.starts_with("./contexts/context_test_context_123_"));
-        assert!(output_path.ends_with(".json"));
-    }
-
-    #[test]
-    fn test_default_config() {
-        let cli = CliConfig::build_cli();
-        let matches = cli.try_get_matches_from(&["parseltongue-03"]);
-
-        assert!(matches.is_ok());
-        let matches = matches.unwrap();
-
-        let config = CliConfig::parse_config(&matches);
-        assert_eq!(config.db_path, "parseltongue.db");
-        assert_eq!(config.llm_endpoint, "https://api.openai.com/v1/chat/completions");
-        assert_eq!(config.model, "gpt-4");
-        assert_eq!(config.max_tokens, 8192);
-        assert_eq!(config.temperature, 0.3);
-        assert_eq!(config.max_context_tokens, 128000);
-        assert_eq!(config.relevance_threshold, 0.7);
-        assert_eq!(config.output_dir, "./contexts");
-    }
-
-    #[test]
-    fn test_environment_variable_api_key() {
-        let cli = CliConfig::build_cli();
-        let matches = cli.try_get_matches_from(&[
-            "parseltongue-03",
-            "--api-key",
-            "env-key-456",
-        ]);
-
-        assert!(matches.is_ok());
-        let matches = matches.unwrap();
-
-        let config = CliConfig::parse_config(&matches);
-        assert_eq!(config.llm_api_key, "env-key-456");
     }
 }

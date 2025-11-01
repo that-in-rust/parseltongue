@@ -2039,24 +2039,15 @@ name = "pt02-llm-cozodb-to-context-writer"
 version = "0.8.1"
 dependencies = [
  "anyhow",
- "async-trait",
- "chrono",
  "clap",
  "console",
- "cozo",
- "criterion",
- "indicatif",
  "parseltongue-core",
- "proptest",
- "rayon",
- "reqwest",
  "serde",
  "serde_json",
  "tempfile",
  "thiserror",
  "tokio",
  "tokio-test",
- "uuid",
 ]
 
 [[package]]
