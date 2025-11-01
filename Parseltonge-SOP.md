@@ -12,6 +12,15 @@
 
 ---
 
+## TOOL 3 BEHAVIOR
+
+Tool 3 (`llm-cozodb-to-context-writer`):
+- **Input**: `--db` (database path), `--query` (optional SQL), `--output` (directory)
+- **Output**: Writes JSON file to directory: `context_{id}_{timestamp}.json`
+- **Default query**: `SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph WHERE current_ind=1`
+
+---
+
 ## SQL QUERY PATTERNS
 
 ### Pattern 1: Overview Without Code (DEFAULT - SAFE!)
@@ -21,8 +30,9 @@
 
 ```bash
 parseltongue llm-cozodb-to-context-writer \
-  --output overview.json \
+  --output ./contexts \
   --db rocksdb:analysis.db
+# Generates: ./contexts/context_{uuid}_{timestamp}.json
 ```
 
 **What happens**: Uses default query (already excludes code!)
@@ -42,7 +52,7 @@ WHERE current_ind=1
 ```bash
 parseltongue llm-cozodb-to-context-writer \
   --query "SELECT * FROM CodeGraph WHERE Future_Action IS NOT NULL" \
-  --output changes.json \
+  --output ./contexts \
   --db rocksdb:analysis.db
 ```
 
@@ -58,7 +68,7 @@ parseltongue llm-cozodb-to-context-writer \
 ```bash
 parseltongue llm-cozodb-to-context-writer \
   --query "SELECT * FROM CodeGraph WHERE isgl1_key = 'rust:fn:calculate:src_lib_rs:42-56'" \
-  --output single.json \
+  --output ./contexts \
   --db rocksdb:analysis.db
 ```
 
@@ -74,7 +84,7 @@ parseltongue llm-cozodb-to-context-writer \
 ```bash
 parseltongue llm-cozodb-to-context-writer \
   --query "SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph" \
-  --output all-sigs.json \
+  --output ./contexts \
   --db rocksdb:analysis.db
 ```
 
@@ -88,7 +98,7 @@ parseltongue llm-cozodb-to-context-writer \
 # ❌ CONTEXT EXPLOSION - 500k+ tokens
 parseltongue llm-cozodb-to-context-writer \
   --query "SELECT * FROM CodeGraph" \
-  --output explosion.json \
+  --output ./contexts \
   --db rocksdb:analysis.db
 ```
 
@@ -101,7 +111,7 @@ parseltongue llm-cozodb-to-context-writer \
 ```bash
 # Iteration 1: Overview (Pattern 1 - no code)
 parseltongue llm-cozodb-to-context-writer \
-  --output iter1-overview.json \
+  --output ./contexts \
   --db rocksdb:analysis.db
 
 # Mark changes with Tool 2 (query selects entities to process)
@@ -112,7 +122,7 @@ parseltongue llm-to-cozodb-writer \
 # Iteration 2: Review changes (Pattern 2 - with code)
 parseltongue llm-cozodb-to-context-writer \
   --query "SELECT * FROM CodeGraph WHERE Future_Action IS NOT NULL" \
-  --output iter2-changes.json \
+  --output ./contexts \
   --db rocksdb:analysis.db
 
 # Repeat until confident ≥80%
