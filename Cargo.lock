@@ -289,6 +289,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
+name = "calculator"
+version = "0.1.0"
+
+[[package]]
 name = "casey"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1859,6 +1863,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f2a05b18d44e2957b88f96ba460715e295bc1d7510468a2f3d3b44535d26c24"
 dependencies = [
  "regex",
+]
+
+[[package]]
+name = "parseltongue"
+version = "0.7.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "console",
+ "cozodb-make-future-code-current",
+ "folder-to-cozodb-streamer",
+ "llm-cozodb-to-context-writer",
+ "llm-cozodb-to-diff-writer",
+ "llm-to-cozodb-writer",
+ "rust-preflight-code-simulator",
+ "tokio",
 ]
 
 [[package]]

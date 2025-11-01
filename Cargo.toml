@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "crates/*"
-]
+, "examples/calculator"]
 resolver = "2"
 
 [workspace.package]

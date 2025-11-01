@@ -1,0 +1,27 @@
+[package]
+name = "parseltongue"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "parseltongue"
+path = "src/main.rs"
+
+[dependencies]
+# CLI framework
+clap = { workspace = true }
+console = { workspace = true }
+
+# Import all tool crates as libraries
+folder-to-cozodb-streamer = { path = "../folder-to-cozodb-streamer" }
+llm-to-cozodb-writer = { path = "../llm-to-cozodb-writer" }
+llm-cozodb-to-context-writer = { path = "../llm-cozodb-to-context-writer" }
+rust-preflight-code-simulator = { path = "../rust-preflight-code-simulator" }
+llm-cozodb-to-diff-writer = { path = "../llm-cozodb-to-diff-writer" }
+cozodb-make-future-code-current = { path = "../cozodb-make-future-code-current" }
+
+# Core dependencies
+anyhow = { workspace = true }
+tokio = { workspace = true }
