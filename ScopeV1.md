@@ -10,6 +10,9 @@
 
 ## The 3 Trifecta of Parseltongue use-cases
 
+When a So when weI'm basically trying to think of the things the user wants to do when they are right in front of the codebase. I come to a codebase and it's obviously overwhelming. I want to see a top-of-the-pyramid representation of the codebase which will help me get an idea of it, get comfortable with it, and that could be many things right. That I'll do if I get comfortable. I can figure out maybe I have come to solve a bug, maybe I've come to build a feature, or maybe I've come to think of whether a feature can be built or not. I don't even have to know the answer. Maybe I've just come to get an understanding of the codebase so that I can talk to my stakeholders about what it roughly has and what it doesn't have. Maybe I've come to search what exists and what doesn't exist? Maybe I have come to see what is the quality of the codebase? Does it adhere to some good HLD, HLD, LLD guidelines? All of that info is right here in the codebase but at an aggregate level is where I want to look at it. Which is where interface signature graphs will be useful I guess.
+
+
 - Analyzing a codebase to understand its structure and relationships & creating a thorough documentation of the codebase
 - Fixing a bug in the codebase that
     - Does not require any domain-research

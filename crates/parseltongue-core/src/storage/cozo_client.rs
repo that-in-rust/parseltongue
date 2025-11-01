@@ -314,19 +314,18 @@ impl CozoDbStorage {
 
         // CozoDB recursive query for bounded BFS
         // Strategy: Iteratively hop through edges, tracking minimum distance
-        let query = format!(
-            r#"
+        let query = r#"
             # Recursive blast radius query
             # Find all nodes reachable from start_node within max_hops
 
             # Base case: Starting node at distance 0
-            reachable[to_key, distance] := *DependencyEdges{{from_key, to_key}},
+            reachable[to_key, distance] := *DependencyEdges{from_key, to_key},
                                             from_key == $start_key,
                                             distance = 1
 
             # Recursive case: Follow edges, incrementing distance
             reachable[to_key, new_distance] := reachable[from, dist],
-                                                *DependencyEdges{{from_key: from, to_key}},
+                                                *DependencyEdges{from_key: from, to_key},
                                                 dist < $max_hops,
                                                 new_distance = dist + 1
 
@@ -335,8 +334,7 @@ impl CozoDbStorage {
                                  min_dist = min(dist)
 
             :order min_dist
-            "#
-        );
+            "#.to_string();
 
         let mut params = BTreeMap::new();
         params.insert("start_key".to_string(), DataValue::Str(changed_key.into()));
@@ -355,7 +353,7 @@ impl CozoDbStorage {
         for row in result.rows {
             if row.len() >= 2 {
                 if let (Some(DataValue::Str(node)), Some(distance_val)) =
-                    (row.get(0), row.get(1))
+                    (row.first(), row.get(1))
                 {
                     // Distance is stored as Num enum (Int or Float)
                     let distance = match distance_val {

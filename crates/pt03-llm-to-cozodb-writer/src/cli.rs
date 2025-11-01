@@ -116,7 +116,7 @@ impl CliConfig {
             // Mutual exclusion groups
             .group(
                 ArgGroup::new("interface")
-                    .args(&["query", "entity"])
+                    .args(["query", "entity"])
                     .required(true),
             )
     }

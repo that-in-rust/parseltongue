@@ -326,7 +326,7 @@ impl ContextOptimizerImpl {
     ///
     /// # Phase 4.1: TDD Integration (REFACTOR phase)
     async fn fetch_real_dependencies(&self, entities: &[CodeEntity]) -> Result<Vec<EntityRelationship>> {
-        use parseltongue_core::entities::EdgeType;
+        
 
         if entities.is_empty() {
             return Ok(vec![]);
@@ -456,7 +456,7 @@ impl ContextOptimizer for ContextOptimizerImpl {
         let mut errors = Vec::new();
 
         // Create simple relationships for provided entities
-        let relationships = entities.iter().enumerate().map(|(_i, entity)| {
+        let relationships = entities.iter().map(|entity| {
             EntityRelationship {
                 source_id: entity.isgl1_key.clone(),
                 target_id: entity.isgl1_key.clone(),

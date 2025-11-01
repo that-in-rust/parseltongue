@@ -45,7 +45,7 @@ impl TemporalVersioningManager {
 
         // Check for conflicts with existing entity
         if let Some(existing) = self.entities.get(&entity.isgl1_key) {
-            self.validate_entity_compatibility(&existing, &entity)?;
+            self.validate_entity_compatibility(existing, &entity)?;
         }
 
         self.entities.insert(entity.isgl1_key.clone(), entity);
@@ -265,6 +265,12 @@ pub struct NoCircularDependenciesRule {
     _private: (),
 }
 
+impl Default for NoCircularDependenciesRule {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl NoCircularDependenciesRule {
     pub fn new() -> Self {
         Self { _private: () }
@@ -299,6 +305,12 @@ impl TemporalValidationRule for NoCircularDependenciesRule {
 #[derive(Debug)]
 pub struct ConsistentStateRule {
     _private: (),
+}
+
+impl Default for ConsistentStateRule {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ConsistentStateRule {
@@ -341,6 +353,12 @@ impl TemporalValidationRule for ConsistentStateRule {
 #[derive(Debug)]
 pub struct ValidTransitionsRule {
     _private: (),
+}
+
+impl Default for ValidTransitionsRule {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ValidTransitionsRule {

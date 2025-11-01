@@ -6,5 +6,3 @@ model: inherit
 ---
 
 # Parseltongue Reasoning Orchestrator
-
-[Content to be implemented based on architectural decisions in P00.md]

@@ -1,5 +1,25 @@
+# Build artifacts
 /target
-Cargo.lock
+
+# Cargo lock (tracked for binary projects)
+# Cargo.lock
+
+# OS files
 .DS_Store
-.refGitHubRepo/
+*.swp
+*.swo
+*~
+
+# Test artifacts
 test-dbs/
+contexts/
+*.db/
+*.json.tmp
+
+# Reference materials
+.refGitHubRepo/
+
+# Demo outputs (preserve committed demos in demo-walkthroughs/)
+demo-walkthroughs/*/step*.json
+demo-walkthroughs/*/*.db/
+demo-walkthroughs/*/contexts/

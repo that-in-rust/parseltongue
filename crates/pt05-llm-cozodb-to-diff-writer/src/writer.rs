@@ -1,12 +1,10 @@
 use anyhow::Result;
 use std::path::PathBuf;
 
-use parseltongue_core::entities::{CodeEntity, FutureAction, TemporalState, InterfaceSignature, EntityType, Visibility, LineRange, LanguageSpecificSignature, RustSignature, Language, TddClassification, TestabilityLevel, ComplexityLevel, RiskLevel, EntityMetadata};
+use parseltongue_core::entities::{CodeEntity, FutureAction};
 
 use crate::errors::FileWriterError;
 use crate::types::{WriteOperation, WriteResult};
-use std::collections::HashMap;
-use chrono::Utc;
 
 /// Ultra-minimalist file writer
 ///

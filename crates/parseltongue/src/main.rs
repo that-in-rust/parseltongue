@@ -248,7 +248,7 @@ async fn run_folder_to_cozodb_streamer(matches: &ArgMatches) -> Result<()> {
 
 async fn run_llm_to_cozodb_writer(matches: &ArgMatches) -> Result<()> {
     use parseltongue_core::storage::CozoDbStorage;
-    use parseltongue_core::entities::{TemporalAction, TemporalState};
+    use parseltongue_core::entities::TemporalAction;
 
     let entity_key = matches.get_one::<String>("entity").unwrap();
     let action = matches.get_one::<String>("action").unwrap();

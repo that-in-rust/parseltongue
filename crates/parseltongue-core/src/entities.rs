@@ -51,7 +51,7 @@ impl Language {
     pub fn from_file_path(path: &PathBuf) -> Option<Self> {
         let extension = path.extension()?.to_str()?;
 
-        for language in [
+        [
             Language::Rust,
             Language::JavaScript,
             Language::TypeScript,
@@ -65,13 +65,7 @@ impl Language {
             Language::Swift,
             Language::Kotlin,
             Language::Scala,
-        ] {
-            if language.file_extensions().contains(&extension) {
-                return Some(language);
-            }
-        }
-
-        None
+        ].into_iter().find(|&language| language.file_extensions().contains(&extension))
     }
 }
 
@@ -771,9 +765,7 @@ impl CodeEntity {
 
         // Sanitize file path: replace /, \, and . with _
         let sanitized_path = file_path
-            .replace('/', "_")
-            .replace('\\', "_")
-            .replace('.', "_");
+            .replace(['/', '\\', '.'], "_");
 
         // Get type abbreviation
         let type_abbrev = match entity_type {

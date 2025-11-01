@@ -55,6 +55,12 @@ pub struct Isgl1KeyGeneratorImpl {
     parsers: HashMap<Language, Arc<Mutex<Parser>>>,
 }
 
+impl Default for Isgl1KeyGeneratorImpl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Isgl1KeyGeneratorImpl {
     /// Create new ISGL1 key generator
     pub fn new() -> Self {
@@ -88,7 +94,7 @@ impl Isgl1KeyGeneratorImpl {
 
         format!(
             "{}:{}:{}:{}:{}-{}",
-            entity.language.to_string(),
+            entity.language,
             type_str,
             entity.name,
             self.sanitize_path(&entity.file_path),
@@ -99,9 +105,7 @@ impl Isgl1KeyGeneratorImpl {
 
     /// Sanitize file path for ISGL1 key
     fn sanitize_path(&self, path: &str) -> String {
-        path.replace('/', "_")
-            .replace('\\', "_")
-            .replace('.', "_")
+        path.replace(['/', '\\', '.'], "_")
     }
 }
 

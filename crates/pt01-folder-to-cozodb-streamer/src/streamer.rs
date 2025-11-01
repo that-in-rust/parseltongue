@@ -242,7 +242,7 @@ impl FileStreamerImpl {
         source
             .lines()
             .enumerate()
-            .filter(|(idx, _)| *idx + 1 >= start_line && *idx + 1 <= end_line)
+            .filter(|(idx, _)| *idx + 1 >= start_line && *idx < end_line)
             .map(|(_, line)| line)
             .collect::<Vec<_>>()
             .join("\n")
