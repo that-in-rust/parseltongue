@@ -78,16 +78,12 @@ parseltongue folder-to-cozodb-streamer greeter --db rocksdb:demo.db
 # 2. Export all entities to see what was indexed
 parseltongue llm-cozodb-to-context-writer \
   --output all-entities.json \
-  --db rocksdb:demo.db \
-  --filter all
-# → step2-all-entities.json created
-
-# 3. Fix the hello() function
-parseltongue llm-to-cozodb-writer \
-  --entity "rust:fn:hello:greeter_src_lib_rs:4-6" \
-  --action "edit" \
-  --future-code "pub fn hello(name: &str) -> String { format!(\"Hello, {}!\", name) }" \
   --db rocksdb:demo.db
+# → Uses default query (excludes code, signatures only)
+
+# 3. Fix the hello() function (manual write to database)
+# Note: Tool 2 is for LLM batch processing. For demos, entities are updated directly in CozoDB.
+# The temporal state is updated: future_action="Edit", future_code contains the fix
 # → Temporal state: Edit pending (future_ind=true)
 
 # 4. Validate syntax of the fix

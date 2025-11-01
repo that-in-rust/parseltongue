@@ -46,8 +46,8 @@ parseltongue folder-to-cozodb-streamer greeter --db rocksdb:demo.db
 ```bash
 parseltongue llm-cozodb-to-context-writer \
   --output step2-all-entities.json \
-  --db rocksdb:demo.db \
-  --filter all
+  --db rocksdb:demo.db
+# Uses default query: SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph WHERE current_ind=1
 ```
 
 **Result:** [`step2-all-entities.json`](./step2-all-entities.json) + [`step2-export.log`](./step2-export.log)
@@ -73,11 +73,11 @@ rust:fn:hello:greeter_src_lib_rs:4-6
 
 **Command:**
 ```bash
-parseltongue llm-to-cozodb-writer \
-  --entity "rust:fn:hello:greeter_src_lib_rs:4-6" \
-  --action "edit" \
-  --future-code "pub fn hello(name: &str) -> String { format!(\"Hello, {}!\", name) }" \
-  --db rocksdb:demo.db
+# Tool 2 is for LLM batch processing with --query to select entities.
+# For this demo, the entity was updated directly in CozoDB:
+#   - Set future_code to the corrected version
+#   - Set future_action to "Edit"
+#   - Set future_ind to true
 ```
 
 **Result:** [`step3-edit.log`](./step3-edit.log)
@@ -174,7 +174,8 @@ parseltongue llm-cozodb-to-diff-writer \
 parseltongue llm-cozodb-to-context-writer \
   --output step6-changed-entities.json \
   --db rocksdb:demo.db \
-  --filter changed
+  --query "SELECT * FROM CodeGraph WHERE Future_Action IS NOT NULL"
+# Query loads ONLY changed entities (with code included)
 ```
 
 **Result:** [`step6-changed-entities.json`](./step6-changed-entities.json) + [`step6-changed.log`](./step6-changed.log)
