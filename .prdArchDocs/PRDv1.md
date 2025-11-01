@@ -4,6 +4,7 @@
 **Last Updated**: 2025-11-01
 **Target**: Production-ready CLI toolkit for code analysis and modification
 **Philosophy**: Toolkit not framework - any AI IDE can orchestrate these tools
+**Performance**: Under 2 minutes to index & sub-second response on queries, not a concern for MVP 
 
 ---
 
@@ -18,7 +19,6 @@
 - ✅ Complete CozoDB-based temporal versioning system
 - ✅ E2E workflow validated
 - ❌ Single unified binary (currently 6 separate binaries)
-- ❌ Performance benchmarks (claimed metrics unvalidated)
 
 ---
 
