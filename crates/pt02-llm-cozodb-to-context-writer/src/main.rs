@@ -1,4 +1,4 @@
-//! Main entry point for parseltongue-03.
+//! Main entry point for pt02-llm-cozodb-to-context-writer.
 
 use console::{style, Term};
 use anyhow::Result;
@@ -32,7 +32,7 @@ async fn main() -> Result<()> {
             if !quiet {
                 println!(
                     "{}",
-                    style("Parseltongue Tool 03: LLM-cozoDB-to-context-writer")
+                    style("Parseltongue Tool 02: LLM-cozoDB-to-context-writer")
                         .blue()
                         .bold()
                 );

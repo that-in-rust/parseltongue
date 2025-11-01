@@ -2136,7 +2136,6 @@ dependencies = [
  "clap",
  "console",
  "parseltongue-core",
- "pt01-folder-to-cozodb-streamer",
  "serde",
  "serde_json",
  "tempfile",

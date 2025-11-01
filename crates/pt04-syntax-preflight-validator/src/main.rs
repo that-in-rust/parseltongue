@@ -9,8 +9,8 @@ use parseltongue_core::storage::CozoDbStorage;
 use pt04_syntax_preflight_validator::SimpleSyntaxValidator;
 
 #[derive(Parser)]
-#[command(name = "rust-preflight-code-simulator")]
-#[command(about = "Simplified syntax validation for entities with future_code")]
+#[command(name = "pt04-syntax-preflight-validator")]
+#[command(about = "Syntax validation for entities with future_code (multi-language ready)")]
 struct Cli {
     /// Path to CozoDB database
     #[arg(long, default_value = "mem")]

@@ -110,7 +110,10 @@ impl FileWriter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use parseltongue_core::entities::*;
     use tempfile::TempDir;
+    use chrono::Utc;
+    use std::collections::HashMap;
 
     // Helper to create test entity
     fn create_test_entity(isgl1_key: &str, future_code: Option<String>, temporal_state: TemporalState) -> CodeEntity {

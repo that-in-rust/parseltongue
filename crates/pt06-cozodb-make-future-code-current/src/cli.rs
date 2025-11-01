@@ -5,9 +5,9 @@ use std::path::PathBuf;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    /// Path to CozoDB database
+    /// CozoDB connection string (e.g., "rocksdb:parseltongue.db" or "sqlite:db.sqlite")
     #[arg(long)]
-    pub database: PathBuf,
+    pub database: String,
 
     /// Project root directory for re-indexing
     #[arg(long)]

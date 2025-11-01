@@ -25,8 +25,7 @@ clap = { workspace = true, features = ["derive"] }
 console.workspace = true
 async-trait.workspace = true
 
-# Tool 1 integration for re-indexing (binary only)
-pt01-folder-to-cozodb-streamer = { path = "../pt01-folder-to-cozodb-streamer" }
+# NO library dependencies on other tools - calls pt01 as subprocess (S01 principle)
 
 [dev-dependencies]
 tempfile.workspace = true

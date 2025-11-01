@@ -1,12 +1,12 @@
 //! Parseltongue: Unified CLI toolkit for code analysis and modification
 //!
 //! This binary provides 6 subcommands that dispatch to the individual tools:
-//! - index:  folder-to-cozodb-streamer (Tool 1)
-//! - write:  llm-to-cozodb-writer (Tool 2)
-//! - read:   llm-cozodb-to-context-writer (Tool 3)
-//! - check:  rust-preflight-code-simulator (Tool 4)
-//! - diff:   llm-cozodb-to-diff-writer (Tool 5)
-//! - reset:  cozodb-make-future-code-current (Tool 6)
+//! - pt01-folder-to-cozodb-streamer (Tool 1: Ingest)
+//! - pt02-llm-cozodb-to-context-writer (Tool 2: Read)
+//! - pt03-llm-to-cozodb-writer (Tool 3: Edit/Write)
+//! - pt04-syntax-preflight-validator (Tool 4: Validate)
+//! - pt05-llm-cozodb-to-diff-writer (Tool 5: Diff)
+//! - pt06-cozodb-make-future-code-current (Tool 6: Reset)
 
 use clap::{Arg, ArgMatches, Command};
 use console::style;
@@ -20,22 +20,22 @@ async fn main() -> Result<()> {
     let matches = build_cli().get_matches();
 
     match matches.subcommand() {
-        Some(("folder-to-cozodb-streamer", sub_matches)) => {
+        Some(("pt01-folder-to-cozodb-streamer", sub_matches)) => {
             run_folder_to_cozodb_streamer(sub_matches).await
         }
-        Some(("llm-to-cozodb-writer", sub_matches)) => {
-            run_llm_to_cozodb_writer(sub_matches).await
-        }
-        Some(("llm-cozodb-to-context-writer", sub_matches)) => {
+        Some(("pt02-llm-cozodb-to-context-writer", sub_matches)) => {
             run_llm_cozodb_to_context_writer(sub_matches).await
         }
-        Some(("rust-preflight-code-simulator", sub_matches)) => {
+        Some(("pt03-llm-to-cozodb-writer", sub_matches)) => {
+            run_llm_to_cozodb_writer(sub_matches).await
+        }
+        Some(("pt04-syntax-preflight-validator", sub_matches)) => {
             run_rust_preflight_code_simulator(sub_matches).await
         }
-        Some(("llm-cozodb-to-diff-writer", sub_matches)) => {
+        Some(("pt05-llm-cozodb-to-diff-writer", sub_matches)) => {
             run_llm_cozodb_to_diff_writer(sub_matches).await
         }
-        Some(("cozodb-make-future-code-current", sub_matches)) => {
+        Some(("pt06-cozodb-make-future-code-current", sub_matches)) => {
             run_cozodb_make_future_code_current(sub_matches).await
         }
         _ => {
@@ -45,12 +45,12 @@ async fn main() -> Result<()> {
             println!("Use --help for more information");
             println!();
             println!("Available commands:");
-            println!("  folder-to-cozodb-streamer        - Index codebase into CozoDB (Tool 1)");
-            println!("  llm-to-cozodb-writer             - Write LLM changes to temporal state (Tool 2)");
-            println!("  llm-cozodb-to-context-writer     - Generate context from CozoDB (Tool 3)");
-            println!("  rust-preflight-code-simulator    - Validate syntax of proposed changes (Tool 4)");
-            println!("  llm-cozodb-to-diff-writer        - Generate CodeDiff.json (Tool 5)");
-            println!("  cozodb-make-future-code-current  - Reset database state (Tool 6)");
+            println!("  pt01-folder-to-cozodb-streamer       - Index codebase into CozoDB (Tool 1: Ingest)");
+            println!("  pt02-llm-cozodb-to-context-writer    - Generate context from CozoDB (Tool 2: Read)");
+            println!("  pt03-llm-to-cozodb-writer            - Write LLM changes to temporal state (Tool 3: Edit)");
+            println!("  pt04-syntax-preflight-validator      - Validate syntax of proposed changes (Tool 4: Validate)");
+            println!("  pt05-llm-cozodb-to-diff-writer       - Generate CodeDiff.json (Tool 5: Diff)");
+            println!("  pt06-cozodb-make-future-code-current - Reset database state (Tool 6: Reset)");
             Ok(())
         }
     }
@@ -64,12 +64,12 @@ fn build_cli() -> Command {
         .subcommand_required(false)
         .arg_required_else_help(false)
         .subcommand(
-            Command::new("folder-to-cozodb-streamer")
+            Command::new("pt01-folder-to-cozodb-streamer")
                 .about("Tool 1: Stream folder contents to CozoDB with ISGL1 keys")
                 .long_about(
                     "Examples:\n  \
-                    parseltongue folder-to-cozodb-streamer .            # Index current directory\n  \
-                    parseltongue folder-to-cozodb-streamer ./src --db rocksdb:analysis.db --verbose"
+                    parseltongue pt01-folder-to-cozodb-streamer .            # Index current directory\n  \
+                    parseltongue pt01-folder-to-cozodb-streamer ./src --db rocksdb:analysis.db --verbose"
                 )
                 .arg(
                     Arg::new("directory")
@@ -99,8 +99,32 @@ fn build_cli() -> Command {
                 ),
         )
         .subcommand(
-            Command::new("llm-to-cozodb-writer")
-                .about("Tool 2: Write LLM-proposed changes to temporal state")
+            Command::new("pt02-llm-cozodb-to-context-writer")
+                .about("Tool 2: Generate context JSON from CozoDB for LLM consumption")
+                .arg(
+                    Arg::new("output")
+                        .long("output")
+                        .short('o')
+                        .help("Output JSON file")
+                        .required(true),
+                )
+                .arg(
+                    Arg::new("db")
+                        .long("db")
+                        .help("Database file path")
+                        .default_value("parseltongue.db"),
+                )
+                .arg(
+                    Arg::new("filter")
+                        .long("filter")
+                        .help("Filter: all, changed, or current")
+                        .value_parser(["all", "changed", "current"])
+                        .default_value("all"),
+                ),
+        )
+        .subcommand(
+            Command::new("pt03-llm-to-cozodb-writer")
+                .about("Tool 3: Write LLM-proposed changes to temporal state")
                 .arg(
                     Arg::new("entity")
                         .long("entity")
@@ -127,32 +151,8 @@ fn build_cli() -> Command {
                 ),
         )
         .subcommand(
-            Command::new("llm-cozodb-to-context-writer")
-                .about("Tool 3: Generate context JSON from CozoDB for LLM consumption")
-                .arg(
-                    Arg::new("output")
-                        .long("output")
-                        .short('o')
-                        .help("Output JSON file")
-                        .required(true),
-                )
-                .arg(
-                    Arg::new("db")
-                        .long("db")
-                        .help("Database file path")
-                        .default_value("parseltongue.db"),
-                )
-                .arg(
-                    Arg::new("filter")
-                        .long("filter")
-                        .help("Filter: all, changed, or current")
-                        .value_parser(["all", "changed", "current"])
-                        .default_value("all"),
-                ),
-        )
-        .subcommand(
-            Command::new("rust-preflight-code-simulator")
-                .about("Tool 4: Validate syntax and simulate code execution")
+            Command::new("pt04-syntax-preflight-validator")
+                .about("Tool 4: Validate syntax of proposed changes")
                 .arg(
                     Arg::new("db")
                         .long("db")
@@ -168,7 +168,7 @@ fn build_cli() -> Command {
                 ),
         )
         .subcommand(
-            Command::new("llm-cozodb-to-diff-writer")
+            Command::new("pt05-llm-cozodb-to-diff-writer")
                 .about("Tool 5: Generate CodeDiff.json from temporal state")
                 .arg(
                     Arg::new("output")
@@ -185,7 +185,7 @@ fn build_cli() -> Command {
                 ),
         )
         .subcommand(
-            Command::new("cozodb-make-future-code-current")
+            Command::new("pt06-cozodb-make-future-code-current")
                 .about("Tool 6: Make future code current and reset temporal state")
                 .arg(
                     Arg::new("project")
@@ -255,7 +255,7 @@ async fn run_llm_to_cozodb_writer(matches: &ArgMatches) -> Result<()> {
     let future_code = matches.get_one::<String>("future-code");
     let db = matches.get_one::<String>("db").unwrap();
 
-    println!("{}", style("Running Tool 2: llm-to-cozodb-writer").cyan());
+    println!("{}", style("Running Tool 3: pt03-llm-to-cozodb-writer").cyan());
 
     // Validate future-code requirement
     if (action == "create" || action == "edit") && future_code.is_none() {
@@ -336,7 +336,7 @@ async fn run_llm_cozodb_to_context_writer(matches: &ArgMatches) -> Result<()> {
     let db = matches.get_one::<String>("db").unwrap();
     let filter = matches.get_one::<String>("filter").unwrap();
 
-    println!("{}", style("Running Tool 3: llm-cozodb-to-context-writer").cyan());
+    println!("{}", style("Running Tool 2: pt02-llm-cozodb-to-context-writer").cyan());
     println!("  Database: {}", db);
     println!("  Filter: {}", filter);
     println!("  Output: {}", output);
@@ -386,7 +386,7 @@ async fn run_rust_preflight_code_simulator(matches: &ArgMatches) -> Result<()> {
     let db = matches.get_one::<String>("db").unwrap();
     let verbose = matches.get_flag("verbose");
 
-    println!("{}", style("Running Tool 4: rust-preflight-code-simulator").cyan());
+    println!("{}", style("Running Tool 4: pt04-syntax-preflight-validator").cyan());
     println!("  Database: {}", db);
 
     // Connect to database
@@ -472,7 +472,7 @@ async fn run_llm_cozodb_to_diff_writer(matches: &ArgMatches) -> Result<()> {
     let output = matches.get_one::<String>("output").unwrap();
     let db = matches.get_one::<String>("db").unwrap();
 
-    println!("{}", style("Running Tool 5: llm-cozodb-to-diff-writer").cyan());
+    println!("{}", style("Running Tool 5: pt05-llm-cozodb-to-diff-writer").cyan());
     println!("  Database: {}", db);
     println!("  Output: {}", output);
 
@@ -534,7 +534,7 @@ async fn run_cozodb_make_future_code_current(matches: &ArgMatches) -> Result<()>
     let project = matches.get_one::<String>("project").unwrap();
     let db = matches.get_one::<String>("db").unwrap();
 
-    println!("{}", style("Running Tool 6: cozodb-make-future-code-current").cyan());
+    println!("{}", style("Running Tool 6: pt06-cozodb-make-future-code-current").cyan());
     println!("  Project: {}", project);
     println!("  Database: {}", db);
 
@@ -556,7 +556,7 @@ async fn run_cozodb_make_future_code_current(matches: &ArgMatches) -> Result<()>
     println!("  Schema recreated: {}", if result.schema_recreated { "yes" } else { "no" });
     println!();
     println!("{}", style("Next step: Re-index the codebase").cyan());
-    println!("  Run: parseltongue folder-to-cozodb-streamer {} --db {}", project, db);
+    println!("  Run: parseltongue pt01-folder-to-cozodb-streamer {} --db {}", project, db);
 
     Ok(())
 }
@@ -568,13 +568,13 @@ mod tests {
     #[test]
     fn test_cli_builds() {
         let cli = build_cli();
-        // Verify all subcommands are present with crate names
+        // Verify all subcommands are present with pt01-pt06 prefixes (PRDv2)
         let subcommands: Vec<&str> = cli.get_subcommands().map(|cmd| cmd.get_name()).collect();
-        assert!(subcommands.contains(&"folder-to-cozodb-streamer"));
-        assert!(subcommands.contains(&"llm-to-cozodb-writer"));
-        assert!(subcommands.contains(&"llm-cozodb-to-context-writer"));
-        assert!(subcommands.contains(&"rust-preflight-code-simulator"));
-        assert!(subcommands.contains(&"llm-cozodb-to-diff-writer"));
-        assert!(subcommands.contains(&"cozodb-make-future-code-current"));
+        assert!(subcommands.contains(&"pt01-folder-to-cozodb-streamer"));
+        assert!(subcommands.contains(&"pt02-llm-cozodb-to-context-writer"));
+        assert!(subcommands.contains(&"pt03-llm-to-cozodb-writer"));
+        assert!(subcommands.contains(&"pt04-syntax-preflight-validator"));
+        assert!(subcommands.contains(&"pt05-llm-cozodb-to-diff-writer"));
+        assert!(subcommands.contains(&"pt06-cozodb-make-future-code-current"));
     }
 }
