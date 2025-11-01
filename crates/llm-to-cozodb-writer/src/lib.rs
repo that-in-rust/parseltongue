@@ -1,79 +1,53 @@
 //! Parseltongue Tool 02: LLM-to-cozoDB-writer
 //!
-//! Ultra-minimalist LLM communication tool that reads ISGL1 keys from CozoDB,
-//! generates code changes using LLM reasoning, and writes them back as temporal
-//! changes. Following TDD-first principles with executable specifications.
+//! Ultra-minimalist tool for writing temporal code changes to CozoDB.
+//! Receives manual temporal changes via CLI (from external LLM) and writes them to database.
+//! Following S01 principles: NO automatic LLM calls, direct temporal state updates only.
+//!
+//! ## S01 Implementation (v0.7.1+)
+//!
+//! The ultra-minimalist implementation (see main.rs):
+//! - Uses parseltongue-core::storage::CozoDbStorage directly
+//! - NO LLM client infrastructure (deleted in v0.7.1)
+//! - NO batch processing
+//! - Direct temporal state updates only
 
 #![warn(clippy::all)]
 #![warn(rust_2018_idioms)]
 #![allow(missing_docs)]
 
-use std::collections::HashMap;
-use std::sync::Arc;
-
 pub mod cli;
 pub mod errors;
-pub mod llm_client;
-pub mod temporal_writer;
 
 // Re-export commonly used types
 pub use errors::*;
-pub use llm_client::{LlmClientImpl, *};
-pub use temporal_writer::{TemporalWriterImpl, *};
 
-/// Tool metadata and configuration
+/// Tool configuration (S01 Ultra-Minimalist)
+///
+/// This config only contains the 4 essential fields needed to write temporal changes:
+/// - entity_key: ISGL1 key identifying which code entity to update
+/// - action: Temporal action type (create/edit/delete)
+/// - future_code: Code content for create/edit actions
+/// - db_path: CozoDB database path
 #[derive(Debug, Clone)]
 pub struct LlmWriterConfig {
+    /// ISGL1 key of entity (e.g., "rust:fn:hello:lib_rs:4-6")
+    pub entity_key: String,
+    /// Temporal action: "create", "edit", or "delete"
+    pub action: String,
+    /// Future code content (required for create/edit, None for delete)
+    pub future_code: Option<String>,
     /// Database connection string
     pub db_path: String,
-    /// LLM API endpoint
-    pub llm_endpoint: String,
-    /// LLM API key
-    pub llm_api_key: String,
-    /// Model to use for LLM
-    pub model: String,
-    /// Maximum tokens per request
-    pub max_tokens: usize,
-    /// Temperature for LLM generation
-    pub temperature: f32,
-    /// Query to select entities for processing
-    pub query_filter: String,
-    /// Batch size for processing
-    pub batch_size: usize,
 }
 
 impl Default for LlmWriterConfig {
     fn default() -> Self {
         Self {
+            entity_key: String::new(),
+            action: "edit".to_string(),
+            future_code: None,
             db_path: "parseltongue.db".to_string(),
-            llm_endpoint: "https://api.openai.com/v1/chat/completions".to_string(),
-            llm_api_key: std::env::var("OPENAI_API_KEY").unwrap_or_default(),
-            model: "gpt-4".to_string(),
-            max_tokens: 4096,
-            temperature: 0.7,
-            query_filter: "SELECT * FROM CodeEntity WHERE temporal_state = 'current' LIMIT 10".to_string(),
-            batch_size: 5,
         }
-    }
-}
-
-/// Tool factory for dependency injection
-pub struct ToolFactory;
-
-impl ToolFactory {
-    /// Create a new LLM writer instance
-    pub fn create_llm_writer(config: LlmWriterConfig) -> Result<Arc<TemporalWriterImpl>> {
-        let llm_client = Arc::new(LlmClientImpl::new(config.clone()));
-
-        // Validate configuration before creating writer
-        llm_client.validate_config()?;
-
-        let writer = Arc::new(TemporalWriterImpl::new(config, llm_client));
-        Ok(writer)
-    }
-
-    /// Create a new LLM client instance
-    pub fn create_llm_client(config: LlmWriterConfig) -> Arc<LlmClientImpl> {
-        LlmClientFactory::new(config)
     }
 }

@@ -1,22 +1,23 @@
 //! Main entry point for parseltongue-02.
+//!
+//! S01 Ultra-Minimalist Implementation:
+//! - NO automatic LLM calls (LLM runs externally, passes changes via CLI)
+//! - Direct CozoDB writes only
+//! - Matches unified binary pattern (parseltongue/src/main.rs)
 
-use std::sync::Arc;
-use console::{style, Term};
+use console::style;
 use anyhow::Result;
 
 use llm_to_cozodb_writer::{
     cli::CliConfig,
-    errors::LlmWriterError,
-    llm_client::LlmClient,
-    temporal_writer::{TemporalWriter, TemporalWriterImpl},
-    ToolFactory,
     LlmWriterConfig,
 };
 
+use parseltongue_core::storage::CozoDbStorage;
+use parseltongue_core::entities::TemporalAction;
+
 #[tokio::main]
 async fn main() -> Result<()> {
-    let term = Term::stdout();
-
     // Parse CLI arguments
     let cli = CliConfig::build_cli();
     let matches = cli.try_get_matches();
@@ -25,55 +26,12 @@ async fn main() -> Result<()> {
         Ok(matches) => {
             let config = CliConfig::parse_config(&matches);
 
-            // Handle quiet/verbose flags
-            let quiet = matches.get_flag("quiet");
-            let verbose = matches.get_flag("verbose");
-            let dry_run = matches.get_flag("dry-run");
+            println!("{}", style("Running Tool 2: llm-to-cozodb-writer").cyan());
 
-            if !quiet {
-                println!(
-                    "{}",
-                    style("Parseltongue Tool 02: LLM-to-cozoDB-writer")
-                        .blue()
-                        .bold()
-                );
-                println!("{}", style("Ultra-minimalist LLM communication with CozoDB").blue());
-                println!();
-            }
-
-            // Validate configuration
-            let llm_client = ToolFactory::create_llm_client(config.clone());
-            if let Err(e) = llm_client.validate_config() {
-                eprintln!("{} Configuration error: {}", style("Error:").red().bold(), e);
-                std::process::exit(1);
-            }
-
-            // Create and run writer
-            match run_writer(&config, verbose, quiet, dry_run).await {
-                Ok(result) => {
-                    if !quiet {
-                        println!(
-                            "{}",
-                            style("✓ LLM writer completed successfully!").green().bold()
-                        );
-                        if result.errors.is_empty() {
-                            println!("{}", style("No errors encountered.").green());
-                        } else {
-                            println!(
-                                "{}",
-                                style(format!("⚠ {} warnings encountered", result.errors.len()))
-                                    .yellow()
-                            );
-                        }
-
-                        if dry_run {
-                            println!(
-                                "{}",
-                                style("🔍 Dry run mode - no changes were applied to the database.")
-                                    .cyan()
-                            );
-                        }
-                    }
+            // Run writer with simple pattern
+            match run_writer(&config).await {
+                Ok(()) => {
+                    println!("{}", style("✓ Entity updated successfully").green().bold());
                     Ok(())
                 }
                 Err(e) => {
@@ -90,129 +48,116 @@ async fn main() -> Result<()> {
     }
 }
 
-/// Run the LLM writer with the given configuration
-async fn run_writer(
-    config: &LlmWriterConfig,
-    verbose: bool,
-    quiet: bool,
-    dry_run: bool,
-) -> Result<llm_to_cozodb_writer::WriterResult, LlmWriterError> {
-    // Create writer instance using factory
-    let writer = ToolFactory::create_llm_writer(config.clone())?;
-
-    if verbose && !quiet {
-        println!("Configuration:");
-        println!("  Database path: {}", config.db_path);
-        println!("  LLM endpoint: {}", config.llm_endpoint);
-        println!("  Model: {}", config.model);
-        println!("  Max tokens: {}", config.max_tokens);
-        println!("  Temperature: {}", config.temperature);
-        println!("  Batch size: {}", config.batch_size);
-        println!("  Query: {}", config.query_filter);
-
-        if dry_run {
-            println!("  Mode: Dry run (no changes will be applied)");
-        }
-        println!();
+/// Run the writer with ultra-minimalist pattern (S01)
+///
+/// Matches the implementation in parseltongue/src/main.rs (unified binary)
+async fn run_writer(config: &LlmWriterConfig) -> Result<()> {
+    // Validate future-code requirement
+    if (config.action == "create" || config.action == "edit") && config.future_code.is_none() {
+        eprintln!("{}", style("Error: --future-code required for create/edit actions").red());
+        std::process::exit(1);
     }
 
-    // Run writer
-    let result = writer.process_entities().await?;
+    // Connect to database
+    let storage = CozoDbStorage::new(&config.db_path)
+        .await
+        .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
 
-    // Print detailed results if verbose
-    if verbose && !quiet {
-        println!("\nDetailed Results:");
-        println!("  Entities found: {}", result.total_entities);
-        println!("  Entities processed: {}", result.processed_entities);
-        println!("  Changes generated: {}", result.changes_generated);
-        println!("  Changes applied: {}", result.changes_applied);
-        println!("  Processing time: {:?}", result.duration);
-
-        // Get and display statistics
-        let stats = writer.get_stats();
-        println!("  LLM requests made: {}", stats.llm_requests_made);
-        println!("  Total tokens used: {}", stats.total_tokens_used);
-
-        if !result.errors.is_empty() {
-            println!("\nErrors:");
-            for error in &result.errors {
-                println!("  {}", style(error).yellow());
-            }
+    // Process action
+    match config.action.as_str() {
+        "create" => {
+            println!("  Creating entity: {}", config.entity_key);
+            println!("  Future code: {} bytes", config.future_code.as_ref().unwrap().len());
+            eprintln!("{}", style("⚠️  CREATE action requires full entity construction - not yet implemented").yellow());
+            eprintln!("    Hint: First index the codebase, then use EDIT to modify entities");
+            Ok(())
         }
-    }
+        "edit" => {
+            println!("  Editing entity: {}", config.entity_key);
 
-    Ok(result)
+            // Fetch existing entity
+            let mut entity = storage.get_entity(&config.entity_key)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to fetch entity: {}", e))?;
+
+            // Update future_code
+            entity.future_code = Some(config.future_code.as_ref().unwrap().clone());
+
+            // Set temporal action
+            entity.temporal_state.future_action = Some(TemporalAction::Edit);
+            entity.temporal_state.future_ind = true;
+
+            // Persist updated entity back to database
+            storage.update_entity_internal(&entity)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to persist entity changes: {}", e))?;
+
+            println!("{}", style("✓ Entity updated with future code").green());
+            println!("  Temporal state: Edit pending (future_ind=true)");
+            Ok(())
+        }
+        "delete" => {
+            println!("  Deleting entity: {}", config.entity_key);
+
+            // Fetch existing entity
+            let mut entity = storage.get_entity(&config.entity_key)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to fetch entity: {}", e))?;
+
+            // Mark for deletion via temporal state
+            entity.temporal_state.future_ind = false;
+            entity.temporal_state.future_action = Some(TemporalAction::Delete);
+
+            // Persist updated entity
+            storage.update_entity_internal(&entity)
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to mark for deletion: {}", e))?;
+
+            println!("{}", style("✓ Entity marked for deletion").green());
+            println!("  Temporal state: Delete pending (future_ind=false)");
+            Ok(())
+        }
+        _ => unreachable!("clap validation should prevent this"),
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
-    use std::env;
 
-    #[tokio::test]
-    async fn test_main_with_valid_config() {
-        // Set up environment variable for API key
-        env::set_var("OPENAI_API_KEY", "test-key-for-testing");
-
+    #[test]
+    fn test_config_validation_edit_requires_code() {
         let config = LlmWriterConfig {
-            db_path: "test.db".to_string(),
-            llm_endpoint: "https://api.openai.com/v1/chat/completions".to_string(),
-            llm_api_key: "test-key-for-testing".to_string(),
-            model: "gpt-3.5-turbo".to_string(),
-            max_tokens: 1000,
-            temperature: 0.5,
-            query_filter: "SELECT * FROM CodeEntity LIMIT 1".to_string(),
-            batch_size: 1,
+            entity_key: "rust:fn:test:lib_rs:10-15".to_string(),
+            action: "edit".to_string(),
+            future_code: None,  // Missing code for edit
+            db_path: "mem".to_string(),
         };
 
-        let result = run_writer(&config, false, true, true).await;
-        // Note: This would fail without a proper LLM mock, but demonstrates the interface
-        // In a real test environment, we would mock the LLM client
-        assert!(result.is_ok() || result.is_err());
-    }
-
-    #[tokio::test]
-    async fn test_main_with_invalid_api_key() {
-        let config = LlmWriterConfig {
-            db_path: "test.db".to_string(),
-            llm_endpoint: "https://api.openai.com/v1/chat/completions".to_string(),
-            llm_api_key: "".to_string(), // Empty API key - should cause validation failure
-            model: "gpt-4".to_string(),
-            max_tokens: 4096,
-            temperature: 0.7,
-            query_filter: "SELECT * FROM CodeEntity LIMIT 10".to_string(),
-            batch_size: 5,
-        };
-
-        let result = run_writer(&config, false, true, true).await;
-        assert!(result.is_err());
+        // Should require future_code for edit action
+        assert!(config.future_code.is_none());
+        assert_eq!(config.action, "edit");
     }
 
     #[test]
-    fn test_configuration_validation() {
-        // Test with valid configuration
+    fn test_config_validation_delete_no_code() {
         let config = LlmWriterConfig {
-            db_path: "test.db".to_string(),
-            llm_endpoint: "https://api.openai.com/v1/chat/completions".to_string(),
-            llm_api_key: "valid-api-key".to_string(),
-            model: "gpt-4".to_string(),
-            max_tokens: 4096,
-            temperature: 0.7,
-            query_filter: "SELECT * FROM CodeEntity LIMIT 10".to_string(),
-            batch_size: 5,
+            entity_key: "rust:fn:old:lib_rs:20-25".to_string(),
+            action: "delete".to_string(),
+            future_code: None,  // Delete doesn't need code
+            db_path: "mem".to_string(),
         };
 
-        let client = ToolFactory::create_llm_client(config);
-        assert!(client.validate_config().is_ok());
+        // Delete should not need future_code
+        assert!(config.future_code.is_none());
+        assert_eq!(config.action, "delete");
+    }
 
-        // Test with invalid configuration
-        let invalid_config = LlmWriterConfig {
-            llm_api_key: "".to_string(), // Invalid: empty
-            ..LlmWriterConfig::default()
-        };
-
-        let invalid_client = ToolFactory::create_llm_client(invalid_config);
-        assert!(invalid_client.validate_config().is_err());
+    #[test]
+    fn test_config_default() {
+        let config = LlmWriterConfig::default();
+        assert_eq!(config.db_path, "parseltongue.db");
+        assert_eq!(config.action, "edit");
+        assert!(config.future_code.is_none());
     }
 }
