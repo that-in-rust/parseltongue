@@ -56,6 +56,8 @@ All in **one unified binary** with self-documenting command names.
 
 **See the full demo:** [`demo-walkthrough/`](./demo-walkthrough/)
 
+**Watch video demos:** [Parseltongue Video Tutorials](https://photos.app.goo.gl/eyHCSPBCWb1oaN4d8)
+
 A tangible example with all artifacts preserved (JSONs, logs, database).
 
 ### The Scenario
