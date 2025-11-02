@@ -78,42 +78,52 @@ flowchart LR
 
 ## Quick Install (macOS)
 
+### Option 1: Download from GitHub Releases
+
 ```bash
 # Download the latest binary (universal - works on both ARM64 and x86_64)
 curl -L https://github.com/that-in-rust/parseltongue/releases/latest/download/parseltongue -o parseltongue
-
-# Make it executable
 chmod +x parseltongue
 
 # Move to your PATH (optional)
 sudo mv parseltongue /usr/local/bin/
 
-# CRITICAL: Verify you have the correct version
+# Verify version
 parseltongue --version
-# MUST show: parseltongue 0.8.6
-# If you see 1.0.0 or any other version, you have the wrong binary!
-
-# Show available commands - should include pt01, pt02-level00/01/02, pt03-pt06
-parseltongue --help
+# Expected: parseltongue 0.8.6
 ```
 
-**⚠️ IMPORTANT: Version Verification**
+### Option 2: Use Binary from Repository
 
-The repository MAY contain outdated binaries. **ALWAYS download from GitHub releases.**
+```bash
+# Clone the repo
+git clone https://github.com/that-in-rust/parseltongue
+cd parseltongue
 
-If `parseltongue --version` does NOT show `0.8.6`, you're missing critical features:
+# Use the included binary (already v0.8.6)
+./parseltongue-macos-arm64 --version
+# Expected: parseltongue 0.8.6
+
+# All commands available
+./parseltongue-macos-arm64 --help
+```
+
+### Option 3: Build from Source
+
+```bash
+cargo build --release
+./target/release/parseltongue --version
+# Expected: parseltongue 0.8.6
+```
+
+**⚠️ CRITICAL: Verify Version**
+
+Always run `--version` first. If you don't see `0.8.6`, you're missing critical features:
 - ❌ No pt02-level00/01/02 (progressive disclosure)
 - ❌ Wrong command names (folder-to-cozodb-streamer instead of pt01-folder-to-cozodb-streamer)
 - ❌ Missing ~100× token savings from progressive disclosure
 
-**Delete the wrong binary and re-download from releases.**
-
-**Or build from source:**
-```bash
-cargo build --release
-./target/release/parseltongue --version
-# Should show: parseltongue 0.8.6
-```
+The repository binary is now synchronized with v0.8.6 release (as of 2025-11-02).
 
 ---
 
