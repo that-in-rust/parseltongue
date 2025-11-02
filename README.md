@@ -2,14 +2,14 @@
 
 ```mermaid
 graph LR
-    subgraph PROBLEM["The Context Window Problem"]
-        P1["50,000 LOC codebase"]
-        P2["Dump as text"]
-        P3["500K+ tokens"]
+    subgraph PROBLEM["Context Window<br/>Problem"]
+        P1["50,000 LOC<br/>codebase"]
+        P2["Dump as<br/>text"]
+        P3["500K+<br/>tokens"]
         P1 --> P2 --> P3
     end
 
-    subgraph ISG["Interface Signature Graph"]
+    subgraph ISG["Interface Signature<br/>Graph"]
         I1["Parse codebase<br/>into graph"]
         I2["Unique IDs<br/>Dependencies<br/>Metadata<br/>Relationships"]
         I1 --> I2
