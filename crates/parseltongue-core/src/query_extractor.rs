@@ -20,8 +20,9 @@
 //!
 //! ## Supported Languages
 //!
-//! Currently supports: Rust, Python, C, C++, Ruby (5 languages)
-//! Future: JavaScript, TypeScript, Go, Java, etc. (8 more - <1 day to add all)
+//! Currently supports: Rust, Python, C, C++, Ruby, JavaScript, TypeScript, Go, Java, PHP, C#, Swift (12 languages)
+//! Note: Kotlin support pending tree-sitter version upgrade (currently incompatible: 0.20 vs 0.25)
+//! Extensible: Add new languages by creating .scm query files (~1 hour per language)
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -102,6 +103,39 @@ impl QueryBasedExtractor {
             Language::Ruby,
             include_str!("../../../entity_queries/ruby.scm").to_string()
         );
+        queries.insert(
+            Language::JavaScript,
+            include_str!("../../../entity_queries/javascript.scm").to_string()
+        );
+        queries.insert(
+            Language::TypeScript,
+            include_str!("../../../entity_queries/typescript.scm").to_string()
+        );
+        queries.insert(
+            Language::Go,
+            include_str!("../../../entity_queries/go.scm").to_string()
+        );
+        queries.insert(
+            Language::Java,
+            include_str!("../../../entity_queries/java.scm").to_string()
+        );
+        queries.insert(
+            Language::Php,
+            include_str!("../../../entity_queries/php.scm").to_string()
+        );
+        queries.insert(
+            Language::CSharp,
+            include_str!("../../../entity_queries/c_sharp.scm").to_string()
+        );
+        queries.insert(
+            Language::Swift,
+            include_str!("../../../entity_queries/swift.scm").to_string()
+        );
+        // NOTE: Kotlin temporarily disabled due to tree-sitter version incompatibility (0.20 vs 0.25)
+        // queries.insert(
+        //     Language::Kotlin,
+        //     include_str!("../../../entity_queries/kotlin.scm").to_string()
+        // );
 
         // Initialize parsers
         let mut parsers = HashMap::new();
@@ -110,6 +144,15 @@ impl QueryBasedExtractor {
         Self::init_parser(&mut parsers, Language::C, &tree_sitter_c::LANGUAGE.into())?;
         Self::init_parser(&mut parsers, Language::Cpp, &tree_sitter_cpp::LANGUAGE.into())?;
         Self::init_parser(&mut parsers, Language::Ruby, &tree_sitter_ruby::LANGUAGE.into())?;
+        Self::init_parser(&mut parsers, Language::JavaScript, &tree_sitter_javascript::LANGUAGE.into())?;
+        Self::init_parser(&mut parsers, Language::TypeScript, &tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into())?;
+        Self::init_parser(&mut parsers, Language::Go, &tree_sitter_go::LANGUAGE.into())?;
+        Self::init_parser(&mut parsers, Language::Java, &tree_sitter_java::LANGUAGE.into())?;
+        Self::init_parser(&mut parsers, Language::Php, &tree_sitter_php::LANGUAGE_PHP.into())?;
+        Self::init_parser(&mut parsers, Language::CSharp, &tree_sitter_c_sharp::LANGUAGE.into())?;
+        Self::init_parser(&mut parsers, Language::Swift, &tree_sitter_swift::LANGUAGE.into())?;
+        // NOTE: Kotlin temporarily disabled due to tree-sitter version incompatibility
+        // Self::init_parser(&mut parsers, Language::Kotlin, &tree_sitter_kotlin::language())?;
 
         Ok(Self { queries, parsers })
     }
@@ -282,6 +325,15 @@ impl QueryBasedExtractor {
             Language::C => tree_sitter_c::LANGUAGE.into(),
             Language::Cpp => tree_sitter_cpp::LANGUAGE.into(),
             Language::Ruby => tree_sitter_ruby::LANGUAGE.into(),
+            Language::JavaScript => tree_sitter_javascript::LANGUAGE.into(),
+            Language::TypeScript => tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
+            Language::Go => tree_sitter_go::LANGUAGE.into(),
+            Language::Java => tree_sitter_java::LANGUAGE.into(),
+            Language::Php => tree_sitter_php::LANGUAGE_PHP.into(),
+            Language::CSharp => tree_sitter_c_sharp::LANGUAGE.into(),
+            Language::Swift => tree_sitter_swift::LANGUAGE.into(),
+            // NOTE: Kotlin temporarily disabled due to tree-sitter version incompatibility
+            // Language::Kotlin => tree_sitter_kotlin::language(),
             _ => anyhow::bail!("Unsupported language: {:?}", language),
         })
     }
