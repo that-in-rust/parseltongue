@@ -638,6 +638,32 @@ impl CozoDbStorage {
         Ok(())
     }
 
+    /// Execute raw Datalog query and return results
+    ///
+    /// # Arguments
+    /// * `query` - Datalog query string
+    ///
+    /// # Returns
+    /// Query results as NamedRows (headers + rows)
+    ///
+    /// # Example
+    /// ```ignore
+    /// let result = storage.raw_query("?[key, value] := *CodeGraph{key, value}").await?;
+    /// for row in result.rows {
+    ///     println!("{:?}", row);
+    /// }
+    /// ```
+    pub async fn raw_query(&self, query: &str) -> Result<cozo::NamedRows> {
+        let result = self
+            .db
+            .run_script(query, Default::default(), ScriptMutability::Immutable)
+            .map_err(|e| ParseltongError::DatabaseError {
+                operation: "raw_query".to_string(),
+                details: format!("Datalog query failed: {}", e),
+            })?;
+        Ok(result)
+    }
+
     /// List all relations in the database
     pub async fn list_relations(&self) -> Result<Vec<String>> {
         let result = self

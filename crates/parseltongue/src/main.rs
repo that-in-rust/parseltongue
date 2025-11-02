@@ -196,7 +196,7 @@ async fn main() -> Result<()> {
 
 fn build_cli() -> Command {
     Command::new("parseltongue")
-        .version("1.0.0")
+        .version(env!("CARGO_PKG_VERSION"))
         .author("Parseltongue Team")
         .about("Ultra-minimalist CLI toolkit for code analysis and modification")
         .subcommand_required(false)
@@ -563,6 +563,9 @@ async fn run_llm_to_cozodb_writer(matches: &ArgMatches) -> Result<()> {
 }
 
 async fn run_pt02_level00(matches: &ArgMatches) -> Result<()> {
+    use pt02_llm_cozodb_to_context_writer::{CozoDbAdapter, Level0Exporter, LevelExporter, ExportConfig};
+    use std::path::PathBuf;
+
     let where_clause = matches.get_one::<String>("where-clause").unwrap();
     let output = matches.get_one::<String>("output").unwrap();
     let db = matches.get_one::<String>("db").unwrap();
@@ -575,19 +578,47 @@ async fn run_pt02_level00(matches: &ArgMatches) -> Result<()> {
         println!("  Output: {}", output);
     }
 
-    // TODO (v0.9.0): Connect to CozoDB and export edges
-    // For v0.8.5: Show that the command structure is ready
-    println!("{}", style("✓ PT02 Level 0 command structure ready").green());
-    println!("  Token estimate: ~2-5K tokens");
-    println!("  Use case: Pure dependency analysis, graph visualization");
-    println!("");
-    println!("{}", style("NOTE: Full CozoDB integration coming in v0.9.0").yellow());
-    println!("      For now, use standalone binary: ./target/release/pt02-level00");
+    // Connect to CozoDB
+    let db_adapter = CozoDbAdapter::connect(db).await
+        .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
+
+    // Create exporter and config
+    let exporter = Level0Exporter::new();
+    let config = ExportConfig {
+        level: 0,
+        include_code: false,
+        where_filter: where_clause.clone(),
+        output_path: PathBuf::from(output),
+        db_path: db.clone(),
+    };
+
+    if verbose {
+        println!("  Estimated tokens: ~{}", exporter.estimated_tokens());
+    }
+
+    // Execute export
+    let export_output = exporter.export(&db_adapter, &config).await
+        .map_err(|e| anyhow::anyhow!("Export failed: {}", e))?;
+
+    // Write to JSON file
+    let json = serde_json::to_string_pretty(&export_output)
+        .map_err(|e| anyhow::anyhow!("JSON serialization failed: {}", e))?;
+
+    std::fs::write(output, json)
+        .map_err(|e| anyhow::anyhow!("Failed to write file: {}", e))?;
+
+    println!("{}", style("✓ PT02 Level 0 export completed").green().bold());
+    println!("  Output file: {}", output);
+    println!("  Edges exported: {}", export_output.export_metadata.total_edges.unwrap_or(0));
+    println!("  Token estimate: ~{} tokens", exporter.estimated_tokens());
 
     Ok(())
 }
 
 async fn run_pt02_level01(matches: &ArgMatches) -> Result<()> {
+    use pt02_llm_cozodb_to_context_writer::{CozoDbAdapter, Level1Exporter, LevelExporter, ExportConfig};
+    use std::path::PathBuf;
+
     let include_code = matches.get_one::<String>("include-code").unwrap();
     let where_clause = matches.get_one::<String>("where-clause").unwrap();
     let output = matches.get_one::<String>("output").unwrap();
@@ -602,19 +633,51 @@ async fn run_pt02_level01(matches: &ArgMatches) -> Result<()> {
         println!("  Output: {}", output);
     }
 
-    // TODO (v0.9.0): Connect to CozoDB and export entities
-    println!("{}", style("✓ PT02 Level 1 command structure ready").green());
-    println!("  Token estimate: ~{}", if include_code == "1" { "500-700K" } else { "30K" });
-    println!("  Fields: 14 (isgl1_key, forward_deps, reverse_deps, temporal state, etc.)");
-    println!("  Use case: Code understanding, refactoring planning");
-    println!("");
-    println!("{}", style("NOTE: Full CozoDB integration coming in v0.9.0").yellow());
-    println!("      For now, use standalone binary: ./target/release/pt02-level01");
+    // Connect to CozoDB
+    let db_adapter = CozoDbAdapter::connect(db).await
+        .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
+
+    // Create exporter and config
+    let exporter = Level1Exporter::new();
+    let config = ExportConfig {
+        level: 1,
+        include_code: include_code == "1",
+        where_filter: where_clause.clone(),
+        output_path: PathBuf::from(output),
+        db_path: db.clone(),
+    };
+
+    let base_tokens = exporter.estimated_tokens();
+    let estimated = if config.include_code { base_tokens * 20 } else { base_tokens };
+
+    if verbose {
+        println!("  Estimated tokens: ~{}", estimated);
+    }
+
+    // Execute export
+    let export_output = exporter.export(&db_adapter, &config).await
+        .map_err(|e| anyhow::anyhow!("Export failed: {}", e))?;
+
+    // Write to JSON file
+    let json = serde_json::to_string_pretty(&export_output)
+        .map_err(|e| anyhow::anyhow!("JSON serialization failed: {}", e))?;
+
+    std::fs::write(output, json)
+        .map_err(|e| anyhow::anyhow!("Failed to write file: {}", e))?;
+
+    println!("{}", style("✓ PT02 Level 1 export completed").green().bold());
+    println!("  Output file: {}", output);
+    println!("  Entities exported: {}", export_output.export_metadata.total_entities.unwrap_or(0));
+    println!("  Token estimate: ~{} tokens", estimated);
+    println!("  Fields per entity: 14 (isgl1_key, forward_deps, reverse_deps, temporal state, etc.)");
 
     Ok(())
 }
 
 async fn run_pt02_level02(matches: &ArgMatches) -> Result<()> {
+    use pt02_llm_cozodb_to_context_writer::{CozoDbAdapter, Level2Exporter, LevelExporter, ExportConfig};
+    use std::path::PathBuf;
+
     let include_code = matches.get_one::<String>("include-code").unwrap();
     let where_clause = matches.get_one::<String>("where-clause").unwrap();
     let output = matches.get_one::<String>("output").unwrap();
@@ -629,14 +692,43 @@ async fn run_pt02_level02(matches: &ArgMatches) -> Result<()> {
         println!("  Output: {}", output);
     }
 
-    // TODO (v0.9.0): Connect to CozoDB and export entities with type info
-    println!("{}", style("✓ PT02 Level 2 command structure ready").green());
-    println!("  Token estimate: ~{}", if include_code == "1" { "500-700K" } else { "60K" });
-    println!("  Fields: 22 (all Level 1 + return_type, param_types, is_async, is_unsafe, etc.)");
-    println!("  Use case: Type-safe refactoring, API analysis, safety audits");
-    println!("");
-    println!("{}", style("NOTE: Full CozoDB integration coming in v0.9.0").yellow());
-    println!("      For now, use standalone binary: ./target/release/pt02-level02");
+    // Connect to CozoDB
+    let db_adapter = CozoDbAdapter::connect(db).await
+        .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
+
+    // Create exporter and config
+    let exporter = Level2Exporter::new();
+    let config = ExportConfig {
+        level: 2,
+        include_code: include_code == "1",
+        where_filter: where_clause.clone(),
+        output_path: PathBuf::from(output),
+        db_path: db.clone(),
+    };
+
+    let base_tokens = exporter.estimated_tokens();
+    let estimated = if config.include_code { base_tokens * 20 } else { base_tokens };
+
+    if verbose {
+        println!("  Estimated tokens: ~{}", estimated);
+    }
+
+    // Execute export
+    let export_output = exporter.export(&db_adapter, &config).await
+        .map_err(|e| anyhow::anyhow!("Export failed: {}", e))?;
+
+    // Write to JSON file
+    let json = serde_json::to_string_pretty(&export_output)
+        .map_err(|e| anyhow::anyhow!("JSON serialization failed: {}", e))?;
+
+    std::fs::write(output, json)
+        .map_err(|e| anyhow::anyhow!("Failed to write file: {}", e))?;
+
+    println!("{}", style("✓ PT02 Level 2 export completed").green().bold());
+    println!("  Output file: {}", output);
+    println!("  Entities exported: {}", export_output.export_metadata.total_entities.unwrap_or(0));
+    println!("  Token estimate: ~{} tokens", estimated);
+    println!("  Fields per entity: 22 (all L1 + return_type, param_types, trait_impls, is_async, is_unsafe, etc.)");
 
     Ok(())
 }

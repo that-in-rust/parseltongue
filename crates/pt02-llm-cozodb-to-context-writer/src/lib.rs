@@ -87,6 +87,7 @@
 #![allow(missing_docs)]
 
 pub mod cli;
+pub mod cozodb_adapter;
 pub mod errors;
 pub mod export_trait;
 pub mod exporters;
@@ -95,6 +96,7 @@ pub mod query_builder;
 
 // Re-export commonly used types
 pub use cli::Cli;
+pub use cozodb_adapter::CozoDbAdapter;
 pub use errors::*;
 pub use export_trait::{CodeGraphRepository, Edge, Entity, LevelExporter};
 pub use exporters::{Level0Exporter, Level1Exporter, Level2Exporter};

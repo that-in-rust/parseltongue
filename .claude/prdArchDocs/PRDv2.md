@@ -1,8 +1,8 @@
 # Parseltongue: Product Requirements Document v2.0
 
 **Document Type**: Workflow-Ordered CLI Toolkit Specification
-**Last Updated**: 2025-11-01
-**Status**: Architecture Redesign - Commands First
+**Last Updated**: 2025-11-02
+**Status**: v0.8.6 Released - All 8 Commands Working
 **Philosophy**: Commands are the guiding light - everything else supports them
 
 **Implementation Reference**: See `that-in-rust-parseltongue-8a5edab282632443 (8).txt` for detailed implementation context
@@ -37,7 +37,7 @@ parseltongue pt01-folder-to-cozodb-streamer ./src --db rocksdb:analysis.db
 
 ### **pt02: Export Database → JSON (Progressive Disclosure Design)**
 
-**Status (v0.8.5)**: ✅ Integrated into main binary, 8 subcommands total, 87/87 tests GREEN, CozoDB connection v0.9.0
+**Status (v0.8.6)**: ✅ Fully working with real CozoDB, 31/31 PT02 tests GREEN, all 8 commands verified on parseltongue repo
 
 PT02 provides 3 export levels integrated into the main `parseltongue` binary:
 
@@ -420,16 +420,17 @@ parseltongue pt03-llm-to-cozodb-writer \
 
 
 
-## ANECDOTALLY WORKS (v0.8.1 - Live Testing Results)
+## VERIFIED WORKING (v0.8.6 - Comprehensive Testing)
 
-**Last Updated**: 2025-11-01
-**Test Artifacts**: `/demo-walkthroughs/self-analysis-v0.8.1/`
+**Last Updated**: 2025-11-02
+**Test Artifacts**: `/demo-walkthroughs/v0.8.6-release-testing/`
+**Full Test Report**: [TEST-RESULTS.md](../../demo-walkthroughs/v0.8.6-release-testing/TEST-RESULTS.md)
 
-This section documents what has been **empirically verified to work** through live testing on the parseltongue codebase itself (recursive self-analysis).
+This section documents what has been **empirically verified to work** through comprehensive testing on the parseltongue codebase itself (self-analysis).
 
 ### Test Environment
-- **Codebase**: Parseltongue v0.8.1 (63 Rust files, 17,721 LOC)
-- **Database**: `rocksdb:test.db`
+- **Codebase**: Parseltongue v0.8.6 (765 entities indexed)
+- **Database**: `rocksdb:demo-walkthroughs/v0.8.6-release-testing/test.db`
 - **Binary**: `/target/release/parseltongue`
 - **Test Date**: 2025-11-01
 

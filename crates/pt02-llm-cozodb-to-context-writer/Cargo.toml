@@ -11,6 +11,7 @@ rust-version.workspace = true
 [dependencies]
 # Core dependencies (L1)
 parseltongue-core = { path = "../parseltongue-core" }
+cozo.workspace = true  # For CozoDB adapter
 
 # Error handling (S01 principle #6)
 anyhow.workspace = true        # For application errors (main.rs)
