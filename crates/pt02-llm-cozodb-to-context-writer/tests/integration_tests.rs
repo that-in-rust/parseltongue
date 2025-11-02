@@ -18,6 +18,7 @@ use anyhow::Result;
 use pt02_llm_cozodb_to_context_writer::{
     models::{ExportConfig, ExportOutput},
     export_trait::{CodeGraphRepository, Edge, Entity, LevelExporter},
+    exporters::{Level0Exporter, Level1Exporter, Level2Exporter},
 };
 use std::path::PathBuf;
 use async_trait::async_trait;
@@ -204,41 +205,6 @@ impl CodeGraphRepository for IntegrationMockDatabase {
 
         Ok(filtered)
     }
-}
-
-// ============================================================================
-// Stub Exporters (Phase 2: RED)
-// ============================================================================
-
-struct Level0Exporter;
-struct Level1Exporter;
-struct Level2Exporter;
-
-#[async_trait]
-impl LevelExporter for Level0Exporter {
-    async fn export(&self, _db: &dyn CodeGraphRepository, _config: &ExportConfig) -> Result<ExportOutput> {
-        todo!("Level 0 export implementation (Phase 3)")
-    }
-    fn level(&self) -> u8 { 0 }
-    fn estimated_tokens(&self) -> usize { 5_000 }
-}
-
-#[async_trait]
-impl LevelExporter for Level1Exporter {
-    async fn export(&self, _db: &dyn CodeGraphRepository, _config: &ExportConfig) -> Result<ExportOutput> {
-        todo!("Level 1 export implementation (Phase 3)")
-    }
-    fn level(&self) -> u8 { 1 }
-    fn estimated_tokens(&self) -> usize { 30_000 }
-}
-
-#[async_trait]
-impl LevelExporter for Level2Exporter {
-    async fn export(&self, _db: &dyn CodeGraphRepository, _config: &ExportConfig) -> Result<ExportOutput> {
-        todo!("Level 2 export implementation (Phase 4)")
-    }
-    fn level(&self) -> u8 { 2 }
-    fn estimated_tokens(&self) -> usize { 60_000 }
 }
 
 // ============================================================================
@@ -534,7 +500,7 @@ async fn test_integration_level2_filter_async_functions() {
     // Verify JSON contains expected async function
     let json = serde_json::to_string(&output).unwrap();
     assert!(json.contains("export_level1"));
-    assert!(json.contains("\"is_async\": true"));
+    assert!(json.contains("\"is_async\":true") || json.contains("\"is_async\": true"));
 }
 
 // ============================================================================
