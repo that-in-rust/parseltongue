@@ -14,8 +14,8 @@
 
 | Level | Tokens | Use When |
 |-------|--------|----------|
-| **Level 0** | 2-5K | "What depends on what?" |
-| **Level 1** | 30K | "How do I refactor this?" ← **START HERE** |
+| **Level 0** | 2-5K | "What depends on what?" ← **RECOMMENDED** (essence of ISG) |
+| **Level 1** | 30K | "How do I refactor this?" |
 | **Level 2** | 60K | "Is this type-safe?" |
 | **Level 1 + code** | 500-700K | "Show me the implementation" (rarely!) |
 
@@ -50,15 +50,16 @@ parseltongue pt01-folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --
 
 Three levels, one goal: **Give LLMs exactly what they need, nothing more**.
 
-### PT02-Level00: Pure Edge List
+### PT02-Level00: Pure Edge List (RECOMMENDED)
 ```bash
 parseltongue pt02-level00 --where-clause "ALL" --output edges.json
 ```
 - **Tokens**: ~2-5K
-- **Use case**: "What depends on what?" - Pure dependency analysis
+- **Use case**: "What depends on what?" - Pure dependency analysis (essence of ISG)
 - **Output**: Just edges (from_key, to_key, edge_type)
+- **Why RECOMMENDED**: The dependency graph IS the Interface Signature Graph's core value
 
-### PT02-Level01: Entity + ISG + Temporal (RECOMMENDED)
+### PT02-Level01: Entity + ISG + Temporal
 ```bash
 # Signatures only (CHEAP)
 parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output entities.json

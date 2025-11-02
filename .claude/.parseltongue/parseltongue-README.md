@@ -16,8 +16,8 @@ graph LR
     end
 
     subgraph LEVELS["Progressive Disclosure"]
-        L0["Level 0<br/>Pure Edges<br/>2-5K tokens"]
-        L1["Level 1<br/>Signatures<br/>~30K tokens<br/>RECOMMENDED"]
+        L0["Level 0<br/>Pure Edges<br/>2-5K tokens<br/>RECOMMENDED"]
+        L1["Level 1<br/>Signatures<br/>~30K tokens"]
         L2["Level 2<br/>+ Type System<br/>~60K tokens"]
         L0 -.-> L1 -.-> L2
     end
@@ -33,12 +33,14 @@ graph LR
     ISG ==> LEVELS
     LEVELS ==> OUTCOME
 
-    style L1 stroke-width:3px
+    style L0 stroke-width:3px
 ```
 
 **LLM-friendly code analysis toolkit** powered by **Interface Signature Graphs (ISG)** - Transform your codebase from unstructured text into a queryable, semantic graph. Export context at the right level of detail (2-60K tokens instead of 500K+), enabling LLMs to reason about architecture and make precise modifications across large-scale systems.
 
-**v0.8.7**: Single binary, 8 tools, real CozoDB backend. Progressive disclosure exports. **Production ready!**
+**v0.8.8**: Multi-language query-based extraction for 12 languages! **Production ready!**
+- **v0.8.8 Feature**: Query-based entity extraction for Rust, Python, C, C++, Ruby, JavaScript, TypeScript, Go, Java, PHP, C#, Swift
+- **67% code reduction** vs imperative approach using industry-standard .scm query files
 - **v0.8.7 Bug Fix**: pt02-level00 now works with zero-dependency codebases (DependencyEdges table always created)
 
 ---
