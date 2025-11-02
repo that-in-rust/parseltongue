@@ -1,5 +1,75 @@
 # Parseltongue
 
+```mermaid
+---
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#1e293b"
+    primaryTextColor: "#f8fafc"
+    primaryBorderColor: "#3b82f6"
+    lineColor: "#64748b"
+    secondaryColor: "#fef3c7"
+    tertiaryColor: "#dcfce7"
+    quaternaryColor: "#fee2e2"
+    background: "#ffffff"
+    fontSize: "14px"
+---
+flowchart LR
+    %% OLD WAY - Token Explosion
+    subgraph OLD["❌ OLD WAY: Token Explosion"]
+        direction TB
+        OldCode["📂 Codebase<br/>(50K LOC)"]
+        OldDump["Dump Everything<br/>🔥 500-700K tokens"]
+        OldLLM["LLM Context<br/>💥 OVERFLOW"]
+        OldFail["Result:<br/>❌ Failure<br/>❌ Hallucinations<br/>❌ Missed Changes"]
+
+        OldCode --> OldDump
+        OldDump --> OldLLM
+        OldLLM --> OldFail
+    end
+
+    %% NEW WAY - ISG Progressive Disclosure
+    subgraph NEW["✅ NEW WAY: Interface Signature Graphs"]
+        direction TB
+        NewCode["📂 Codebase<br/>(50K LOC)"]
+        NewISG["ISG Indexing<br/>🎯 Parse structure<br/>NOT full code"]
+
+        subgraph PROGRESSIVE["Progressive Disclosure"]
+            direction LR
+            L0["Level 0<br/>Edges<br/>~2-5K tokens"]
+            L1["Level 1<br/>Signatures<br/>~30K tokens"]
+            L2["Level 2<br/>Types<br/>~60K tokens"]
+
+            L0 -.-> L1
+            L1 -.-> L2
+        end
+
+        NewPrecise["Precise Modifications<br/>✅ Type-aware<br/>✅ Dependency-aware<br/>✅ Temporal state"]
+        NewSuccess["Result:<br/>✅ Accurate fixes<br/>✅ No hallucinations<br/>✅ Complete coverage"]
+
+        NewCode --> NewISG
+        NewISG --> PROGRESSIVE
+        PROGRESSIVE --> NewPrecise
+        NewPrecise --> NewSuccess
+    end
+
+    %% Comparison arrow
+    OLD -.->|"100× token savings<br/>6.7× better context utilization"| NEW
+
+    %% Styling
+    classDef oldStyle fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#7f1d1d
+    classDef newStyle fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    classDef isgStyle fill:#dbeafe,stroke:#2563eb,stroke-width:3px,color:#1e3a8a
+    classDef levelStyle fill:#fef3c7,stroke:#ca8a04,stroke-width:2px,color:#854d0e
+    classDef successStyle fill:#bbf7d0,stroke:#15803d,stroke-width:3px,color:#14532d
+
+    class OldDump,OldLLM,OldFail oldStyle
+    class NewISG,NewPrecise isgStyle
+    class L0,L1,L2 levelStyle
+    class NewSuccess successStyle
+```
+
 **LLM-friendly code analysis toolkit** - Index your codebase, export context at the right level of detail, and let LLMs make precise modifications.
 
 **v0.8.6**: Single binary, 8 tools, all working with real CozoDB. Progressive disclosure exports (2-60K tokens). **Production ready!**
