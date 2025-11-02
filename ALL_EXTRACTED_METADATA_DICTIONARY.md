@@ -9,8 +9,68 @@
 
 # amuldotexe's recommendation
 
-- 
+## Legacy queries to be continued or reimplemented
 
+## New variables to be implemented
+
+1. Dependency Graphs ARE NON-NEGOTIABLE
+
+
+| Variable | Type | Size (bytes) | Description | Nullable | Derivable | Example |
+|----------|------|--------------|-------------|----------|-----------|---------|
+| **from_key** | String | ~60 | Source entity ISGL1 key | No | No | `rust:fn:main:src_main_rs:1-10` |
+| **to_key** | String | ~60 | Target entity ISGL1 key | No | No | `rust:fn:helper:src_lib_rs:20-30` |
+| **edge_type** | Enum | ~8 | Relationship type: Calls, Uses, Implements | No | No | `Calls` |
+| **source_location** | String | ~20 | Where relationship occurs in source | Yes | No | `src/main.rs:5` |
+
+
+2. Temporal State Variables (HIGH Criticality) ARE NON-NEGOTIABLE
+
+**Source**: `CodeGraph.temporal_state` (TemporalState struct)
+**Extracted by**: PT01 (initial), PT03 (updates during planning)
+**Size**: ~12 bytes per entity
+
+
+| Variable | Type | Size (bytes) | Description | Nullable | Derivable | Example |
+|----------|------|--------------|-------------|----------|-----------|---------|
+| **current_ind** | Boolean | ~1 | Entity exists in current state | No | No | `true` |
+| **future_ind** | Boolean | ~1 | Entity will exist in future state | No | No | `true` |
+| **future_action** | Enum | ~10 | Planned action: Create, Edit, Delete | Yes | No | `Edit` |
+
+**Total per entity**: ~12 bytes
+**Criticality**: **HIGH** - Essential for change planning and temporal queries
+
+Temporal State Combinations:
+
+| current_ind | future_ind | future_action | Meaning |
+|-------------|------------|---------------|---------|
+| true | true | None | Unchanged entity |
+| true | true | Edit | Entity will be modified |
+| true | false | Delete | Entity will be removed |
+| false | true | Create | Entity will be added |
+| true | false | None | ❌ Invalid state |
+| false | false | * | ❌ Invalid state |
+
+Why HIGH Criticality:
+- **Change detection**: Find all modified entities
+- **Test planning**: Which entities need new/updated tests
+- **Blast radius**: Only changed entities trigger downstream impacts
+- **Rollback**: Distinguish current vs future state
+- **Small size**: Only 12 bytes, huge value
+
+3. TDD Classification Core Variable
+
+**Source**: `CodeGraph.TDD_Classification` (TddClassification struct)
+**Extracted by**: PT01 (initial defaults), PT03 (analysis updates)
+
+
+| Variable | Type | Size (bytes) | Criticality | Description | Default | Example |
+|----------|------|--------------|-------------|-------------|---------|---------|
+| **entity_class** | Enum | ~4 | **HIGH** | TestImplementation or CodeImplementation | CodeImplementation | `CodeImplementation` |
+
+
+
+# Longer Documentation for reference ONLY
 
 ## Table of Contents
 
@@ -40,21 +100,6 @@
 | **LOW** | Full | Complete metadata including LSP tokens, timestamps, language details. | ~170-200KB for 590 entities | IDE features, comprehensive analysis, debugging |
 | **BULK** | With Code | Includes full source code (`current_code`, `future_code`). | ~400-450KB for 590 entities | Code generation, detailed debugging |
 
-### Export Preset Recommendations
-
-```bash
-# Essential (HIGH only) - Default
-pt02 --db test.db --output graph.json --export-level essential
-
-# Standard (HIGH + MEDIUM)
-pt02 --db test.db --output context.json --export-level standard
-
-# Full (HIGH + MEDIUM + LOW)
-pt02 --db test.db --output full.json --export-level full
-
-# With Code (Everything + source code)
-pt02 --db test.db --output with-code.json --export-level bulk
-```
 
 ---
 
