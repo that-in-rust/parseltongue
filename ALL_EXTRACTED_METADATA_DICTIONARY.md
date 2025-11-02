@@ -9,6 +9,21 @@
 
 # amuldotexe's Implementation Priorities
 
+## Command List new
+
+Current approach of
+`/crates/pt02-llm-cozodb-to-context-writer/src/main.rs:76-159`
+- is Dual interface: Simple (--include-current-code + --where) + Advanced (--query)
+
+SimpleQuery means
+- you can pick if --include-current-code + --where flags where both are mandatory even default values have to be entered because LLMs need to know they want everything explicit
+
+AdvancedQuery means
+- you use --query and it overrides both --where --include-current-code flags even if you mention them - the datalog query is the only thing that matters 
+
+NewSimpleQuery
+1. pt02-llm-cozodb-to-context-writer-
+
 
 
 ## RAW variable info 
