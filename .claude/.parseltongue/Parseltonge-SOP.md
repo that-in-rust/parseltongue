@@ -2,7 +2,7 @@
 
 **Purpose**: Smart query patterns for using Parseltongue without token explosion.
 
-**Updated**: v0.8.5 - Progressive Disclosure Design
+**Updated**: v0.8.7 - Bug fix: pt02-level00 with zero dependencies
 
 ---
 
@@ -46,7 +46,7 @@ parseltongue pt01-folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --
 
 ---
 
-## TOOL 2: PT02 PROGRESSIVE DISCLOSURE (v0.8.5)
+## TOOL 2: PT02 PROGRESSIVE DISCLOSURE (v0.8.7)
 
 Three levels, one goal: **Give LLMs exactly what they need, nothing more**.
 
@@ -84,7 +84,7 @@ parseltongue pt02-level02 --include-code 0 --where-clause "is_unsafe = true" --o
 
 ---
 
-## DATALOG QUERY PATTERNS (v0.8.5)
+## DATALOG QUERY PATTERNS (v0.8.7)
 
 ### Pattern 1: Overview Without Code (DEFAULT - SAFE!)
 

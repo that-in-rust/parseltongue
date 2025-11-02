@@ -444,16 +444,18 @@ impl FileStreamer for FileStreamerImpl {
             }
         }
 
+        // ALWAYS create DependencyEdges schema, even if no dependencies
+        // This ensures pt02-level00 can query the table (returns empty array if no edges)
+        // Bug fix: Previously only created schema if dependencies.is_empty() == false
+        if let Err(e) = self.db.create_dependency_edges_schema().await {
+            // Schema might already exist - that's ok
+            if !e.to_string().contains("already exists") && !e.to_string().contains("conflicts with an existing") {
+                errors.push(format!("Failed to create dependency schema: {}", e));
+            }
+        }
+
         // Batch insert dependencies after all entities are stored
         if !dependencies.is_empty() {
-            // First need to create schema for dependencies if not exists
-            if let Err(e) = self.db.create_dependency_edges_schema().await {
-                // Schema might already exist - that's ok
-                if !e.to_string().contains("already exists") && !e.to_string().contains("conflicts with an existing") {
-                    errors.push(format!("Failed to create dependency schema: {}", e));
-                }
-            }
-
             // Insert dependency edges
             match self.db.insert_edges_batch(&dependencies).await {
                 Ok(_) => {

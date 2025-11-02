@@ -1,86 +1,45 @@
 # Parseltongue
 
 ```mermaid
----
-config:
-  theme: base
-  themeVariables:
-    primaryColor: "#ffffff"
-    primaryTextColor: "#000000"
-    primaryBorderColor: "#000000"
-    lineColor: "#000000"
-    secondaryColor: "#ffffff"
-    background: "#ffffff"
-    fontSize: "13px"
----
-flowchart TB
-    %% The Problem
+graph LR
     subgraph PROBLEM["The Context Window Problem"]
-        direction TB
-        CODE["Codebase: 50,000 lines of code"]
-        DUMP["Traditional Approach: Dump all code as text"]
-        TOKENS["Result: 500,000+ tokens → Context Overflow"]
-
-        CODE --> DUMP
-        DUMP --> TOKENS
+        P1["50,000 LOC codebase"]
+        P2["Dump as text"]
+        P3["500K+ tokens"]
+        P1 --> P2 --> P3
     end
 
-    %% The Solution: ISG
-    subgraph ISG["Interface Signature Graph (ISG): Structured Semantic Representation"]
-        direction TB
-
-        PARSE["Parse codebase into graph structure"]
-
-        subgraph CAPTURES["What ISG Captures"]
-            direction LR
-            C1["Unique IDs<br/>Every function/struct"]
-            C2["Dependencies<br/>Calls, imports, traits"]
-            C3["Metadata<br/>Types, signatures"]
-            C4["Relationships<br/>Blast radius analysis"]
-        end
-
-        PARSE --> CAPTURES
+    subgraph ISG["Interface Signature Graph"]
+        I1["Parse codebase<br/>into graph"]
+        I2["Unique IDs<br/>Dependencies<br/>Metadata<br/>Relationships"]
+        I1 --> I2
     end
 
-    %% Progressive Disclosure
-    subgraph DISCLOSURE["Progressive Disclosure: Choose Your Detail Level"]
-        direction TB
-
-        L0["Level 0: Pure Edges<br/>Just dependency graph<br/>2-5K tokens<br/>Use: 'What depends on what?'"]
-        L1["Level 1: Signatures + ISG<br/>Function signatures, no bodies<br/>~30K tokens<br/>Use: 'How do I refactor?' (RECOMMENDED)"]
-        L2["Level 2: + Type System<br/>Full type information<br/>~60K tokens<br/>Use: 'Is this type-safe?'"]
-
-        L0 -.->|Add signatures| L1
-        L1 -.->|Add type details| L2
+    subgraph LEVELS["Progressive Disclosure"]
+        L0["Level 0<br/>Pure Edges<br/>2-5K tokens"]
+        L1["Level 1<br/>Signatures<br/>~30K tokens<br/>RECOMMENDED"]
+        L2["Level 2<br/>+ Type System<br/>~60K tokens"]
+        L0 -.-> L1 -.-> L2
     end
 
-    %% The Outcome
-    subgraph OUTCOME["Outcome: LLM-Friendly Context"]
-        direction TB
-        COMPRESSED["100x token reduction<br/>Structure over raw text"]
-        REASONING["LLM reasons about<br/>architecture, not boilerplate"]
-        RESULT["Accurate code changes<br/>across entire codebase"]
-
-        COMPRESSED --> REASONING
-        REASONING --> RESULT
+    subgraph OUTCOME["LLM-Friendly Context"]
+        O1["100x token<br/>reduction"]
+        O2["Architectural<br/>reasoning"]
+        O3["Precise code<br/>changes"]
+        O1 --> O2 --> O3
     end
 
-    %% Flow
     PROBLEM ==> ISG
-    ISG ==> DISCLOSURE
-    DISCLOSURE ==> OUTCOME
+    ISG ==> LEVELS
+    LEVELS ==> OUTCOME
 
-    %% Simple styling - no colors, just borders
-    classDef defaultStyle fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
-    classDef emphasisStyle fill:#ffffff,stroke:#000000,stroke-width:3px,color:#000000
-
-    class PROBLEM,ISG,DISCLOSURE,OUTCOME defaultStyle
-    class L1 emphasisStyle
+    style L1 stroke-width:3px
 ```
 
 **LLM-friendly code analysis toolkit** powered by **Interface Signature Graphs (ISG)** - Transform your codebase from unstructured text into a queryable, semantic graph. Export context at the right level of detail (2-60K tokens instead of 500K+), enabling LLMs to reason about architecture and make precise modifications across large-scale systems.
 
-**v0.8.6**: Single binary, 8 tools, real CozoDB backend. Progressive disclosure exports. **Production ready!**
+**v0.8.7**: Single binary, 8 tools, real CozoDB backend. Progressive disclosure exports. **Production ready!**
+- **v0.8.7 Bug Fix**: pt02-level00 now works with zero-dependency codebases (DependencyEdges table always created)
 
 ---
 
@@ -100,33 +59,18 @@ The ISG is Parseltongue's foundational innovation: a **structured, semantic repr
 ## Workflow: 5 Phases from Code to Fix
 
 ```mermaid
----
-config:
-  theme: base
-  themeVariables:
-    primaryColor: "#ffffff"
-    primaryTextColor: "#000000"
-    primaryBorderColor: "#000000"
-    lineColor: "#000000"
-    secondaryColor: "#ffffff"
-    background: "#ffffff"
-    fontSize: "13px"
----
-flowchart LR
-    P1["Phase 1: Index<br/>pt01-folder-to-cozodb-streamer<br/>Parse codebase → ISG<br/>~30s for 50K LOC"]
-    P2["Phase 2: Export<br/>pt02-level01<br/>Export signatures<br/>Choose detail level"]
-    P3["Phase 3: Edit<br/>pt03-llm-to-cozodb-writer<br/>Mark changes in ISG<br/>Temporal versioning"]
-    P4["Phase 4: Validate<br/>pt04 (syntax check)<br/>pt05 (generate diff)<br/>Apply & test changes"]
-    P5["Phase 5: Reset<br/>pt06-cozodb-make-future-code-current<br/>Update ISG state<br/>Commit changes"]
+graph LR
+    P1["Phase 1: Index<br/>pt01-folder-to-cozodb-streamer<br/>Parse codebase → ISG"]
+    P2["Phase 2: Export<br/>pt02-level00/01/02<br/>Choose detail level"]
+    P3["Phase 3: Edit<br/>pt03-llm-to-cozodb-writer<br/>Mark temporal changes"]
+    P4["Phase 4: Validate<br/>pt04 (syntax)<br/>pt05 (diff)"]
+    P5["Phase 5: Reset<br/>pt06-cozodb-make-future-code-current<br/>Update ISG state"]
 
     P1 --> P2
     P2 --> P3
     P3 --> P4
     P4 --> P5
-    P4 -.->|"Validation<br/>fails"| P3
-
-    classDef phaseStyle fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
-    class P1,P2,P3,P4,P5 phaseStyle
+    P4 -.->|validation fails| P3
 ```
 
 **End-to-end flow**: Index codebase once → Export what you need → Edit in ISG → Validate & apply → Reset state. Iterate Phase 3-4 until tests pass.
@@ -143,7 +87,7 @@ curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/inst
 ```
 
 **What it does:**
-1. ✅ Downloads `parseltongue` binary (v0.8.6) to current directory
+1. ✅ Downloads `parseltongue` binary (v0.8.7) to current directory
 2. ✅ Creates `.claude/.parseltongue/` folder
 3. ✅ Downloads README and SOP docs
 4. ✅ Verifies installation
@@ -200,9 +144,9 @@ curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude
 git clone https://github.com/that-in-rust/parseltongue
 cd parseltongue
 
-# Use the included binary (already v0.8.6)
+# Use the included binary (already v0.8.7)
 ./parseltongue-macos-arm64 --version
-# Expected: parseltongue 0.8.6
+# Expected: parseltongue 0.8.7
 
 # All commands available
 ./parseltongue-macos-arm64 --help
@@ -213,17 +157,17 @@ cd parseltongue
 ```bash
 cargo build --release
 ./target/release/parseltongue --version
-# Expected: parseltongue 0.8.6
+# Expected: parseltongue 0.8.7
 ```
 
 **⚠️ CRITICAL: Verify Version**
 
-Always run `--version` first. If you don't see `0.8.6`, you're missing critical features:
+Always run `--version` first. If you don't see `0.8.7`, you're missing critical features:
 - ❌ No pt02-level00/01/02 (progressive disclosure)
 - ❌ Wrong command names (folder-to-cozodb-streamer instead of pt01-folder-to-cozodb-streamer)
 - ❌ Missing ~100× token savings from progressive disclosure
 
-The repository binary is now synchronized with v0.8.6 release (as of 2025-11-02).
+The repository binary is now synchronized with v0.8.7 release (as of 2025-11-03).
 
 ---
 
@@ -447,7 +391,7 @@ parseltongue pt01-folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --
 
 ### pt02: Export Database → JSON (Progressive Disclosure)
 
-**Status (v0.8.6):** ✅ Fully integrated into main binary, 31/31 tests GREEN, working with real CozoDB **NOW**
+**Status (v0.8.7):** ✅ Fully integrated into main binary, 31/31 tests GREEN, working with real CozoDB **NOW**
 
 PT02 provides 3 export levels following progressive disclosure principles:
 

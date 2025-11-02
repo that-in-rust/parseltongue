@@ -6,7 +6,7 @@ set -e
 
 REPO="that-in-rust/parseltongue"
 BINARY_NAME="parseltongue"
-VERSION="0.8.6"
+VERSION="0.8.7"
 
 echo "🔧 Installing Parseltongue v${VERSION}..."
 
