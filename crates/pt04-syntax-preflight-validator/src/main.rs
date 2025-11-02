@@ -5,6 +5,7 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 use console::style;
+use parseltongue_core::entities::Language;
 use parseltongue_core::storage::CozoDbStorage;
 use pt04_syntax_preflight_validator::SimpleSyntaxValidator;
 
@@ -69,7 +70,15 @@ async fn main() -> Result<()> {
 
     for entity in &changed_entities {
         if let Some(future_code) = &entity.future_code {
-            match validator.validate_syntax(future_code) {
+            // Extract language from ISGL1 key (format: language:type:name:path:range)
+            let language = entity.isgl1_key.split(':').next()
+                .and_then(|lang_str| match lang_str {
+                    "rust" => Some(Language::Rust),
+                    _ => Some(Language::Rust), // Default to Rust for now
+                })
+                .unwrap_or(Language::Rust);
+
+            match validator.validate_syntax(future_code, language) {
                 Ok(result) => {
                     if result.is_valid {
                         valid_count += 1;

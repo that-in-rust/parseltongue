@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
-use tree_sitter::{Language as TreeSitterLanguage, Parser, Tree};
+use tree_sitter::{Parser, Tree};
 use parseltongue_core::entities::{Language, DependencyEdge, EdgeType};
 use crate::errors::*;
 
@@ -75,20 +75,21 @@ impl Isgl1KeyGeneratorImpl {
         }
 
         // Initialize all language parsers
-        // LanguageFn implements AsRef<Language>, pass constants directly to set_language
-        init_parser!(Language::Rust, &tree_sitter_rust::LANGUAGE);
-        init_parser!(Language::Python, &tree_sitter_python::LANGUAGE);
-        init_parser!(Language::JavaScript, &tree_sitter_javascript::LANGUAGE);
-        init_parser!(Language::TypeScript, &tree_sitter_typescript::LANGUAGE_TYPESCRIPT);
-        init_parser!(Language::Go, &tree_sitter_go::LANGUAGE);
-        init_parser!(Language::Java, &tree_sitter_java::LANGUAGE);
-        init_parser!(Language::Cpp, &tree_sitter_cpp::LANGUAGE);
-        init_parser!(Language::Ruby, &tree_sitter_ruby::LANGUAGE);
-        init_parser!(Language::Php, &tree_sitter_php::LANGUAGE_PHP);
-        init_parser!(Language::CSharp, &tree_sitter_c_sharp::LANGUAGE);
-        init_parser!(Language::Swift, &tree_sitter_swift::LANGUAGE);
-        init_parser!(Language::Kotlin, &tree_sitter_kotlin::language());
-        init_parser!(Language::Scala, &tree_sitter_scala::LANGUAGE);
+        // LanguageFn must be converted to Language using .into() for tree-sitter 0.24+
+        init_parser!(Language::Rust, &tree_sitter_rust::LANGUAGE.into());
+        init_parser!(Language::Python, &tree_sitter_python::LANGUAGE.into());
+        init_parser!(Language::JavaScript, &tree_sitter_javascript::LANGUAGE.into());
+        init_parser!(Language::TypeScript, &tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into());
+        init_parser!(Language::Go, &tree_sitter_go::LANGUAGE.into());
+        init_parser!(Language::Java, &tree_sitter_java::LANGUAGE.into());
+        init_parser!(Language::Cpp, &tree_sitter_cpp::LANGUAGE.into());
+        init_parser!(Language::Ruby, &tree_sitter_ruby::LANGUAGE.into());
+        init_parser!(Language::Php, &tree_sitter_php::LANGUAGE_PHP.into());
+        init_parser!(Language::CSharp, &tree_sitter_c_sharp::LANGUAGE.into());
+        init_parser!(Language::Swift, &tree_sitter_swift::LANGUAGE.into());
+        // Note: Kotlin not supported in v0.8.7 - tree-sitter-kotlin v0.3 uses incompatible tree-sitter 0.20
+        // Will be added when tree-sitter-kotlin updates to 0.24+
+        init_parser!(Language::Scala, &tree_sitter_scala::LANGUAGE.into());
 
         Self { parsers }
     }
