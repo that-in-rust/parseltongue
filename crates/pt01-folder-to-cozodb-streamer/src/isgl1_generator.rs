@@ -50,8 +50,6 @@ pub enum EntityType {
 
 /// ISGL1 key generator implementation using tree-sitter
 pub struct Isgl1KeyGeneratorImpl {
-    rust_language: TreeSitterLanguage,
-    python_language: Option<TreeSitterLanguage>,
     parsers: HashMap<Language, Arc<Mutex<Parser>>>,
 }
 
@@ -62,22 +60,37 @@ impl Default for Isgl1KeyGeneratorImpl {
 }
 
 impl Isgl1KeyGeneratorImpl {
-    /// Create new ISGL1 key generator
+    /// Create new ISGL1 key generator with support for 13 languages
     pub fn new() -> Self {
-        let mut generators = HashMap::new();
+        let mut parsers = HashMap::new();
 
-        // Initialize Rust parser
-        let mut rust_parser = Parser::new();
-        rust_parser
-            .set_language(tree_sitter_rust::language())
-            .expect("Error loading Rust grammar");
-        generators.insert(Language::Rust, Arc::new(Mutex::new(rust_parser)));
-
-        Self {
-            rust_language: tree_sitter_rust::language(),
-            python_language: None, // TODO: Add Python support
-            parsers: generators,
+        // Helper macro to initialize parser for a language
+        macro_rules! init_parser {
+            ($lang:expr, $grammar:expr) => {
+                let mut parser = Parser::new();
+                if parser.set_language($grammar).is_ok() {
+                    parsers.insert($lang, Arc::new(Mutex::new(parser)));
+                }
+            };
         }
+
+        // Initialize all language parsers
+        // LanguageFn implements AsRef<Language>, pass constants directly to set_language
+        init_parser!(Language::Rust, &tree_sitter_rust::LANGUAGE);
+        init_parser!(Language::Python, &tree_sitter_python::LANGUAGE);
+        init_parser!(Language::JavaScript, &tree_sitter_javascript::LANGUAGE);
+        init_parser!(Language::TypeScript, &tree_sitter_typescript::LANGUAGE_TYPESCRIPT);
+        init_parser!(Language::Go, &tree_sitter_go::LANGUAGE);
+        init_parser!(Language::Java, &tree_sitter_java::LANGUAGE);
+        init_parser!(Language::Cpp, &tree_sitter_cpp::LANGUAGE);
+        init_parser!(Language::Ruby, &tree_sitter_ruby::LANGUAGE);
+        init_parser!(Language::Php, &tree_sitter_php::LANGUAGE_PHP);
+        init_parser!(Language::CSharp, &tree_sitter_c_sharp::LANGUAGE);
+        init_parser!(Language::Swift, &tree_sitter_swift::LANGUAGE);
+        init_parser!(Language::Kotlin, &tree_sitter_kotlin::language());
+        init_parser!(Language::Scala, &tree_sitter_scala::LANGUAGE);
+
+        Self { parsers }
     }
 
     /// Generate ISGL1 key format: {language}:{type}:{name}:{location}
@@ -139,20 +152,20 @@ impl Isgl1KeyGenerator for Isgl1KeyGeneratorImpl {
     }
 
     fn get_language_type(&self, file_path: &Path) -> Result<Language> {
-        match file_path.extension().and_then(|s| s.to_str()) {
-            Some("rs") => Ok(Language::Rust),
-            Some("py") => {
-                if self.python_language.is_some() {
-                    Ok(Language::Python)
-                } else {
-                    Err(StreamerError::UnsupportedFileType {
-                        path: file_path.to_string_lossy().to_string(),
-                    })
-                }
-            }
-            _ => Err(StreamerError::UnsupportedFileType {
+        // Use Language::from_file_path to detect language from extension
+        let path_buf = file_path.to_path_buf();
+        let language = Language::from_file_path(&path_buf)
+            .ok_or_else(|| StreamerError::UnsupportedFileType {
                 path: file_path.to_string_lossy().to_string(),
-            }),
+            })?;
+
+        // Verify we have a parser for this language
+        if self.parsers.contains_key(&language) {
+            Ok(language)
+        } else {
+            Err(StreamerError::UnsupportedFileType {
+                path: file_path.to_string_lossy().to_string(),
+            })
         }
     }
 }
