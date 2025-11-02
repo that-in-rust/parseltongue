@@ -1012,21 +1012,20 @@ pt02-llm-cozodb-to-context-writer \
 - ❌ 7-field TDD classification (6 are defaults)
 - ❌ Temporal state (internal DB state)
 - ❌ Redundant file paths (derivable from ISGL1 key)
-- ❌ LSP metadata (query-on-demand via --query)
+- ❌ LSP metadata (**planned but not implemented** - PT01 LSP client is stubbed)
 
 ---
 
-#### Optional Enrichment: ISG + LSP Data via --query
+#### Optional Enrichment: ISG Data via --query
 
 **For advanced use cases needing full ISG**:
 ```bash
 pt02 --db rocksdb:test.db --output rich.json \
   --query "
-    ?[key, name, type, deps, signature, lsp] :=
+    ?[key, name, type, deps, signature] :=
       *CodeGraph{
         ISGL1_key: key,
         interface_signature: signature,
-        lsp_meta_data: lsp,
         entity_type: type
       },
       *DependencyEdges{from_key: key, to_key: dep_key, edge_type: edge_type},
@@ -1036,9 +1035,11 @@ pt02 --db rocksdb:test.db --output rich.json \
 
 **What --query enables**:
 1. **Full interface signatures** - For type checking, code generation
-2. **LSP metadata** - Hover info, type resolution, usage locations
+2. ~~**LSP metadata**~~ **PLANNED**: Hover info, type resolution (requires LSP implementation)
 3. **Custom projections** - Mix dependency + ISG data as needed
 4. **Filtered exports** - "Give me only public APIs with their dependencies"
+
+> **Note**: LSP integration (lsp_meta_data field) is planned but not currently implemented. PT01's LSP client is a graceful degradation stub that always returns `None`. See `/ALL_EXTRACTED_METADATA_DICTIONARY.md` sections 6-8 for details.
 
 ---
 
@@ -1106,9 +1107,11 @@ pt02 --db rocksdb:test.db --output rich.json \
 
 ---
 
-#### From rust-analyzer LSP (lsp_meta_data)
+#### From rust-analyzer LSP (lsp_meta_data) ❌ **PLANNED (Not Currently Extracted)**
 
-**4. Type Information** (when needed for refactoring):
+> **⚠️ Note**: LSP integration is planned but not implemented. PT01's LSP client is stubbed (always returns `None`). The queries below show what WOULD be possible if LSP were implemented.
+
+**4. Type Information** (when needed for refactoring - PLANNED):
 - `resolved_type`: Fully qualified type name
 - `module_path`: Canonical module location
 - `generic_parameters`: Resolved generic types
@@ -1126,10 +1129,12 @@ pt02 --db rocksdb:test.db --output rich.json \
 
 ---
 
-**5. Usage Analysis** (when needed for impact analysis):
+**5. Usage Analysis** (when needed for impact analysis - PLANNED):
 - `total_references`: Reference count (for dead code detection)
 - `usage_locations`: All call sites (for refactoring validation)
 - `dependents`: Entities that reference this one
+
+> **Current alternative**: Use DependencyEdges forward/reverse queries for similar functionality (already implemented)
 
 **Use case**: "Which public API has zero external references?"
 
@@ -1144,7 +1149,7 @@ pt02 --db rocksdb:test.db --output rich.json \
 
 ---
 
-**6. Semantic Tokens** (when needed for IDE features):
+**6. Semantic Tokens** (when needed for IDE features - PLANNED):
 - `position`: Source location of each token
 - `token_type`: Keyword, variable, function, type, etc.
 - `modifiers`: Mutable, static, async, etc.
@@ -1413,13 +1418,13 @@ pt02 --db test.db --output rich.json \
 #### 3. Incremental Enrichment Philosophy
 
 **Start minimal, add what you need**:
-1. Default: Dependencies only (15K tokens)
-2. Add names: Dependencies + minimal nodes (20K tokens)
-3. Add visibility: Dependencies + public/private (25K tokens)
-4. Add signatures: Dependencies + full ISG (150K tokens)
-5. Add LSP: Dependencies + ISG + hover data (200K tokens)
+1. Default: Dependencies only (15K tokens) ✅
+2. Add names: Dependencies + minimal nodes (20K tokens) ✅
+3. Add visibility: Dependencies + public/private (25K tokens) ✅
+4. Add signatures: Dependencies + full ISG (150K tokens) ✅
+5. Add LSP: Dependencies + ISG + hover data (200K tokens) ❌ **Planned (LSP not implemented)**
 
-**Each step is opt-in** via --query
+**Each step is opt-in** via --query (steps 1-4 available now, step 5 requires LSP implementation)
 
 **Old approach**: Give everything upfront (171K tokens), hope LLM ignores noise
 
@@ -1635,10 +1640,13 @@ pt02 --db test.db --output with-code.json --export-level bulk
    - Empty arrays serialized 590 times
    - Only include via --query when needed
 
-4. **LSP has mixed value**
-   - **HIGH**: total_references, dependents (impact analysis)
-   - **MEDIUM**: resolved_type, definition_location (refactoring)
-   - **LOW**: semantic_tokens (IDE features, 500-2000 bytes per entity!)
+4. **LSP metadata is planned but NOT extracted** ❌
+   - Infrastructure exists but PT01 LSP client is stubbed (always returns `None`)
+   - **If implemented, would provide**:
+     - total_references, dependents (impact analysis - HIGH value)
+     - resolved_type, definition_location (refactoring - MEDIUM value)
+     - semantic_tokens (IDE features - LOW value, 500-2000 bytes per entity)
+   - **Current alternative**: Use DependencyEdges for dependency/dependent analysis (already implemented)
 
 5. **Default values waste space**
    - TDD fields: 6 of 7 are defaults

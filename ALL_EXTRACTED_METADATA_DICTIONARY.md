@@ -22,7 +22,8 @@ AdvancedQuery means
 - you use --query and it overrides both --where --include-current-code flags even if you mention them - the datalog query is the only thing that matters 
 
 NewSimpleQuery
-1. pt02-llm-cozodb-to-context-writer-
+1. pt02-llm-cozodb-to-context-writer-isg-only-essential-fields
+2. pt02-llm-cozodb-to-context-writer-isg-and-code-fields
 
 
 
@@ -100,6 +101,10 @@ Recommendation: Default export should include ONLY `entity_class`, rest via --qu
 Current problem: Exporting all 7 fields wastes ~27K tokens (23.7% of "minimal" export)
 
 ---
+
+4. LSP Essential Data where it exists so we can save precious tokens
+
+
 
 # Longer Documentation for Reference ONLY
 
@@ -448,12 +453,18 @@ rust:fn:calculate_total:src_lib_rs:42-58
 
 ---
 
-## 6. LSP Type Information Variables (MEDIUM Criticality)
+## 6. LSP Type Information Variables ~~(MEDIUM Criticality)~~ ❌ **PLANNED (Not Implemented)**
 
 **Source**: `CodeGraph.lsp_meta_data.type_information` (TypeInformation struct)
-**Extracted by**: PT01 via rust-analyzer LSP server (Rust only)
-**Size**: ~150 bytes per entity
-**Availability**: Rust files only (requires rust-analyzer running)
+**Extracted by**: ~~PT01 via rust-analyzer LSP server~~ **NOT CURRENTLY EXTRACTED**
+**Size**: ~150 bytes per entity (if implemented)
+**Availability**: ~~Rust files only~~ **Infrastructure exists but stubbed - always returns None**
+
+> **⚠️ IMPLEMENTATION STATUS**: LSP integration is planned but not implemented. PT01's LSP client (`lsp_client.rs:67-74`) is a graceful degradation stub that always returns `None`. The `lsp_meta_data` column exists in storage but is **always NULL**. No LSP dependencies (tower-lsp, lsp-types) in Cargo.toml. Tests use mocks, not real implementation.
+>
+> **Evidence**: `crates/pt01-folder-to-cozodb-streamer/src/lsp_client.rs:67-92` (stub), `src/streamer.rs:490-513` (always None)
+>
+> **Current Extraction**: PT01 uses **tree-sitter AST parsing only** - no LSP enrichment.
 
 ### Variables
 
@@ -502,11 +513,19 @@ rust:fn:calculate_total:src_lib_rs:42-58
 
 ---
 
-## 7. LSP Usage Analysis Variables (HIGH Criticality)
+## 7. LSP Usage Analysis Variables ~~(HIGH Criticality)~~ ❌ **PLANNED (Not Implemented)**
 
 **Source**: `CodeGraph.lsp_meta_data.usage_analysis` (UsageAnalysis struct)
-**Extracted by**: PT01 via rust-analyzer LSP server
-**Size**: ~100-500 bytes per entity (depends on reference count)
+**Extracted by**: ~~PT01 via rust-analyzer LSP server~~ **NOT CURRENTLY EXTRACTED**
+**Size**: ~100-500 bytes per entity (if implemented)
+
+> **⚠️ IMPLEMENTATION STATUS**: Not extracted - LSP client stub always returns `None`.
+>
+> **ALTERNATIVE (Already Implemented)**: Use **DependencyEdges relation** for dependency/dependent analysis:
+> - ✅ `DependencyEdges` provides reverse lookup functionality (who depends on entity X)
+> - ✅ Forward/reverse dependency queries fully implemented (`cozo_client.rs:420-514`)
+> - ✅ Includes edge_type (Calls vs Uses vs Implements)
+> - ⚠️ LSP would add: cross-crate references from external dependencies (not yet available)
 
 ### Variables
 
@@ -556,11 +575,13 @@ rust:fn:calculate_total:src_lib_rs:42-58
 
 ---
 
-## 8. LSP Semantic Tokens Variables (LOW Criticality)
+## 8. LSP Semantic Tokens Variables ~~(LOW Criticality)~~ ❌ **PLANNED (Not Implemented)**
 
 **Source**: `CodeGraph.lsp_meta_data.semantic_tokens` (Vec<SemanticToken>)
-**Extracted by**: PT01 via rust-analyzer LSP server
-**Size**: ~500-2000 bytes per entity (many tokens per entity)
+**Extracted by**: ~~PT01 via rust-analyzer LSP server~~ **NOT CURRENTLY EXTRACTED**
+**Size**: ~500-2000 bytes per entity (if implemented)
+
+> **⚠️ IMPLEMENTATION STATUS**: Not extracted - LSP client stub always returns `None`. Primarily useful for IDE features (syntax highlighting, code folding), not core dependency analysis.
 
 ### Variables (per token)
 
@@ -805,28 +826,46 @@ rust:fn:calculate_total:src_lib_rs:42-58
 
 ### Variable Count by Category
 
-| Category | Total Variables | HIGH | MEDIUM | LOW |
-|----------|----------------|------|--------|-----|
-| Dependency Graph | 4 | 4 | 0 | 0 |
-| Core Identity | 7 | 5 | 0 | 2 (code fields) |
-| Temporal State | 3 | 3 | 0 | 0 |
-| Interface Signature | 8 | 3 | 2 | 3 |
-| TDD Classification | 7 | 1 | 4 | 2 |
-| LSP Type Information | 6 | 0 | 4 | 2 |
-| LSP Usage Analysis | 3 | 2 | 1 | 0 |
-| LSP Semantic Tokens | 6 | 0 | 0 | 6 |
-| Language-Specific (Rust) | 6 | 0 | 2 | 4 |
-| Entity Metadata | 4 | 0 | 0 | 4 |
-| **TOTAL** | **54** | **18** | **13** | **23** |
+| Category | Total Variables | Status | HIGH | MEDIUM | LOW |
+|----------|----------------|--------|------|--------|-----|
+| **ACTUALLY EXTRACTED (Tree-sitter AST)** | | | | | |
+| Dependency Graph | 4 | ✅ Extracted | 4 | 0 | 0 |
+| Core Identity | 5 | ✅ Extracted | 5 | 0 | 0 |
+| Core Identity (code fields) | 2 | ✅ Extracted (BULK) | 0 | 0 | 2 |
+| Temporal State | 3 | ✅ Extracted | 3 | 0 | 0 |
+| Interface Signature | 8 | ✅ Extracted | 3 | 2 | 3 |
+| TDD Classification | 7 | ✅ Extracted | 1 | 4 | 2 |
+| Language-Specific (Rust) | 6 | ✅ Extracted | 0 | 2 | 4 |
+| Entity Metadata | 4 | ✅ Extracted | 0 | 0 | 4 |
+| **Subtotal Extracted** | **39** | | **16** | **8** | **15** |
+| **PLANNED BUT NOT IMPLEMENTED (LSP)** | | | | | |
+| LSP Type Information | 6 | ❌ Stub (always None) | 0 | 4 | 2 |
+| LSP Usage Analysis | 3 | ❌ Stub (always None) | 2 | 1 | 0 |
+| LSP Semantic Tokens | 6 | ❌ Stub (always None) | 0 | 0 | 6 |
+| **Subtotal Planned** | **15** | | **2** | **5** | **8** |
+| **TOTAL DOCUMENTED** | **54** | | **18** | **13** | **23** |
+
+**Key Findings:**
+- ✅ **37 variables extracted** (tree-sitter AST parsing) - excludes code fields
+- ✅ **39 variables extracted** (with current_code, future_code)
+- ❌ **15 variables planned** (LSP metadata - infrastructure exists but stubbed)
+- **Total documented**: 54 variables
+
+**What's Actually Available:**
+- Dependency graphs, ISG data, temporal state, TDD classification, entity metadata: **All extracted**
+- LSP type information, usage analysis, semantic tokens: **NOT extracted** (stub returns None)
 
 ### Size Comparison
 
-| Export Level | Variables | Size (590 ent) | Tokens | Savings vs Bulk |
-|--------------|-----------|----------------|--------|-----------------|
-| **Essential** | 18 | ~20-30KB | ~5-8K | **15-22x** |
-| **Standard** | 31 | ~80-100KB | ~20-25K | **5-6x** |
-| **Full** | 54 | ~170-200KB | ~43-50K | **2-3x** |
-| **Bulk** | 56 | ~400-450KB | ~100-113K | **1x (baseline)** |
+| Export Level | Variables | Status | Size (590 ent) | Tokens | Savings vs Bulk |
+|--------------|-----------|--------|----------------|--------|-----------------|
+| **Essential** | 16 HIGH criticality | ✅ Available now | ~20-30KB | ~5-8K | **15-22x** |
+| **Standard** | 24 (HIGH + MEDIUM, no LSP) | ✅ Available now | ~60-80KB | ~15-20K | **6-8x** |
+| **Full** | 39 (all extracted, no LSP) | ✅ Available now | ~100-130KB | ~25-33K | **3-4x** |
+| **Full + LSP** | 54 (with LSP metadata) | ⚠️ Planned (LSP not implemented) | ~170-200KB | ~43-50K | **2-3x** |
+| **Bulk** | 39 + code fields | ✅ Available now | ~400-450KB | ~100-113K | **1x (baseline)** |
+
+**Note**: "Full + LSP" estimates require LSP implementation (currently stubbed).
 
 ---
 
