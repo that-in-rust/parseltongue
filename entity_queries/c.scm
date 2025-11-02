@@ -6,9 +6,10 @@
   declarator: (function_declarator
     declarator: (identifier) @name)) @definition.function
 
-; Structs
+; Structs (only definitions with bodies, not references)
 (struct_specifier
-  name: (type_identifier) @name) @definition.struct
+  name: (type_identifier) @name
+  body: (field_declaration_list)) @definition.struct
 
 ; Enums
 (enum_specifier

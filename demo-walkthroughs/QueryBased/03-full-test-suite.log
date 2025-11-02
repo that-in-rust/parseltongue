@@ -1,0 +1,177 @@
+   Compiling parseltongue-core v0.8.7 (/Users/amuldotexe/Projects/parseltongue/crates/parseltongue-core)
+warning: unreachable pattern
+  --> crates/parseltongue-core/tests/tool1_verification.rs:44:13
+   |
+44 |             _ => {}
+   |             ^ no value can reach this
+   |
+note: multiple earlier patterns match some of the same values
+  --> crates/parseltongue-core/tests/tool1_verification.rs:44:13
+   |
+42 |             parseltongue_core::entities::EntityClass::TestImplementation => test_count += 1,
+   |             ------------------------------------------------------------ matches some of the same values
+43 |             parseltongue_core::entities::EntityClass::CodeImplementation => code_count += 1,
+   |             ------------------------------------------------------------ matches some of the same values
+44 |             _ => {}
+   |             ^ collectively making this unreachable
+   = note: `#[warn(unreachable_patterns)]` on by default
+
+warning: `parseltongue-core` (test "tool1_verification") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.62s
+     Running unittests src/lib.rs (target/debug/deps/parseltongue_core-024b8962ba4dcafe)
+
+running 40 tests
+test entities::tests::invalid_temporal_state ... ok
+test entities::tests::temporal_state_validation ... ok
+test entities::tests::line_range_validation ... ok
+test entities::tests::test_dependency_edge_builder ... ok
+test entities::tests::test_dependency_edge_builder_missing_field ... ok
+test entities::tests::language_detection ... ok
+test entities::tests::code_entity_validation ... ok
+test entities::tests::test_dependency_edge_builder_with_location ... ok
+test entities::tests::test_dependency_edge_new ... ok
+test entities::tests::test_dependency_edge_rejects_empty_keys ... ok
+test entities::tests::test_edge_type_roundtrip ... ok
+test entities::tests::test_edge_type_display ... ok
+test entities::tests::test_entity_class_enum ... ok
+test entities::tests::test_dependency_edge_serialization ... ok
+test entities::tests::test_entity_class_serialization ... ok
+test entities::tests::test_generate_new_entity_key_basic ... ok
+test entities::tests::test_generate_new_entity_key_format ... ok
+test entities::tests::test_generate_new_entity_key_path_sanitization ... ok
+test entities::tests::test_generate_new_entity_key_different_types ... ok
+test entities::tests::test_isgl1_key_as_ref ... ok
+test entities::tests::test_generate_new_entity_key_uniqueness ... ok
+test entities::tests::test_tdd_classification_has_entity_class_field ... ok
+test entities::tests::test_isgl1_key_display ... ok
+test entities::tests::test_generate_new_entity_key_impl_block ... ok
+test entities::tests::test_isgl1_key_validates_non_empty ... ok
+test error::tests::error_chain_preserves_context ... ok
+test error::tests::error_formatting_provides_clear_context ... ok
+test error::tests::recovery_action_default_is_sensible ... ok
+test error::tests::test_circular_dependency_error ... ok
+test error::tests::test_dependency_error_formatting ... ok
+test error::tests::test_dependency_error_is_error_trait ... ok
+test error::tests::test_duplicate_edge_error ... ok
+test error::tests::test_missing_dependency_target_error ... ok
+test interfaces::tests::temporal_query_creation ... ok
+test temporal::tests::conflict_detection ... ok
+test temporal::tests::temporal_state_validation ... ok
+test interfaces::tests::tool_metadata_creation ... ok
+test temporal::tests::temporal_transition_builder ... ok
+test temporal::tests::entity_creation_and_modification ... ok
+test temporal::tests::validation_rules ... ok
+
+test result: ok. 40 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/cozo_storage_integration_tests.rs (target/debug/deps/cozo_storage_integration_tests-8b34799490a356fb)
+
+running 35 tests
+test test_blast_radius_performance_10k_nodes ... ignored
+test test_blast_radius_zero_hops ... ok
+test test_batch_insert_empty_slice ... ok
+test test_create_dependency_edges_schema ... ok
+test test_both_schemas_can_coexist ... ok
+test test_cozo_connection ... ok
+test test_create_code_graph_schema ... ok
+test test_batch_insert_edges ... ok
+test test_forward_dependencies_performance_10k_nodes ... ignored
+test test_dependency_edges_schema_is_idempotent ... ok
+test test_forward_dependencies_empty ... ok
+test test_codegraph_repository_trait ... ok
+test test_blast_radius_multi_hop ... ok
+test test_forward_dependencies_single ... ok
+test test_blast_radius_branching ... ok
+test test_insert_edge_without_source_location ... ok
+test test_blast_radius_single_hop ... ok
+test test_delete_entity ... ok
+test test_reverse_dependencies_empty ... ok
+test test_insert_duplicate_edge_is_idempotent ... ok
+test test_forward_dependencies_multiple ... ok
+test test_single_edge_insert_performance_contract ... ok
+test test_reverse_dependencies_multiple ... ok
+test test_insert_single_dependency_edge ... ok
+test test_reverse_dependencies_single ... ok
+test test_insert_code_entity ... ok
+test test_transitive_closure_branching ... ok
+test test_transitive_closure_empty ... ok
+test test_batch_insert_performance_contract ... ok
+test test_transitive_closure_cycle ... ok
+test test_temporal_state_update ... ok
+test test_transitive_closure_chain ... ok
+test test_update_entity ... ok
+test test_query_changed_entities ... ok
+test test_transitive_closure_performance_1k_nodes ... ok
+
+test result: ok. 33 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.37s
+
+     Running tests/end_to_end_workflow.rs (target/debug/deps/end_to_end_workflow-69f45b2007ba7a44)
+
+running 1 test
+test test_end_to_end_tool1_tool2_tool3_pipeline ... ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/query_based_extraction_test.rs (target/debug/deps/query_based_extraction_test-3ca9aede5095df23)
+
+running 5 tests
+test test_query_python_classes_and_functions ... ok
+test test_malformed_code_no_panic ... ok
+test test_query_c_functions_and_structs ... ok
+test test_query_rust_functions_and_structs ... ok
+test test_performance_contract_rust ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/tool1_verification.rs (target/debug/deps/tool1_verification-c73284f0bbffa895)
+
+running 1 test
+test verify_tool1_parseltongue_indexing ... ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/tool2_temporal_operations.rs (target/debug/deps/tool2_temporal_operations-65cdba07c7915a31)
+
+running 8 tests
+test test_execute_query_invalid_syntax ... ok
+test test_execute_query_list_relations ... ok
+test test_execute_query_simple_query ... ok
+test test_tool2_create_operation_with_hash_key ... ok
+test test_tool2_delete_operation ... ok
+test test_execute_query_with_filter ... ok
+test test_tool2_edit_operation ... ok
+test test_tool1_tool2_integration ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/tool3_prd_compliance.rs (target/debug/deps/tool3_prd_compliance-81f6072ec4ed6dd2)
+
+running 3 tests
+test test_tool3_filters_by_current_ind ... ignored
+test test_tool3_includes_tdd_classification ... ignored
+test test_tool3_pure_data_extraction_no_llm ... ignored
+
+test result: ok. 0 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests parseltongue_core
+
+running 16 tests
+test crates/parseltongue-core/src/storage/cozo_client.rs - storage::cozo_client::CozoDbStorage::create_dependency_edges_schema (line 110) ... ignored
+test crates/parseltongue-core/src/error.rs - error::ParseltongError::DependencyError (line 97) ... ok
+test crates/parseltongue-core/src/entities.rs - entities::Isgl1Key (line 845) ... ok
+test crates/parseltongue-core/src/storage/cozo_client.rs - storage::cozo_client::CozoDbStorage::insert_edge (line 142) ... ignored
+test crates/parseltongue-core/src/storage/cozo_client.rs - storage::cozo_client::CozoDbStorage::insert_edges_batch (line 192) ... ignored
+test crates/parseltongue-core/src/storage/cozo_client.rs - storage::cozo_client::CozoDbStorage::new (line 33) ... ignored
+test crates/parseltongue-core/src/storage/cozo_client.rs - storage::cozo_client::CozoDbStorage::raw_query (line 650) ... ignored
+test crates/parseltongue-core/src/query_extractor.rs - query_extractor::QueryBasedExtractor::parse_source (line 144) ... ok
+test crates/parseltongue-core/src/entities.rs - entities::DependencyEdge (line 980) ... ok
+test crates/parseltongue-core/src/entities.rs - entities::CodeEntity::generate_new_entity_key (line 750) ... ok
+test crates/parseltongue-core/src/entities.rs - entities::EdgeType (line 916) ... ok
+test crates/parseltongue-core/src/query_extractor.rs - query_extractor::QueryBasedExtractor::new (line 70) ... ok
+test crates/parseltongue-core/src/storage/cozo_client.rs - storage::cozo_client::CozoDbStorage::calculate_blast_radius (line 270) ... ok
+test crates/parseltongue-core/src/storage/cozo_client.rs - storage::cozo_client::CozoDbStorage::get_reverse_dependencies (line 457) ... ok
+test crates/parseltongue-core/src/storage/cozo_client.rs - storage::cozo_client::CozoDbStorage::get_forward_dependencies (line 386) ... ok
+test crates/parseltongue-core/src/storage/cozo_client.rs - storage::cozo_client::CozoDbStorage::get_transitive_closure (line 535) ... ok
+
+test result: ok. 11 passed; 0 failed; 5 ignored; 0 measured; 0 filtered out; finished in 6.50s
+

@@ -228,3 +228,190 @@ For more information about this error, try `rustc --explain E0277`.
 error: could not compile `parseltongue-core` (lib) due to 1 previous error
 warning: build failed, waiting for other jobs to finish...
 error: could not compile `parseltongue-core` (lib test) due to 1 previous error
+   Compiling parseltongue-core v0.8.7 (/Users/amuldotexe/Projects/parseltongue/crates/parseltongue-core)
+error[E0599]: no method named `next` found for struct `QueryMatches` in the current scope
+   --> crates/parseltongue-core/src/query_extractor.rs:140:37
+    |
+140 |         while let Some(m) = matches.next() {
+    |                                     ^^^^
+    |
+   ::: /Users/amuldotexe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/streaming-iterator-0.1.9/src/lib.rs:91:8
+    |
+ 91 |     fn next(&mut self) -> Option<&Self::Item> {
+    |        ---- the method is available for `QueryMatches<'_, '_, &[u8], &[u8]>` here
+    |
+    = help: items from traits can only be used if the trait is in scope
+help: trait `StreamingIterator` which provides `next` is implemented but not in scope; perhaps you want to import it
+    |
+  8 + use tree_sitter::StreamingIterator;
+    |
+help: there is a method `next_mut` with a similar name
+    |
+140 |         while let Some(m) = matches.next_mut() {
+    |                                         ++++
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `parseltongue-core` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `parseltongue-core` (lib test) due to 1 previous error
+   Compiling parseltongue-core v0.8.7 (/Users/amuldotexe/Projects/parseltongue/crates/parseltongue-core)
+warning: unreachable pattern
+  --> crates/parseltongue-core/tests/tool1_verification.rs:44:13
+   |
+44 |             _ => {}
+   |             ^ no value can reach this
+   |
+note: multiple earlier patterns match some of the same values
+  --> crates/parseltongue-core/tests/tool1_verification.rs:44:13
+   |
+42 |             parseltongue_core::entities::EntityClass::TestImplementation => test_count += 1,
+   |             ------------------------------------------------------------ matches some of the same values
+43 |             parseltongue_core::entities::EntityClass::CodeImplementation => code_count += 1,
+   |             ------------------------------------------------------------ matches some of the same values
+44 |             _ => {}
+   |             ^ collectively making this unreachable
+   = note: `#[warn(unreachable_patterns)]` on by default
+
+warning: `parseltongue-core` (test "tool1_verification") generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.41s
+     Running unittests src/lib.rs (target/debug/deps/parseltongue_core-024b8962ba4dcafe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 40 filtered out; finished in 0.00s
+
+     Running tests/cozo_storage_integration_tests.rs (target/debug/deps/cozo_storage_integration_tests-8b34799490a356fb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 35 filtered out; finished in 0.00s
+
+     Running tests/end_to_end_workflow.rs (target/debug/deps/end_to_end_workflow-69f45b2007ba7a44)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/query_based_extraction_test.rs (target/debug/deps/query_based_extraction_test-3ca9aede5095df23)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/tool1_verification.rs (target/debug/deps/tool1_verification-c73284f0bbffa895)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/tool2_temporal_operations.rs (target/debug/deps/tool2_temporal_operations-65cdba07c7915a31)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+     Running tests/tool3_prd_compliance.rs (target/debug/deps/tool3_prd_compliance-81f6072ec4ed6dd2)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.08s
+     Running tests/query_based_extraction_test.rs (target/debug/deps/query_based_extraction_test-3ca9aede5095df23)
+
+running 5 tests
+test test_malformed_code_no_panic ... ok
+test test_query_rust_functions_and_structs ... ok
+test test_query_c_functions_and_structs ... FAILED
+test test_query_python_classes_and_functions ... FAILED
+test test_performance_contract_rust ... FAILED
+
+failures:
+
+---- test_query_c_functions_and_structs stdout ----
+
+thread 'test_query_c_functions_and_structs' panicked at crates/parseltongue-core/tests/query_based_extraction_test.rs:89:5:
+assertion `left == right` failed: Should extract function + 2 structs
+  left: 4
+ right: 3
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- test_query_python_classes_and_functions stdout ----
+
+thread 'test_query_python_classes_and_functions' panicked at crates/parseltongue-core/tests/query_based_extraction_test.rs:62:5:
+assertion `left == right` failed: Should extract class + 2 functions
+  left: 4
+ right: 3
+
+---- test_performance_contract_rust stdout ----
+
+thread 'test_performance_contract_rust' panicked at crates/parseltongue-core/tests/query_based_extraction_test.rs:104:5:
+Parsing 1K LOC took 28.9725ms, expected <20ms
+
+
+failures:
+    test_performance_contract_rust
+    test_query_c_functions_and_structs
+    test_query_python_classes_and_functions
+
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p parseltongue-core --test query_based_extraction_test`
+   Compiling parseltongue-core v0.8.7 (/Users/amuldotexe/Projects/parseltongue/crates/parseltongue-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.42s
+     Running tests/query_based_extraction_test.rs (target/debug/deps/query_based_extraction_test-3ca9aede5095df23)
+
+running 5 tests
+Python entities extracted:
+  - Class: Calculator
+  - Method: add
+  - Function: add
+  - Function: hello_world
+
+thread 'test_query_python_classes_and_functions' panicked at crates/parseltongue-core/tests/query_based_extraction_test.rs:68:5:
+assertion `left == right` failed: Should extract class + 2 functions
+  left: 4
+ right: 3
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test test_query_python_classes_and_functions ... FAILED
+test test_malformed_code_no_panic ... ok
+test test_query_rust_functions_and_structs ... ok
+C entities extracted:
+  - Function: add
+  - Struct: Node
+  - Struct: Node
+  - Typedef: Person
+
+thread 'test_query_c_functions_and_structs' panicked at crates/parseltongue-core/tests/query_based_extraction_test.rs:101:5:
+assertion `left == right` failed: Should extract function + 2 structs
+  left: 4
+ right: 3
+test test_query_c_functions_and_structs ... FAILED
+
+thread 'test_performance_contract_rust' panicked at crates/parseltongue-core/tests/query_based_extraction_test.rs:116:5:
+Parsing 1K LOC took 41.325583ms, expected <20ms
+test test_performance_contract_rust ... FAILED
+
+failures:
+
+failures:
+    test_performance_contract_rust
+    test_query_c_functions_and_structs
+    test_query_python_classes_and_functions
+
+test result: FAILED. 2 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+error: test failed, to rerun pass `-p parseltongue-core --test query_based_extraction_test`
+   Compiling parseltongue-core v0.8.7 (/Users/amuldotexe/Projects/parseltongue/crates/parseltongue-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.77s
+     Running tests/query_based_extraction_test.rs (target/debug/deps/query_based_extraction_test-3ca9aede5095df23)
+
+running 5 tests
+test test_malformed_code_no_panic ... ok
+test test_query_rust_functions_and_structs ... ok
+test test_query_c_functions_and_structs ... ok
+test test_query_python_classes_and_functions ... ok
+test test_performance_contract_rust ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
