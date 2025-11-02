@@ -36,8 +36,16 @@ tempfile.workspace = true
 tokio-test.workspace = true
 
 [[bin]]
-name = "pt02-llm-cozodb-to-context-writer"
-path = "src/main.rs"
+name = "pt02-level00"
+path = "src/bin/level00.rs"
+
+[[bin]]
+name = "pt02-level01"
+path = "src/bin/level01.rs"
+
+[[bin]]
+name = "pt02-level02"
+path = "src/bin/level02.rs"
 
 [lib]
 name = "pt02_llm_cozodb_to_context_writer"
