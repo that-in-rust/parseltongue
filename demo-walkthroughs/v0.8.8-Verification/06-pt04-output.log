@@ -1,0 +1,6 @@
+Running Tool 4: pt04-syntax-preflight-validator
+  Database: rocksdb:test-v0.8.8.db
+  Validating 1 changed entities...
+
+✓ All syntax validations passed
+  Entities validated: 1

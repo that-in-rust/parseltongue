@@ -181,8 +181,8 @@ async fn main() -> Result<()> {
             println!("  pt01-folder-to-cozodb-streamer       - Index codebase into CozoDB (Tool 1: Ingest)");
             println!("");
             println!("  PT02: Export from CozoDB (Progressive Disclosure)");
-            println!("    pt02-level00                       - Pure edge list (~2-5K tokens)");
-            println!("    pt02-level01                       - Entity + ISG + Temporal (~30K tokens) [RECOMMENDED]");
+            println!("    pt02-level00                       - Pure edge list (~2-5K tokens) [RECOMMENDED]");
+            println!("    pt02-level01                       - Entity + ISG + Temporal (~30K tokens)");
             println!("    pt02-level02                       - + Type system (~60K tokens)");
             println!("");
             println!("  pt03-llm-to-cozodb-writer            - Write LLM changes to temporal state (Tool 3: Edit)");
@@ -238,7 +238,7 @@ fn build_cli() -> Command {
         )
         .subcommand(
             Command::new("pt02-level00")
-                .about("Tool 2a: Export pure edge list (Level 0 - ~2-5K tokens)")
+                .about("Tool 2a: Export pure edge list (Level 0 - ~2-5K tokens) [RECOMMENDED]")
                 .long_about("Export dependency edges only for graph visualization and dependency analysis.\n\nExample:\n  parseltongue pt02-level00 --where-clause \"ALL\" --output edges.json")
                 .arg(
                     Arg::new("where-clause")
@@ -270,7 +270,7 @@ fn build_cli() -> Command {
         )
         .subcommand(
             Command::new("pt02-level01")
-                .about("Tool 2b: Export entities with ISG + temporal (Level 1 - ~30K tokens) [RECOMMENDED]")
+                .about("Tool 2b: Export entities with ISG + temporal (Level 1 - ~30K tokens)")
                 .long_about("Export entities with Interface Signature Graph and temporal state.\n\nExamples:\n  # Signatures only (CHEAP - ~30K tokens)\n  parseltongue pt02-level01 --include-code 0 --where-clause \"ALL\" --output entities.json\n\n  # With code (EXPENSIVE - 100× more tokens)\n  parseltongue pt02-level01 --include-code 1 --where-clause \"future_action != null\" --output changes.json")
                 .arg(
                     Arg::new("include-code")

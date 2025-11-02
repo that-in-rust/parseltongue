@@ -1,0 +1,7 @@
+Running Tool 3: pt03-llm-to-cozodb-writer
+  Creating entity: rust:fn:test_function:test.rs:1-5
+  Future code: 36 bytes
+✓ Entity created successfully
+  Temporal state: Create pending (current_ind=false, future_ind=true)
+  Entity type: Function
+  File path: test.rs

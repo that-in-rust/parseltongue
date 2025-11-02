@@ -1,0 +1,23 @@
+{
+  "changes": [
+    {
+      "isgl1_key": "rust:fn:test_function:test.rs:1-5",
+      "file_path": "test.rs",
+      "operation": "CREATE",
+      "current_code": null,
+      "future_code": "pub fn test_function() -> i32 { 42 }",
+      "line_range": {
+        "start": 1,
+        "end": 5
+      },
+      "interface_signature": "Function test_function"
+    }
+  ],
+  "metadata": {
+    "total_changes": 1,
+    "create_count": 1,
+    "edit_count": 0,
+    "delete_count": 0,
+    "generated_at": "2025-11-02T19:51:37.298891+00:00"
+  }
+}
