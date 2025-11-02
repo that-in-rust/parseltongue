@@ -771,7 +771,15 @@ async fn run_rust_preflight_code_simulator(matches: &ArgMatches) -> Result<()> {
         if let Some(future_code) = &entity.future_code {
             total_validated += 1;
 
-            let result = validator.validate_syntax(future_code)
+            // Extract language from ISGL1 key (format: language:type:name:path:range)
+            let language = entity.isgl1_key.split(':').next()
+                .and_then(|lang_str| match lang_str {
+                    "rust" => Some(Language::Rust),
+                    _ => Some(Language::Rust), // Default to Rust for now
+                })
+                .unwrap_or(Language::Rust);
+
+            let result = validator.validate_syntax(future_code, language)
                 .map_err(|e| anyhow::anyhow!("Validation failed for {}: {}", entity.isgl1_key, e))?;
 
             if !result.is_valid {

@@ -1,0 +1,39 @@
+   Compiling codespan-reporting v0.13.1
+   Compiling cxx-build v1.0.187
+   Compiling cozorocks v0.1.7
+   Compiling cozo v0.7.6
+   Compiling parseltongue-core v0.8.7 (/Users/amuldotexe/Projects/parseltongue/crates/parseltongue-core)
+warning: unreachable pattern
+  --> crates/parseltongue-core/tests/tool1_verification.rs:44:13
+   |
+44 |             _ => {}
+   |             ^ no value can reach this
+   |
+note: multiple earlier patterns match some of the same values
+  --> crates/parseltongue-core/tests/tool1_verification.rs:44:13
+   |
+42 |             parseltongue_core::entities::EntityClass::TestImplementation => test_count += 1,
+   |             ------------------------------------------------------------ matches some of the same values
+43 |             parseltongue_core::entities::EntityClass::CodeImplementation => code_count += 1,
+   |             ------------------------------------------------------------ matches some of the same values
+44 |             _ => {}
+   |             ^ collectively making this unreachable
+   = note: `#[warn(unreachable_patterns)]` on by default
+
+error[E0432]: unresolved import `parseltongue_core::query_extractor`
+  --> crates/parseltongue-core/tests/query_based_extraction_test.rs:12:24
+   |
+12 | use parseltongue_core::query_extractor::QueryBasedExtractor;
+   |                        ^^^^^^^^^^^^^^^ could not find `query_extractor` in `parseltongue_core`
+
+error[E0599]: no variant or associated item named `C` found for enum `Language` in the current scope
+  --> crates/parseltongue-core/tests/query_based_extraction_test.rs:86:19
+   |
+86 |         Language::C
+   |                   ^ variant or associated item not found in `Language`
+
+Some errors have detailed explanations: E0432, E0599.
+For more information about an error, try `rustc --explain E0432`.
+error: could not compile `parseltongue-core` (test "query_based_extraction_test") due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+warning: `parseltongue-core` (test "tool1_verification") generated 1 warning

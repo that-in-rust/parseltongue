@@ -11,6 +11,7 @@
 pub mod entities;
 pub mod error;
 pub mod interfaces;
+pub mod query_extractor;
 pub mod storage;
 pub mod temporal;
 

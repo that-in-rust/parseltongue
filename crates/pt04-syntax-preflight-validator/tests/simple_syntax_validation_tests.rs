@@ -2,6 +2,7 @@
 //!
 //! Tests for the simplified Tool 4: tree-sitter syntax validation only
 
+use parseltongue_core::entities::Language;
 use pt04_syntax_preflight_validator::SimpleSyntaxValidator;
 
 /// Test 1: Valid function syntax should pass
@@ -15,7 +16,7 @@ fn test_valid_function_syntax() {
         }
     "#;
 
-    let result = validator.validate_syntax(valid_code).expect("Validation failed");
+    let result = validator.validate_syntax(valid_code, Language::Rust).expect("Validation failed");
     assert!(result.is_valid, "Valid function should pass syntax check");
     assert!(result.errors.is_empty(), "Should have no errors");
 }
@@ -31,7 +32,7 @@ fn test_invalid_function_syntax_missing_paren() {
         }
     "#;
 
-    let result = validator.validate_syntax(invalid_code).expect("Validation failed");
+    let result = validator.validate_syntax(invalid_code, Language::Rust).expect("Validation failed");
     assert!(!result.is_valid, "Invalid syntax should fail");
     assert!(!result.errors.is_empty(), "Should have syntax errors");
 }
@@ -48,7 +49,7 @@ fn test_valid_struct_syntax() {
         }
     "#;
 
-    let result = validator.validate_syntax(valid_code).expect("Validation failed");
+    let result = validator.validate_syntax(valid_code, Language::Rust).expect("Validation failed");
     assert!(result.is_valid, "Valid struct should pass syntax check");
     assert!(result.errors.is_empty(), "Should have no errors");
 }
@@ -65,7 +66,7 @@ fn test_invalid_struct_missing_brace() {
         // Missing closing brace
     "#;
 
-    let result = validator.validate_syntax(invalid_code).expect("Validation failed");
+    let result = validator.validate_syntax(invalid_code, Language::Rust).expect("Validation failed");
     assert!(!result.is_valid, "Missing brace should fail");
     assert!(!result.errors.is_empty(), "Should have syntax errors");
 }
@@ -83,7 +84,7 @@ fn test_valid_impl_syntax() {
         }
     "#;
 
-    let result = validator.validate_syntax(valid_code).expect("Validation failed");
+    let result = validator.validate_syntax(valid_code, Language::Rust).expect("Validation failed");
     assert!(result.is_valid, "Valid impl should pass syntax check");
 }
 
@@ -109,7 +110,7 @@ fn test_multiple_valid_entities() {
         }
     "#;
 
-    let result = validator.validate_syntax(valid_code).expect("Validation failed");
+    let result = validator.validate_syntax(valid_code, Language::Rust).expect("Validation failed");
     assert!(result.is_valid, "Multiple valid entities should pass");
     assert!(result.errors.is_empty());
 }
@@ -126,7 +127,7 @@ fn test_type_error_passes_syntax_check() {
         }
     "#;
 
-    let result = validator.validate_syntax(type_error_code).expect("Validation failed");
+    let result = validator.validate_syntax(type_error_code, Language::Rust).expect("Validation failed");
     assert!(
         result.is_valid,
         "Type errors should pass syntax validation (cargo catches these)"
@@ -145,7 +146,7 @@ fn test_import_error_passes_syntax_check() {
         fn test() {}
     "#;
 
-    let result = validator.validate_syntax(import_error_code).expect("Validation failed");
+    let result = validator.validate_syntax(import_error_code, Language::Rust).expect("Validation failed");
     assert!(
         result.is_valid,
         "Import errors should pass syntax validation (cargo catches these)"
