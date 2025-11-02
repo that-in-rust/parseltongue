@@ -1,0 +1,230 @@
+   Compiling parseltongue-core v0.8.7 (/Users/amuldotexe/Projects/parseltongue/crates/parseltongue-core)
+error: couldn't read `crates/parseltongue-core/src/../../entity_queries/rust.scm`: No such file or directory (os error 2)
+  --> crates/parseltongue-core/src/query_extractor.rs:55:13
+   |
+55 |             include_str!("../../entity_queries/rust.scm").to_string()
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: there is a file with the same name in a different directory
+   |
+55 |             include_str!("../../../entity_queries/rust.scm").to_string()
+   |                                 +++
+
+error: couldn't read `crates/parseltongue-core/src/../../entity_queries/python.scm`: No such file or directory (os error 2)
+  --> crates/parseltongue-core/src/query_extractor.rs:59:13
+   |
+59 |             include_str!("../../entity_queries/python.scm").to_string()
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: there is a file with the same name in a different directory
+   |
+59 |             include_str!("../../../entity_queries/python.scm").to_string()
+   |                                 +++
+
+error: couldn't read `crates/parseltongue-core/src/../../entity_queries/c.scm`: No such file or directory (os error 2)
+  --> crates/parseltongue-core/src/query_extractor.rs:63:13
+   |
+63 |             include_str!("../../entity_queries/c.scm").to_string()
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: there is a file with the same name in a different directory
+   |
+63 |             include_str!("../../../entity_queries/c.scm").to_string()
+   |                                 +++
+
+error: couldn't read `crates/parseltongue-core/src/../../entity_queries/cpp.scm`: No such file or directory (os error 2)
+  --> crates/parseltongue-core/src/query_extractor.rs:67:13
+   |
+67 |             include_str!("../../entity_queries/cpp.scm").to_string()
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: there is a file with the same name in a different directory
+   |
+67 |             include_str!("../../../entity_queries/cpp.scm").to_string()
+   |                                 +++
+
+error: couldn't read `crates/parseltongue-core/src/../../entity_queries/ruby.scm`: No such file or directory (os error 2)
+  --> crates/parseltongue-core/src/query_extractor.rs:71:13
+   |
+71 |             include_str!("../../entity_queries/ruby.scm").to_string()
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: there is a file with the same name in a different directory
+   |
+71 |             include_str!("../../../entity_queries/ruby.scm").to_string()
+   |                                 +++
+
+warning: hidden lifetime parameters in types are deprecated
+   --> crates/parseltongue-core/src/query_extractor.rs:152:26
+    |
+152 |         m: &tree_sitter::QueryMatch,
+    |             -------------^^^^^^^^^^
+    |             |
+    |             expected lifetime parameters
+    |
+note: the lint level is defined here
+   --> crates/parseltongue-core/src/lib.rs:8:9
+    |
+  8 | #![warn(rust_2018_idioms)]
+    |         ^^^^^^^^^^^^^^^^
+    = note: `#[warn(elided_lifetimes_in_paths)]` implied by `#[warn(rust_2018_idioms)]`
+help: indicate the anonymous lifetimes
+    |
+152 |         m: &tree_sitter::QueryMatch<'_, '_>,
+    |                                    ++++++++
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tree_sitter_rust`
+  --> crates/parseltongue-core/src/query_extractor.rs:76:58
+   |
+76 |         Self::init_parser(&mut parsers, Language::Rust, &tree_sitter_rust::LANGUAGE.into())?;
+   |                                                          ^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tree_sitter_rust`
+   |
+help: there is a crate or module with a similar name
+   |
+76 -         Self::init_parser(&mut parsers, Language::Rust, &tree_sitter_rust::LANGUAGE.into())?;
+76 +         Self::init_parser(&mut parsers, Language::Rust, &tree_sitter::LANGUAGE.into())?;
+   |
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tree_sitter_python`
+  --> crates/parseltongue-core/src/query_extractor.rs:77:60
+   |
+77 |         Self::init_parser(&mut parsers, Language::Python, &tree_sitter_python::LANGUAGE.into())?;
+   |                                                            ^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tree_sitter_python`
+   |
+   = help: if you wanted to use a crate named `tree_sitter_python`, use `cargo add tree_sitter_python` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tree_sitter_c`
+  --> crates/parseltongue-core/src/query_extractor.rs:78:55
+   |
+78 |         Self::init_parser(&mut parsers, Language::C, &tree_sitter_c::LANGUAGE.into())?;
+   |                                                       ^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tree_sitter_c`
+   |
+help: there is a crate or module with a similar name
+   |
+78 -         Self::init_parser(&mut parsers, Language::C, &tree_sitter_c::LANGUAGE.into())?;
+78 +         Self::init_parser(&mut parsers, Language::C, &tree_sitter::LANGUAGE.into())?;
+   |
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tree_sitter_cpp`
+  --> crates/parseltongue-core/src/query_extractor.rs:79:57
+   |
+79 |         Self::init_parser(&mut parsers, Language::Cpp, &tree_sitter_cpp::LANGUAGE.into())?;
+   |                                                         ^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tree_sitter_cpp`
+   |
+help: there is a crate or module with a similar name
+   |
+79 -         Self::init_parser(&mut parsers, Language::Cpp, &tree_sitter_cpp::LANGUAGE.into())?;
+79 +         Self::init_parser(&mut parsers, Language::Cpp, &tree_sitter::LANGUAGE.into())?;
+   |
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tree_sitter_ruby`
+  --> crates/parseltongue-core/src/query_extractor.rs:80:58
+   |
+80 |         Self::init_parser(&mut parsers, Language::Ruby, &tree_sitter_ruby::LANGUAGE.into())?;
+   |                                                          ^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tree_sitter_ruby`
+   |
+help: there is a crate or module with a similar name
+   |
+80 -         Self::init_parser(&mut parsers, Language::Ruby, &tree_sitter_ruby::LANGUAGE.into())?;
+80 +         Self::init_parser(&mut parsers, Language::Ruby, &tree_sitter::LANGUAGE.into())?;
+   |
+
+error[E0277]: `QueryMatches<'_, '_, &[u8], &[u8]>` is not an iterator
+   --> crates/parseltongue-core/src/query_extractor.rs:141:18
+    |
+141 |         for m in matches {
+    |                  ^^^^^^^ `QueryMatches<'_, '_, &[u8], &[u8]>` is not an iterator
+    |
+    = help: the trait `Iterator` is not implemented for `QueryMatches<'_, '_, &[u8], &[u8]>`
+    = note: required for `QueryMatches<'_, '_, &[u8], &[u8]>` to implement `IntoIterator`
+
+error[E0277]: can't compare `&str` with `str`
+   --> crates/parseltongue-core/src/query_extractor.rs:165:29
+    |
+165 |             if capture_name == "name" {
+    |                             ^^ no implementation for `&str == str`
+    |
+    = help: the trait `PartialEq<str>` is not implemented for `&str`
+    = note: required for `&&str` to implement `PartialEq<&str>`
+help: consider dereferencing here
+    |
+165 |             if *capture_name == "name" {
+    |                +
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tree_sitter_rust`
+   --> crates/parseltongue-core/src/query_extractor.rs:208:31
+    |
+208 |             Language::Rust => tree_sitter_rust::LANGUAGE.into(),
+    |                               ^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tree_sitter_rust`
+    |
+help: there is a crate or module with a similar name
+    |
+208 -             Language::Rust => tree_sitter_rust::LANGUAGE.into(),
+208 +             Language::Rust => tree_sitter::LANGUAGE.into(),
+    |
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tree_sitter_python`
+   --> crates/parseltongue-core/src/query_extractor.rs:209:33
+    |
+209 |             Language::Python => tree_sitter_python::LANGUAGE.into(),
+    |                                 ^^^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tree_sitter_python`
+    |
+    = help: if you wanted to use a crate named `tree_sitter_python`, use `cargo add tree_sitter_python` to add it to your `Cargo.toml`
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tree_sitter_c`
+   --> crates/parseltongue-core/src/query_extractor.rs:210:28
+    |
+210 |             Language::C => tree_sitter_c::LANGUAGE.into(),
+    |                            ^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tree_sitter_c`
+    |
+help: there is a crate or module with a similar name
+    |
+210 -             Language::C => tree_sitter_c::LANGUAGE.into(),
+210 +             Language::C => tree_sitter::LANGUAGE.into(),
+    |
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tree_sitter_cpp`
+   --> crates/parseltongue-core/src/query_extractor.rs:211:30
+    |
+211 |             Language::Cpp => tree_sitter_cpp::LANGUAGE.into(),
+    |                              ^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tree_sitter_cpp`
+    |
+help: there is a crate or module with a similar name
+    |
+211 -             Language::Cpp => tree_sitter_cpp::LANGUAGE.into(),
+211 +             Language::Cpp => tree_sitter::LANGUAGE.into(),
+    |
+
+error[E0433]: failed to resolve: use of unresolved module or unlinked crate `tree_sitter_ruby`
+   --> crates/parseltongue-core/src/query_extractor.rs:212:31
+    |
+212 |             Language::Ruby => tree_sitter_ruby::LANGUAGE.into(),
+    |                               ^^^^^^^^^^^^^^^^ use of unresolved module or unlinked crate `tree_sitter_ruby`
+    |
+help: there is a crate or module with a similar name
+    |
+212 -             Language::Ruby => tree_sitter_ruby::LANGUAGE.into(),
+212 +             Language::Ruby => tree_sitter::LANGUAGE.into(),
+    |
+
+Some errors have detailed explanations: E0277, E0433.
+For more information about an error, try `rustc --explain E0277`.
+warning: `parseltongue-core` (lib test) generated 1 warning
+error: could not compile `parseltongue-core` (lib test) due to 17 previous errors; 1 warning emitted
+warning: build failed, waiting for other jobs to finish...
+warning: `parseltongue-core` (lib) generated 1 warning (1 duplicate)
+error: could not compile `parseltongue-core` (lib) due to 17 previous errors; 1 warning emitted
+   Compiling parseltongue-core v0.8.7 (/Users/amuldotexe/Projects/parseltongue/crates/parseltongue-core)
+error[E0277]: `QueryMatches<'_, '_, &[u8], &[u8]>` is not an iterator
+   --> crates/parseltongue-core/src/query_extractor.rs:139:18
+    |
+139 |         for m in cursor.matches(&query, tree.root_node(), source.as_bytes()) {
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `QueryMatches<'_, '_, &[u8], &[u8]>` is not an iterator
+    |
+    = help: the trait `Iterator` is not implemented for `QueryMatches<'_, '_, &[u8], &[u8]>`
+    = note: required for `QueryMatches<'_, '_, &[u8], &[u8]>` to implement `IntoIterator`
+
+For more information about this error, try `rustc --explain E0277`.
+error: could not compile `parseltongue-core` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `parseltongue-core` (lib test) due to 1 previous error

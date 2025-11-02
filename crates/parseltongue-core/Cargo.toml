@@ -23,6 +23,11 @@ async-trait = "0.1"
 
 # Parsing dependencies
 tree-sitter.workspace = true
+tree-sitter-rust.workspace = true
+tree-sitter-python.workspace = true
+tree-sitter-c.workspace = true
+tree-sitter-cpp.workspace = true
+tree-sitter-ruby.workspace = true
 
 # Storage dependencies
 cozo.workspace = true

@@ -1792,6 +1792,11 @@ dependencies = [
  "tokio",
  "tokio-test",
  "tree-sitter 0.25.10",
+ "tree-sitter-c",
+ "tree-sitter-cpp",
+ "tree-sitter-python",
+ "tree-sitter-ruby",
+ "tree-sitter-rust",
  "url",
  "uuid",
 ]
