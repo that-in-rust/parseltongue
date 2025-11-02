@@ -108,7 +108,8 @@ mod tests {
         let query = build_export_query(false, "ALL");
         assert!(query.contains("?[isgl1_key"));
         assert!(!query.contains("current_code"));
-        assert!(!query.contains(","));  // No WHERE clause
+        assert!(query.contains("*CodeGraph{"));  // Query from CodeGraph relation
+        assert!(!query.contains(", future_action"));  // No WHERE clause after relation
     }
 
     #[test]
