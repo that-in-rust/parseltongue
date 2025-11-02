@@ -13,22 +13,42 @@
 
 ## RAW variable info 
 
-**1. Dependency Graphs** - ✅ EXTRACTED, ✅ STORED, ❌ **NOT EXPOSED IN PT02 CLI**
+1. Dependency Graphs - ✅ EXTRACTED, ✅ STORED, ❌ **NOT EXPOSED IN PT02 CLI**
 
-**Status**: PT01 extracts during parsing, stores in DependencyEdges relation, 4 graph operations tested
-**Gap**: PT02 CLI has NO way to export dependency-only JSON
-**Action Required**: Add `--export-dependencies` flag to PT02
+Status: PT01 extracts during parsing, stores in DependencyEdges relation, 4 graph operations tested
+Gap: PT02 CLI has NO way to export dependency-only JSON
+Action Required: Add `--export-dependencies` flag to PT02
+
+
+| Variable | Type | Size (bytes) | Description | Nullable | Derivable | Example |
+|----------|------|--------------|-------------|----------|-----------|---------|
+| from_key | String | ~60 | Source entity ISGL1 key | No | No | `rust:fn:main:src_main_rs:1-10` |
+| to_key | String | ~60 | Target entity ISGL1 key | No | No | `rust:fn:helper:src_lib_rs:20-30` |
+| edge_type | Enum | ~8 | Relationship type: Calls, Uses, Implements | No | No | `Calls` |
+| source_location | String | ~20 | Where relationship occurs in source | Yes | No | `src/main.rs:5` |
+
+**Total per edge**: ~148 bytes
+**Criticality**: **HIGH** - Core graph structure, answers "what depends on what?"
+
+Why HIGH Criticality - 
+- Blast radius calculation: Find all affected entities when one changes
+- Dependency traversal: Navigate call graphs, usage graphs
+- Test impact analysis: Which tests need to run when code changes
+- Refactoring safety: Understand what breaks when modifying an entity
+- Architecture understanding: See module coupling and cohesion
+
+
 
 | Variable | Status | Location | Tests |
 |----------|--------|----------|-------|
-| **from_key, to_key, edge_type, source_location** | ✅ Extracted & Stored | PT01: `crates/pt01-folder-to-cozodb-streamer/src/isgl1_generator.rs:540-612` | 3 tests |
-| **Blast radius query** | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:305-372` | 4 tests |
-| **Forward deps query** | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:420-443` | 5 tests |
-| **Reverse deps query** | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:491-514` | 4 tests |
-| **Transitive closure query** | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:588-625` | 4 tests |
-| **PT02 CLI exposure** | ❌ **MISSING** | - | - |
+| from_key, to_key, edge_type, source_location | ✅ Extracted & Stored | PT01: `crates/pt01-folder-to-cozodb-streamer/src/isgl1_generator.rs:540-612` | 3 tests |
+| Blast radius query | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:305-372` | 4 tests |
+| Forward deps query | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:420-443` | 5 tests |
+| Reverse deps query | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:491-514` | 4 tests |
+| Transitive closure query | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:588-625` | 4 tests |
+| PT02 CLI exposure | ❌ **MISSING** | - | - |
 
-**Expected Output** (50-80KB for 590 entities, 8-13x smaller than current ISG exports):
+Expected Output (50-80KB for 590 entities, 8-13x smaller than current ISG exports):
 ```json
 {
   "nodes": [{"key": "rust:fn:main:...", "name": "main", "type": "fn", "entity_class": "CODE"}],
@@ -38,11 +58,11 @@
 
 ---
 
-**2. Temporal State** - ✅ EXTRACTED, ✅ STORED, ✅ **QUERYABLE** (via --query flag)
+2. Temporal State - ✅ EXTRACTED, ✅ STORED, ✅ **QUERYABLE** (via --query flag)
 
-**Status**: Fully working, PT01 initializes, PT03 updates, PT02 can export via --query
-**Variables**: current_ind, future_ind, future_action (12 bytes per entity)
-**Criticality**: **HIGH** - Essential for change planning, blast radius of modifications
+Status: Fully working, PT01 initializes, PT03 updates, PT02 can export via --query
+Variables: current_ind, future_ind, future_action (12 bytes per entity)
+Criticality: **HIGH** - Essential for change planning, blast radius of modifications
 
 | current_ind | future_ind | future_action | Meaning |
 |-------------|------------|---------------|---------|
@@ -51,23 +71,18 @@
 | true | false | Delete | Entity will be removed |
 | false | true | Create | Entity will be added |
 
-**Already accessible** via:
-```bash
-pt02 --output changed.json --db test.db --include-current-code 0 --where "future_action != null"
-```
-
 ---
 
-**3. TDD Classification** - ✅ EXTRACTED, ⚠️ **BLOATED** (6/7 fields are defaults)
+3. TDD Classification - ✅ EXTRACTED, ⚠️ **BLOATED** (6/7 fields are defaults)
 
-**Status**: All 7 fields extracted, but only `entity_class` has value
-**Recommendation**: Default export should include ONLY `entity_class`, rest via --query
+Status: All 7 fields extracted, but only `entity_class` has value
+Recommendation: Default export should include ONLY `entity_class`, rest via --query
 
 | Variable | Criticality | Default Value | Usefulness |
 |----------|-------------|---------------|------------|
-| **entity_class** | **HIGH** | CodeImplementation | Essential for test impact analysis |
+| entity_class | HIGH | CodeImplementation | Essential for test impact analysis |
 
-**Current problem**: Exporting all 7 fields wastes ~27K tokens (23.7% of "minimal" export)
+Current problem: Exporting all 7 fields wastes ~27K tokens (23.7% of "minimal" export)
 
 ---
 
