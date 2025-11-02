@@ -935,6 +935,25 @@ pub async fn calculate_blast_radius(
 
 **The gap**: PT02's `--query` flag only queries CodeGraph relation, not DependencyEdges
 
+### Implementation Status: 4 Graph Operations Production-Ready
+
+**Research Date**: 2025-11-02
+**Finding**: Dependency graph infrastructure is **fully implemented and tested** - only CLI exposure missing.
+
+| Operation | Status | Location | Tests | Performance |
+|-----------|--------|----------|-------|-------------|
+| **Blast radius** | ✅ Implemented | `parseltongue-core/src/storage/cozo_client.rs:305-372` | 4 tests | <50ms for 5 hops, 10k nodes |
+| **Forward deps** | ✅ Implemented | `parseltongue-core/src/storage/cozo_client.rs:420-443` | 5 tests | Validated |
+| **Reverse deps** | ✅ Implemented | `parseltongue-core/src/storage/cozo_client.rs:491-514` | 4 tests | Validated |
+| **Transitive closure** | ✅ Implemented | `parseltongue-core/src/storage/cozo_client.rs:588-625` | 4 tests (incl. cycles) | Validated |
+| **PT02 CLI exposure** | ❌ **Missing** | - | - | - |
+
+**Total Test Coverage**: 17 integration tests covering all dependency graph operations
+
+**Conclusion**: Infrastructure exists since Phase 1. PT02 just needs new flag to expose dependency-only exports.
+
+See `/Docs-PT02-Commands-202511020276.md` (lines 274-327) for complete implementation status of all 10 PT02 operations.
+
 ---
 
 ### Proposed Architecture: Dependency-First Export

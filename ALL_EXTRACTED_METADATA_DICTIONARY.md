@@ -7,40 +7,42 @@
 ---
 
 
-# amuldotexe's recommendation
-
-## Legacy queries to be continued or reimplemented
-
-## New variables to be implemented
-
-1. Dependency Graphs ARE NON-NEGOTIABLE
+# amuldotexe's Implementation Priorities
 
 
-| Variable | Type | Size (bytes) | Description | Nullable | Derivable | Example |
-|----------|------|--------------|-------------|----------|-----------|---------|
-| **from_key** | String | ~60 | Source entity ISGL1 key | No | No | `rust:fn:main:src_main_rs:1-10` |
-| **to_key** | String | ~60 | Target entity ISGL1 key | No | No | `rust:fn:helper:src_lib_rs:20-30` |
-| **edge_type** | Enum | ~8 | Relationship type: Calls, Uses, Implements | No | No | `Calls` |
-| **source_location** | String | ~20 | Where relationship occurs in source | Yes | No | `src/main.rs:5` |
 
+## RAW variable info 
 
-2. Temporal State Variables (HIGH Criticality) ARE NON-NEGOTIABLE
+**1. Dependency Graphs** - ✅ EXTRACTED, ✅ STORED, ❌ **NOT EXPOSED IN PT02 CLI**
 
-**Source**: `CodeGraph.temporal_state` (TemporalState struct)
-**Extracted by**: PT01 (initial), PT03 (updates during planning)
-**Size**: ~12 bytes per entity
+**Status**: PT01 extracts during parsing, stores in DependencyEdges relation, 4 graph operations tested
+**Gap**: PT02 CLI has NO way to export dependency-only JSON
+**Action Required**: Add `--export-dependencies` flag to PT02
 
+| Variable | Status | Location | Tests |
+|----------|--------|----------|-------|
+| **from_key, to_key, edge_type, source_location** | ✅ Extracted & Stored | PT01: `crates/pt01-folder-to-cozodb-streamer/src/isgl1_generator.rs:540-612` | 3 tests |
+| **Blast radius query** | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:305-372` | 4 tests |
+| **Forward deps query** | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:420-443` | 5 tests |
+| **Reverse deps query** | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:491-514` | 4 tests |
+| **Transitive closure query** | ✅ Implemented | Core: `crates/parseltongue-core/src/storage/cozo_client.rs:588-625` | 4 tests |
+| **PT02 CLI exposure** | ❌ **MISSING** | - | - |
 
-| Variable | Type | Size (bytes) | Description | Nullable | Derivable | Example |
-|----------|------|--------------|-------------|----------|-----------|---------|
-| **current_ind** | Boolean | ~1 | Entity exists in current state | No | No | `true` |
-| **future_ind** | Boolean | ~1 | Entity will exist in future state | No | No | `true` |
-| **future_action** | Enum | ~10 | Planned action: Create, Edit, Delete | Yes | No | `Edit` |
+**Expected Output** (50-80KB for 590 entities, 8-13x smaller than current ISG exports):
+```json
+{
+  "nodes": [{"key": "rust:fn:main:...", "name": "main", "type": "fn", "entity_class": "CODE"}],
+  "edges": [{"from": "rust:fn:main:...", "to": "rust:fn:helper:...", "type": "Calls", "location": "src/main.rs:5"}]
+}
+```
 
-**Total per entity**: ~12 bytes
-**Criticality**: **HIGH** - Essential for change planning and temporal queries
+---
 
-Temporal State Combinations:
+**2. Temporal State** - ✅ EXTRACTED, ✅ STORED, ✅ **QUERYABLE** (via --query flag)
+
+**Status**: Fully working, PT01 initializes, PT03 updates, PT02 can export via --query
+**Variables**: current_ind, future_ind, future_action (12 bytes per entity)
+**Criticality**: **HIGH** - Essential for change planning, blast radius of modifications
 
 | current_ind | future_ind | future_action | Meaning |
 |-------------|------------|---------------|---------|
@@ -48,29 +50,67 @@ Temporal State Combinations:
 | true | true | Edit | Entity will be modified |
 | true | false | Delete | Entity will be removed |
 | false | true | Create | Entity will be added |
-| true | false | None | ❌ Invalid state |
-| false | false | * | ❌ Invalid state |
 
-Why HIGH Criticality:
-- **Change detection**: Find all modified entities
-- **Test planning**: Which entities need new/updated tests
-- **Blast radius**: Only changed entities trigger downstream impacts
-- **Rollback**: Distinguish current vs future state
-- **Small size**: Only 12 bytes, huge value
+**Already accessible** via:
+```bash
+pt02 --output changed.json --db test.db --include-current-code 0 --where "future_action != null"
+```
 
-3. TDD Classification Core Variable
+---
 
-**Source**: `CodeGraph.TDD_Classification` (TddClassification struct)
-**Extracted by**: PT01 (initial defaults), PT03 (analysis updates)
+**3. TDD Classification** - ✅ EXTRACTED, ⚠️ **BLOATED** (6/7 fields are defaults)
+
+**Status**: All 7 fields extracted, but only `entity_class` has value
+**Recommendation**: Default export should include ONLY `entity_class`, rest via --query
+
+| Variable | Criticality | Default Value | Usefulness |
+|----------|-------------|---------------|------------|
+| **entity_class** | **HIGH** | CodeImplementation | Essential for test impact analysis |
+
+**Current problem**: Exporting all 7 fields wastes ~27K tokens (23.7% of "minimal" export)
+
+---
+
+# Longer Documentation for Reference ONLY
+
+## Priority Actions for v0.8.3
+
+### Priority 1: Expose Dependency Graph Queries in PT02 CLI
+**Effort**: 4-6 hours
+**Impact**: 8-13x token reduction vs current exports
+**Files**: `crates/pt02-llm-cozodb-to-context-writer/src/{cli.rs, query_builder.rs, main.rs}`
+**Action**:
+1. Add `--export-mode dependencies` flag (default to dependency graph export)
+2. Create graph-optimized JSON output format
+3. Wire up existing core methods to PT02 CLI
+
+### Priority 2: Simplify TDD Classification Default Export
+**Effort**: 2 hours
+**Impact**: 23.7% size reduction of minimal exports
+**Action**: Only export `entity_class` by default, rest via --export-level standard/full
+
+### Priority 3: Add Export Level Presets
+**Effort**: 4 hours
+**Impact**: Clear cost model for users (essential/standard/full/bulk)
+**Action**: Implement variable-level criticality filtering per `/ALL_EXTRACTED_METADATA_DICTIONARY.md`
+
+---
+
+## What Does NOT Need Reimplementation
+
+- ❌ Dependency extraction (PT01 already does this)
+- ❌ Dependency storage (DependencyEdges relation exists)
+- ❌ Graph queries (blast radius, forward/reverse deps, transitive closure all tested)
+- ❌ Temporal state tracking (fully working)
+
+## What DOES Need Implementation
+
+- ✅ PT02 CLI flag for dependency-only export
+- ✅ Graph-optimized JSON output format (nodes + edges)
+- ✅ Export level presets (essential, standard, full, bulk)
+- ✅ Documentation and examples for dependency-first workflows
 
 
-| Variable | Type | Size (bytes) | Criticality | Description | Default | Example |
-|----------|------|--------------|-------------|-------------|---------|---------|
-| **entity_class** | Enum | ~4 | **HIGH** | TestImplementation or CodeImplementation | CodeImplementation | `CodeImplementation` |
-
-
-
-# Longer Documentation for reference ONLY
 
 ## Table of Contents
 
