@@ -22,6 +22,7 @@ use anyhow::Result;
 use pt02_llm_cozodb_to_context_writer::{
     models::{EntityExportLevel2, ExportConfig},
     export_trait::{CodeGraphRepository, Edge, Entity, LevelExporter},
+    exporters::Level2Exporter,
 };
 use std::path::PathBuf;
 use async_trait::async_trait;
@@ -60,38 +61,6 @@ impl CodeGraphRepository for MockDatabase {
 
     async fn query_edges(&self, _where_clause: &str) -> Result<Vec<Edge>> {
         Ok(vec![])
-    }
-}
-
-// ============================================================================
-// Level 2 Exporter (stub)
-// ============================================================================
-
-struct Level2Exporter;
-
-impl Level2Exporter {
-    fn new() -> Self {
-        Self
-    }
-}
-
-#[async_trait]
-impl LevelExporter for Level2Exporter {
-    async fn export(
-        &self,
-        _db: &dyn CodeGraphRepository,
-        _config: &ExportConfig,
-    ) -> Result<pt02_llm_cozodb_to_context_writer::models::ExportOutput> {
-        todo!("Level 2 export implementation (Phase 4)")
-    }
-
-    fn level(&self) -> u8 {
-        2
-    }
-
-    fn estimated_tokens(&self) -> usize {
-        // Estimate: ~60K tokens for 590 entities (no code)
-        60_000
     }
 }
 
@@ -157,7 +126,7 @@ async fn test_level2_return_type() {
     let json = serde_json::to_string(&output).unwrap();
 
     // Assert
-    assert!(json.contains("\"return_type\": \"Result<()>\""));
+    assert!(json.contains("\"return_type\":\"Result<()>\"") || json.contains("\"return_type\": \"Result<()>\""));
 }
 
 #[tokio::test]
@@ -246,9 +215,9 @@ async fn test_level2_safety_flags() {
     let json = serde_json::to_string(&output).unwrap();
 
     // Assert: All safety flags present
-    assert!(json.contains("\"is_public\": true"));
-    assert!(json.contains("\"is_async\": false"));
-    assert!(json.contains("\"is_unsafe\": false"));
+    assert!(json.contains("\"is_public\":true") || json.contains("\"is_public\": true"));
+    assert!(json.contains("\"is_async\":false") || json.contains("\"is_async\": false"));
+    assert!(json.contains("\"is_unsafe\":false") || json.contains("\"is_unsafe\": false"));
 }
 
 #[tokio::test]
@@ -270,7 +239,7 @@ async fn test_level2_async_function() {
     let json = serde_json::to_string(&output).unwrap();
 
     // Assert
-    assert!(json.contains("\"is_async\": true"));
+    assert!(json.contains("\"is_async\":true") || json.contains("\"is_async\": true"));
     assert!(json.contains("async fn async_test"));
 }
 
@@ -293,7 +262,7 @@ async fn test_level2_unsafe_function() {
     let json = serde_json::to_string(&output).unwrap();
 
     // Assert
-    assert!(json.contains("\"is_unsafe\": true"));
+    assert!(json.contains("\"is_unsafe\":true") || json.contains("\"is_unsafe\": true"));
 }
 
 // ============================================================================

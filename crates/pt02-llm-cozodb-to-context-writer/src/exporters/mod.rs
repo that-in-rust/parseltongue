@@ -7,14 +7,14 @@
 //! - Level 1: Node-centric + ISG + Temporal (30K tokens)
 //! - Level 2: + Type system essentials (60K tokens)
 //!
-//! ## Phase 3 (GREEN)
-//!
-//! Implementing Level 0 and Level 1 exporters to make tests pass.
-//! Level 2 deferred to Phase 4.
+//! ## Phase 3 (GREEN): Level 0 + Level 1
+//! ## Phase 4 (GREEN): Level 2
 
 pub mod level0;
 pub mod level1;
+pub mod level2;
 
 // Re-export for convenience
 pub use level0::Level0Exporter;
 pub use level1::Level1Exporter;
+pub use level2::Level2Exporter;
