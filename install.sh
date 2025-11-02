@@ -28,20 +28,45 @@ mkdir -p .claude/.parseltongue
 
 # Download documentation
 echo "📚 Downloading documentation..."
+
+# Core docs
 curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/.parseltongue/parseltongue-README.md" \
   -o .claude/.parseltongue/parseltongue-README.md
 
 curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/.parseltongue/Parseltonge-SOP.md" \
   -o .claude/.parseltongue/Parseltonge-SOP.md
 
+# Steering documents
+echo "📖 Downloading steering documents..."
+curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/.parseltongue/S01-README-MOSTIMP.md" \
+  -o .claude/.parseltongue/S01-README-MOSTIMP.md
+
+curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/.parseltongue/S05-tone-style-guide.md" \
+  -o .claude/.parseltongue/S05-tone-style-guide.md
+
+curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/.parseltongue/S06-design101-tdd-architecture-principles.md" \
+  -o .claude/.parseltongue/S06-design101-tdd-architecture-principles.md
+
+curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/.parseltongue/S77-IdiomaticRustPatterns.md" \
+  -o .claude/.parseltongue/S77-IdiomaticRustPatterns.md
+
 # Verify installation
 if ./${BINARY_NAME} --version | grep -q "${VERSION}"; then
     echo "✅ Installation complete!"
     echo ""
+    echo "📁 Installed files:"
+    echo "   ./parseltongue (binary)"
+    echo "   .claude/.parseltongue/parseltongue-README.md (main docs)"
+    echo "   .claude/.parseltongue/Parseltonge-SOP.md (usage guide)"
+    echo "   .claude/.parseltongue/S01-README-MOSTIMP.md (core principles)"
+    echo "   .claude/.parseltongue/S05-tone-style-guide.md"
+    echo "   .claude/.parseltongue/S06-design101-tdd-architecture-principles.md"
+    echo "   .claude/.parseltongue/S77-IdiomaticRustPatterns.md"
+    echo ""
     echo "Next steps:"
     echo "  1. Run: ./${BINARY_NAME} --help"
     echo "  2. Read: cat .claude/.parseltongue/parseltongue-README.md"
-    echo "  3. Learn: cat .claude/.parseltongue/Parseltonge-SOP.md"
+    echo "  3. Learn: cat .claude/.parseltongue/S01-README-MOSTIMP.md"
     echo ""
     echo "Start indexing:"
     echo "  ./${BINARY_NAME} pt01-folder-to-cozodb-streamer ./src --db parseltongue.db"

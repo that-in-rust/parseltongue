@@ -154,21 +154,43 @@ your-project/
 ├── parseltongue              # Binary (ready to use)
 └── .claude/
     └── .parseltongue/
-        ├── parseltongue-README.md    # Full documentation
-        └── Parseltonge-SOP.md        # Usage guide
+        ├── parseltongue-README.md                          # Full documentation
+        ├── Parseltonge-SOP.md                              # Usage guide & query patterns
+        ├── S01-README-MOSTIMP.md                           # Core principles & TDD
+        ├── S05-tone-style-guide.md                         # Communication standards
+        ├── S06-design101-tdd-architecture-principles.md    # Architecture patterns
+        └── S77-IdiomaticRustPatterns.md                    # Rust best practices
 ```
+
+**Steering documents** (S-files) guide LLM reasoning with project principles, TDD methodology, and Rust patterns.
 
 **Manual installation:**
 ```bash
 # If you prefer to see each step
 cd /path/to/your/project
+
+# Download binary
 curl -L https://github.com/that-in-rust/parseltongue/releases/latest/download/parseltongue -o parseltongue
 chmod +x parseltongue
+
+# Create directory
 mkdir -p .claude/.parseltongue
+
+# Download docs
 curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/parseltongue-README.md \
   -o .claude/.parseltongue/parseltongue-README.md
 curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/Parseltonge-SOP.md \
   -o .claude/.parseltongue/Parseltonge-SOP.md
+
+# Download steering docs
+curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/S01-README-MOSTIMP.md \
+  -o .claude/.parseltongue/S01-README-MOSTIMP.md
+curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/S05-tone-style-guide.md \
+  -o .claude/.parseltongue/S05-tone-style-guide.md
+curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/S06-design101-tdd-architecture-principles.md \
+  -o .claude/.parseltongue/S06-design101-tdd-architecture-principles.md
+curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/S77-IdiomaticRustPatterns.md \
+  -o .claude/.parseltongue/S77-IdiomaticRustPatterns.md
 ```
 
 ### Option 2: Use Binary from Repository
