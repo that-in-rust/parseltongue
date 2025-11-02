@@ -5,74 +5,95 @@
 config:
   theme: base
   themeVariables:
-    primaryColor: "#1e293b"
-    primaryTextColor: "#f8fafc"
-    primaryBorderColor: "#3b82f6"
-    lineColor: "#64748b"
-    secondaryColor: "#fef3c7"
-    tertiaryColor: "#dcfce7"
-    quaternaryColor: "#fee2e2"
+    primaryColor: "#ffffff"
+    primaryTextColor: "#000000"
+    primaryBorderColor: "#000000"
+    lineColor: "#000000"
+    secondaryColor: "#ffffff"
     background: "#ffffff"
-    fontSize: "14px"
+    fontSize: "13px"
 ---
-flowchart LR
-    %% OLD WAY - Token Explosion
-    subgraph OLD["❌ OLD WAY: Token Explosion"]
+flowchart TB
+    %% The Problem
+    subgraph PROBLEM["The Context Window Problem"]
         direction TB
-        OldCode["📂 Codebase<br/>(50K LOC)"]
-        OldDump["Dump Everything<br/>🔥 500-700K tokens"]
-        OldLLM["LLM Context<br/>💥 OVERFLOW"]
-        OldFail["Result:<br/>❌ Failure<br/>❌ Hallucinations<br/>❌ Missed Changes"]
+        CODE["Codebase: 50,000 lines of code"]
+        DUMP["Traditional Approach: Dump all code as text"]
+        TOKENS["Result: 500,000+ tokens → Context Overflow"]
 
-        OldCode --> OldDump
-        OldDump --> OldLLM
-        OldLLM --> OldFail
+        CODE --> DUMP
+        DUMP --> TOKENS
     end
 
-    %% NEW WAY - ISG Progressive Disclosure
-    subgraph NEW["✅ NEW WAY: Interface Signature Graphs"]
+    %% The Solution: ISG
+    subgraph ISG["Interface Signature Graph (ISG): Structured Semantic Representation"]
         direction TB
-        NewCode["📂 Codebase<br/>(50K LOC)"]
-        NewISG["ISG Indexing<br/>🎯 Parse structure<br/>NOT full code"]
 
-        subgraph PROGRESSIVE["Progressive Disclosure"]
+        PARSE["Parse codebase into graph structure"]
+
+        subgraph CAPTURES["What ISG Captures"]
             direction LR
-            L0["Level 0<br/>Edges<br/>~2-5K tokens"]
-            L1["Level 1<br/>Signatures<br/>~30K tokens"]
-            L2["Level 2<br/>Types<br/>~60K tokens"]
-
-            L0 -.-> L1
-            L1 -.-> L2
+            C1["Unique IDs<br/>Every function/struct"]
+            C2["Dependencies<br/>Calls, imports, traits"]
+            C3["Metadata<br/>Types, signatures"]
+            C4["Relationships<br/>Blast radius analysis"]
         end
 
-        NewPrecise["Precise Modifications<br/>✅ Type-aware<br/>✅ Dependency-aware<br/>✅ Temporal state"]
-        NewSuccess["Result:<br/>✅ Accurate fixes<br/>✅ No hallucinations<br/>✅ Complete coverage"]
-
-        NewCode --> NewISG
-        NewISG --> PROGRESSIVE
-        PROGRESSIVE --> NewPrecise
-        NewPrecise --> NewSuccess
+        PARSE --> CAPTURES
     end
 
-    %% Comparison arrow
-    OLD -.->|"100× token savings<br/>6.7× better context utilization"| NEW
+    %% Progressive Disclosure
+    subgraph DISCLOSURE["Progressive Disclosure: Choose Your Detail Level"]
+        direction TB
 
-    %% Styling
-    classDef oldStyle fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#7f1d1d
-    classDef newStyle fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
-    classDef isgStyle fill:#dbeafe,stroke:#2563eb,stroke-width:3px,color:#1e3a8a
-    classDef levelStyle fill:#fef3c7,stroke:#ca8a04,stroke-width:2px,color:#854d0e
-    classDef successStyle fill:#bbf7d0,stroke:#15803d,stroke-width:3px,color:#14532d
+        L0["Level 0: Pure Edges<br/>Just dependency graph<br/>2-5K tokens<br/>Use: 'What depends on what?'"]
+        L1["Level 1: Signatures + ISG<br/>Function signatures, no bodies<br/>~30K tokens<br/>Use: 'How do I refactor?' (RECOMMENDED)"]
+        L2["Level 2: + Type System<br/>Full type information<br/>~60K tokens<br/>Use: 'Is this type-safe?'"]
 
-    class OldDump,OldLLM,OldFail oldStyle
-    class NewISG,NewPrecise isgStyle
-    class L0,L1,L2 levelStyle
-    class NewSuccess successStyle
+        L0 -.->|Add signatures| L1
+        L1 -.->|Add type details| L2
+    end
+
+    %% The Outcome
+    subgraph OUTCOME["Outcome: LLM-Friendly Context"]
+        direction TB
+        COMPRESSED["100x token reduction<br/>Structure over raw text"]
+        REASONING["LLM reasons about<br/>architecture, not boilerplate"]
+        RESULT["Accurate code changes<br/>across entire codebase"]
+
+        COMPRESSED --> REASONING
+        REASONING --> RESULT
+    end
+
+    %% Flow
+    PROBLEM ==> ISG
+    ISG ==> DISCLOSURE
+    DISCLOSURE ==> OUTCOME
+
+    %% Simple styling - no colors, just borders
+    classDef defaultStyle fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000000
+    classDef emphasisStyle fill:#ffffff,stroke:#000000,stroke-width:3px,color:#000000
+
+    class PROBLEM,ISG,DISCLOSURE,OUTCOME defaultStyle
+    class L1 emphasisStyle
 ```
 
-**LLM-friendly code analysis toolkit** - Index your codebase, export context at the right level of detail, and let LLMs make precise modifications.
+**LLM-friendly code analysis toolkit** powered by **Interface Signature Graphs (ISG)** - Transform your codebase from unstructured text into a queryable, semantic graph. Export context at the right level of detail (2-60K tokens instead of 500K+), enabling LLMs to reason about architecture and make precise modifications across large-scale systems.
 
-**v0.8.6**: Single binary, 8 tools, all working with real CozoDB. Progressive disclosure exports (2-60K tokens). **Production ready!**
+**v0.8.6**: Single binary, 8 tools, real CozoDB backend. Progressive disclosure exports. **Production ready!**
+
+---
+
+## What is an Interface Signature Graph (ISG)?
+
+The ISG is Parseltongue's foundational innovation: a **structured, semantic representation** of your entire codebase that captures:
+
+- **Unique Interface Identifiers**: Every function, struct, and trait gets a stable, unambiguous ID
+- **Dependency Relationships**: Explicit mapping of function calls, trait implementations, module relationships
+- **Rich Metadata**: Compiler-grade semantic information (types, signatures, HIR from rust-analyzer)
+- **Blast Radius Analysis**: Know exactly what's affected by any change
+
+**Key insight**: Instead of dumping 500,000+ tokens of raw code that overflows LLM context windows, the ISG compresses your codebase into a **queryable graph** at multiple abstraction levels. This enables reasoning across millions of lines of code - something impossible with traditional "dump everything" approaches.
 
 ---
 
