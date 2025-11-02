@@ -20,6 +20,7 @@ use anyhow::Result;
 use pt02_llm_cozodb_to_context_writer::{
     models::{DependencyEdge, ExportConfig},
     export_trait::{CodeGraphRepository, Edge, Entity, LevelExporter},
+    exporters::Level0Exporter,
 };
 use std::path::PathBuf;
 use async_trait::async_trait;
@@ -76,38 +77,6 @@ impl CodeGraphRepository for MockDatabase {
         } else {
             Ok(self.edges.clone())
         }
-    }
-}
-
-// ============================================================================
-// Level 0 Exporter (stub for testing - will implement in Phase 3)
-// ============================================================================
-
-struct Level0Exporter;
-
-impl Level0Exporter {
-    fn new() -> Self {
-        Self
-    }
-}
-
-#[async_trait]
-impl LevelExporter for Level0Exporter {
-    async fn export(
-        &self,
-        _db: &dyn CodeGraphRepository,
-        _config: &ExportConfig,
-    ) -> Result<pt02_llm_cozodb_to_context_writer::models::ExportOutput> {
-        todo!("Level 0 export implementation (Phase 3)")
-    }
-
-    fn level(&self) -> u8 {
-        0
-    }
-
-    fn estimated_tokens(&self) -> usize {
-        // Conservative estimate: ~5K tokens for ~2000 edges
-        5000
     }
 }
 

@@ -89,6 +89,7 @@
 pub mod cli;
 pub mod errors;
 pub mod export_trait;
+pub mod exporters;
 pub mod models;
 pub mod query_builder;
 
@@ -96,6 +97,7 @@ pub mod query_builder;
 pub use cli::Cli;
 pub use errors::*;
 pub use export_trait::{CodeGraphRepository, Edge, Entity, LevelExporter};
+pub use exporters::{Level0Exporter, Level1Exporter};
 pub use models::{
     DependencyEdge, EntityExportLevel1, EntityExportLevel2, ExportConfig, ExportMetadata,
     ExportOutput,

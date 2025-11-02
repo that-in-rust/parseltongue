@@ -26,6 +26,7 @@ use anyhow::Result;
 use pt02_llm_cozodb_to_context_writer::{
     models::{EntityExportLevel1, ExportConfig},
     export_trait::{CodeGraphRepository, Edge, Entity, LevelExporter},
+    exporters::Level1Exporter,
 };
 use std::path::PathBuf;
 use async_trait::async_trait;
@@ -74,38 +75,6 @@ impl CodeGraphRepository for MockDatabase {
 
     async fn query_edges(&self, _where_clause: &str) -> Result<Vec<Edge>> {
         Ok(vec![])
-    }
-}
-
-// ============================================================================
-// Level 1 Exporter (stub)
-// ============================================================================
-
-struct Level1Exporter;
-
-impl Level1Exporter {
-    fn new() -> Self {
-        Self
-    }
-}
-
-#[async_trait]
-impl LevelExporter for Level1Exporter {
-    async fn export(
-        &self,
-        _db: &dyn CodeGraphRepository,
-        _config: &ExportConfig,
-    ) -> Result<pt02_llm_cozodb_to_context_writer::models::ExportOutput> {
-        todo!("Level 1 export implementation (Phase 3)")
-    }
-
-    fn level(&self) -> u8 {
-        1
-    }
-
-    fn estimated_tokens(&self) -> usize {
-        // Estimate: ~30K tokens for 590 entities (no code)
-        30_000
     }
 }
 
@@ -281,9 +250,9 @@ async fn test_level1_temporal_state_fields() {
     let json = serde_json::to_string(&output).unwrap();
 
     // Assert: All temporal fields present
-    assert!(json.contains("\"current_ind\": 1"));
-    assert!(json.contains("\"future_ind\": 1"));
-    assert!(json.contains("\"future_action\": \"Edit\""));
+    assert!(json.contains("\"current_ind\":1") || json.contains("\"current_ind\": 1"));
+    assert!(json.contains("\"future_ind\":1") || json.contains("\"future_ind\": 1"));
+    assert!(json.contains("\"future_action\":\"Edit\"") || json.contains("\"future_action\": \"Edit\""));
     assert!(json.contains("\"future_code\""));
 }
 
@@ -436,10 +405,10 @@ async fn test_level1_core_identity_fields() {
     let json = serde_json::to_string(&output).unwrap();
 
     // Assert: All core identity fields present
-    assert!(json.contains("\"entity_name\": \"test_function\""));
-    assert!(json.contains("\"entity_type\": \"fn\""));
-    assert!(json.contains("\"file_path\": \"src/lib.rs\""));
-    assert!(json.contains("\"line_number\": 42"));
+    assert!(json.contains("\"entity_name\":\"test_function\"") || json.contains("\"entity_name\": \"test_function\""));
+    assert!(json.contains("\"entity_type\":\"fn\"") || json.contains("\"entity_type\": \"fn\""));
+    assert!(json.contains("\"file_path\":\"src/lib.rs\"") || json.contains("\"file_path\": \"src/lib.rs\""));
+    assert!(json.contains("\"line_number\":42") || json.contains("\"line_number\": 42"));
 }
 
 // ============================================================================
