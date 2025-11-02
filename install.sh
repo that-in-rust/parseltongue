@@ -6,7 +6,7 @@ set -e
 
 REPO="that-in-rust/parseltongue"
 BINARY_NAME="parseltongue"
-VERSION="0.8.7"
+VERSION="0.8.8"
 ARCH="macos-arm64"
 RELEASE_BINARY="parseltongue-v${VERSION}-${ARCH}"
 
