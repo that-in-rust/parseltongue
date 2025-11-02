@@ -7,6 +7,8 @@ set -e
 REPO="that-in-rust/parseltongue"
 BINARY_NAME="parseltongue"
 VERSION="0.8.7"
+ARCH="macos-arm64"
+RELEASE_BINARY="parseltongue-v${VERSION}-${ARCH}"
 
 echo "🔧 Installing Parseltongue v${VERSION}..."
 
@@ -18,8 +20,8 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
 fi
 
 # Download binary
-echo "📥 Downloading binary..."
-curl -L "https://github.com/${REPO}/releases/download/v${VERSION}/${BINARY_NAME}" -o "${BINARY_NAME}"
+echo "📥 Downloading ${RELEASE_BINARY}..."
+curl -L "https://github.com/${REPO}/releases/download/v${VERSION}/${RELEASE_BINARY}" -o "${BINARY_NAME}"
 chmod +x "${BINARY_NAME}"
 
 # Create .claude/.parseltongue directory

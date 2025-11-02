@@ -87,10 +87,12 @@ curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/inst
 ```
 
 **What it does:**
-1. ✅ Downloads `parseltongue` binary (v0.8.7) to current directory
+1. ✅ Downloads `parseltongue-v0.8.7-macos-arm64` and installs as `parseltongue`
 2. ✅ Creates `.claude/.parseltongue/` folder
 3. ✅ Downloads README and SOP docs
 4. ✅ Verifies installation
+
+**Binary naming**: Release artifacts include version (`parseltongue-v0.8.7-macos-arm64`) but install as `parseltongue` for convenience.
 
 **What you get:**
 ```
@@ -144,12 +146,12 @@ curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude
 git clone https://github.com/that-in-rust/parseltongue
 cd parseltongue
 
-# Use the included binary (already v0.8.7)
-./parseltongue-macos-arm64 --version
+# Use the included versioned binary
+./parseltongue-v0.8.7-macos-arm64 --version
 # Expected: parseltongue 0.8.7
 
 # All commands available
-./parseltongue-macos-arm64 --help
+./parseltongue-v0.8.7-macos-arm64 --help
 ```
 
 ### Option 3: Build from Source
