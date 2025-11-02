@@ -1,0 +1,6 @@
+Running PT02 Level 2: Entity + ISG + Temporal + Type System Export
+✓ PT02 Level 2 export completed
+  Output file: demo-walkthroughs/ActuallyWorks/public-api.json
+  Entities exported: 641
+  Token estimate: ~60000 tokens
+  Fields per entity: 22 (all L1 + return_type, param_types, trait_impls, is_async, is_unsafe, etc.)
