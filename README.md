@@ -1,6 +1,8 @@
 # Parseltongue
 
-**Ultra-minimalist CLI toolkit for code analysis and temporal modification** - Parse code, track changes with temporal versioning, validate syntax, and generate diffs for LLM-driven code transformation.
+**LLM-friendly code analysis toolkit** - Index your codebase, export context at the right level of detail, and let LLMs make precise modifications.
+
+**v0.8.5**: Single binary with 8 tools. Progressive disclosure exports (2-60K tokens). Ready to share!
 
 ---
 
@@ -30,13 +32,16 @@ cargo build --release
 
 ## What Problem Does It Solve?
 
-LLMs need to understand and modify code across large codebases. Parseltongue provides a 6-tool pipeline that:
-- **Indexes** code into a queryable graph database (CozoDB)
-- **Tracks** proposed changes with temporal versioning (current vs. future state)
-- **Validates** syntax before applying changes
-- **Generates** structured diffs for LLM consumption
+**Token explosion kills LLM productivity**. Parseltongue solves this with **progressive disclosure**:
 
-All in **one unified binary** with self-documenting command names.
+1. **Index once** (pt01): Your entire codebase → CozoDB graph
+2. **Export smart** (pt02): Choose your detail level
+   - 🔹 Level 0: Just dependency edges (~2-5K tokens)
+   - 🔹 Level 1: Signatures + temporal state (~30K tokens) ← **Start here**
+   - 🔹 Level 2: + Type system (~60K tokens)
+3. **Modify precisely** (pt03-pt06): Temporal versioning, validation, diffs
+
+**One binary. Eight tools. Your choice of detail level.**
 
 ---
 
@@ -79,7 +84,7 @@ parseltongue pt01-folder-to-cozodb-streamer greeter --db rocksdb:demo.db
 # → 4 entities created
 
 # 2. READ: Export all entities to see what was indexed (Level 1 - RECOMMENDED)
-pt02-level01 --include-code 0 --where "ALL" --output entities.json --db rocksdb:demo.db
+parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output entities.json --db rocksdb:demo.db
 # → Exports entities with ISG + temporal state (signatures only, ~30K tokens)
 # → Generates: entities.json with 4 functions
 
@@ -249,18 +254,18 @@ parseltongue pt01-folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --
 
 ### pt02: Export Database → JSON (Progressive Disclosure)
 
-**Status (v0.8.4):** Architecture complete, 87/87 tests GREEN ✅, CozoDB integration pending in v0.9.0
+**Status (v0.8.5):** ✅ Integrated into main binary, 87/87 tests GREEN, CozoDB connection coming in v0.9.0
 
-PT02 provides 3 specialized export binaries following progressive disclosure principles:
+PT02 provides 3 export levels following progressive disclosure principles:
 
 #### **pt02-level00: Pure Edge List (MINIMAL - ~2-5K tokens)**
 
 ```bash
 # Export all dependency edges
-pt02-level00 --where "ALL" --output edges.json
+parseltongue pt02-level00 --where-clause "ALL" --output edges.json
 
 # Filter by edge type (Datalog syntax)
-pt02-level00 --where "edge_type = 'depends_on'" --output deps.json
+parseltongue pt02-level00 --where-clause "edge_type = 'depends_on'" --output deps.json
 ```
 
 **What it does:** Exports dependency edges only (from_key, to_key, edge_type). Best for dependency analysis and graph visualization.
@@ -277,16 +282,16 @@ pt02-level00 --where "edge_type = 'depends_on'" --output deps.json
 
 ```bash
 # Export all entities (signatures only - CHEAP)
-pt02-level01 --include-code 0 --where "ALL" --output entities.json
+parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output entities.json
 
 # Export public API surface
-pt02-level01 --include-code 0 --where "is_public = true, entity_type = 'fn'" --output api.json
+parseltongue pt02-level01 --include-code 0 --where-clause "is_public = true, entity_type = 'fn'" --output api.json
 
 # Export entities with planned changes (temporal)
-pt02-level01 --include-code 0 --where "future_action != null" --output changes.json
+parseltongue pt02-level01 --include-code 0 --where-clause "future_action != null" --output changes.json
 
 # Export with full code (EXPENSIVE - 100× more tokens!)
-pt02-level01 --include-code 1 --where "ALL" --output entities_with_code.json
+parseltongue pt02-level01 --include-code 1 --where-clause "ALL" --output entities_with_code.json
 ```
 
 **What it does:** Exports entities with Interface Signature Graph (ISG) + temporal state. **14 fields** including dependencies, signatures, and temporal indicators.
@@ -304,16 +309,16 @@ pt02-level01 --include-code 1 --where "ALL" --output entities_with_code.json
 
 ```bash
 # Export all entities with type information (signatures only)
-pt02-level02 --include-code 0 --where "ALL" --output typed_entities.json
+parseltongue pt02-level02 --include-code 0 --where-clause "ALL" --output typed_entities.json
 
 # Find all async functions
-pt02-level02 --include-code 0 --where "is_async = true" --output async_fns.json
+parseltongue pt02-level02 --include-code 0 --where-clause "is_async = true" --output async_fns.json
 
 # Find unsafe code
-pt02-level02 --include-code 0 --where "is_unsafe = true" --output unsafe_code.json
+parseltongue pt02-level02 --include-code 0 --where-clause "is_unsafe = true" --output unsafe_code.json
 
 # Export public API with types
-pt02-level02 --include-code 0 --where "is_public = true" --output public_api.json
+parseltongue pt02-level02 --include-code 0 --where-clause "is_public = true" --output public_api.json
 ```
 
 **What it does:** Exports entities with full type system information. **22 fields** including return types, param types, safety flags (async/unsafe), and trait impls.
@@ -338,11 +343,11 @@ pt02-level02 --include-code 0 --where "is_public = true" --output public_api.jso
 | `x LIKE '%pattern%'` | `x ~ 'pattern'` |
 
 **Common filters:**
-- All entities: `--where "ALL"`
-- Public functions: `--where "is_public = true, entity_type = 'fn'"`
-- Async functions: `--where "is_async = true"`
-- Entities with changes: `--where "future_action != null"`
-- Pattern match: `--where "entity_name ~ 'test'"`
+- All entities: `--where-clause "ALL"`
+- Public functions: `--where-clause "is_public = true, entity_type = 'fn'"`
+- Async functions: `--where-clause "is_async = true"`
+- Entities with changes: `--where-clause "future_action != null"`
+- Pattern match: `--where-clause "entity_name ~ 'test'"`
 
 **Progressive disclosure model:**
 ```

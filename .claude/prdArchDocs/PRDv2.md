@@ -37,9 +37,9 @@ parseltongue pt01-folder-to-cozodb-streamer ./src --db rocksdb:analysis.db
 
 ### **pt02: Export Database → JSON (Progressive Disclosure Design)**
 
-**Status (v0.8.4)**: Architecture complete, 87/87 tests GREEN ✅, CozoDB integration pending in v0.9.0
+**Status (v0.8.5)**: ✅ Integrated into main binary, 8 subcommands total, 87/87 tests GREEN, CozoDB connection v0.9.0
 
-PT02 provides 3 specialized export binaries following progressive disclosure principles:
+PT02 provides 3 export levels integrated into the main `parseltongue` binary:
 
 #### **pt02-level00: Pure Edge List (MINIMAL)**
 

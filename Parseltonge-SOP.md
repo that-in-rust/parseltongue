@@ -1,14 +1,23 @@
-# Parseltonge Standard Operating Procedure (SOP)
+# Parseltongue Standard Operating Procedure (SOP)
 
-**Purpose**: SQL query patterns for using Parseltongue tools without context pollution.
+**Purpose**: Smart query patterns for using Parseltongue without token explosion.
+
+**Updated**: v0.8.5 - Progressive Disclosure Design
 
 ---
 
 ## THE GOLDEN RULE
 
-**Never load `Current_Code` for all entities** → 500k+ tokens = context explosion
+**Never load code for all entities** → 500k+ tokens = context explosion
 
-**Solution**: Use SQL `EXCEPT` clause OR `WHERE` clause to limit rows
+**Solution**: Use **progressive disclosure** - pick the right level for your task
+
+| Level | Tokens | Use When |
+|-------|--------|----------|
+| **Level 0** | 2-5K | "What depends on what?" |
+| **Level 1** | 30K | "How do I refactor this?" ← **START HERE** |
+| **Level 2** | 60K | "Is this type-safe?" |
+| **Level 1 + code** | 500-700K | "Show me the implementation" (rarely!) |
 
 ---
 
@@ -37,19 +46,45 @@ parseltongue pt01-folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --
 
 ---
 
-## TOOL 2 BEHAVIOR
+## TOOL 2: PT02 PROGRESSIVE DISCLOSURE (v0.8.5)
 
-Tool 2 (`pt02-llm-cozodb-to-context-writer`):
-- **Purpose**: Extract entities from CozoDB → JSON file for LLM to read
-- **Input**: `--db` (database path), `--query` (optional SQL), `--output` (directory), `--include-current-code` (0 or 1)
-- **Output**: Writes JSON file: `context_{id}_{timestamp}.json`
-- **Default query**: `SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph WHERE current_ind=1`
-- **Token optimization**: Use `--include-current-code 0` (default) to exclude Current_Code, saves ~500k tokens
-- **Workflow**: Database → JSON file → **LLM reads JSON** to understand codebase
+Three levels, one goal: **Give LLMs exactly what they need, nothing more**.
+
+### PT02-Level00: Pure Edge List
+```bash
+parseltongue pt02-level00 --where-clause "ALL" --output edges.json
+```
+- **Tokens**: ~2-5K
+- **Use case**: "What depends on what?" - Pure dependency analysis
+- **Output**: Just edges (from_key, to_key, edge_type)
+
+### PT02-Level01: Entity + ISG + Temporal (RECOMMENDED)
+```bash
+# Signatures only (CHEAP)
+parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output entities.json
+
+# With code (EXPENSIVE - only when needed!)
+parseltongue pt02-level01 --include-code 1 --where-clause "future_action != null" --output changes.json
+```
+- **Tokens**: ~30K (signatures) or ~500-700K (with code)
+- **Use case**: "How do I refactor this?" - Code understanding, planning
+- **Output**: 14 fields (isgl1_key, forward_deps, reverse_deps, temporal state, etc.)
+
+### PT02-Level02: + Type System
+```bash
+# Find async functions
+parseltongue pt02-level02 --include-code 0 --where-clause "is_async = true" --output async.json
+
+# Find unsafe code
+parseltongue pt02-level02 --include-code 0 --where-clause "is_unsafe = true" --output unsafe.json
+```
+- **Tokens**: ~60K (signatures) or ~500-700K (with code)
+- **Use case**: "Is this type-safe?" - Safety audits, API analysis
+- **Output**: 22 fields (all Level 1 + return_type, param_types, is_async, is_unsafe, etc.)
 
 ---
 
-## SQL QUERY PATTERNS
+## DATALOG QUERY PATTERNS (v0.8.5)
 
 ### Pattern 1: Overview Without Code (DEFAULT - SAFE!)
 

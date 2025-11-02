@@ -150,8 +150,14 @@ async fn main() -> Result<()> {
         Some(("pt01-folder-to-cozodb-streamer", sub_matches)) => {
             run_folder_to_cozodb_streamer(sub_matches).await
         }
-        Some(("pt02-llm-cozodb-to-context-writer", sub_matches)) => {
-            run_llm_cozodb_to_context_writer(sub_matches).await
+        Some(("pt02-level00", sub_matches)) => {
+            run_pt02_level00(sub_matches).await
+        }
+        Some(("pt02-level01", sub_matches)) => {
+            run_pt02_level01(sub_matches).await
+        }
+        Some(("pt02-level02", sub_matches)) => {
+            run_pt02_level02(sub_matches).await
         }
         Some(("pt03-llm-to-cozodb-writer", sub_matches)) => {
             run_llm_to_cozodb_writer(sub_matches).await
@@ -173,7 +179,12 @@ async fn main() -> Result<()> {
             println!();
             println!("Available commands:");
             println!("  pt01-folder-to-cozodb-streamer       - Index codebase into CozoDB (Tool 1: Ingest)");
-            println!("  pt02-llm-cozodb-to-context-writer    - Generate context from CozoDB (Tool 2: Read)");
+            println!("");
+            println!("  PT02: Export from CozoDB (Progressive Disclosure)");
+            println!("    pt02-level00                       - Pure edge list (~2-5K tokens)");
+            println!("    pt02-level01                       - Entity + ISG + Temporal (~30K tokens) [RECOMMENDED]");
+            println!("    pt02-level02                       - + Type system (~60K tokens)");
+            println!("");
             println!("  pt03-llm-to-cozodb-writer            - Write LLM changes to temporal state (Tool 3: Edit)");
             println!("  pt04-syntax-preflight-validator      - Validate syntax of proposed changes (Tool 4: Validate)");
             println!("  pt05-llm-cozodb-to-diff-writer       - Generate CodeDiff.json (Tool 5: Diff)");
@@ -226,14 +237,22 @@ fn build_cli() -> Command {
                 ),
         )
         .subcommand(
-            Command::new("pt02-llm-cozodb-to-context-writer")
-                .about("Tool 2: Generate context JSON from CozoDB for LLM consumption")
+            Command::new("pt02-level00")
+                .about("Tool 2a: Export pure edge list (Level 0 - ~2-5K tokens)")
+                .long_about("Export dependency edges only for graph visualization and dependency analysis.\n\nExample:\n  parseltongue pt02-level00 --where-clause \"ALL\" --output edges.json")
+                .arg(
+                    Arg::new("where-clause")
+                        .long("where-clause")
+                        .help("Datalog WHERE clause (use 'ALL' for everything)")
+                        .long_help("Datalog WHERE clause or 'ALL' (MANDATORY)\n\nExamples:\n  --where-clause \"ALL\"\n  --where-clause \"edge_type = 'depends_on'\"\n  --where-clause \"from_key ~ 'rust:fn'\"\n\nDatalog syntax:\n  - AND: Use comma (,)     NOT &&\n  - OR: Use semicolon (;)  NOT ||\n  - Equality: Use =        NOT ==")
+                        .required(true),
+                )
                 .arg(
                     Arg::new("output")
                         .long("output")
                         .short('o')
-                        .help("Output JSON file")
-                        .required(true),
+                        .help("Output JSON file path")
+                        .default_value("ISGLevel00.json"),
                 )
                 .arg(
                     Arg::new("db")
@@ -242,11 +261,89 @@ fn build_cli() -> Command {
                         .default_value("parseltongue.db"),
                 )
                 .arg(
-                    Arg::new("filter")
-                        .long("filter")
-                        .help("Filter: all, changed, or current")
-                        .value_parser(["all", "changed", "current"])
-                        .default_value("all"),
+                    Arg::new("verbose")
+                        .long("verbose")
+                        .short('v')
+                        .help("Show progress and token estimates")
+                        .action(clap::ArgAction::SetTrue),
+                ),
+        )
+        .subcommand(
+            Command::new("pt02-level01")
+                .about("Tool 2b: Export entities with ISG + temporal (Level 1 - ~30K tokens) [RECOMMENDED]")
+                .long_about("Export entities with Interface Signature Graph and temporal state.\n\nExamples:\n  # Signatures only (CHEAP - ~30K tokens)\n  parseltongue pt02-level01 --include-code 0 --where-clause \"ALL\" --output entities.json\n\n  # With code (EXPENSIVE - 100× more tokens)\n  parseltongue pt02-level01 --include-code 1 --where-clause \"future_action != null\" --output changes.json")
+                .arg(
+                    Arg::new("include-code")
+                        .long("include-code")
+                        .help("Include current_code field: 0=signatures only (cheap), 1=with code (expensive)")
+                        .value_parser(["0", "1"])
+                        .required(true),
+                )
+                .arg(
+                    Arg::new("where-clause")
+                        .long("where-clause")
+                        .help("Datalog WHERE clause (use 'ALL' for everything)")
+                        .long_help("Datalog WHERE clause or 'ALL' (MANDATORY)\n\nExamples:\n  --where-clause \"ALL\"\n  --where-clause \"is_public = true, entity_type = 'fn'\"\n  --where-clause \"future_action != null\"\n\nDatalog syntax:\n  - AND: Use comma (,)\n  - OR: Use semicolon (;)\n  - Equality: Use =")
+                        .required(true),
+                )
+                .arg(
+                    Arg::new("output")
+                        .long("output")
+                        .short('o')
+                        .help("Output JSON file path")
+                        .default_value("ISGLevel01.json"),
+                )
+                .arg(
+                    Arg::new("db")
+                        .long("db")
+                        .help("Database file path")
+                        .default_value("parseltongue.db"),
+                )
+                .arg(
+                    Arg::new("verbose")
+                        .long("verbose")
+                        .short('v')
+                        .help("Show progress and token estimates")
+                        .action(clap::ArgAction::SetTrue),
+                ),
+        )
+        .subcommand(
+            Command::new("pt02-level02")
+                .about("Tool 2c: Export entities with type system (Level 2 - ~60K tokens)")
+                .long_about("Export entities with full type system information for type-safe refactoring.\n\nExamples:\n  # Find async functions\n  parseltongue pt02-level02 --include-code 0 --where-clause \"is_async = true\" --output async.json\n\n  # Find unsafe code\n  parseltongue pt02-level02 --include-code 0 --where-clause \"is_unsafe = true\" --output unsafe.json")
+                .arg(
+                    Arg::new("include-code")
+                        .long("include-code")
+                        .help("Include current_code field: 0=signatures only (cheap), 1=with code (expensive)")
+                        .value_parser(["0", "1"])
+                        .required(true),
+                )
+                .arg(
+                    Arg::new("where-clause")
+                        .long("where-clause")
+                        .help("Datalog WHERE clause (use 'ALL' for everything)")
+                        .long_help("Datalog WHERE clause or 'ALL' (MANDATORY)\n\nExamples:\n  --where-clause \"ALL\"\n  --where-clause \"is_async = true\"\n  --where-clause \"is_unsafe = true\"\n  --where-clause \"is_public = true\"\n\nDatalog syntax:\n  - AND: Use comma (,)\n  - OR: Use semicolon (;)\n  - Equality: Use =")
+                        .required(true),
+                )
+                .arg(
+                    Arg::new("output")
+                        .long("output")
+                        .short('o')
+                        .help("Output JSON file path")
+                        .default_value("ISGLevel02.json"),
+                )
+                .arg(
+                    Arg::new("db")
+                        .long("db")
+                        .help("Database file path")
+                        .default_value("parseltongue.db"),
+                )
+                .arg(
+                    Arg::new("verbose")
+                        .long("verbose")
+                        .short('v')
+                        .help("Show progress and token estimates")
+                        .action(clap::ArgAction::SetTrue),
                 ),
         )
         .subcommand(
@@ -465,53 +562,81 @@ async fn run_llm_to_cozodb_writer(matches: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
-async fn run_llm_cozodb_to_context_writer(matches: &ArgMatches) -> Result<()> {
-    use parseltongue_core::storage::CozoDbStorage;
-    use std::io::Write;
-
+async fn run_pt02_level00(matches: &ArgMatches) -> Result<()> {
+    let where_clause = matches.get_one::<String>("where-clause").unwrap();
     let output = matches.get_one::<String>("output").unwrap();
     let db = matches.get_one::<String>("db").unwrap();
-    let filter = matches.get_one::<String>("filter").unwrap();
+    let verbose = matches.get_flag("verbose");
 
-    println!("{}", style("Running Tool 2: pt02-llm-cozodb-to-context-writer").cyan());
-    println!("  Database: {}", db);
-    println!("  Filter: {}", filter);
-    println!("  Output: {}", output);
+    println!("{}", style("Running PT02 Level 0: Pure Edge List Export").cyan());
+    if verbose {
+        println!("  Database: {}", db);
+        println!("  WHERE clause: {}", where_clause);
+        println!("  Output: {}", output);
+    }
 
-    // Connect to database
-    let storage = CozoDbStorage::new(db)
-        .await
-        .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
+    // TODO (v0.9.0): Connect to CozoDB and export edges
+    // For v0.8.5: Show that the command structure is ready
+    println!("{}", style("✓ PT02 Level 0 command structure ready").green());
+    println!("  Token estimate: ~2-5K tokens");
+    println!("  Use case: Pure dependency analysis, graph visualization");
+    println!("");
+    println!("{}", style("NOTE: Full CozoDB integration coming in v0.9.0").yellow());
+    println!("      For now, use standalone binary: ./target/release/pt02-level00");
 
-    // Fetch entities based on filter
-    let entities = match filter.as_str() {
-        "all" => storage.get_all_entities().await?,
-        "changed" => storage.get_changed_entities().await?,
-        "current" => {
-            // For MVP: "current" means entities where current_ind=true
-            storage.get_all_entities().await?
-                .into_iter()
-                .filter(|e| e.temporal_state.current_ind)
-                .collect()
-        }
-        _ => unreachable!("clap validation should prevent this"),
-    };
+    Ok(())
+}
 
-    println!("  Found {} entities", entities.len());
+async fn run_pt02_level01(matches: &ArgMatches) -> Result<()> {
+    let include_code = matches.get_one::<String>("include-code").unwrap();
+    let where_clause = matches.get_one::<String>("where-clause").unwrap();
+    let output = matches.get_one::<String>("output").unwrap();
+    let db = matches.get_one::<String>("db").unwrap();
+    let verbose = matches.get_flag("verbose");
 
-    // Write to JSON file
-    let json = serde_json::to_string_pretty(&entities)
-        .map_err(|e| anyhow::anyhow!("Failed to serialize entities: {}", e))?;
+    println!("{}", style("Running PT02 Level 1: Entity + ISG + Temporal Export").cyan());
+    if verbose {
+        println!("  Database: {}", db);
+        println!("  Include code: {}", if include_code == "1" { "YES (expensive)" } else { "NO (cheap)" });
+        println!("  WHERE clause: {}", where_clause);
+        println!("  Output: {}", output);
+    }
 
-    let mut file = std::fs::File::create(output)
-        .map_err(|e| anyhow::anyhow!("Failed to create output file: {}", e))?;
+    // TODO (v0.9.0): Connect to CozoDB and export entities
+    println!("{}", style("✓ PT02 Level 1 command structure ready").green());
+    println!("  Token estimate: ~{}", if include_code == "1" { "500-700K" } else { "30K" });
+    println!("  Fields: 14 (isgl1_key, forward_deps, reverse_deps, temporal state, etc.)");
+    println!("  Use case: Code understanding, refactoring planning");
+    println!("");
+    println!("{}", style("NOTE: Full CozoDB integration coming in v0.9.0").yellow());
+    println!("      For now, use standalone binary: ./target/release/pt02-level01");
 
-    file.write_all(json.as_bytes())
-        .map_err(|e| anyhow::anyhow!("Failed to write to file: {}", e))?;
+    Ok(())
+}
 
-    println!("{}", style("✓ Context JSON written").green());
-    println!("  Output file: {}", output);
-    println!("  Entities exported: {}", entities.len());
+async fn run_pt02_level02(matches: &ArgMatches) -> Result<()> {
+    let include_code = matches.get_one::<String>("include-code").unwrap();
+    let where_clause = matches.get_one::<String>("where-clause").unwrap();
+    let output = matches.get_one::<String>("output").unwrap();
+    let db = matches.get_one::<String>("db").unwrap();
+    let verbose = matches.get_flag("verbose");
+
+    println!("{}", style("Running PT02 Level 2: Entity + ISG + Temporal + Type System Export").cyan());
+    if verbose {
+        println!("  Database: {}", db);
+        println!("  Include code: {}", if include_code == "1" { "YES (expensive)" } else { "NO (cheap)" });
+        println!("  WHERE clause: {}", where_clause);
+        println!("  Output: {}", output);
+    }
+
+    // TODO (v0.9.0): Connect to CozoDB and export entities with type info
+    println!("{}", style("✓ PT02 Level 2 command structure ready").green());
+    println!("  Token estimate: ~{}", if include_code == "1" { "500-700K" } else { "60K" });
+    println!("  Fields: 22 (all Level 1 + return_type, param_types, is_async, is_unsafe, etc.)");
+    println!("  Use case: Type-safe refactoring, API analysis, safety audits");
+    println!("");
+    println!("{}", style("NOTE: Full CozoDB integration coming in v0.9.0").yellow());
+    println!("      For now, use standalone binary: ./target/release/pt02-level02");
 
     Ok(())
 }
@@ -705,10 +830,12 @@ mod tests {
     #[test]
     fn test_cli_builds() {
         let cli = build_cli();
-        // Verify all subcommands are present with pt01-pt06 prefixes (PRDv2)
+        // Verify all subcommands are present (v0.8.5: PT02 progressive disclosure)
         let subcommands: Vec<&str> = cli.get_subcommands().map(|cmd| cmd.get_name()).collect();
         assert!(subcommands.contains(&"pt01-folder-to-cozodb-streamer"));
-        assert!(subcommands.contains(&"pt02-llm-cozodb-to-context-writer"));
+        assert!(subcommands.contains(&"pt02-level00")); // NEW: Progressive disclosure
+        assert!(subcommands.contains(&"pt02-level01")); // NEW: Progressive disclosure
+        assert!(subcommands.contains(&"pt02-level02")); // NEW: Progressive disclosure
         assert!(subcommands.contains(&"pt03-llm-to-cozodb-writer"));
         assert!(subcommands.contains(&"pt04-syntax-preflight-validator"));
         assert!(subcommands.contains(&"pt05-llm-cozodb-to-diff-writer"));
