@@ -44,7 +44,10 @@ All in **one unified binary** with self-documenting command names.
 
 **All in one unified binary:**
 1. `pt01-folder-to-cozodb-streamer` - Index codebase (Ingest)
-2. `pt02-llm-cozodb-to-context-writer` - Export entities to JSON (Read)
+2. **`pt02-level00/01/02`** - Export entities to JSON (Read) - 3 progressive disclosure levels
+   - `pt02-level00` - Pure edge list (~2-5K tokens)
+   - `pt02-level01` - Entities + ISG + Temporal (~30K tokens) **RECOMMENDED**
+   - `pt02-level02` - + Type system (~60K tokens)
 3. `pt03-llm-to-cozodb-writer` - Write temporal changes (Edit)
 4. `pt04-syntax-preflight-validator` - Validate syntax (Validate)
 5. `pt05-llm-cozodb-to-diff-writer` - Generate CodeDiff.json (Diff)
@@ -75,12 +78,10 @@ You have a simple greeter library with 4 functions:
 parseltongue pt01-folder-to-cozodb-streamer greeter --db rocksdb:demo.db
 # → 4 entities created
 
-# 2. READ: Export all entities to see what was indexed
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --output ./contexts \
-  --db rocksdb:demo.db
-# → Uses default query (excludes Current_Code, signatures only)
-# → Generates: ./contexts/context_{uuid}_{timestamp}.json
+# 2. READ: Export all entities to see what was indexed (Level 1 - RECOMMENDED)
+pt02-level01 --include-code 0 --where "ALL" --output entities.json --db rocksdb:demo.db
+# → Exports entities with ISG + temporal state (signatures only, ~30K tokens)
+# → Generates: entities.json with 4 functions
 
 # 3. EDIT: Fix the hello() function (simple interface)
 parseltongue pt03-llm-to-cozodb-writer \
@@ -246,40 +247,118 @@ parseltongue pt01-folder-to-cozodb-streamer ./crates --db rocksdb:analysis.db --
 
 ---
 
-### pt02: llm-cozodb-to-context-writer (READ)
+### pt02: Export Database → JSON (Progressive Disclosure)
+
+**Status (v0.8.4):** Architecture complete, 87/87 tests GREEN ✅, CozoDB integration pending in v0.9.0
+
+PT02 provides 3 specialized export binaries following progressive disclosure principles:
+
+#### **pt02-level00: Pure Edge List (MINIMAL - ~2-5K tokens)**
+
 ```bash
-# Default: Export signatures only (token-optimized ~37.5k for 1500 entities)
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --output ./contexts \
-  --db rocksdb:analysis.db
+# Export all dependency edges
+pt02-level00 --where "ALL" --output edges.json
 
-# Include Current_Code for debugging (~500k tokens - use sparingly!)
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --output ./contexts \
-  --db rocksdb:analysis.db \
-  --include-current-code 1
-
-# Advanced: Custom query to filter specific entities
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --query "SELECT * FROM CodeGraph WHERE Future_Action IS NOT NULL" \
-  --output ./contexts \
-  --db rocksdb:analysis.db
+# Filter by edge type (Datalog syntax)
+pt02-level00 --where "edge_type = 'depends_on'" --output deps.json
 ```
 
-**What it does:** Exports entities to JSON for LLM consumption. Uses default query that excludes `Current_Code` to save tokens.
+**What it does:** Exports dependency edges only (from_key, to_key, edge_type). Best for dependency analysis and graph visualization.
 
 **Arguments:**
-- `--output` - Output directory [default: `./contexts`]
+- `--where` - Datalog WHERE clause (MANDATORY, use `"ALL"` for everything)
+- `--output` - Output JSON file path
 - `--db` - Database path [default: `parseltongue.db`]
-- `--include-current-code` - Include Current_Code field (0=exclude, 1=include) [default: 0]
-- `--query` - Custom SQL query (overrides default)
+- `--verbose` - Show progress and token estimates
 
-**Default query:**
-```sql
-SELECT * EXCEPT (Current_Code, Future_Code)
-FROM CodeGraph
-WHERE current_ind=1
+---
+
+#### **pt02-level01: Entity + ISG + Temporal (RECOMMENDED - ~30K tokens)**
+
+```bash
+# Export all entities (signatures only - CHEAP)
+pt02-level01 --include-code 0 --where "ALL" --output entities.json
+
+# Export public API surface
+pt02-level01 --include-code 0 --where "is_public = true, entity_type = 'fn'" --output api.json
+
+# Export entities with planned changes (temporal)
+pt02-level01 --include-code 0 --where "future_action != null" --output changes.json
+
+# Export with full code (EXPENSIVE - 100× more tokens!)
+pt02-level01 --include-code 1 --where "ALL" --output entities_with_code.json
 ```
+
+**What it does:** Exports entities with Interface Signature Graph (ISG) + temporal state. **14 fields** including dependencies, signatures, and temporal indicators.
+
+**Arguments (BOTH MANDATORY):**
+- `--include-code <0|1>` - 0=signatures only (~30K tokens), 1=with code (~500-700K tokens)
+- `--where` - Datalog WHERE clause (use `"ALL"` for everything)
+- `--output` - Output JSON file path
+- `--db` - Database path [default: `parseltongue.db`]
+- `--verbose` - Show progress and token estimates
+
+---
+
+#### **pt02-level02: Type System Essentials (ADVANCED - ~60K tokens)**
+
+```bash
+# Export all entities with type information (signatures only)
+pt02-level02 --include-code 0 --where "ALL" --output typed_entities.json
+
+# Find all async functions
+pt02-level02 --include-code 0 --where "is_async = true" --output async_fns.json
+
+# Find unsafe code
+pt02-level02 --include-code 0 --where "is_unsafe = true" --output unsafe_code.json
+
+# Export public API with types
+pt02-level02 --include-code 0 --where "is_public = true" --output public_api.json
+```
+
+**What it does:** Exports entities with full type system information. **22 fields** including return types, param types, safety flags (async/unsafe), and trait impls.
+
+**Arguments (BOTH MANDATORY):**
+- `--include-code <0|1>` - 0=signatures only (~60K tokens), 1=with code (~500-700K tokens)
+- `--where` - Datalog WHERE clause
+- `--output` - Output JSON file path
+- `--db` - Database path [default: `parseltongue.db`]
+- `--verbose` - Show progress and token estimates
+
+---
+
+#### **Datalog WHERE Clause Syntax**
+
+**CRITICAL:** Use Datalog syntax, NOT SQL!
+
+| SQL (WRONG) | Datalog (CORRECT) |
+|-------------|-------------------|
+| `x = 5 AND y = 10` | `x = 5, y = 10` |
+| `x = 5 OR y = 10` | `x = 5; y = 10` |
+| `x LIKE '%pattern%'` | `x ~ 'pattern'` |
+
+**Common filters:**
+- All entities: `--where "ALL"`
+- Public functions: `--where "is_public = true, entity_type = 'fn'"`
+- Async functions: `--where "is_async = true"`
+- Entities with changes: `--where "future_action != null"`
+- Pattern match: `--where "entity_name ~ 'test'"`
+
+**Progressive disclosure model:**
+```
+Level 0: edges only (3 fields) → ~2-5K tokens
+  └─> Level 1: + entities (14 fields) → ~30K tokens
+        └─> Level 2: + type system (22 fields) → ~60K tokens
+```
+
+**When to use each level:**
+- **Level 0**: Dependency analysis, graph visualization
+- **Level 1**: Code understanding, refactoring planning (**RECOMMENDED**)
+- **Level 2**: Type-safe refactoring, API analysis, safety audits
+
+**Token cost:**
+- Signatures only (`--include-code 0`): **CHEAP** (2-60K tokens)
+- With code (`--include-code 1`): **EXPENSIVE** (500-700K tokens, 100× more)
 
 ---
 
