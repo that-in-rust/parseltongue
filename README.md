@@ -76,11 +76,11 @@ flowchart LR
 
 ---
 
-## Quick Install (macOS Apple Silicon)
+## Quick Install (macOS)
 
 ```bash
-# Download the latest binary for macOS ARM64 (M1/M2/M3)
-curl -L https://github.com/that-in-rust/parseltongue/releases/latest/download/parseltongue-macos-arm64 -o parseltongue
+# Download the latest binary (universal - works on both ARM64 and x86_64)
+curl -L https://github.com/that-in-rust/parseltongue/releases/latest/download/parseltongue -o parseltongue
 
 # Make it executable
 chmod +x parseltongue
@@ -88,14 +88,31 @@ chmod +x parseltongue
 # Move to your PATH (optional)
 sudo mv parseltongue /usr/local/bin/
 
-# Verify installation
+# CRITICAL: Verify you have the correct version
+parseltongue --version
+# MUST show: parseltongue 0.8.6
+# If you see 1.0.0 or any other version, you have the wrong binary!
+
+# Show available commands - should include pt01, pt02-level00/01/02, pt03-pt06
 parseltongue --help
 ```
+
+**⚠️ IMPORTANT: Version Verification**
+
+The repository MAY contain outdated binaries. **ALWAYS download from GitHub releases.**
+
+If `parseltongue --version` does NOT show `0.8.6`, you're missing critical features:
+- ❌ No pt02-level00/01/02 (progressive disclosure)
+- ❌ Wrong command names (folder-to-cozodb-streamer instead of pt01-folder-to-cozodb-streamer)
+- ❌ Missing ~100× token savings from progressive disclosure
+
+**Delete the wrong binary and re-download from releases.**
 
 **Or build from source:**
 ```bash
 cargo build --release
-./target/release/parseltongue --help
+./target/release/parseltongue --version
+# Should show: parseltongue 0.8.6
 ```
 
 ---
@@ -132,11 +149,9 @@ cargo build --release
 
 ## Complete Walkthrough: Fix a Bug in 4 Functions
 
-**See the full demo:** [`demo-walkthrough/`](./demo-walkthrough/)
+**See the full end-to-end test:** [`demo-walkthroughs/ActuallyWorks/`](./demo-walkthroughs/ActuallyWorks/)
 
-**Watch video demos:** [Parseltongue Video Tutorials](https://photos.app.goo.gl/eyHCSPBCWb1oaN4d8)
-
-A tangible example with all artifacts preserved (JSONs, logs, database).
+A tangible example with all artifacts preserved (JSONs, logs, database, full command outputs).
 
 ### The Scenario
 
@@ -185,17 +200,14 @@ parseltongue pt06-cozodb-make-future-code-current \
 
 ### What You Get
 
-The `demo-walkthrough/` folder contains:
-- **greeter/** - The source code with the bug
-- **step1-index.log** - Indexing output (4 entities created)
-- **step2-all-entities.json** - All 4 functions with metadata
-- **step3-edit.log** - Temporal write confirmation
-- **step4-validate.log** - Syntax validation passed
-- **step5-CodeDiff.json** - The diff showing current_code vs. future_code
-- **step6-changed-entities.json** - The hello() function with before/after state
-- **demo.db/** - The RocksDB database (tangible proof!)
+The `demo-walkthroughs/ActuallyWorks/` folder contains:
+- **JOURNAL.md** - Complete test execution log with timestamps and actual outputs (409 lines)
+- **8 command logs** - Raw command outputs from all 8 tools (pt01 through pt06)
+- **7 JSON exports** - edges.json (148 edges), entities-l1.json (765 entities), public-api.json, CodeDiff.json, before/after snapshots
+- **5 verification files** - Sample outputs, field lists, duplicate checks for cross-validation
+- **test-e2e.db/** - The RocksDB database (1.8MB during tests, cleaned after PT06)
 
-**👉 Everything is preserved - touch it, feel it, inspect it.**
+**👉 22 artifacts totaling ~1.7MB proving all 8 commands work - no placeholders, no lies, only actual v0.8.6 outputs.**
 
 ---
 
@@ -288,16 +300,17 @@ Tool performance on greeter demo (4 entities):
 ```
 parseltongue/
 ├── crates/
-│   ├── parseltongue/                         # Unified binary (all 6 tools)
+│   ├── parseltongue/                         # Unified binary (all 8 tools)
 │   ├── parseltongue-core/                    # Shared types, storage, entities
 │   ├── pt01-folder-to-cozodb-streamer/       # Tool 1: Ingest
-│   ├── pt02-llm-cozodb-to-context-writer/    # Tool 2: Read
+│   ├── pt02-llm-cozodb-to-context-writer/    # Tools 2a/2b/2c: Progressive Disclosure
 │   ├── pt03-llm-to-cozodb-writer/            # Tool 3: Edit
 │   ├── pt04-syntax-preflight-validator/      # Tool 4: Validate
 │   ├── pt05-llm-cozodb-to-diff-writer/       # Tool 5: Diff
 │   └── pt06-cozodb-make-future-code-current/ # Tool 6: Reset
-├── demo-walkthrough/           # Complete example with artifacts
-└── examples/calculator/        # Additional example (deliberate bug)
+└── demo-walkthroughs/
+    ├── ActuallyWorks/              # v0.8.6 end-to-end test suite (22 artifacts)
+    └── v0.8.6-release-testing/     # Release verification tests
 ```
 
 ---

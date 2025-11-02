@@ -89,22 +89,18 @@ parseltongue pt02-level02 --include-code 0 --where-clause "is_unsafe = true" --o
 ### Pattern 1: Overview Without Code (DEFAULT - SAFE!)
 
 **When**: Phase 2 - Understanding codebase structure
-**Token Cost**: ~37.5k for 1500 entities
+**Token Cost**: ~30K tokens for 1500 entities
 
 ```bash
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --output ./contexts \
+# Level 1: Entity + ISG + Temporal (signatures only - RECOMMENDED)
+parseltongue pt02-level01 \
+  --include-code 0 \
+  --where-clause "ALL" \
+  --output entities.json \
   --db rocksdb:analysis.db
-# Generates: ./contexts/context_{uuid}_{timestamp}.json
-# Default: --include-current-code 0 (excludes Current_Code)
 ```
 
-**What happens**: Uses default query (already excludes code!)
-```sql
-SELECT * EXCEPT (Current_Code, Future_Code)
-FROM CodeGraph
-WHERE current_ind=1
-```
+**What happens**: Exports entities with ISG + temporal state, NO code (just signatures)
 
 ---
 
@@ -114,9 +110,11 @@ WHERE current_ind=1
 **Token Cost**: ~10k additional (only changed rows)
 
 ```bash
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --query "SELECT * FROM CodeGraph WHERE Future_Action IS NOT NULL" \
-  --output ./contexts \
+# Export entities with planned changes (with code)
+parseltongue pt02-level01 \
+  --include-code 1 \
+  --where-clause "future_action != null" \
+  --output changes.json \
   --db rocksdb:analysis.db
 ```
 
@@ -130,9 +128,11 @@ parseltongue pt02-llm-cozodb-to-context-writer \
 **Token Cost**: ~100 tokens
 
 ```bash
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --query "SELECT * FROM CodeGraph WHERE isgl1_key = 'rust:fn:calculate:src_lib_rs:42-56'" \
-  --output ./contexts \
+# Export specific entity with code using Datalog pattern matching
+parseltongue pt02-level01 \
+  --include-code 1 \
+  --where-clause "isgl1_key = 'rust:fn:calculate:src_lib_rs:42-56'" \
+  --output specific_entity.json \
   --db rocksdb:analysis.db
 ```
 
@@ -143,16 +143,18 @@ parseltongue pt02-llm-cozodb-to-context-writer \
 ### Pattern 4: All Signatures (No Code)
 
 **When**: Need complete list of all entities
-**Token Cost**: ~50k for 1500 entities
+**Token Cost**: ~30k for 1500 entities
 
 ```bash
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --query "SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph" \
-  --output ./contexts \
+# Level 1 export without code (default safe mode)
+parseltongue pt02-level01 \
+  --include-code 0 \
+  --where-clause "ALL" \
+  --output all_entities.json \
   --db rocksdb:analysis.db
 ```
 
-**Why safe**: EXCEPT removes code columns
+**Why safe**: --include-code 0 excludes code content
 
 ---
 
@@ -162,14 +164,15 @@ parseltongue pt02-llm-cozodb-to-context-writer \
 **Token Cost**: ~500k for 1500 entities (13x larger!)
 
 ```bash
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --output ./contexts \
-  --db rocksdb:analysis.db \
-  --include-current-code 1
-# Uses modified query: SELECT * EXCEPT (Future_Code) FROM CodeGraph WHERE current_ind=1
+# Include code for ALL entities (DANGEROUS - only for debugging!)
+parseltongue pt02-level01 \
+  --include-code 1 \
+  --where-clause "ALL" \
+  --output all_with_code.json \
+  --db rocksdb:analysis.db
 ```
 
-**Why dangerous**: Includes Current_Code for ALL entities → massive token explosion
+**Why dangerous**: --include-code 1 with "ALL" → includes Current_Code for ALL entities → massive token explosion
 **When to use**: Only for debugging when signatures alone aren't enough
 
 ---
@@ -178,13 +181,14 @@ parseltongue pt02-llm-cozodb-to-context-writer \
 
 ```bash
 # ❌ CONTEXT EXPLOSION - 500k+ tokens
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --query "SELECT * FROM CodeGraph" \
-  --output ./contexts \
+parseltongue pt02-level01 \
+  --include-code 1 \
+  --where-clause "ALL" \
+  --output explosion.json \
   --db rocksdb:analysis.db
 ```
 
-**Why fails**: No EXCEPT, no WHERE → loads Current_Code for ALL 1500 entities
+**Why fails**: --include-code 1 with "ALL" → loads Current_Code for ALL 1500 entities → token explosion
 
 ---
 
@@ -192,8 +196,10 @@ parseltongue pt02-llm-cozodb-to-context-writer \
 
 ```bash
 # Iteration 1: Overview (Pattern 1 - no code)
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --output ./contexts \
+parseltongue pt02-level01 \
+  --include-code 0 \
+  --where-clause "ALL" \
+  --output entities.json \
   --db rocksdb:analysis.db
 
 # Mark changes with Tool 3 (simple interface)
@@ -204,9 +210,10 @@ parseltongue pt03-llm-to-cozodb-writer \
   --db rocksdb:analysis.db
 
 # Iteration 2: Review changes (Pattern 2 - with code)
-parseltongue pt02-llm-cozodb-to-context-writer \
-  --query "SELECT * FROM CodeGraph WHERE Future_Action IS NOT NULL" \
-  --output ./contexts \
+parseltongue pt02-level01 \
+  --include-code 1 \
+  --where-clause "future_action != null" \
+  --output changes.json \
   --db rocksdb:analysis.db
 
 # Repeat until confident ≥80%
@@ -239,31 +246,31 @@ Need all signatures?
 
 **Two ways to avoid explosion:**
 
-1. **EXCEPT clause** removes code columns:
-   ```sql
-   SELECT * EXCEPT (Current_Code, Future_Code) FROM CodeGraph
+1. **Use --include-code 0** to exclude code content (signatures only):
+   ```bash
+   parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output entities.json
    ```
 
-2. **WHERE clause** limits rows:
-   ```sql
-   SELECT * FROM CodeGraph WHERE Future_Action IS NOT NULL
+2. **Use WHERE clause** to limit rows:
+   ```bash
+   parseltongue pt02-level01 --include-code 1 --where-clause "future_action != null" --output changes.json
    ```
 
-**Never**: `SELECT * FROM CodeGraph` without EXCEPT or WHERE
+**Never**: Use `--include-code 1 --where-clause "ALL"` unless debugging
 
 ---
 
 ## QUERY BY PHASE
 
-| Phase | Query Pattern | Purpose |
-|-------|---------------|---------|
-| Phase 2: MicroPRD | Pattern 1 (default) | Understand structure |
-| Phase 3: Planning | Pattern 1 (default) | Plan changes |
-| Phase 3: Implementing | Pattern 2 (WHERE Future_Action != NULL) | Write code |
-| Phase 3: Inspecting | Pattern 3 (WHERE isgl1_key) | Debug specific entity |
-| Phase 4: Validation | Pattern 2 (WHERE Future_Action != NULL) | Final review |
+| Phase | Export Command | Purpose |
+|-------|----------------|---------|
+| Phase 2: MicroPRD | pt02-level01 --include-code 0 --where-clause "ALL" | Understand structure |
+| Phase 3: Planning | pt02-level01 --include-code 0 --where-clause "ALL" | Plan changes |
+| Phase 3: Implementing | pt02-level01 --include-code 1 --where-clause "future_action != null" | Write code |
+| Phase 3: Inspecting | pt02-level01 --include-code 1 --where-clause "isgl1_key = '...'" | Debug specific entity |
+| Phase 4: Validation | pt02-level01 --include-code 1 --where-clause "future_action != null" | Final review |
 
 ---
 
-**Last Updated**: 2025-11-01
-**Core Learning**: Use `--query` with SQL, not fictional `--filter` argument.
+**Last Updated**: 2025-11-02
+**Core Learning**: Use pt02-level00/01/02 progressive disclosure, NOT the old pt02-llm-cozodb-to-context-writer command.
