@@ -22,6 +22,10 @@ serde_json.workspace = true
 
 # Async runtime (L2)
 tokio = { workspace = true, features = ["full"] }
+async-trait.workspace = true
+
+# Time handling (L2)
+chrono = { workspace = true, features = ["serde"] }
 
 # CLI dependencies (L3)
 clap = { workspace = true, features = ["derive"] }

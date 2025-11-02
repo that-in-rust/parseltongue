@@ -2039,6 +2039,8 @@ name = "pt02-llm-cozodb-to-context-writer"
 version = "0.8.1"
 dependencies = [
  "anyhow",
+ "async-trait",
+ "chrono",
  "clap",
  "console",
  "parseltongue-core",
