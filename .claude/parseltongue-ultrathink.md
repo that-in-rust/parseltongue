@@ -88,7 +88,171 @@ system_prompt: |
 
   ---
 
-  ## Part I: Visual Workflow Guide
+  ---
+
+  ## Part I: Foundational Knowledge Management
+
+  ### Why Knowledge Management Matters
+
+  Before diving into workflows, understand this: **The best way to implement a new pattern is to learn from those who've solved it before.** The .ref pattern is your foundation for token-efficient learning from external codebases.
+
+  ---
+
+    3. Announce breaking change 2 weeks before prod
+    4. Deploy to prod with monitoring dashboard
+
+  **Analysis Efficiency**: 12K tokens consumed, 188K tokens (94%) preserved for reasoning
+  **Value**: Breaking change detected automatically, preventing surprise production issues
+  ```
+
+  ---
+
+  ### Workflow 8: Learning from Reference Codebases (.ref Pattern)
+
+  **Goal**: Learn from external implementations without polluting your repository
+  **Token Budget**: Variable (5-30K tokens depending on reference size)
+  **TSR Target**: 90%+
+  **Time**: 30-90 minutes
+
+  **The .ref Pattern**:
+
+  When implementing a new pattern or feature, you often want to study how others have solved similar problems. The `.ref` folder pattern provides a clean way to maintain reference codebases locally without committing them to your repository.
+
+  **Setup**:
+
+  ```bash
+  # 1. Create .ref folder inside .claude (one-time setup)
+  mkdir -p .claude/.ref
+
+  # 2. Add to .gitignore (CRITICAL - do this first!)
+  echo ".claude/.ref/" >> .gitignore
+
+  # 3. Clone reference repository
+  cd .claude/.ref
+  git clone https://github.com/example/reference-project.git
+
+  # Or download specific files
+  curl -o reference-file.rs https://raw.githubusercontent.com/example/repo/main/src/pattern.rs
+  ```
+
+  **Workflow**:
+
+  ```mermaid
+  flowchart TD
+      A[Need to implement<br/>new pattern] --> B[Web search:<br/>Who else solved this?]
+      B --> C[Find 2-3 good<br/>implementations]
+      C --> D[git clone into<br/>.claude/.ref/]
+      D --> E{Added to<br/>.gitignore?}
+      E -->|No| FAIL[❌ STOP<br/>Add to .gitignore first!]
+      E -->|Yes| F[Index with parseltongue<br/>pt01 in .ref folder]
+      F --> G[Level 0: Architecture<br/>Understand structure]
+      G --> H[Level 1: Pattern Details<br/>WHERE entity_name ~ 'pattern']
+      H --> I[Compare approaches<br/>Extract best ideas]
+      I --> J[Decide: Does this fit<br/>our architecture?]
+      J -->|Yes| K[Adapt pattern<br/>to our codebase]
+      J -->|No| L[Document learnings<br/>Archive for later]
+
+      style FAIL fill:#C89999
+      style K fill:#99C899
+  ```
+
+  **Key Advantages**:
+
+  1. **Local exploration**: No need to switch contexts or browse GitHub online
+  2. **ISG analysis**: Run parseltongue on reference code to understand architecture quickly
+  3. **Search capabilities**: Use grep/glob to find specific patterns rapidly
+  4. **Git-safe**: References stay local, never committed to your repo
+  5. **Learning repository**: Build a library of reference implementations
+
+  **Example Use Cases**:
+
+  ```bash
+  # Use Case 1: Learn how to implement streaming parser
+  cd .claude/.ref
+  git clone https://github.com/tree-sitter/tree-sitter.git
+
+  # Index and analyze
+  cd tree-sitter
+  ../../../target/release/parseltongue pt01-folder-to-cozodb-streamer . \
+    --db "rocksdb:tree-sitter-ref.db" --verbose
+
+  # Find streaming patterns
+  ../../../target/release/parseltongue pt02-level01 --include-code 0 \
+    --where-clause "entity_name ~ 'stream' ; entity_name ~ 'parse'" \
+    --output streaming-patterns.json \
+    --db "rocksdb:tree-sitter-ref.db"
+
+  # Use Case 2: Study error handling patterns in mature Rust project
+  cd .claude/.ref
+  git clone https://github.com/tokio-rs/tokio.git
+
+  # Focus on error types
+  grep -r "enum.*Error" tokio/tokio/src --include="*.rs" | head -20
+
+  # Use Case 3: Compare multiple implementations
+  cd .claude/.ref
+  git clone https://github.com/serde-rs/serde.git serde-reference
+  git clone https://github.com/RustPython/RustPython.git rustpython-reference
+
+  # Compare serialization approaches using ISG
+  ```
+
+  **Critical Safety Rules**:
+
+  1. **ALWAYS add .ref to .gitignore FIRST** before cloning anything
+  2. **Check .gitignore** before committing: `git status` should show `.ref/` as ignored
+  3. **One-time setup**: Create `.claude/.ref/` directory structure once per project
+  4. **Namespace references**: Use descriptive folder names (`tree-sitter-ref`, not just `tree-sitter`)
+  5. **Clean up periodically**: Remove references after extracting patterns (avoid bloat)
+
+  **Integration with Ultrathink**:
+
+  The `.ref` pattern complements ISG analysis perfectly:
+
+  - **Step 1**: Clone reference → `.claude/.ref/example-project/`
+  - **Step 2**: Index with parseltongue → Generate ISG database
+  - **Step 3**: Level 0 analysis → Understand architecture in 5 minutes
+  - **Step 4**: Targeted Level 1 queries → Extract specific patterns
+  - **Step 5**: Compare with your codebase → Decide on adaptation
+  - **Step 6**: Implement adapted pattern → Reference stays for future learning
+
+  **Token Efficiency**:
+
+  Without `.ref` pattern (reading files directly):
+  - Read 50 reference files online = 400K tokens
+  - Context overflow, slow, expensive
+
+  With `.ref` pattern (ISG-based):
+  - Level 0 (architecture): 3K tokens
+  - Level 1 (targeted patterns): 8K tokens
+  - Total: 11K tokens (96% token savings!)
+
+  **Expected Analysis Output**:
+
+  ```markdown
+  # Reference Analysis: [External Project Name]
+
+  ## Purpose
+  Learning [pattern/technique] for implementation in our codebase
+
+  ## Reference Location
+  `.claude/.ref/[project-name]/`
+
+  ## Key Findings (from ISG Analysis)
+  - **Architecture pattern**: [Description from Level 0]
+  - **Implementation approach**: [Specific entities from Level 1]
+  - **Dependencies**: [External crates/libraries used]
+  - **Complexity**: [scc metrics if available]
+
+  ## Applicable to Our Codebase?
+  - ✅ **Yes**: [Reasons why pattern fits]
+  - ❌ **No**: [Reasons why it doesn't fit]
+  - ⚠️ **Maybe**: [Conditions under which it would work]
+
+  ## Adaptation Plan
+  ---
+
+  ## Part II: Visual Workflow Guide
 
   ### Workflow Decision Tree: Choose Your Analysis Path
 
@@ -152,7 +316,7 @@ system_prompt: |
 
   ---
 
-  ## Part II: Task-Specific Workflows
+  ## Part III: Task-Specific Workflows
 
   Each workflow below includes:
   - **Goal statement** (what you're trying to achieve)
@@ -1177,158 +1341,6 @@ system_prompt: |
   - **Deployment recommendation**: Staged rollout with monitoring
     1. Deploy to dev (validate 15 internal updates)
     2. Deploy to staging (test external integrations)
-    3. Announce breaking change 2 weeks before prod
-    4. Deploy to prod with monitoring dashboard
-
-  **Analysis Efficiency**: 12K tokens consumed, 188K tokens (94%) preserved for reasoning
-  **Value**: Breaking change detected automatically, preventing surprise production issues
-  ```
-
-  ---
-
-  ### Workflow 8: Learning from Reference Codebases (.ref Pattern)
-
-  **Goal**: Learn from external implementations without polluting your repository
-  **Token Budget**: Variable (5-30K tokens depending on reference size)
-  **TSR Target**: 90%+
-  **Time**: 30-90 minutes
-
-  **The .ref Pattern**:
-
-  When implementing a new pattern or feature, you often want to study how others have solved similar problems. The `.ref` folder pattern provides a clean way to maintain reference codebases locally without committing them to your repository.
-
-  **Setup**:
-
-  ```bash
-  # 1. Create .ref folder inside .claude (one-time setup)
-  mkdir -p .claude/.ref
-
-  # 2. Add to .gitignore (CRITICAL - do this first!)
-  echo ".claude/.ref/" >> .gitignore
-
-  # 3. Clone reference repository
-  cd .claude/.ref
-  git clone https://github.com/example/reference-project.git
-
-  # Or download specific files
-  curl -o reference-file.rs https://raw.githubusercontent.com/example/repo/main/src/pattern.rs
-  ```
-
-  **Workflow**:
-
-  ```mermaid
-  flowchart TD
-      A[Need to implement<br/>new pattern] --> B[Web search:<br/>Who else solved this?]
-      B --> C[Find 2-3 good<br/>implementations]
-      C --> D[git clone into<br/>.claude/.ref/]
-      D --> E{Added to<br/>.gitignore?}
-      E -->|No| FAIL[❌ STOP<br/>Add to .gitignore first!]
-      E -->|Yes| F[Index with parseltongue<br/>pt01 in .ref folder]
-      F --> G[Level 0: Architecture<br/>Understand structure]
-      G --> H[Level 1: Pattern Details<br/>WHERE entity_name ~ 'pattern']
-      H --> I[Compare approaches<br/>Extract best ideas]
-      I --> J[Decide: Does this fit<br/>our architecture?]
-      J -->|Yes| K[Adapt pattern<br/>to our codebase]
-      J -->|No| L[Document learnings<br/>Archive for later]
-
-      style FAIL fill:#C89999
-      style K fill:#99C899
-  ```
-
-  **Key Advantages**:
-
-  1. **Local exploration**: No need to switch contexts or browse GitHub online
-  2. **ISG analysis**: Run parseltongue on reference code to understand architecture quickly
-  3. **Search capabilities**: Use grep/glob to find specific patterns rapidly
-  4. **Git-safe**: References stay local, never committed to your repo
-  5. **Learning repository**: Build a library of reference implementations
-
-  **Example Use Cases**:
-
-  ```bash
-  # Use Case 1: Learn how to implement streaming parser
-  cd .claude/.ref
-  git clone https://github.com/tree-sitter/tree-sitter.git
-
-  # Index and analyze
-  cd tree-sitter
-  ../../../target/release/parseltongue pt01-folder-to-cozodb-streamer . \
-    --db "rocksdb:tree-sitter-ref.db" --verbose
-
-  # Find streaming patterns
-  ../../../target/release/parseltongue pt02-level01 --include-code 0 \
-    --where-clause "entity_name ~ 'stream' ; entity_name ~ 'parse'" \
-    --output streaming-patterns.json \
-    --db "rocksdb:tree-sitter-ref.db"
-
-  # Use Case 2: Study error handling patterns in mature Rust project
-  cd .claude/.ref
-  git clone https://github.com/tokio-rs/tokio.git
-
-  # Focus on error types
-  grep -r "enum.*Error" tokio/tokio/src --include="*.rs" | head -20
-
-  # Use Case 3: Compare multiple implementations
-  cd .claude/.ref
-  git clone https://github.com/serde-rs/serde.git serde-reference
-  git clone https://github.com/RustPython/RustPython.git rustpython-reference
-
-  # Compare serialization approaches using ISG
-  ```
-
-  **Critical Safety Rules**:
-
-  1. **ALWAYS add .ref to .gitignore FIRST** before cloning anything
-  2. **Check .gitignore** before committing: `git status` should show `.ref/` as ignored
-  3. **One-time setup**: Create `.claude/.ref/` directory structure once per project
-  4. **Namespace references**: Use descriptive folder names (`tree-sitter-ref`, not just `tree-sitter`)
-  5. **Clean up periodically**: Remove references after extracting patterns (avoid bloat)
-
-  **Integration with Ultrathink**:
-
-  The `.ref` pattern complements ISG analysis perfectly:
-
-  - **Step 1**: Clone reference → `.claude/.ref/example-project/`
-  - **Step 2**: Index with parseltongue → Generate ISG database
-  - **Step 3**: Level 0 analysis → Understand architecture in 5 minutes
-  - **Step 4**: Targeted Level 1 queries → Extract specific patterns
-  - **Step 5**: Compare with your codebase → Decide on adaptation
-  - **Step 6**: Implement adapted pattern → Reference stays for future learning
-
-  **Token Efficiency**:
-
-  Without `.ref` pattern (reading files directly):
-  - Read 50 reference files online = 400K tokens
-  - Context overflow, slow, expensive
-
-  With `.ref` pattern (ISG-based):
-  - Level 0 (architecture): 3K tokens
-  - Level 1 (targeted patterns): 8K tokens
-  - Total: 11K tokens (96% token savings!)
-
-  **Expected Analysis Output**:
-
-  ```markdown
-  # Reference Analysis: [External Project Name]
-
-  ## Purpose
-  Learning [pattern/technique] for implementation in our codebase
-
-  ## Reference Location
-  `.claude/.ref/[project-name]/`
-
-  ## Key Findings (from ISG Analysis)
-  - **Architecture pattern**: [Description from Level 0]
-  - **Implementation approach**: [Specific entities from Level 1]
-  - **Dependencies**: [External crates/libraries used]
-  - **Complexity**: [scc metrics if available]
-
-  ## Applicable to Our Codebase?
-  - ✅ **Yes**: [Reasons why pattern fits]
-  - ❌ **No**: [Reasons why it doesn't fit]
-  - ⚠️ **Maybe**: [Conditions under which it would work]
-
-  ## Adaptation Plan
   1. [Step 1: What to extract]
   2. [Step 2: How to adapt]
   3. [Step 3: Where to integrate]
