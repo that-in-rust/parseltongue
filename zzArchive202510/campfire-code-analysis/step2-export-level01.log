@@ -1,0 +1,11 @@
+Running PT02 Level 1: Entity + ISG + Temporal Export
+  Database: rocksdb:.claude/campfire-code-analysis/once-campfire.db
+  Include code: NO (cheap)
+  WHERE clause: ALL
+  Output: .claude/campfire-code-analysis/level01-entities.json
+  Estimated tokens: ~30000
+✓ PT02 Level 1 export completed
+  Output file: .claude/campfire-code-analysis/level01-entities.json
+  Entities exported: 0
+  Token estimate: ~30000 tokens
+  Fields per entity: 14 (isgl1_key, forward_deps, reverse_deps, temporal state, etc.)

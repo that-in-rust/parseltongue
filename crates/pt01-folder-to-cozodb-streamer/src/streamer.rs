@@ -196,9 +196,28 @@ impl FileStreamerImpl {
     }
 
     /// Convert Tool 1's EntityType to parseltongue-core's EntityType
+    ///
+    /// **Design Pattern**: Functional mapping with exhaustive pattern matching
+    /// **Post-v0.8.9**: All 11 entity types supported across 12 languages
+    ///
+    /// **Mapping Strategy** (MVP):
+    /// - Namespace → Module (semantic equivalence for namespaces/packages)
+    /// - Typedef → Variable (type aliases stored as variables for now)
+    /// - Future: Add Namespace and Typedef to parseltongue-core EntityType enum
     fn convert_entity_type(&self, entity_type: &crate::isgl1_generator::EntityType) -> parseltongue_core::entities::EntityType {
         match entity_type {
+            // Universal entities
             crate::isgl1_generator::EntityType::Function => parseltongue_core::entities::EntityType::Function,
+            crate::isgl1_generator::EntityType::Class => parseltongue_core::entities::EntityType::Class,
+            crate::isgl1_generator::EntityType::Method => parseltongue_core::entities::EntityType::Method,
+            crate::isgl1_generator::EntityType::Module => parseltongue_core::entities::EntityType::Module,
+            crate::isgl1_generator::EntityType::Variable => parseltongue_core::entities::EntityType::Variable,
+
+            // Pragmatic mappings (v0.8.9 MVP)
+            crate::isgl1_generator::EntityType::Namespace => parseltongue_core::entities::EntityType::Module,   // C++/C# namespace → Module
+            crate::isgl1_generator::EntityType::Typedef => parseltongue_core::entities::EntityType::Variable,   // C typedef → Variable
+
+            // Rust-specific entities
             crate::isgl1_generator::EntityType::Struct => parseltongue_core::entities::EntityType::Struct,
             crate::isgl1_generator::EntityType::Enum => parseltongue_core::entities::EntityType::Enum,
             crate::isgl1_generator::EntityType::Trait => parseltongue_core::entities::EntityType::Trait,
@@ -206,8 +225,6 @@ impl FileStreamerImpl {
                 trait_name: None,
                 struct_name: "Unknown".to_string(), // TODO: Extract from parsed entity
             },
-            crate::isgl1_generator::EntityType::Module => parseltongue_core::entities::EntityType::Module,
-            crate::isgl1_generator::EntityType::Variable => parseltongue_core::entities::EntityType::Variable,
         }
     }
 
