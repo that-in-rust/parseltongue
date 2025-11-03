@@ -1584,7 +1584,7 @@ system_prompt: |
 
   ---
 
-  ### Level 1: Entity Signatures (85% TSR - YOUR DEFAULT)
+  ### Level 1: Entity Signatures (85% TSR - Use when Level 0 isn't enough)
 
   **Token cost**: 20-30K tokens (filtered), up to 60K (ALL)
   **Time**: <5 seconds
@@ -1635,8 +1635,9 @@ system_prompt: |
   ```
 
   **Token efficiency strategies**:
+  - **ALWAYS start with Level 0** - birds-eye view of entire codebase (2-5K tokens)
   - Use WHERE clauses to filter before export (saves 50-90% tokens)
-  - Start with Level 0, only expand to Level 1 for specific modules
+  - Expand to Level 1 only for specific modules when Level 0 isn't sufficient
   - NEVER use `--include-code 1` with `--where-clause "ALL"` (token explosion!)
 
   ---
@@ -1967,9 +1968,10 @@ system_prompt: |
      - Run scc for complexity metrics (Tier 1)
      - Run Semgrep/ast-grep for patterns (Tier 2, if security/quality focus)
 
-  2. **Always start with Level 0** (unless you have specific entity targets)
-     - Get dependency graph first (2-5K tokens)
-     - Analyze structure before diving into details
+  2. **ALWAYS start with Level 0** - this is your default first step
+     - Get complete dependency graph first (2-5K tokens)
+     - Birds-eye view: see hubs, cycles, coupling, architecture
+     - Sufficient for 80% of analyses without needing Level 1
 
   3. **Track TSR throughout analysis**
      - Calculate: TSR = (200K - data_tokens) / 200K
@@ -1991,7 +1993,8 @@ system_prompt: |
      - Never use bare paths
 
   7. **Progressive levels: 0 → 1 → 2**
-     - Don't skip Level 0
+     - **ALWAYS start with Level 0** - your default birds-eye view
+     - Escalate to Level 1 only when you need entity details
      - Only use Level 2 for targeted type analysis
      - Never use `--include-code 1` with "ALL"
 

@@ -405,13 +405,17 @@ cd .claude/.ref/tree-sitter
 
 ### Invoking the Agent
 
-In Claude Code, mention the agent:
+**⚠️ First-time setup**: After running `parseltongue-install-v089.sh`, you must **EXIT and RESTART Claude Code** to activate the agent. Claude Code loads agents from `.claude/agents/` only on startup.
+
+**After restart**, invoke the agent in Claude Code:
 
 ```
 @parseltongue-ultrathink-isg-explorer analyze this codebase
 ```
 
 The agent follows these patterns automatically with additional workflows and research-backed decision making.
+
+**Persistence**: The agent is permanently installed in `.claude/agents/` and persists across all future Claude Code sessions. No reinstallation or restarts needed after the initial activation.
 
 ---
 
@@ -587,8 +591,8 @@ Compare different analysis approaches:
 **All in one unified binary:**
 1. `pt01-folder-to-cozodb-streamer` - Index codebase (Ingest)
 2. **`pt02-level00/01/02`** - Export entities to JSON (Read) - 3 progressive disclosure levels
-   - `pt02-level00` - Pure edge list (~2-5K tokens)
-   - `pt02-level01` - Entities + ISG + Temporal (~30K tokens) **RECOMMENDED**
+   - `pt02-level00` - Pure edge list (~2-5K tokens) **RECOMMENDED - Start here for birds-eye view**
+   - `pt02-level01` - Entities + ISG + Temporal (~30K tokens)
    - `pt02-level02` - + Type system (~60K tokens)
 3. `pt03-llm-to-cozodb-writer` - Write temporal changes (Edit)
 4. `pt04-syntax-preflight-validator` - Validate syntax (Validate)
@@ -811,7 +815,7 @@ parseltongue pt02-level00 --where-clause "edge_type = 'depends_on'" --output dep
 
 ---
 
-#### **pt02-level01: Entity + ISG + Temporal (RECOMMENDED - ~30K tokens)**
+#### **pt02-level01: Entity + ISG + Temporal (~30K tokens)**
 
 ```bash
 # Export all entities (signatures only - CHEAP)
@@ -890,8 +894,8 @@ Level 0: edges only (3 fields) → ~2-5K tokens
 ```
 
 **When to use each level:**
-- **Level 0**: Dependency analysis, graph visualization
-- **Level 1**: Code understanding, refactoring planning (**RECOMMENDED**)
+- **Level 0**: Dependency analysis, graph visualization (**RECOMMENDED - Start here for architecture overview**)
+- **Level 1**: Detailed entity analysis, refactoring planning
 - **Level 2**: Type-safe refactoring, API analysis, safety audits
 
 **Token cost:**
