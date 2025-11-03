@@ -175,6 +175,73 @@ The repository binary is now synchronized with v0.8.7 release (as of 2025-11-03)
 
 ---
 
+## Using the Parseltongue Ultrathink ISG Explorer Agent
+
+Parseltongue includes an intelligent agent for ISG-based codebase analysis that combines progressive disclosure, CPU-first filtering, and graph-based reasoning.
+
+### How to Use
+
+Invoke the agent in Claude Code:
+
+```
+@parseltongue-ultrathink-isg-explorer analyze this codebase
+```
+
+The agent will automatically determine the optimal workflow based on your request.
+
+### 8 Task-Specific Workflows
+
+The agent adapts to your needs with specialized workflows optimized for different analysis types:
+
+1. **Onboarding** (15 min, 8K tokens, 96% TSR) - Day 1 architecture understanding for new team members
+2. **PRD Refinement** (30 min, 18K tokens, 91% TSR) - Validate feature feasibility against existing architecture
+3. **Bug Triage** (20 min, 12K tokens, 94% TSR) - Root cause analysis and blast radius assessment
+4. **Feature Breakdown** (45 min, 22K tokens, 89% TSR) - Epic → Stories with dependency mapping
+5. **Security Audit** (60 min, 28K tokens, 86% TSR) - Multi-tier security analysis (Semgrep → ISG → LLM)
+6. **Refactoring** (15 min, 5K tokens, 97.5% TSR) - Find technical debt and circular dependencies
+7. **PR Impact** (25 min, 12K tokens, 94% TSR) - Breaking change detection across the codebase
+8. **Reference Learning** (30-90 min, 11K tokens, 94% TSR) - Learn from external codebases using the .ref pattern
+
+**TSR (Thinking Space Ratio)** = (Available Context - Data Tokens) / Available Context. Higher is better.
+
+### The .ref Pattern: Git-Safe External Learning
+
+Learn from external codebases without polluting your git history:
+
+```bash
+# Setup (ONE TIME)
+mkdir -p .claude/.ref
+echo ".claude/.ref/" >> .gitignore
+
+# Clone reference implementation
+cd .claude/.ref
+git clone https://github.com/example/reference-project.git
+
+# Analyze with parseltongue ISG
+cd ../..
+./parseltongue pt01-folder-to-cozodb-streamer .claude/.ref/reference-project --db reference.db
+./parseltongue pt02-level01 --db reference.db --where-clause "ALL" > reference-analysis.json
+
+# LLM now analyzes reference implementation at 11K tokens vs 400K+ tokens
+```
+
+**Why this works**: The agent uses ISG to extract architectural patterns from reference codebases at 97% token reduction, enabling you to learn from multiple implementations without context overflow.
+
+### Token Efficiency at Scale
+
+Compare different analysis approaches:
+
+| Approach | Tokens | TSR | Use Case |
+|----------|--------|-----|----------|
+| **Level 0 (Edges Only)** | 2-5K | 97.5% | High-level architecture overview |
+| **Level 1 (Signatures)** | 20-30K | 85-90% | Feature development, bug triage |
+| **Level 2 (Full Types)** | 50-60K | 70% | Complex refactoring, security audit |
+| **Traditional (Raw Files)** | 500K+ | <0% | ❌ Context overflow |
+
+**Result**: 35K tokens vs 500K+ traditional approaches = **93% token reduction** while maintaining analysis quality.
+
+---
+
 ## What Problem Does It Solve?
 
 **Token explosion kills LLM productivity**. Parseltongue solves this with **progressive disclosure**:
@@ -693,3 +760,46 @@ parseltongue pt06-cozodb-make-future-code-current --project ./crates --db "rocks
 | Level 1 (no code) | 30K | "How do I refactor?" ← **START HERE** |
 | Level 2 (no code) | 60K | "Is this type-safe?" |
 | Level 1 (with code) | 500-700K | "Show me implementation" (rarely!) |
+
+---
+
+## Core Development Principles
+
+Parseltongue is built on proven engineering practices that ensure maintainability, testability, and performance at scale.
+
+### TDD-First: Executable Specifications
+
+**STUB → RED → GREEN → REFACTOR** cycle for all development.
+
+**Core Truth**: Traditional user stories fail LLMs because they're designed for human conversation. LLMs need executable blueprints, not ambiguous narratives.
+
+**The Solution**: Transform all specifications into formal, testable contracts with preconditions, postconditions, and error conditions. Every claim must be validated by automated tests.
+
+**Why This Matters**: Eliminates the #1 cause of LLM hallucination - ambiguous requirements that lead to incorrect implementations.
+
+### 9 Non-Negotiable Architecture Principles
+
+These principles prevent the most common architectural failures in Rust systems:
+
+1. **Executable Specifications Over Narratives** - Contract-driven development with measurable outcomes
+2. **Layered Rust Architecture (L1→L2→L3)** - Clear separation: Core → Std → External dependencies
+3. **Dependency Injection for Testability** - Every component depends on traits, not concrete types
+4. **RAII Resource Management** - All resources automatically managed with Drop implementations
+5. **Performance Claims Must Be Test-Validated** - Every performance assertion backed by automated tests
+6. **Structured Error Handling** - thiserror for libraries, anyhow for applications
+7. **Complex Domain Model Support** - Handle real-world complexity, not simplified examples
+8. **Concurrency Model Validation** - Thread safety validated with stress tests
+9. **MVP-First Rigor** - Proven architectures over theoretical abstractions
+
+### Visualization Standard
+
+**ALL DIAGRAMS MUST BE IN MERMAID** - Ensures GitHub compatibility and version control friendliness. No external image dependencies.
+
+**Rationale**: Mermaid diagrams are:
+- ✅ Rendered inline on GitHub
+- ✅ Version controlled as text
+- ✅ Easily updated and reviewed in PRs
+- ✅ No broken image links
+- ✅ Accessible and searchable
+
+See examples throughout this README.

@@ -52,6 +52,12 @@ curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/.parseltongue/S0
 curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/.parseltongue/S77-IdiomaticRustPatterns.md" \
   -o .claude/.parseltongue/S77-IdiomaticRustPatterns.md
 
+# Install ultrathink ISG explorer agent
+echo "🤖 Installing Parseltongue Ultrathink ISG Explorer Agent..."
+mkdir -p .claude/agents
+curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/agents/parseltongue-ultrathink-isg-explorer.md" \
+  -o .claude/agents/parseltongue-ultrathink-isg-explorer.md
+
 # Verify installation
 if ./${BINARY_NAME} --version | grep -q "${VERSION}"; then
     echo "✅ Installation complete!"
@@ -64,11 +70,13 @@ if ./${BINARY_NAME} --version | grep -q "${VERSION}"; then
     echo "   .claude/.parseltongue/S05-tone-style-guide.md"
     echo "   .claude/.parseltongue/S06-design101-tdd-architecture-principles.md"
     echo "   .claude/.parseltongue/S77-IdiomaticRustPatterns.md"
+    echo "   .claude/agents/parseltongue-ultrathink-isg-explorer.md (intelligent agent)"
     echo ""
     echo "Next steps:"
     echo "  1. Run: ./${BINARY_NAME} --help"
     echo "  2. Read: cat .claude/.parseltongue/parseltongue-README.md"
     echo "  3. Learn: cat .claude/.parseltongue/S01-README-MOSTIMP.md"
+    echo "  4. Agent: @parseltongue-ultrathink-isg-explorer (in Claude Code)"
     echo ""
     echo "Start indexing:"
     echo "  ./${BINARY_NAME} pt01-folder-to-cozodb-streamer ./src --db parseltongue.db"

@@ -1,8 +1,0 @@
-Running Tool 2: pt02-llm-cozodb-to-context-writer
-  Database: rocksdb:test.db
-  Filter: all
-  Output: ./contexts
-  Found 661 entities
-✓ Context JSON written
-  Output file: ./contexts
-  Entities exported: 661

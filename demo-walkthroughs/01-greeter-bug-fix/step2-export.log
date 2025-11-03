@@ -1,8 +1,0 @@
-Running Tool 3: llm-cozodb-to-context-writer
-  Database: rocksdb:demo-walkthrough/demo.db
-  Filter: all
-  Output: demo-walkthrough/step2-all-entities.json
-  Found 4 entities
-✓ Context JSON written
-  Output file: demo-walkthrough/step2-all-entities.json
-  Entities exported: 4

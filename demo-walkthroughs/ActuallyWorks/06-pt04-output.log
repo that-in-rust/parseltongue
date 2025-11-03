@@ -1,7 +1,0 @@
-Running Tool 4: pt04-syntax-preflight-validator
-  Database: rocksdb:demo-walkthroughs/ActuallyWorks/test-e2e.db
-  Validating 1 changed entities...
-✓ rust:fn:action:__crates_parseltongue-core_src_temporal_rs:415-418
-
-✓ All syntax validations passed
-  Entities validated: 1
