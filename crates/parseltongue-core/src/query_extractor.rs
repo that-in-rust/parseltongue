@@ -529,6 +529,10 @@ impl QueryBasedExtractor {
     }
 
     /// Find the entity that contains a given AST node
+    ///
+    /// Prefers the most specific entity (smallest line range) when multiple
+    /// entities contain the node. This ensures method calls are attributed to
+    /// the method, not the enclosing impl block.
     fn find_containing_entity<'a>(
         &self,
         node: tree_sitter::Node<'_>,
@@ -536,10 +540,39 @@ impl QueryBasedExtractor {
     ) -> Option<&'a ParsedEntity> {
         let node_line = node.start_position().row + 1;
 
-        // Find entity whose line range contains this node
-        entities.iter().find(|e| {
-            e.line_range.0 <= node_line && node_line <= e.line_range.1
-        })
+        // Find all entities that contain this line
+        let mut candidates: Vec<&ParsedEntity> = entities
+            .iter()
+            .filter(|e| e.line_range.0 <= node_line && node_line <= e.line_range.1)
+            .collect();
+
+        if candidates.is_empty() {
+            return None;
+        }
+
+        // Sort by specificity
+        candidates.sort_by(|a, b| {
+            // Primary: Prefer smaller line ranges (more specific)
+            let a_range = a.line_range.1 - a.line_range.0;
+            let b_range = b.line_range.1 - b.line_range.0;
+
+            match a_range.cmp(&b_range) {
+                std::cmp::Ordering::Equal => {
+                    // Secondary: Prefer methods/functions over impl blocks
+                    match (&a.entity_type, &b.entity_type) {
+                        (EntityType::Method, EntityType::Impl) => std::cmp::Ordering::Less,
+                        (EntityType::Impl, EntityType::Method) => std::cmp::Ordering::Greater,
+                        (EntityType::Function, EntityType::Impl) => std::cmp::Ordering::Less,
+                        (EntityType::Impl, EntityType::Function) => std::cmp::Ordering::Greater,
+                        _ => std::cmp::Ordering::Equal,
+                    }
+                },
+                other => other,
+            }
+        });
+
+        // Return most specific entity
+        Some(candidates[0])
     }
 
     /// Convert EntityType to ISGL1 key component

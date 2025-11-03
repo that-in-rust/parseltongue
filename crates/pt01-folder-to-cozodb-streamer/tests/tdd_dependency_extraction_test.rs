@@ -431,6 +431,22 @@ fn main() {
     let storage = CozoDbStorage::new(&config.db_path).await.unwrap();
     let dependencies = storage.get_all_dependencies().await.unwrap();
 
+    // DEBUG: Print all dependencies
+    println!("\n=== EXTRACTED DEPENDENCIES ({}) ===", dependencies.len());
+    for (i, dep) in dependencies.iter().enumerate() {
+        println!("{}. {} -> {} ({})",
+            i + 1,
+            dep.from_key.as_str(),
+            dep.to_key.as_str(),
+            match dep.edge_type {
+                parseltongue_core::entities::EdgeType::Calls => "Calls",
+                parseltongue_core::entities::EdgeType::Uses => "Uses",
+                parseltongue_core::entities::EdgeType::Implements => "Implements",
+            }
+        );
+    }
+    println!("=================================\n");
+
     // Expected dependencies:
     // 1. Config::new() -> create_defaults() [function call]
     // 2. main() -> Config::new() [function call]
@@ -443,13 +459,16 @@ fn main() {
         dependencies.len()
     );
 
-    // Verify key call graph edges exist
+    // Verify key call graph edges exist with method-level precision
+    // After v0.9.0 fix: calls from impl methods are now attributed to the specific method,
+    // not the impl block. We check for "method:new" instead of "impl:Config".
     let has_new_to_defaults = dependencies.iter().any(|dep| {
-        dep.from_key.as_str().contains("new") && dep.to_key.as_str().contains("create_defaults")
+        dep.from_key.as_str().contains("method:new") && dep.to_key.as_str().contains("create_defaults")
     });
 
     assert!(
         has_new_to_defaults,
-        "Should have edge: Config::new -> create_defaults"
+        "Should have edge: method:new -> create_defaults (method-level precision). Found {} dependencies total.",
+        dependencies.len()
     );
 }

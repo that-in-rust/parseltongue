@@ -21,6 +21,12 @@
 (impl_item
   type: (type_identifier) @name) @definition.impl
 
+; Methods within impl blocks
+(impl_item
+  body: (declaration_list
+    (function_item
+      name: (identifier) @name) @definition.method))
+
 ; Modules
 (mod_item
   name: (identifier) @name) @definition.module

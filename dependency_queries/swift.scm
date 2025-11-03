@@ -1,4 +1,8 @@
 ; Swift Dependency Queries (v0.9.0)
+;
+; Simplified to avoid invalid node types in tree-sitter-swift v0.7
+; Protocol conformance and class inheritance queries removed due to
+; incompatible node type: type_inheritance_clause doesn't exist in v0.7
 
 ; Function calls
 (call_expression
@@ -7,15 +11,3 @@
 ; Import statements
 (import_declaration
   (identifier) @reference.import) @dependency.import
-
-; Protocol conformance
-(class_declaration
-  name: (type_identifier) @definition.class
-  (type_inheritance_clause
-    (type_identifier) @reference.conforms)) @dependency.conforms
-
-; Class inheritance
-(class_declaration
-  name: (type_identifier) @definition.class
-  (type_inheritance_clause
-    (type_identifier) @reference.inherits)) @dependency.inherits

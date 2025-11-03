@@ -17,7 +17,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use tree_sitter::{Parser, Tree};
-use parseltongue_core::entities::{Language, DependencyEdge, EdgeType};
+use parseltongue_core::entities::{Language, DependencyEdge};
 use parseltongue_core::query_extractor::QueryBasedExtractor;
 use crate::errors::*;
 
@@ -331,7 +331,7 @@ impl Isgl1KeyGeneratorImpl {
     /// - Future: Move dependency extraction to queries as well
     fn extract_entities(
         &self,
-        tree: &Tree,
+        _tree: &Tree,
         source: &str,
         file_path: &Path,
         language: Language,
@@ -379,254 +379,8 @@ impl Isgl1KeyGeneratorImpl {
             }
         }
 
-        // v0.8.9: Manual dependency extraction removed in favor of query-based approach
-        // The following code is kept for fallback if needed, but should be removed in REFACTOR phase
-        // if language == Language::Rust {
-        //     let root_node = tree.root_node();
-        //     self.extract_dependencies_pass2(&root_node, source, file_path, entities, dependencies);
-        // }
-    }
-
-    /// Second pass: Extract dependencies now that all entities are known
-    fn extract_dependencies_pass2(
-        &self,
-        node: &tree_sitter::Node<'_>,
-        source: &str,
-        file_path: &Path,
-        entities: &[ParsedEntity],
-        dependencies: &mut Vec<DependencyEdge>,
-    ) {
-        // Extract dependencies from this node
-        self.extract_rust_dependencies(node, source, file_path, entities, dependencies);
-
-        // Recurse through children
-        let mut cursor = node.walk();
-        for child in node.children(&mut cursor) {
-            self.extract_dependencies_pass2(&child, source, file_path, entities, dependencies);
-        }
-    }
-
-    /// Walk tree nodes and extract entities AND dependencies
-    fn walk_node(
-        &self,
-        node: &tree_sitter::Node<'_>,
-        source: &str,
-        file_path: &Path,
-        language: Language,
-        entities: &mut Vec<ParsedEntity>,
-        dependencies: &mut Vec<DependencyEdge>,
-    ) {
-        // For Rust, check if this node or its siblings have attributes
-        if language == Language::Rust && node.kind() == "function_item" {
-            // Check preceding siblings for attributes
-            let has_test_attr = self.check_preceding_test_attribute(node, source);
-            self.extract_rust_function_with_test_info(node, source, file_path, entities, has_test_attr);
-        } else {
-            match language {
-                Language::Rust => self.extract_rust_entities(node, source, file_path, entities),
-                Language::Python => {
-                    // OBSOLETE: Python extraction now handled by QueryBasedExtractor
-                }
-                _ => {}
-            }
-        }
-
-        // Recursively process child nodes (Pass 1: entities only)
-        let mut cursor = node.walk();
-        for child in node.children(&mut cursor) {
-            self.walk_node(&child, source, file_path, language, entities, dependencies);
-        }
-    }
-
-    /// Extract Rust-specific dependencies (function calls, uses, implements)
-    fn extract_rust_dependencies(
-        &self,
-        node: &tree_sitter::Node<'_>,
-        source: &str,
-        file_path: &Path,
-        entities: &[ParsedEntity],
-        dependencies: &mut Vec<DependencyEdge>,
-    ) {
-        // Only extract calls from function bodies
-        if node.kind() == "call_expression" {
-            // Find the containing function
-            let containing_function = self.find_containing_function(node, entities);
-            if let Some(from_entity) = containing_function {
-                // Extract the function being called
-                if let Some(callee_name) = self.extract_callee_name(node, source) {
-                    // Find the target function entity
-                    let to_entity = entities.iter().find(|e| {
-                        e.entity_type == EntityType::Function && e.name == callee_name
-                    });
-
-                    if let Some(to) = to_entity {
-                        // Generate ISGL1 keys for both
-                        if let (Ok(from_key), Ok(to_key)) = (
-                            self.generate_key(from_entity),
-                            self.generate_key(to),
-                        ) {
-                            // Create dependency edge
-                            if let Ok(edge) = DependencyEdge::builder()
-                                .from_key(from_key)
-                                .to_key(to_key)
-                                .edge_type(EdgeType::Calls)
-                                .source_location(format!("{}:{}",
-                                    file_path.display(),
-                                    node.start_position().row + 1))
-                                .build()
-                            {
-                                dependencies.push(edge);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /// Find the function that contains this node
-    fn find_containing_function<'a>(
-        &self,
-        node: &tree_sitter::Node<'_>,
-        entities: &'a [ParsedEntity],
-    ) -> Option<&'a ParsedEntity> {
-        // Walk up the tree to find a function_item
-        let mut current = node.parent()?;
-        while current.kind() != "function_item" {
-            current = current.parent()?;
-        }
-
-        // Get the line range of this function_item
-        let start_line = current.start_position().row + 1;
-        let end_line = current.end_position().row + 1;
-
-        // Find matching function entity
-        entities.iter().find(|e| {
-            e.entity_type == EntityType::Function
-            && e.line_range == (start_line, end_line)
-        })
-    }
-
-    /// Extract the name of the function being called
-    fn extract_callee_name(&self, node: &tree_sitter::Node<'_>, source: &str) -> Option<String> {
-        // call_expression structure: function_name arguments
-        // We want the identifier node
-        for child in node.children(&mut node.walk()) {
-            if child.kind() == "identifier" || child.kind() == "field_expression" {
-                return Some(source[child.byte_range()].to_string());
-            }
-        }
-        None
-    }
-
-    /// Extract Rust-specific entities (structs, enums, etc. but NOT functions - those are handled separately)
-    fn extract_rust_entities(
-        &self,
-        node: &tree_sitter::Node<'_>,
-        source: &str,
-        file_path: &Path,
-        entities: &mut Vec<ParsedEntity>,
-    ) {
-        match node.kind() {
-            "function_item" => {
-                // Skip - functions are handled separately in walk_node to check attributes
-            }
-            "struct_item" => {
-                if let Some(name) = self.extract_struct_name(node, source) {
-                    let start_line = node.start_position().row + 1;
-                    let end_line = node.end_position().row + 1;
-
-                    entities.push(ParsedEntity {
-                        entity_type: EntityType::Struct,
-                        name,
-                        language: Language::Rust,
-                        line_range: (start_line, end_line),
-                        file_path: file_path.to_string_lossy().to_string(),
-                        metadata: HashMap::new(),
-                    });
-                }
-            }
-            _ => {}
-        }
-    }
-
-    /// Extract function name from function node
-    fn extract_function_name(&self, node: &tree_sitter::Node<'_>, source: &str) -> Option<String> {
-        for child in node.children(&mut node.walk()) {
-            if child.kind() == "identifier" {
-                return Some(source[child.byte_range()].to_string());
-            }
-        }
-        None
-    }
-
-    /// Extract struct name from struct node
-    fn extract_struct_name(&self, node: &tree_sitter::Node<'_>, source: &str) -> Option<String> {
-        for child in node.children(&mut node.walk()) {
-            if child.kind() == "type_identifier" {
-                return Some(source[child.byte_range()].to_string());
-            }
-        }
-        None
-    }
-
-    /// Check if IMMEDIATE preceding sibling is a test attribute
-    fn check_preceding_test_attribute(&self, node: &tree_sitter::Node<'_>, source: &str) -> bool {
-        // Get parent to access siblings
-        let Some(parent) = node.parent() else {
-            return false;
-        };
-
-        // Find this node and check its immediate preceding sibling
-        let node_id = node.id();
-        let siblings: Vec<_> = parent.children(&mut parent.walk()).collect();
-
-        // Find index of current node
-        let node_index = siblings.iter().position(|s| s.id() == node_id);
-
-        if let Some(idx) = node_index {
-            if idx > 0 {
-                // Check immediate preceding sibling
-                let prev_sibling = &siblings[idx - 1];
-                if prev_sibling.kind() == "attribute_item" {
-                    let attr_text = &source[prev_sibling.byte_range()];
-                    if attr_text.contains("#[test]") || attr_text.contains("#[tokio::test]") || attr_text.contains("#[async_test]") {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        false
-    }
-
-    /// Extract Rust function with test information
-    fn extract_rust_function_with_test_info(
-        &self,
-        node: &tree_sitter::Node<'_>,
-        source: &str,
-        file_path: &Path,
-        entities: &mut Vec<ParsedEntity>,
-        is_test: bool,
-    ) {
-        if let Some(name) = self.extract_function_name(node, source) {
-            let start_line = node.start_position().row + 1;
-            let end_line = node.end_position().row + 1;
-
-            let mut metadata = HashMap::new();
-            if is_test {
-                metadata.insert("is_test".to_string(), "true".to_string());
-            }
-
-            entities.push(ParsedEntity {
-                entity_type: EntityType::Function,
-                name,
-                language: Language::Rust,
-                line_range: (start_line, end_line),
-                file_path: file_path.to_string_lossy().to_string(),
-                metadata,
-            });
-        }
+        // v0.9.0: Manual dependency extraction replaced by query-based approach (REFACTORED)
+        // All entity and dependency extraction now handled by QueryBasedExtractor
     }
 }
 
@@ -643,7 +397,7 @@ impl Isgl1KeyGeneratorFactory {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
+    use parseltongue_core::entities::EdgeType;
 
     #[test]
     fn test_isgl1_key_format() {
