@@ -4,7 +4,7 @@ set -e
 # Parseltongue Unified Install v089 - Agent Games 2025 Release
 # This version installs: Binary v0.8.9 + Agent v0.8.9 + Documentation
 # Usage: curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/parseltongue-install-v089.sh | bash
-#        OR: curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/install.sh | bash
+# Always use the versioned script name for clarity - no ambiguity about which version you're getting!
 
 INSTALL_VERSION="089"          # Version format: 089 = v0.8.9
 BINARY_VERSION="0.8.9"         # Semantic version for binary

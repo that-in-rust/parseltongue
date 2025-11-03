@@ -84,17 +84,17 @@ graph LR
 ### Option 1: One-Line Install (Recommended)
 
 ```bash
-# Run from your project's git root
-curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/install.sh | bash
+# Run from your project's git root - Always use the versioned install script
+curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/parseltongue-install-v089.sh | bash
 ```
 
 **What it does:**
-1. ✅ Downloads `parseltongue-v0.8.7-macos-arm64` and installs as `parseltongue`
-2. ✅ Creates `.claude/.parseltongue/` folder
-3. ✅ Downloads README and SOP docs
+1. ✅ Downloads `parseltongue-v0.8.9-macos-arm64` binary
+2. ✅ Creates `.claude/.parseltongue/` and `.claude/agents/` directories
+3. ✅ Downloads all documentation + Ultrathink ISG Explorer Agent
 4. ✅ Verifies installation
 
-**Binary naming**: Release artifacts include version (`parseltongue-v0.8.7-macos-arm64`) but install as `parseltongue` for convenience.
+**Versioned Install:** Always use `parseltongue-install-v089.sh` (explicit version) to know exactly what you're getting. Next release will be `parseltongue-install-v090.sh`.
 
 **What you get:**
 ```
