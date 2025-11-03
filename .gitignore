@@ -17,6 +17,7 @@ contexts/
 *.json.tmp
 
 # Reference materials
+.ref/
 .refGitHubRepo/
 *.refGitHubRepo/
 
