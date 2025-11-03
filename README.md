@@ -80,20 +80,64 @@ graph LR
 
 This section contains the core methodology for ISG-based codebase analysis. Use these patterns directly or invoke the `@parseltongue-ultrathink-isg-explorer` agent in Claude Code.
 
+### Workflow Navigation
+
+Match your task to a workflow. Each targets a specific token budget.
+
+```mermaid
+graph TB
+    START[Task?] --> Q1{What?}
+
+    Q1 -->|New to codebase| WF1[WF1: Onboarding<br/>8K tokens]
+    Q1 -->|Validate PRD| WF2[WF2: PRD<br/>18K tokens]
+    Q1 -->|Bug reported| WF3[WF3: Bug<br/>12K tokens]
+    Q1 -->|Plan feature| WF4[WF4: Feature<br/>22K tokens]
+    Q1 -->|Code quality| WF5[WF5: Refactor<br/>5K tokens]
+    Q1 -->|Review PR| WF6[WF6: PR<br/>12K tokens]
+    Q1 -->|Learn pattern| WF7[WF7: .ref<br/>11K tokens]
+
+    WF1 --> TOOL1[Level 0 + Level 1 Public]
+    WF2 --> TOOL2[Level 1 Targeted + Blast Radius]
+    WF3 --> TOOL3[Level 1 + Dependency Trace]
+    WF4 --> TOOL4[Level 0 + Level 1 + scc]
+    WF5 --> TOOL5[Level 0 Only]
+    WF6 --> TOOL6[Temporal + Blast Radius]
+    WF7 --> TOOL7[.ref + ISG]
+```
+
 ### Why Progressive Disclosure
 
-**The context bloat problem**: Dumping entire codebases into LLM context doesn't work. A typical 1500-entity codebase becomes 500,000+ tokens if you include implementation code. LLMs need thinking space - data tokens compete with reasoning tokens.
+**Context bloat kills reasoning**: 1500 entities with full code = 525K tokens. LLMs have 200K context budget. No room left for thinking.
 
-**Token arithmetic** (actual measurements):
-- 1500 entities × 25 tokens (signature) = 37,500 tokens
-- 1500 entities × 350 tokens (full code) = 525,000 tokens
-- Context budget: 200K tokens
-- Thinking space with signatures: 162,500 tokens (81% for reasoning)
-- Thinking space with full code: None - context overflow
+**Token arithmetic**:
+- Entity with signature only: 25 tokens
+- Same entity with full code: 350 tokens
+- 1500 entities: 37.5K (signatures) vs 525K (code)
+- Difference: 487.5K tokens saved for reasoning
 
-**Progressive disclosure solves this**: Start with dependency edges (2-5K tokens). See who depends on who. Identify the 15 entities that matter for your task. Load only those 15 with full details (7-10K tokens). You've used 12-15K tokens total instead of 525K, preserving 185K tokens for actual reasoning.
+**Progressive disclosure pattern**:
+- Level 0: Edges only (3K tokens) - see who depends on who
+- Spot the hub: Config has 47 dependencies
+- Level 1: Just Config details (2K tokens)
+- Total: 5K tokens used, 195K tokens free for reasoning
 
-**Real-world pattern**: Fixing a bug in `process_payment` touches 3 functions directly and affects 12 downstream callers. Load details for those 15 entities. Ignore the other 1485. This is how developers think - and how LLMs should work.
+**Real workflow**: Bug in process_payment. Level 0 shows 3 callers, 12 reverse deps. Load those 15 entities at Level 1 (12K tokens). Ignore other 1485 entities. Fix bug with 185K tokens free for thinking.
+
+### Context Optimization
+
+```mermaid
+flowchart LR
+    START[Token Budget?] --> Q1{How much?}
+
+    Q1 -->|<10K| L0[Level 0: Edges]
+    Q1 -->|10-30K| L1[Level 1: Filtered]
+    Q1 -->|30-60K| L2[Level 1: Broader]
+    Q1 -->|>60K| STOP[❌ STOP<br/>Refine WHERE]
+
+    L0 --> USE1[Architecture<br/>Dependencies<br/>Cycles]
+    L1 --> USE2[API surface<br/>Bug triage<br/>Modules]
+    L2 --> USE3[Feature planning]
+```
 
 ### Three Levels
 
@@ -163,136 +207,180 @@ Each workflow targets a specific token budget using progressive disclosure.
 
 #### WF1: Onboarding New Developers (8K tokens)
 
-```bash
-# Index codebase
-parseltongue pt01-folder-to-cozodb-streamer . --db "rocksdb:onboard.db" --verbose
-
-# Level 0: Architecture overview
-parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:onboard.db"
-
-# Level 1: Public API only
-parseltongue pt02-level01 --include-code 0 --where-clause "is_public = true" \
-  --output api.json --db "rocksdb:onboard.db"
+```mermaid
+flowchart TD
+    A[New Dev] --> B[Index pt01]
+    B --> C{Entities > 0?}
+    C -->|No| FAIL[❌ Grep/Glob]
+    C -->|Yes| D[Level 0 3K]
+    D --> E{Clear?}
+    E -->|No| F[Level 1: Public +5K]
+    E -->|Yes| G[Entry Points]
+    F --> G --> H[Report]
 ```
 
-**Learn**: edges.json shows dependency graph with ISGL1 keys. Identify hubs (high in-degree) and entry points. api.json shows public surface (typically 26%). Use keys from edges.json to drill into specific entities.
+**Commands**:
+```bash
+parseltongue pt01-folder-to-cozodb-streamer . --db "rocksdb:onboard.db" --verbose
+parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:onboard.db" --verbose
+parseltongue pt02-level01 --include-code 0 --where-clause "is_public = true" --output api.json --db "rocksdb:onboard.db" --verbose
+```
+
+**Learn**: edges.json → 348 edges, 150 entities with ISGL1 keys. Hubs: Config (47), DatabaseConnection (34). Cycles: AuthService ↔ UserRepo. api.json → 39 public (26%). Spot key → Query Level 1 with that key.
 
 #### WF2: PRD Feasibility (18K tokens)
 
-```bash
-# Search for existing functionality
-parseltongue pt02-level01 --include-code 0 --where-clause "entity_name ~ 'auth'" \
-  --output exist.json --db "rocksdb:prd.db"
-
-# Map dependencies
-parseltongue pt02-level00 --where-clause "file_path ~ 'auth'" \
-  --output deps.json --db "rocksdb:prd.db"
-
-# Blast radius for changes
-parseltongue pt02-level01 --include-code 0 --where-clause "ALL" \
-  --output context.json --db "rocksdb:prd.db"
+```mermaid
+flowchart TD
+    A[PRD] --> B[Search ISG]
+    B --> C{Found?}
+    C -->|Yes| D[Map Deps L0]
+    C -->|No| E[Integration L1]
+    D --> F[Blast Radius]
+    E --> F
+    F --> G[Complexity scc]
+    G --> H[Refined PRD]
 ```
 
-**Learn**: exist.json shows matching entities with keys. deps.json shows dependency edges. context.json includes reverse_deps (blast radius). Use complexity analysis (scc) on high-risk files.
+**Commands**:
+```bash
+parseltongue pt02-level01 --include-code 0 --where-clause "entity_name ~ 'auth'" --output exist.json --db "rocksdb:prd.db" --verbose
+parseltongue pt02-level00 --where-clause "file_path ~ 'auth'" --output deps.json --db "rocksdb:prd.db" --verbose
+parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output context.json --db "rocksdb:prd.db" --verbose
+scc --format json --by-file ./src/auth | jq '.[] | select(.Complexity > 20)'
+```
+
+**Learn**: 12 auth entities with keys. 23 edges. 45 reverse_deps (high blast radius). 3 files >20 complexity. Use keys to drill into high-risk entities.
 
 #### WF3: Bug Triage (12K tokens)
 
-```bash
-# Find entity causing bug
-parseltongue pt02-level01 --include-code 0 --where-clause "entity_name ~ 'payment'" \
-  --output payment.json --db "rocksdb:bug.db"
-
-# Get full dependency graph
-parseltongue pt02-level00 --where-clause "ALL" --output graph.json --db "rocksdb:bug.db"
-
-# Drill into specific entity using key from payment.json
-parseltongue pt02-level01 --include-code 0 \
-  --where-clause "isgl1_key = 'rust:fn:check_balance:src_payment_rs:145-167'" \
-  --output root.json --db "rocksdb:bug.db"
+```mermaid
+flowchart TD
+    A[Bug: Panic] --> B[Find Entity]
+    B --> C{Found?}
+    C -->|No| FAIL[❌ Not in ISG]
+    C -->|Yes| D[Execution Path forward_deps]
+    D --> E{Root cause?}
+    E -->|No| F[reverse_deps Who calls?]
+    E -->|Yes| G[Test Coverage]
+    F --> G --> H[Fix Scope]
 ```
 
-**Learn**: payment.json shows matching entities. graph.json provides forward_deps (execution path) and reverse_deps (callers). Use keys to target exact functions. Track bug to root cause via dependency chain.
+**Commands**:
+```bash
+parseltongue pt02-level01 --include-code 0 --where-clause "entity_name ~ 'payment'" --output payment.json --db "rocksdb:bug.db" --verbose
+parseltongue pt02-level00 --where-clause "ALL" --output graph.json --db "rocksdb:bug.db" --verbose
+# Spot check_balance key in forward_deps
+parseltongue pt02-level01 --include-code 0 --where-clause "isgl1_key = 'rust:fn:check_balance:src_payment_rs:145-167'" --output root.json --db "rocksdb:bug.db" --verbose
+```
+
+**Learn**: forward_deps → process_payment → validate_card → check_balance → PANIC. Use key to get exact details. Root: negative i64 → u64 cast line 145. 3 callers. 12 tests, none test negative.
 
 #### WF4: Feature Planning (22K tokens)
 
-```bash
-# Search for infrastructure
-parseltongue pt02-level01 --include-code 0 \
-  --where-clause "entity_name ~ 'notify' ; entity_name ~ 'event'" \
-  --output infra.json --db "rocksdb:feature.db"
-
-# Module overview
-parseltongue pt02-level00 --where-clause "ALL" --output modules.json --db "rocksdb:feature.db"
-
-# Public APIs that need modification
-parseltongue pt02-level01 --include-code 0 --where-clause "is_public = true" \
-  --output public.json --db "rocksdb:feature.db"
+```mermaid
+flowchart TD
+    A[Feature] --> B[Search]
+    B --> C{Exists?}
+    C -->|Partial| D[Gap]
+    C -->|None| E[New Module]
+    D --> F[Module Deps]
+    E --> F
+    F --> G[Integration]
+    G --> H[Stories]
 ```
 
-**Learn**: infra.json shows existing building blocks with keys. modules.json shows module dependencies. public.json shows APIs needing changes. Use complexity metrics to estimate work.
+**Commands**:
+```bash
+parseltongue pt02-level01 --include-code 0 --where-clause "entity_name ~ 'notify' ; entity_name ~ 'event'" --output infra.json --db "rocksdb:feature.db" --verbose
+parseltongue pt02-level00 --where-clause "ALL" --output modules.json --db "rocksdb:feature.db" --verbose
+parseltongue pt02-level01 --include-code 0 --where-clause "is_public = true" --output public.json --db "rocksdb:feature.db" --verbose
+scc --format json --by-file ./src | jq '.[] | select(.Complexity > 20)'
+```
+
+**Learn**: WebSocket ✅ (8 with keys), EventBus ✅ (5), NotificationQueue ❌. 8 public APIs need mods. Use keys to drill into WebSocket entities.
 
 #### WF5: Refactoring (5K tokens)
 
-```bash
-# Level 0 only - architectural view
-parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:quality.db"
-
-# Drill into god object using key from edges.json
-parseltongue pt02-level01 --include-code 0 \
-  --where-clause "isgl1_key = 'rust:struct:Config:src_config_rs:10-45'" \
-  --output config.json --db "rocksdb:quality.db"
+```mermaid
+flowchart TD
+    A[Quality] --> B[Level 0 3K]
+    B --> C[Cycles]
+    C --> D[God Objects]
+    D --> E[Dead Code]
+    E --> F[Coupling]
+    F --> G[Task List]
 ```
 
-**Learn**: edges.json reveals cycles (A ↔ B), god objects (in-degree >20), and dead code (reverse_deps = 0). Use keys to examine specific problematic entities.
+**Commands**:
+```bash
+parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:quality.db" --verbose
+# Spot Config key with 47 in-degree
+parseltongue pt02-level01 --include-code 0 --where-clause "isgl1_key = 'rust:struct:Config:src_config_rs:10-45'" --output config.json --db "rocksdb:quality.db" --verbose
+```
+
+**Learn**: 150 entities, 348 edges. Cycles: AuthService ↔ UserRepo (4hrs). Gods: Config key 47 deps, DatabaseConnection 34. Use Config key for refactoring details. Dead: 12 entities 0 reverse_deps.
 
 #### WF6: PR Impact Analysis (12K tokens)
 
-```bash
-# Find changed entities
-parseltongue pt02-level01 --include-code 0 --where-clause "future_action != null" \
-  --output changes.json --db "rocksdb:pr.db"
-
-# Get full dependency graph
-parseltongue pt02-level00 --where-clause "ALL" --output graph.json --db "rocksdb:pr.db"
-
-# Check specific changed entity using key from changes.json
-parseltongue pt02-level01 --include-code 0 \
-  --where-clause "isgl1_key = 'rust:fn:change_password:src_auth_rs:145-167'" \
-  --output pwd.json --db "rocksdb:pr.db"
+```mermaid
+flowchart TD
+    A[PR] --> B[Changed future_action]
+    B --> C{Changes?}
+    C -->|No| FAIL[❌ No temporal]
+    C -->|Yes| D[Deps]
+    D --> E[Blast Radius]
+    E --> F{Breaking?}
+    F -->|Check| G[Public is_public]
+    G --> H{Modified?}
+    H -->|Yes| BREAK[⚠️ BREAKING]
+    H -->|No| SAFE[✅ Non-breaking]
 ```
 
-**Learn**: changes.json shows modified entities with keys. graph.json includes blast radius (reverse_deps). pwd.json shows if public APIs changed (breaking change detection).
+**Commands**:
+```bash
+parseltongue pt02-level01 --include-code 0 --where-clause "future_action != null" --output changes.json --db "rocksdb:pr.db" --verbose
+parseltongue pt02-level00 --where-clause "ALL" --output graph.json --db "rocksdb:pr.db" --verbose
+# changes.json gives keys for modified entities
+parseltongue pt02-level01 --include-code 0 --where-clause "isgl1_key = 'rust:fn:change_password:src_auth_rs:145-167'" --output pwd.json --db "rocksdb:pr.db" --verbose
+```
+
+**Learn**: 3 modified with keys in changes.json. Use change_password key for signature changes. PUBLIC (added force param) ⚠️ BREAKING. 15 direct + 34 transitive = 49 entities.
 
 #### WF7: Learning from External Codebases (.ref pattern)
 
-```bash
-# Setup (once per project)
-mkdir -p .claude/.ref
-echo ".claude/.ref/" >> .gitignore  # CRITICAL - keep external code out of git
-
-# Clone reference codebase
-cd .claude/.ref
-git clone https://github.com/tree-sitter/tree-sitter.git
-
-# Index reference codebase
-cd tree-sitter
-../../../parseltongue pt01-folder-to-cozodb-streamer . --db "rocksdb:ref.db" --verbose
-
-# Get architecture
-../../../parseltongue pt02-level00 --where-clause "ALL" --output arch.json --db "rocksdb:ref.db"
-
-# Find patterns
-../../../parseltongue pt02-level01 --include-code 0 \
-  --where-clause "entity_name ~ 'stream'" \
-  --output patterns.json --db "rocksdb:ref.db"
-
-# Or use exact key from arch.json
-../../../parseltongue pt02-level01 --include-code 0 \
-  --where-clause "isgl1_key = 'c:fn:ts_parser_parse_stream:src_parser_c:234-456'" \
-  --output stream_fn.json --db "rocksdb:ref.db"
+```mermaid
+flowchart TD
+    A[Pattern] --> B[Web search]
+    B --> C[Find 2-3]
+    C --> D[git clone .claude/.ref/]
+    D --> E{.gitignore?}
+    E -->|No| FAIL[❌ Add first!]
+    E -->|Yes| F[Index]
+    F --> G[Level 0 Arch]
+    G --> H[Level 1 Patterns]
+    H --> I[Adapt]
 ```
 
-**Learn**: 11K tokens vs 400K reading files. Study architecture and patterns from established projects. Extract relevant patterns, adapt to your codebase.
+**Setup**:
+```bash
+mkdir -p .claude/.ref
+echo ".claude/.ref/" >> .gitignore  # CRITICAL
+cd .claude/.ref && git clone https://github.com/tree-sitter/tree-sitter.git
+```
+
+**Commands**:
+```bash
+cd .claude/.ref/tree-sitter
+../../../parseltongue pt01-folder-to-cozodb-streamer . --db "rocksdb:ref.db" --verbose
+../../../parseltongue pt02-level00 --where-clause "ALL" --output arch.json --db "rocksdb:ref.db"
+# arch.json shows keys for streaming entities
+../../../parseltongue pt02-level01 --include-code 0 --where-clause "entity_name ~ 'stream'" --output patterns.json --db "rocksdb:ref.db"
+# Or use exact key from arch.json
+../../../parseltongue pt02-level01 --include-code 0 --where-clause "isgl1_key = 'c:fn:ts_parser_parse_stream:src_parser_c:234-456'" --output stream_fn.json --db "rocksdb:ref.db"
+```
+
+**Learn**: 11K tokens vs 400K reading files. Recursive descent parser, 8 streaming entities with keys. Use keys to target functions.
 
 ### Interpreting Results
 
