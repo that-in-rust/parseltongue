@@ -1,0 +1,6 @@
+Running Tool 4: rust-preflight-code-simulator
+  Database: rocksdb:demo-walkthrough/demo.db
+  Validating 1 changed entities...
+
+✓ All syntax validations passed
+  Entities validated: 1

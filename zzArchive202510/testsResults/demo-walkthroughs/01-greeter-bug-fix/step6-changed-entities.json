@@ -1,0 +1,48 @@
+[
+  {
+    "isgl1_key": "rust:fn:hello:greeter_src_lib_rs:4-6",
+    "temporal_state": {
+      "current_ind": true,
+      "future_ind": true,
+      "future_action": "Edit"
+    },
+    "interface_signature": {
+      "entity_type": "Function",
+      "name": "hello",
+      "visibility": "Public",
+      "file_path": "greeter/src/lib.rs",
+      "line_range": {
+        "start": 4,
+        "end": 6
+      },
+      "module_path": [],
+      "documentation": null,
+      "language_specific": {
+        "language": "rust",
+        "generics": [],
+        "lifetimes": [],
+        "where_clauses": [],
+        "attributes": [],
+        "trait_impl": null
+      }
+    },
+    "current_code": "pub fn hello(name: &str) -> String {\n    format!(\"Goodbye, {}!\", name)  // BUG: Should say \"Hello\"\n}",
+    "future_code": "pub fn hello(name: &str) -> String { format!(\"Hello, {}!\", name) }",
+    "tdd_classification": {
+      "entity_class": "CodeImplementation",
+      "testability": "Medium",
+      "complexity": "Simple",
+      "dependencies": 0,
+      "test_coverage_estimate": 0.0,
+      "critical_path": false,
+      "change_risk": "Medium"
+    },
+    "lsp_metadata": null,
+    "metadata": {
+      "created_at": "2025-11-01T06:44:45.318144Z",
+      "modified_at": "2025-11-01T06:44:45.318147Z",
+      "content_hash": "",
+      "additional": {}
+    }
+  }
+]

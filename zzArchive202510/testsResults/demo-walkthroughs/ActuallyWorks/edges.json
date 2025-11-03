@@ -1,0 +1,750 @@
+{
+  "export_metadata": {
+    "level": 0,
+    "timestamp": "2025-11-02T09:17:56.372614+00:00",
+    "total_edges": 148,
+    "where_filter": "ALL"
+  },
+  "edges": [
+    {
+      "from_key": "rust:fn:build_create_entity:__crates_parseltongue_src_main_rs:42-85",
+      "to_key": "rust:fn:build_default_language_signature:__crates_parseltongue_src_main_rs:116-133",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:build_create_entity:__crates_parseltongue_src_main_rs:42-85",
+      "to_key": "rust:fn:calculate_hash:__crates_parseltongue_src_main_rs:136-143",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:build_create_entity:__crates_parseltongue_src_main_rs:42-85",
+      "to_key": "rust:fn:parse_isgl1_key_components:__crates_parseltongue_src_main_rs:88-113",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:create_test_entity:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:10-12",
+      "to_key": "rust:fn:create_test_entity_with_key:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:15-40",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:368-427",
+      "to_key": "rust:fn:desanitize_path:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:443-462",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:get_all_edges:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:102-114",
+      "to_key": "rust:fn:parse_edges_from_query_result:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:194-208",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:get_all_entities:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:43-67",
+      "to_key": "rust:fn:parse_entities_from_query_result:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:152-191",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:main:__crates_parseltongue_src_main_rs:146-195",
+      "to_key": "rust:fn:build_cli:__crates_parseltongue_src_main_rs:197-427",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:main:__crates_parseltongue_src_main_rs:146-195",
+      "to_key": "rust:fn:run_cozodb_make_future_code_current:__crates_parseltongue_src_main_rs:883-916",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:main:__crates_parseltongue_src_main_rs:146-195",
+      "to_key": "rust:fn:run_folder_to_cozodb_streamer:__crates_parseltongue_src_main_rs:429-471",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:main:__crates_parseltongue_src_main_rs:146-195",
+      "to_key": "rust:fn:run_llm_cozodb_to_diff_writer:__crates_parseltongue_src_main_rs:821-881",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:main:__crates_parseltongue_src_main_rs:146-195",
+      "to_key": "rust:fn:run_llm_to_cozodb_writer:__crates_parseltongue_src_main_rs:473-563",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:main:__crates_parseltongue_src_main_rs:146-195",
+      "to_key": "rust:fn:run_pt02_level00:__crates_parseltongue_src_main_rs:565-616",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:main:__crates_parseltongue_src_main_rs:146-195",
+      "to_key": "rust:fn:run_pt02_level01:__crates_parseltongue_src_main_rs:618-675",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:main:__crates_parseltongue_src_main_rs:146-195",
+      "to_key": "rust:fn:run_pt02_level02:__crates_parseltongue_src_main_rs:677-734",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:main:__crates_parseltongue_src_main_rs:146-195",
+      "to_key": "rust:fn:run_rust_preflight_code_simulator:__crates_parseltongue_src_main_rs:736-819",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:main:__crates_pt01-folder-to-cozodb-streamer_src_main_rs:15-72",
+      "to_key": "rust:fn:run_streamer:__crates_pt01-folder-to-cozodb-streamer_src_main_rs:75-113",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:main:__crates_pt03-llm-to-cozodb-writer_src_main_rs:17-53",
+      "to_key": "rust:fn:run_writer:__crates_pt03-llm-to-cozodb-writer_src_main_rs:62-96",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:parse_edges_from_query_result:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:194-208",
+      "to_key": "rust:fn:extract_string:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:211-216",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:parse_entities_from_query_result:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:152-191",
+      "to_key": "rust:fn:extract_optional_string:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:219-225",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:parse_entities_from_query_result:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:152-191",
+      "to_key": "rust:fn:extract_string:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:211-216",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:parse_entities_from_query_result:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:152-191",
+      "to_key": "rust:fn:extract_u8:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:228-233",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:parse_entities_from_query_result:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:152-191",
+      "to_key": "rust:fn:parse_entity_name_from_key:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:238-245",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:parse_entities_from_query_result:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:152-191",
+      "to_key": "rust:fn:parse_line_number_from_key:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:250-257",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:query_edges:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:116-136",
+      "to_key": "rust:fn:parse_edges_from_query_result:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:194-208",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:query_entities:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:69-100",
+      "to_key": "rust:fn:parse_entities_from_query_result:__crates_pt02-llm-cozodb-to-context-writer_src_cozodb_adapter_rs:152-191",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:run_llm_to_cozodb_writer:__crates_parseltongue_src_main_rs:473-563",
+      "to_key": "rust:fn:build_create_entity:__crates_parseltongue_src_main_rs:42-85",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_blast_radius_performance_10k_nodes:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:899-939",
+      "to_key": "rust:fn:generate_large_graph:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:861-895",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_changes_grouped_by_file:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:178-239",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:368-427",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_changes_grouped_by_file:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:178-239",
+      "to_key": "rust:fn:group_changes_by_file:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:430-439",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_claude_orchestrates_bug_fix_workflow:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:47-208",
+      "to_key": "rust:fn:create_test_project_with_subtraction_bug:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:215-253",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_claude_orchestrates_bug_fix_workflow:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:47-208",
+      "to_key": "rust:fn:generate_fixed_code:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:321-338",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_claude_orchestrates_bug_fix_workflow:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:47-208",
+      "to_key": "rust:fn:simulate_test_execution:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:359-363",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_claude_orchestrates_bug_fix_workflow:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:47-208",
+      "to_key": "rust:fn:simulate_tool1_indexing:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:256-318",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_claude_orchestrates_bug_fix_workflow:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:47-208",
+      "to_key": "rust:fn:validate_rust_syntax:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:341-346",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_claude_orchestrates_bug_fix_workflow:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:47-208",
+      "to_key": "rust:fn:validate_semantics:__crates_parseltongue-e2e-tests_tests_orchestrator_workflow_test_rs:349-356",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_cli_builds:__crates_parseltongue_src_main_rs:923-935",
+      "to_key": "rust:fn:build_cli:__crates_parseltongue_src_main_rs:197-427",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_code_diff_json_output:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:190-214",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:217-265",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_codegraph_repository_trait:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:172-186",
+      "to_key": "rust:fn:create_test_entity:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:10-12",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_complete_6_tool_workflow:__crates_parseltongue-e2e-tests_tests_complete_workflow_test_rs:41-185",
+      "to_key": "rust:fn:create_indexed_entity_from_project:__crates_parseltongue-e2e-tests_tests_complete_workflow_test_rs:253-281",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_complete_6_tool_workflow:__crates_parseltongue-e2e-tests_tests_complete_workflow_test_rs:41-185",
+      "to_key": "rust:fn:create_test_rust_project_with_bug:__crates_parseltongue-e2e-tests_tests_complete_workflow_test_rs:192-230",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_complete_6_tool_workflow:__crates_parseltongue-e2e-tests_tests_complete_workflow_test_rs:41-185",
+      "to_key": "rust:fn:get_fixed_code:__crates_parseltongue-e2e-tests_tests_complete_workflow_test_rs:233-250",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_complete_6_tool_workflow:__crates_parseltongue-e2e-tests_tests_complete_workflow_test_rs:41-185",
+      "to_key": "rust:fn:validate_rust_syntax:__crates_parseltongue-e2e-tests_tests_complete_workflow_test_rs:291-303",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_complete_reset_cycle:__crates_pt06-cozodb-make-future-code-current_src_state_reset_rs:283-306",
+      "to_key": "rust:fn:create_test_entity:__crates_pt06-cozodb-make-future-code-current_src_state_reset_rs:101-120",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_create_new_file:__crates_pt05-llm-cozodb-to-diff-writer_src_writer_rs:163-182",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_src_writer_rs:119-158",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_delete_entity:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:154-169",
+      "to_key": "rust:fn:create_test_entity:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:10-12",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_delete_file:__crates_pt05-llm-cozodb-to-diff-writer_src_writer_rs:213-236",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_src_writer_rs:119-158",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_diff_format_matches_spec:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:329-363",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:368-427",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_diff_includes_current_and_future_code:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:98-140",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:368-427",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_diff_includes_line_ranges:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:144-174",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:368-427",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_e2e_multiple_sequential_queries:__crates_pt03-llm-to-cozodb-writer_tests_cli_integration_rs:189-226",
+      "to_key": "rust:fn:create_test_entity:__crates_pt03-llm-to-cozodb-writer_tests_cli_integration_rs:21-45",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_e2e_simple_query_via_config:__crates_pt03-llm-to-cozodb-writer_tests_cli_integration_rs:105-135",
+      "to_key": "rust:fn:create_test_entity:__crates_pt03-llm-to-cozodb-writer_tests_cli_integration_rs:21-45",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_edit_existing_file:__crates_pt05-llm-cozodb-to-diff-writer_src_writer_rs:185-210",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_src_writer_rs:119-158",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_end_to_end_tool1_tool2_tool3_pipeline:__crates_parseltongue-core_tests_end_to_end_workflow_rs:49-333",
+      "to_key": "rust:fn:create_indexed_entity:__crates_parseltongue-core_tests_end_to_end_workflow_rs:336-372",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_execute_query_with_filter:__crates_parseltongue-core_tests_tool2_temporal_operations_rs:407-433",
+      "to_key": "rust:fn:create_test_entity:__crates_parseltongue-core_tests_tool2_temporal_operations_rs:21-45",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_forward_dependencies_performance_10k_nodes:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:982-1019",
+      "to_key": "rust:fn:generate_large_graph:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:861-895",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_generate_diff_for_create_operations:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:12-43",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:217-265",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_generate_diff_for_delete_operations:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:80-110",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:217-265",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_generate_diff_for_edit_operations:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:47-76",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:217-265",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_generate_diff_from_real_cozodb:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:52-94",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:368-427",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_handles_all_operation_types:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:243-325",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_integration_tests_rs:368-427",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_insert_code_entity:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:63-76",
+      "to_key": "rust:fn:create_test_entity:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:10-12",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_cross_level_field_progression:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:511-548",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_empty_where_clause:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:572-583",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_invalid_level:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:555-569",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_json_serialization_valid:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:590-608",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_level0_empty_database:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:280-297",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_level0_export_all_edges:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:229-256",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_level0_filter_depends_on:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:259-277",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_level1_dependency_arrays:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:404-423",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_level1_export_all_entities_no_code:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:304-330",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_level1_export_with_code:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:333-351",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_level1_filter_public_functions:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:354-376",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_level1_filter_with_future_action:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:379-401",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_level2_filter_async_functions:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:483-504",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_level2_includes_level1_fields:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:455-480",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_level2_type_system_fields:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:430-452",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_integration_timestamp_format:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:611-630",
+      "to_key": "rust:fn:create_config:__crates_pt02-llm-cozodb-to-context-writer_tests_integration_tests_rs:214-222",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level0_edge_count_accuracy:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:326-349",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:95-103",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level0_empty_database:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:189-203",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:95-103",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level0_export_all_edges:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:110-160",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:95-103",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level0_export_filtered_edges:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:163-186",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:95-103",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level0_json_serialization:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:250-275",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:95-103",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level0_no_code_fields:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:278-304",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:95-103",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level0_semantic_isgl1_keys:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:206-237",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:95-103",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level0_timestamp_format:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:307-323",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level0_tests_rs:95-103",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_core_identity_fields:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:393-412",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_core_identity_fields:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:393-412",
+      "to_key": "rust:fn:create_test_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:85-115",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_doc_comment_optional:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:284-303",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_doc_comment_optional:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:284-303",
+      "to_key": "rust:fn:create_test_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:85-115",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_empty_deps_arrays_skipped:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:362-386",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_empty_deps_arrays_skipped:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:362-386",
+      "to_key": "rust:fn:create_test_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:85-115",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_export_all_entities:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:132-160",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_forward_deps_array:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:310-334",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_forward_deps_array:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:310-334",
+      "to_key": "rust:fn:create_test_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:85-115",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_future_code_only_when_future_action_present:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:209-231",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_include_code_false:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:163-180",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_include_code_true:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:183-202",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_interface_signature_present:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:264-281",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_metadata_accuracy:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:517-541",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_null_skipping_token_savings:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:472-501",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_null_skipping_token_savings:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:472-501",
+      "to_key": "rust:fn:create_test_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:85-115",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_reverse_deps_array:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:337-359",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_reverse_deps_array:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:337-359",
+      "to_key": "rust:fn:create_test_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:85-115",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_temporal_state_fields:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:234-257",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_temporal_state_fields:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:234-257",
+      "to_key": "rust:fn:create_test_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:85-115",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_where_clause_filter_public:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:419-442",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_where_clause_filter_public:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:419-442",
+      "to_key": "rust:fn:create_test_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:85-115",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level1_where_clause_future_action:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:445-465",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level1_tests_rs:117-125",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_async_function:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:224-244",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_async_function:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:224-244",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_empty_type_arrays_skipped:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:307-335",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_empty_type_arrays_skipped:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:307-335",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_export_metadata:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:381-402",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_filter_async_functions:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:448-466",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_filter_async_functions:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:448-466",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_filter_public_functions:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:469-484",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_filter_public_functions:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:469-484",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_generic_constraints:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:158-175",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_generic_constraints:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:158-175",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_includes_level1_fields:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:342-365",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_includes_level1_fields:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:342-365",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_null_type_fields_skipped:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:273-304",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_null_type_fields_skipped:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:273-304",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_param_types_and_names:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:133-155",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_param_types_and_names:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:133-155",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_return_type:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:114-130",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_return_type:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:114-130",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_safety_flags:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:203-221",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_safety_flags:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:203-221",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_trait_impls:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:178-196",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_trait_impls:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:178-196",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_unsafe_function:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:247-266",
+      "to_key": "rust:fn:create_test_config:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:99-107",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_level2_unsafe_function:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:247-266",
+      "to_key": "rust:fn:create_typed_entity:__crates_pt02-llm-cozodb-to-context-writer_tests_level2_tests_rs:71-97",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_main_with_empty_directory:__crates_pt01-folder-to-cozodb-streamer_src_main_rs:157-177",
+      "to_key": "rust:fn:run_streamer:__crates_pt01-folder-to-cozodb-streamer_src_main_rs:75-113",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_main_with_valid_directory:__crates_pt01-folder-to-cozodb-streamer_src_main_rs:121-154",
+      "to_key": "rust:fn:run_streamer:__crates_pt01-folder-to-cozodb-streamer_src_main_rs:75-113",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_mixed_operations_diff:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:145-186",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:217-265",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_no_backup_files_created:__crates_pt05-llm-cozodb-to-diff-writer_src_writer_rs:239-273",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_src_writer_rs:119-158",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_query_changed_entities:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:103-126",
+      "to_key": "rust:fn:create_test_entity_with_key:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:15-40",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_schema_recreation_after_deletion:__crates_pt06-cozodb-make-future-code-current_src_state_reset_rs:244-270",
+      "to_key": "rust:fn:create_test_entity:__crates_pt06-cozodb-make-future-code-current_src_state_reset_rs:101-120",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_skip_unchanged_entities:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:114-141",
+      "to_key": "rust:fn:create_test_entity:__crates_pt05-llm-cozodb-to-diff-writer_tests_diff_generator_tests_rs:217-265",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_temporal_state_transitions:__crates_parseltongue-e2e-tests_tests_complete_workflow_test_rs:311-336",
+      "to_key": "rust:fn:create_simple_test_entity:__crates_parseltongue-e2e-tests_tests_complete_workflow_test_rs:339-365",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_temporal_state_update:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:79-100",
+      "to_key": "rust:fn:create_test_entity:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:10-12",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_tool1_tool2_integration:__crates_parseltongue-core_tests_tool2_temporal_operations_rs:221-321",
+      "to_key": "rust:fn:create_test_entity:__crates_parseltongue-core_tests_tool2_temporal_operations_rs:21-45",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_tool2_delete_operation:__crates_parseltongue-core_tests_tool2_temporal_operations_rs:108-138",
+      "to_key": "rust:fn:create_test_entity:__crates_parseltongue-core_tests_tool2_temporal_operations_rs:21-45",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_tool2_edit_operation:__crates_parseltongue-core_tests_tool2_temporal_operations_rs:55-98",
+      "to_key": "rust:fn:create_test_entity:__crates_parseltongue-core_tests_tool2_temporal_operations_rs:21-45",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_transitive_closure_performance_1k_nodes:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:942-978",
+      "to_key": "rust:fn:generate_large_graph:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:861-895",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_update_entity:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:129-151",
+      "to_key": "rust:fn:create_test_entity:__crates_parseltongue-core_tests_cozo_storage_integration_tests_rs:10-12",
+      "edge_type": "Calls"
+    }
+  ]
+}

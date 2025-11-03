@@ -1,0 +1,186 @@
+[
+  {
+    "isgl1_key": "rust:fn:good_morning:greeter_src_lib_rs:14-16",
+    "temporal_state": {
+      "current_ind": true,
+      "future_ind": false,
+      "future_action": null
+    },
+    "interface_signature": {
+      "entity_type": "Function",
+      "name": "good_morning",
+      "visibility": "Public",
+      "file_path": "greeter/src/lib.rs",
+      "line_range": {
+        "start": 14,
+        "end": 16
+      },
+      "module_path": [],
+      "documentation": null,
+      "language_specific": {
+        "language": "rust",
+        "generics": [],
+        "lifetimes": [],
+        "where_clauses": [],
+        "attributes": [],
+        "trait_impl": null
+      }
+    },
+    "current_code": "pub fn good_morning(name: &str) -> String {\n    format!(\"Good morning, {}!\", name)\n}",
+    "future_code": "pub fn good_morning(name: &str) -> String {\n    format!(\"Good morning, {}!\", name)\n}",
+    "tdd_classification": {
+      "entity_class": "CodeImplementation",
+      "testability": "Medium",
+      "complexity": "Simple",
+      "dependencies": 0,
+      "test_coverage_estimate": 0.0,
+      "critical_path": false,
+      "change_risk": "Medium"
+    },
+    "lsp_metadata": null,
+    "metadata": {
+      "created_at": "2025-11-01T06:42:32.434532Z",
+      "modified_at": "2025-11-01T06:42:32.434535Z",
+      "content_hash": "",
+      "additional": {}
+    }
+  },
+  {
+    "isgl1_key": "rust:fn:good_night:greeter_src_lib_rs:19-21",
+    "temporal_state": {
+      "current_ind": true,
+      "future_ind": false,
+      "future_action": null
+    },
+    "interface_signature": {
+      "entity_type": "Function",
+      "name": "good_night",
+      "visibility": "Public",
+      "file_path": "greeter/src/lib.rs",
+      "line_range": {
+        "start": 19,
+        "end": 21
+      },
+      "module_path": [],
+      "documentation": null,
+      "language_specific": {
+        "language": "rust",
+        "generics": [],
+        "lifetimes": [],
+        "where_clauses": [],
+        "attributes": [],
+        "trait_impl": null
+      }
+    },
+    "current_code": "pub fn good_night(name: &str) -> String {\n    format!(\"Good night, {}!\", name)\n}",
+    "future_code": "pub fn good_night(name: &str) -> String {\n    format!(\"Good night, {}!\", name)\n}",
+    "tdd_classification": {
+      "entity_class": "CodeImplementation",
+      "testability": "Medium",
+      "complexity": "Simple",
+      "dependencies": 0,
+      "test_coverage_estimate": 0.0,
+      "critical_path": false,
+      "change_risk": "Medium"
+    },
+    "lsp_metadata": null,
+    "metadata": {
+      "created_at": "2025-11-01T06:42:32.434549Z",
+      "modified_at": "2025-11-01T06:42:32.434549Z",
+      "content_hash": "",
+      "additional": {}
+    }
+  },
+  {
+    "isgl1_key": "rust:fn:goodbye:greeter_src_lib_rs:9-11",
+    "temporal_state": {
+      "current_ind": true,
+      "future_ind": false,
+      "future_action": null
+    },
+    "interface_signature": {
+      "entity_type": "Function",
+      "name": "goodbye",
+      "visibility": "Public",
+      "file_path": "greeter/src/lib.rs",
+      "line_range": {
+        "start": 9,
+        "end": 11
+      },
+      "module_path": [],
+      "documentation": null,
+      "language_specific": {
+        "language": "rust",
+        "generics": [],
+        "lifetimes": [],
+        "where_clauses": [],
+        "attributes": [],
+        "trait_impl": null
+      }
+    },
+    "current_code": "pub fn goodbye(name: &str) -> String {\n    format!(\"Goodbye, {}!\", name)\n}",
+    "future_code": "pub fn goodbye(name: &str) -> String {\n    format!(\"Goodbye, {}!\", name)\n}",
+    "tdd_classification": {
+      "entity_class": "CodeImplementation",
+      "testability": "Medium",
+      "complexity": "Simple",
+      "dependencies": 0,
+      "test_coverage_estimate": 0.0,
+      "critical_path": false,
+      "change_risk": "Medium"
+    },
+    "lsp_metadata": null,
+    "metadata": {
+      "created_at": "2025-11-01T06:42:32.434560Z",
+      "modified_at": "2025-11-01T06:42:32.434560Z",
+      "content_hash": "",
+      "additional": {}
+    }
+  },
+  {
+    "isgl1_key": "rust:fn:hello:greeter_src_lib_rs:4-6",
+    "temporal_state": {
+      "current_ind": true,
+      "future_ind": false,
+      "future_action": null
+    },
+    "interface_signature": {
+      "entity_type": "Function",
+      "name": "hello",
+      "visibility": "Public",
+      "file_path": "greeter/src/lib.rs",
+      "line_range": {
+        "start": 4,
+        "end": 6
+      },
+      "module_path": [],
+      "documentation": null,
+      "language_specific": {
+        "language": "rust",
+        "generics": [],
+        "lifetimes": [],
+        "where_clauses": [],
+        "attributes": [],
+        "trait_impl": null
+      }
+    },
+    "current_code": "pub fn hello(name: &str) -> String {\n    format!(\"Goodbye, {}!\", name)  // BUG: Should say \"Hello\"\n}",
+    "future_code": "pub fn hello(name: &str) -> String {\n    format!(\"Goodbye, {}!\", name)  // BUG: Should say \"Hello\"\n}",
+    "tdd_classification": {
+      "entity_class": "CodeImplementation",
+      "testability": "Medium",
+      "complexity": "Simple",
+      "dependencies": 0,
+      "test_coverage_estimate": 0.0,
+      "critical_path": false,
+      "change_risk": "Medium"
+    },
+    "lsp_metadata": null,
+    "metadata": {
+      "created_at": "2025-11-01T06:42:32.434570Z",
+      "modified_at": "2025-11-01T06:42:32.434570Z",
+      "content_hash": "",
+      "additional": {}
+    }
+  }
+]

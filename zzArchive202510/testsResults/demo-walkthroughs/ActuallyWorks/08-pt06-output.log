@@ -1,0 +1,9 @@
+Running Tool 6: pt06-cozodb-make-future-code-current
+  Project: ./crates
+  Database: rocksdb:demo-walkthroughs/ActuallyWorks/test-e2e.db
+✓ Database reset completed
+  Entities deleted: 765
+  Schema recreated: yes
+
+Next step: Re-index the codebase
+  Run: parseltongue pt01-folder-to-cozodb-streamer ./crates --db rocksdb:demo-walkthroughs/ActuallyWorks/test-e2e.db

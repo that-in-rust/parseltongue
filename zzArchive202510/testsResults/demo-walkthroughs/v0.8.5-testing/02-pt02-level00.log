@@ -1,0 +1,8 @@
+[PT02-L0] Starting PT02 Level 0 export (Pure Edge List)
+[PT02-L0] Database: demo-walkthroughs/v0.8.5-testing/test-v085.db
+[PT02-L0] Output: "demo-walkthroughs/v0.8.5-testing/edges-v085.json"
+[PT02-L0] WHERE filter: ALL
+[PT02-L0] Estimated tokens: ~5000
+PT02 Level 0 binary created successfully!
+TODO: Connect to CozoDB at demo-walkthroughs/v0.8.5-testing/test-v085.db
+TODO: Export edges to "demo-walkthroughs/v0.8.5-testing/edges-v085.json"

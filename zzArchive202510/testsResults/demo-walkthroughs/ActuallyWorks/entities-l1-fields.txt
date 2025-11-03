@@ -1,0 +1,10 @@
+[
+  "current_ind",
+  "entity_name",
+  "entity_type",
+  "file_path",
+  "future_ind",
+  "interface_signature",
+  "isgl1_key",
+  "line_number"
+]

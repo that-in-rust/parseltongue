@@ -1,0 +1,13 @@
+[
+  "current_ind",
+  "entity_name",
+  "entity_type",
+  "file_path",
+  "future_ind",
+  "interface_signature",
+  "is_async",
+  "is_public",
+  "is_unsafe",
+  "isgl1_key",
+  "line_number"
+]

@@ -1,0 +1,12 @@
+Running Tool 1: folder-to-cozodb-streamer
+Starting directory streaming...
+
+Streaming Summary:
+Total files found: 16
+Files processed: 15
+Entities created: 285
+Errors encountered: 1
+Duration: 50.371583ms
+✓ Indexing completed
+  Files processed: 15
+  Entities created: 285

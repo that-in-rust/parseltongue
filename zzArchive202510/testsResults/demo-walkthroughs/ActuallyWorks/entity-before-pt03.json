@@ -1,0 +1,10 @@
+{
+  "current_ind": 1,
+  "entity_name": "action",
+  "entity_type": "function",
+  "file_path": "./crates/parseltongue-core/src/temporal.rs",
+  "future_ind": 0,
+  "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"action\",\"visibility\":\"Public\",\"file_path\":\"./crates/parseltongue-core/src/temporal.rs\",\"line_range\":{\"start\":415,\"end\":418},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+  "isgl1_key": "rust:fn:action:__crates_parseltongue-core_src_temporal_rs:415-418",
+  "line_number": 0
+}
