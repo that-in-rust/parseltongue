@@ -37,7 +37,7 @@ fi
 
 # Download binary
 echo "📥 Downloading ${RELEASE_BINARY}..."
-curl -L "https://github.com/${REPO}/releases/download/v${VERSION}/${RELEASE_BINARY}" -o "${BINARY_NAME}"
+curl -L "https://github.com/${REPO}/releases/download/v${BINARY_VERSION}/${RELEASE_BINARY}" -o "${BINARY_NAME}"
 chmod +x "${BINARY_NAME}"
 
 # Create .claude/.parseltongue directory
@@ -71,8 +71,8 @@ curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/.parseltongue/S7
 # Install ultrathink ISG explorer agent
 echo "🤖 Installing Parseltongue Ultrathink ISG Explorer Agent..."
 mkdir -p .claude/agents
-curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/agents/parseltongue-ultrathink-isg-explorer.md" \
-  -o .claude/agents/parseltongue-ultrathink-isg-explorer.md
+curl -L "https://raw.githubusercontent.com/${REPO}/main/.claude/agents/parseltongue-ultrathink-isg-explorer.yaml" \
+  -o .claude/agents/parseltongue-ultrathink-isg-explorer.yaml
 
 # Verify installation
 if ./${BINARY_NAME} --version | grep -q "${BINARY_VERSION}"; then
@@ -81,7 +81,7 @@ if ./${BINARY_NAME} --version | grep -q "${BINARY_VERSION}"; then
     echo "📦 Installed Bundle v${INSTALL_VERSION}:"
     echo "   ./parseltongue (binary v${BINARY_VERSION})"
     echo "   .claude/.parseltongue/*.md (7 documentation files)"
-    echo "   .claude/agents/parseltongue-ultrathink-isg-explorer.md (agent v${AGENT_VERSION})"
+    echo "   .claude/agents/parseltongue-ultrathink-isg-explorer.yaml (agent v${AGENT_VERSION})"
     echo ""
     echo "📁 Complete file list:"
     echo "   Binary: ./parseltongue"
@@ -91,7 +91,7 @@ if ./${BINARY_NAME} --version | grep -q "${BINARY_VERSION}"; then
     echo "           .claude/.parseltongue/S05-tone-style-guide.md"
     echo "           .claude/.parseltongue/S06-design101-tdd-architecture-principles.md"
     echo "           .claude/.parseltongue/S77-IdiomaticRustPatterns.md"
-    echo "   Agent:  .claude/agents/parseltongue-ultrathink-isg-explorer.md"
+    echo "   Agent:  .claude/agents/parseltongue-ultrathink-isg-explorer.yaml"
     echo ""
     echo "Next steps:"
     echo "  1. Run: ./${BINARY_NAME} --help"

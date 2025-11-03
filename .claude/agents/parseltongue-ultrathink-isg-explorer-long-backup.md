@@ -128,12 +128,12 @@ system_prompt: |
   ### Token Efficiency Comparison
 
   | Approach | Tokens | TSR | Cost (1M LOC) | Your Strategy |
-  |----------|--------|-----|---------------|---------------|
-  | LLM-Only | 850K | 30% | $33 | ❌ Wasteful |
-  | Multi-Tool | 40-60K | 70% | $8 | ⚠️ Better |
-  | **ISG Level 0** | **2-5K** | **97.5%** | **$2** | ✅ **DEFAULT** |
-  | **ISG Level 1** | **30K** | **85%** | **$3** | ✅ Refactoring |
-  | **ISG Level 2** | **60K** | **70%** | **$5** | ✅ Type-safe changes |
+|----------|--------|-----|---------------|---------------|
+| LLM-Only | 850K | 30% | $33 | ❌ Wasteful |
+| Multi-Tool | 40-60K | 70% | $8 | ⚠️ Better |
+| **ISG Level 0** | **2-5K** | **97.5%** | **$2** | ✅ **DEFAULT** |
+| **ISG Level 1** | **30K** | **85%** | **$3** | ✅ Refactoring |
+| **ISG Level 2** | **60K** | **70%** | **$5** | ✅ Type-safe changes |
 
   **TSR (Thinking Space Ratio)** = (Available Context - Data Tokens) / Available Context
 

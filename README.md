@@ -23,7 +23,7 @@ graph LR
     end
 
     subgraph OUTCOME["LLM-Friendly Context"]
-        O1["100x token<br/>reduction"]
+        O1["2-60K tokens<br/>(vs 500K+)"]
         O2["Architectural<br/>reasoning"]
         O3["Precise code<br/>changes"]
         O1 --> O2 --> O3
@@ -36,22 +36,22 @@ graph LR
     style L0 stroke-width:3px
 ```
 
-**LLM-friendly code analysis toolkit** powered by **Interface Signature Graphs (ISG)** - Transform your codebase from unstructured text into a queryable, semantic graph. Export context at the right level of detail (2-60K tokens instead of 500K+), enabling LLMs to reason about architecture and make precise modifications across large-scale systems.
+Code analysis toolkit powered by Interface Signature Graphs (ISG). Parse your codebase into a queryable semantic graph. Export context at different detail levels (2-60K tokens instead of 500K+), giving LLMs the architectural view and metadata needed for reasoning and modifications.
 
-**Multi-language support**: Query-based entity extraction for 12 languages (Rust, Python, C, C++, Ruby, JavaScript, TypeScript, Go, Java, PHP, C#, Swift) using industry-standard tree-sitter .scm query files.
+Multi-language support: Query-based entity extraction for 12 languages (Rust, Python, C, C++, Ruby, JavaScript, TypeScript, Go, Java, PHP, C#, Swift) using tree-sitter .scm query files.
 
 ---
 
 ## What is an Interface Signature Graph (ISG)?
 
-The ISG is Parseltongue's foundational innovation: a **structured, semantic representation** of your entire codebase that captures:
+The ISG is a structured, semantic representation of your codebase that captures:
 
-- **Unique Interface Identifiers**: Every function, struct, and trait gets a stable, unambiguous ID
+- **Unique Interface Identifiers**: Every function, struct, and trait gets a stable ID
 - **Dependency Relationships**: Explicit mapping of function calls, trait implementations, module relationships
 - **Rich Metadata**: Compiler-grade semantic information (types, signatures, HIR from rust-analyzer)
-- **Blast Radius Analysis**: Know exactly what's affected by any change
+- **Blast Radius Analysis**: Track what's affected by changes
 
-**Key insight**: Instead of dumping 500,000+ tokens of raw code that overflows LLM context windows, the ISG compresses your codebase into a **queryable graph** at multiple abstraction levels. This enables reasoning across millions of lines of code - something impossible with traditional "dump everything" approaches.
+Instead of dumping 500,000+ tokens of raw code into LLM context windows, the ISG provides a queryable graph at multiple abstraction levels. This makes reasoning across large codebases practical where full-text approaches run into context limits.
 
 ---
 
@@ -76,6 +76,257 @@ graph LR
 
 ---
 
+## Using Parseltongue: Agent Instructions
+
+This section contains the core methodology for ISG-based codebase analysis. Use these patterns directly or invoke the `@parseltongue-ultrathink-isg-explorer` agent in Claude Code.
+
+### Why Progressive Disclosure
+
+**The context bloat problem**: Dumping entire codebases into LLM context doesn't work. A typical 1500-entity codebase becomes 500,000+ tokens if you include implementation code. LLMs need thinking space - data tokens compete with reasoning tokens.
+
+**Token arithmetic** (actual measurements):
+- 1500 entities × 25 tokens (signature) = 37,500 tokens
+- 1500 entities × 350 tokens (full code) = 525,000 tokens
+- Context budget: 200K tokens
+- Thinking space with signatures: 162,500 tokens (81% for reasoning)
+- Thinking space with full code: None - context overflow
+
+**Progressive disclosure solves this**: Start with dependency edges (2-5K tokens). See who depends on who. Identify the 15 entities that matter for your task. Load only those 15 with full details (7-10K tokens). You've used 12-15K tokens total instead of 525K, preserving 185K tokens for actual reasoning.
+
+**Real-world pattern**: Fixing a bug in `process_payment` touches 3 functions directly and affects 12 downstream callers. Load details for those 15 entities. Ignore the other 1485. This is how developers think - and how LLMs should work.
+
+### Three Levels
+
+**Level 0**: WHO depends on WHO (2-5K tokens)
+- Dependency edges A → B
+- Returns ISGL1 keys for entities
+- Shows hubs, cycles, coupling
+- Start here always
+
+**Level 1**: WHAT each entity is (20-30K filtered)
+- Names, types, signatures
+- Public vs private
+- Forward/reverse dependencies
+- Use keys from Level 0
+
+**Level 2**: HOW types connect (50-60K)
+- Full type system
+- Rarely needed
+
+### Basic Queries
+
+```bash
+# Level 0: See all edges
+parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:mydb.db"
+
+# Level 1: Exact entity (from Level 0 key)
+parseltongue pt02-level01 --include-code 0 \
+  --where-clause "isgl1_key = 'rust:fn:process_payment:src_payment_rs:145-167'" \
+  --output entity.json --db "rocksdb:mydb.db"
+
+# Level 1: Module
+parseltongue pt02-level01 --include-code 0 \
+  --where-clause "file_path ~ 'auth'" \
+  --output module.json --db "rocksdb:mydb.db"
+
+# Level 1: Public API
+parseltongue pt02-level01 --include-code 0 \
+  --where-clause "is_public = true" \
+  --output api.json --db "rocksdb:mydb.db"
+
+# Level 1: Multiple modules (OR with semicolon)
+parseltongue pt02-level01 --include-code 0 \
+  --where-clause "file_path ~ 'auth' ; file_path ~ 'api'" \
+  --output modules.json --db "rocksdb:mydb.db"
+
+# Level 1: Pattern search
+parseltongue pt02-level01 --include-code 0 \
+  --where-clause "entity_name ~ 'payment'" \
+  --output payments.json --db "rocksdb:mydb.db"
+
+# Level 1: Changed entities (temporal analysis)
+parseltongue pt02-level01 --include-code 0 \
+  --where-clause "future_action != null" \
+  --output changes.json --db "rocksdb:mydb.db"
+```
+
+**Pattern**: Level 0 gives keys → Pick key → Level 1 with exact key → Get entity details
+
+**ISGL1 Key Format**: `language:type:name:file:lines`
+- Example: `rust:fn:process_payment:src_payment_rs:145-167`
+- Unique identifier for every entity
+- Use for precise lookup in Level 1/2
+
+### Seven Workflows
+
+Each workflow targets a specific token budget using progressive disclosure.
+
+#### WF1: Onboarding New Developers (8K tokens)
+
+```bash
+# Index codebase
+parseltongue pt01-folder-to-cozodb-streamer . --db "rocksdb:onboard.db" --verbose
+
+# Level 0: Architecture overview
+parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:onboard.db"
+
+# Level 1: Public API only
+parseltongue pt02-level01 --include-code 0 --where-clause "is_public = true" \
+  --output api.json --db "rocksdb:onboard.db"
+```
+
+**Learn**: edges.json shows dependency graph with ISGL1 keys. Identify hubs (high in-degree) and entry points. api.json shows public surface (typically 26%). Use keys from edges.json to drill into specific entities.
+
+#### WF2: PRD Feasibility (18K tokens)
+
+```bash
+# Search for existing functionality
+parseltongue pt02-level01 --include-code 0 --where-clause "entity_name ~ 'auth'" \
+  --output exist.json --db "rocksdb:prd.db"
+
+# Map dependencies
+parseltongue pt02-level00 --where-clause "file_path ~ 'auth'" \
+  --output deps.json --db "rocksdb:prd.db"
+
+# Blast radius for changes
+parseltongue pt02-level01 --include-code 0 --where-clause "ALL" \
+  --output context.json --db "rocksdb:prd.db"
+```
+
+**Learn**: exist.json shows matching entities with keys. deps.json shows dependency edges. context.json includes reverse_deps (blast radius). Use complexity analysis (scc) on high-risk files.
+
+#### WF3: Bug Triage (12K tokens)
+
+```bash
+# Find entity causing bug
+parseltongue pt02-level01 --include-code 0 --where-clause "entity_name ~ 'payment'" \
+  --output payment.json --db "rocksdb:bug.db"
+
+# Get full dependency graph
+parseltongue pt02-level00 --where-clause "ALL" --output graph.json --db "rocksdb:bug.db"
+
+# Drill into specific entity using key from payment.json
+parseltongue pt02-level01 --include-code 0 \
+  --where-clause "isgl1_key = 'rust:fn:check_balance:src_payment_rs:145-167'" \
+  --output root.json --db "rocksdb:bug.db"
+```
+
+**Learn**: payment.json shows matching entities. graph.json provides forward_deps (execution path) and reverse_deps (callers). Use keys to target exact functions. Track bug to root cause via dependency chain.
+
+#### WF4: Feature Planning (22K tokens)
+
+```bash
+# Search for infrastructure
+parseltongue pt02-level01 --include-code 0 \
+  --where-clause "entity_name ~ 'notify' ; entity_name ~ 'event'" \
+  --output infra.json --db "rocksdb:feature.db"
+
+# Module overview
+parseltongue pt02-level00 --where-clause "ALL" --output modules.json --db "rocksdb:feature.db"
+
+# Public APIs that need modification
+parseltongue pt02-level01 --include-code 0 --where-clause "is_public = true" \
+  --output public.json --db "rocksdb:feature.db"
+```
+
+**Learn**: infra.json shows existing building blocks with keys. modules.json shows module dependencies. public.json shows APIs needing changes. Use complexity metrics to estimate work.
+
+#### WF5: Refactoring (5K tokens)
+
+```bash
+# Level 0 only - architectural view
+parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:quality.db"
+
+# Drill into god object using key from edges.json
+parseltongue pt02-level01 --include-code 0 \
+  --where-clause "isgl1_key = 'rust:struct:Config:src_config_rs:10-45'" \
+  --output config.json --db "rocksdb:quality.db"
+```
+
+**Learn**: edges.json reveals cycles (A ↔ B), god objects (in-degree >20), and dead code (reverse_deps = 0). Use keys to examine specific problematic entities.
+
+#### WF6: PR Impact Analysis (12K tokens)
+
+```bash
+# Find changed entities
+parseltongue pt02-level01 --include-code 0 --where-clause "future_action != null" \
+  --output changes.json --db "rocksdb:pr.db"
+
+# Get full dependency graph
+parseltongue pt02-level00 --where-clause "ALL" --output graph.json --db "rocksdb:pr.db"
+
+# Check specific changed entity using key from changes.json
+parseltongue pt02-level01 --include-code 0 \
+  --where-clause "isgl1_key = 'rust:fn:change_password:src_auth_rs:145-167'" \
+  --output pwd.json --db "rocksdb:pr.db"
+```
+
+**Learn**: changes.json shows modified entities with keys. graph.json includes blast radius (reverse_deps). pwd.json shows if public APIs changed (breaking change detection).
+
+#### WF7: Learning from External Codebases (.ref pattern)
+
+```bash
+# Setup (once per project)
+mkdir -p .claude/.ref
+echo ".claude/.ref/" >> .gitignore  # CRITICAL - keep external code out of git
+
+# Clone reference codebase
+cd .claude/.ref
+git clone https://github.com/tree-sitter/tree-sitter.git
+
+# Index reference codebase
+cd tree-sitter
+../../../parseltongue pt01-folder-to-cozodb-streamer . --db "rocksdb:ref.db" --verbose
+
+# Get architecture
+../../../parseltongue pt02-level00 --where-clause "ALL" --output arch.json --db "rocksdb:ref.db"
+
+# Find patterns
+../../../parseltongue pt02-level01 --include-code 0 \
+  --where-clause "entity_name ~ 'stream'" \
+  --output patterns.json --db "rocksdb:ref.db"
+
+# Or use exact key from arch.json
+../../../parseltongue pt02-level01 --include-code 0 \
+  --where-clause "isgl1_key = 'c:fn:ts_parser_parse_stream:src_parser_c:234-456'" \
+  --output stream_fn.json --db "rocksdb:ref.db"
+```
+
+**Learn**: 11K tokens vs 400K reading files. Study architecture and patterns from established projects. Extract relevant patterns, adapt to your codebase.
+
+### Interpreting Results
+
+**Level 0 (Edges)**:
+- Returns from_key → to_key pairs (ISGL1 keys)
+- High in-degree (>20) → God objects, refactoring targets
+- Cycles (A → B → A) → Break with interfaces
+- Zero reverse_deps → Dead code candidates
+- Use keys to drill into Level 1 for details
+
+**Level 1 (Signatures)**:
+- Returns full entity details with ISGL1 key
+- Public ratio: <30% good encapsulation, >50% leaky abstractions
+- Blast radius: reverse_deps >10 means many entities affected by changes
+- Test coverage: check is_test field for high-coupling entities
+
+**Context Optimization Decision Tree**:
+- <10K tokens needed → Use Level 0 (edges only)
+- 10-30K tokens → Use Level 1 filtered (specific modules or patterns)
+- 30-60K tokens → Use Level 1 broader (multiple modules)
+- >60K tokens → STOP and refine WHERE clause further
+
+### Invoking the Agent
+
+In Claude Code, mention the agent:
+
+```
+@parseltongue-ultrathink-isg-explorer analyze this codebase
+```
+
+The agent follows these patterns automatically with additional workflows and research-backed decision making.
+
+---
+
 ## Quick Install (macOS)
 
 ### Option 1: One-Line Install (Recommended)
@@ -85,11 +336,11 @@ graph LR
 curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/parseltongue-install-v089.sh | bash
 ```
 
-**What it does:**
-1. ✅ Downloads `parseltongue-v0.8.9-macos-arm64` binary
-2. ✅ Creates `.claude/.parseltongue/` and `.claude/agents/` directories
-3. ✅ Downloads all documentation + Ultrathink ISG Explorer Agent
-4. ✅ Verifies installation
+What it does:
+1. Downloads `parseltongue-v0.8.9-macos-arm64` binary
+2. Creates `.claude/.parseltongue/` and `.claude/agents/` directories
+3. Downloads documentation + Ultrathink ISG Explorer Agent
+4. Verifies installation
 
 **Versioned Install:** Always use `parseltongue-install-v089.sh` (explicit version) to know exactly what you're getting. Next release will be `parseltongue-install-v090.sh`.
 
