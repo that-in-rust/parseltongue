@@ -38,10 +38,7 @@ graph LR
 
 **LLM-friendly code analysis toolkit** powered by **Interface Signature Graphs (ISG)** - Transform your codebase from unstructured text into a queryable, semantic graph. Export context at the right level of detail (2-60K tokens instead of 500K+), enabling LLMs to reason about architecture and make precise modifications across large-scale systems.
 
-**v0.8.8**: Multi-language query-based extraction for 12 languages! **Production ready!**
-- **v0.8.8 Feature**: Query-based entity extraction for Rust, Python, C, C++, Ruby, JavaScript, TypeScript, Go, Java, PHP, C#, Swift
-- **67% code reduction** vs imperative approach using industry-standard .scm query files
-- **v0.8.7 Bug Fix**: pt02-level00 now works with zero-dependency codebases (DependencyEdges table always created)
+**Multi-language support**: Query-based entity extraction for 12 languages (Rust, Python, C, C++, Ruby, JavaScript, TypeScript, Go, Java, PHP, C#, Swift) using industry-standard tree-sitter .scm query files.
 
 ---
 
@@ -148,12 +145,11 @@ curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude
 git clone https://github.com/that-in-rust/parseltongue
 cd parseltongue
 
-# Use the included versioned binary
-./parseltongue-v0.8.7-macos-arm64 --version
-# Expected: parseltongue 0.8.7
+# Use the included binary
+./parseltongue --version
 
 # All commands available
-./parseltongue-v0.8.7-macos-arm64 --help
+./parseltongue --help
 ```
 
 ### Option 3: Build from Source
@@ -161,17 +157,7 @@ cd parseltongue
 ```bash
 cargo build --release
 ./target/release/parseltongue --version
-# Expected: parseltongue 0.8.7
 ```
-
-**⚠️ CRITICAL: Verify Version**
-
-Always run `--version` first. If you don't see `0.8.7`, you're missing critical features:
-- ❌ No pt02-level00/01/02 (progressive disclosure)
-- ❌ Wrong command names (folder-to-cozodb-streamer instead of pt01-folder-to-cozodb-streamer)
-- ❌ Missing ~100× token savings from progressive disclosure
-
-The repository binary is now synchronized with v0.8.7 release (as of 2025-11-03).
 
 ---
 
@@ -689,77 +675,6 @@ MIT
 
 **Built with functional Rust, TDD-first principles, and ultra-minimalist design.**
 **For LLM-driven code transformation workflows.**
-
----
-
-## Verified Working (v0.8.6 - Comprehensive Testing)
-
-**Test Date**: 2025-11-02
-**Test Subject**: Parseltongue codebase (self-analysis: 765 entities)
-**Database**: `rocksdb:demo-walkthroughs/v0.8.6-release-testing/test.db`
-**Full Test Report**: [TEST-RESULTS.md](demo-walkthroughs/v0.8.6-release-testing/TEST-RESULTS.md)
-
-### ✅ ALL 8 COMMANDS VERIFIED
-
-| Tool | Status | Performance | Test Log |
-|------|--------|-------------|----------|
-| PT01 | ✅ | 123ms | [test1-pt01.log](demo-walkthroughs/v0.8.6-release-testing/test1-pt01.log) |
-| PT02-level00 | ✅ | <1s | [test2-pt02-level00.log](demo-walkthroughs/v0.8.6-release-testing/test2-pt02-level00.log) |
-| PT02-level01 | ✅ | <1s | [test3-pt02-level01.log](demo-walkthroughs/v0.8.6-release-testing/test3-pt02-level01.log) |
-| PT02-level02 | ✅ | <1s | Verified ✅ |
-| PT03 | ✅ | <1s | Verified ✅ |
-| PT04 | ✅ | <1s | Verified ✅ |
-| PT05 | ✅ | <1s | Verified ✅ |
-| PT06 | ✅ | <1s | Verified ✅ |
-
-### Quick Test
-
-```bash
-# 1. Index your codebase (123ms for 765 entities)
-parseltongue pt01-folder-to-cozodb-streamer ./crates --db "rocksdb:test.db"
-
-# 2. Export dependency graph (148 edges, ~5K tokens)
-parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:test.db"
-
-# 3. Export entities with ISG (765 entities, ~30K tokens)
-parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output entities.json --db "rocksdb:test.db"
-
-# 4. Edit an entity
-parseltongue pt03-llm-to-cozodb-writer \
-  --entity "rust:fn:main:..." \
-  --action edit \
-  --future-code "pub fn main() { println!(\"Updated\"); }" \
-  --db "rocksdb:test.db"
-
-# 5. Validate syntax
-parseltongue pt04-syntax-preflight-validator --db "rocksdb:test.db"
-
-# 6. Generate diff
-parseltongue pt05-llm-cozodb-to-diff-writer --output CodeDiff.json --db "rocksdb:test.db"
-
-# 7. Reset database
-parseltongue pt06-cozodb-make-future-code-current --project ./crates --db "rocksdb:test.db"
-```
-
-**Total pipeline time**: <2 seconds for all 8 commands
-
----
-
-### Key Statistics (v0.8.6)
-
-- **Indexing**: 123ms for 765 entities
-- **Exports**: <1s per level (Level 0/1/2)
-- **Database**: RocksDB, ~5KB compressed
-- **Test artifacts**: `/demo-walkthroughs/v0.8.6-release-testing/`
-
-### Token Economics
-
-| Export Level | Tokens | Use When |
-|--------------|--------|----------|
-| Level 0 | 2-5K | "What depends on what?" |
-| Level 1 (no code) | 30K | "How do I refactor?" ← **START HERE** |
-| Level 2 (no code) | 60K | "Is this type-safe?" |
-| Level 1 (with code) | 500-700K | "Show me implementation" (rarely!) |
 
 ---
 
