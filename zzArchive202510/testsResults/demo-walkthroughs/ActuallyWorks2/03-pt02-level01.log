@@ -1,0 +1,6 @@
+Running PT02 Level 1: Entity + ISG + Temporal Export
+✓ PT02 Level 1 export completed
+  Output file: 03-entities-l1.json
+  Entities exported: 49
+  Token estimate: ~30000 tokens
+  Fields per entity: 14 (isgl1_key, forward_deps, reverse_deps, temporal state, etc.)

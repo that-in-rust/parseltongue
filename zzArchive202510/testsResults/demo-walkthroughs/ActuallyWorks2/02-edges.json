@@ -1,0 +1,225 @@
+{
+  "export_metadata": {
+    "level": 0,
+    "timestamp": "2025-11-03T14:35:53.782459+00:00",
+    "total_edges": 43,
+    "where_filter": "ALL"
+  },
+  "edges": [
+    {
+      "from_key": "java:file:./java-sample/UserService.java:1-1",
+      "to_key": "java:module:java.util.List:0-0",
+      "edge_type": "Uses"
+    },
+    {
+      "from_key": "java:file:./java-sample/UserService.java:1-1",
+      "to_key": "java:module:java.util.Optional:0-0",
+      "edge_type": "Uses"
+    },
+    {
+      "from_key": "java:method:createUser:./java-sample/UserService.java:26-31",
+      "to_key": "java:fn:getEmail:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "java:method:createUser:./java-sample/UserService.java:26-31",
+      "to_key": "java:fn:save:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "java:method:createUser:./java-sample/UserService.java:26-31",
+      "to_key": "java:fn:sendWelcomeEmail:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "java:method:deactivateUser:./java-sample/UserService.java:33-38",
+      "to_key": "java:fn:findById:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "java:method:deactivateUser:./java-sample/UserService.java:33-38",
+      "to_key": "java:fn:ifPresent:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "java:method:deactivateUser:./java-sample/UserService.java:33-38",
+      "to_key": "java:fn:save:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "java:method:deactivateUser:./java-sample/UserService.java:33-38",
+      "to_key": "java:fn:setStatus:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "java:method:findAllActive:./java-sample/UserService.java:22-24",
+      "to_key": "java:fn:findByStatus:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "java:method:findById:./java-sample/UserService.java:18-20",
+      "to_key": "java:fn:findById:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "java:method:isValidEmail:./java-sample/UserService.java:40-42",
+      "to_key": "java:fn:contains:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "ruby:class:AdminUser:./ruby-sample/user.rb:38-49",
+      "to_key": "ruby:fn:include:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "ruby:class:User:./ruby-sample/user.rb:2-25",
+      "to_key": "ruby:fn:attr_accessor:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "ruby:class:User:./ruby-sample/user.rb:2-25",
+      "to_key": "ruby:fn:attr_reader:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "ruby:method:full_name:./ruby-sample/user.rb:13-15",
+      "to_key": "ruby:fn:join:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "ruby:method:full_name:./ruby-sample/user.rb:13-15",
+      "to_key": "ruby:fn:map:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "ruby:method:full_name:./ruby-sample/user.rb:13-15",
+      "to_key": "ruby:fn:split:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "ruby:method:generate_token:./ruby-sample/user.rb:33-35",
+      "to_key": "ruby:fn:hex:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "ruby:method:has_permission?:./ruby-sample/user.rb:46-48",
+      "to_key": "ruby:fn:include?:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:file:./rust-sample/lib.rs:1-1",
+      "to_key": "rust:module:HashMap:0-0",
+      "edge_type": "Uses"
+    },
+    {
+      "from_key": "rust:file:./rust-sample/lib.rs:1-1",
+      "to_key": "rust:module:Self:0-0",
+      "edge_type": "Uses"
+    },
+    {
+      "from_key": "rust:file:./rust-sample/lib.rs:1-1",
+      "to_key": "rust:module:String:0-0",
+      "edge_type": "Uses"
+    },
+    {
+      "from_key": "rust:file:./rust-sample/lib.rs:1-1",
+      "to_key": "rust:module:User:0-0",
+      "edge_type": "Uses"
+    },
+    {
+      "from_key": "rust:fn:test_user_creation:./rust-sample/lib.rs:83-87",
+      "to_key": "rust:fn:new:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:fn:test_user_creation:./rust-sample/lib.rs:83-87",
+      "to_key": "rust:fn:to_string:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:method:delete:./rust-sample/lib.rs:65-69",
+      "to_key": "rust:fn:map:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:method:delete:./rust-sample/lib.rs:65-69",
+      "to_key": "rust:fn:ok_or:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:method:delete:./rust-sample/lib.rs:65-69",
+      "to_key": "rust:fn:remove:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:method:find_by_id:./rust-sample/lib.rs:51-53",
+      "to_key": "rust:fn:get:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:method:new:./rust-sample/lib.rs:42-47",
+      "to_key": "rust:fn:new:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:method:save:./rust-sample/lib.rs:55-63",
+      "to_key": "rust:fn:Ok:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "rust:method:save:./rust-sample/lib.rs:55-63",
+      "to_key": "rust:fn:insert:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "typescript:fn:UserList:./react-sample/UserList.tsx:15-80",
+      "to_key": "typescript:fn:deactivateUser:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "typescript:fn:UserList:./react-sample/UserList.tsx:15-80",
+      "to_key": "typescript:fn:fetchUsers:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "typescript:fn:UserList:./react-sample/UserList.tsx:15-80",
+      "to_key": "typescript:fn:useEffect:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "typescript:fn:UserList:./react-sample/UserList.tsx:15-80",
+      "to_key": "typescript:fn:useState:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "typescript:fn:deactivateUser:./react-sample/UserList.tsx:46-55",
+      "to_key": "typescript:fn:fetch:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "typescript:fn:deactivateUser:./react-sample/UserList.tsx:46-55",
+      "to_key": "typescript:fn:setUsers:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "typescript:fn:fetchUsers:./react-sample/UserList.tsx:24-35",
+      "to_key": "typescript:fn:fetch:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "typescript:fn:fetchUsers:./react-sample/UserList.tsx:24-35",
+      "to_key": "typescript:fn:setLoading:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "typescript:fn:fetchUsers:./react-sample/UserList.tsx:24-35",
+      "to_key": "typescript:fn:setUsers:unknown:0-0",
+      "edge_type": "Calls"
+    },
+    {
+      "from_key": "typescript:fn:handleUserClick:./react-sample/UserList.tsx:42-44",
+      "to_key": "typescript:fn:onUserSelect:unknown:0-0",
+      "edge_type": "Calls"
+    }
+  ]
+}
