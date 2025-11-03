@@ -107,13 +107,13 @@ system_prompt: |
       WF6 --> TOOL6[Level 0 Only]
       WF7 --> TOOL7[Temporal Query + Blast Radius]
 
-      style WF1 fill:#C8D4DC
-      style WF2 fill:#B0C4D4
-      style WF3 fill:#9CAAB8
-      style WF4 fill:#B8C4D0
-      style WF5 fill:#A8B8C8
-      style WF6 fill:#BCC8D4
-      style WF7 fill:#C0CCD8
+      style WF1 fill:#E8EEF2
+      style WF2 fill:#E8EEF2
+      style WF3 fill:#D4A5A5
+      style WF4 fill:#E8EEF2
+      style WF5 fill:#E8EEF2
+      style WF6 fill:#E8EEF2
+      style WF7 fill:#B8D4B8
   ```
 
   ### Context Optimization Decision Tree
@@ -134,10 +134,10 @@ system_prompt: |
       L2 --> USE3[✅ Feature planning<br/>✅ Security audit<br/>⚠️ Full context]
       STOP --> FIX[Refactor query:<br/>• Add file_path filter<br/>• Target specific modules<br/>• Use CPU pre-filter]
 
-      style L0 fill:#C8D4DC
-      style L1 fill:#C0CCD8
-      style L2 fill:#A8B8C8
-      style STOP fill:#9CAAB8
+      style L0 fill:#E8EEF2
+      style L1 fill:#B8D4B8
+      style L2 fill:#E8EEF2
+      style STOP fill:#D4A5A5
   ```
 
   ---
@@ -175,8 +175,8 @@ system_prompt: |
       H --> I[Count Entity Types<br/>fn/struct/trait ratio]
       I --> J[Generate Onboarding Doc<br/>TSR maintained 96%]
 
-      style D fill:#C8D4DC
-      style J fill:#B0C4D4
+      style D fill:#E8EEF2
+      style J fill:#E8EEF2
   ```
 
   **Commands**:
@@ -269,8 +269,8 @@ system_prompt: |
       K --> L
       L --> M[Generate Refined PRD<br/>TSR: 91%, 18K tokens]
 
-      style C fill:#C0CCD8
-      style M fill:#C8D4DC
+      style C fill:#B8D4B8
+      style M fill:#E8EEF2
   ```
 
   **Commands**:
@@ -378,8 +378,8 @@ system_prompt: |
       H --> I[Calculate Fix Scope<br/>Blast radius from ISG]
       I --> J[Generate Bug Report<br/>TSR: 94%, 12K tokens]
 
-      style B fill:#9CAAB8
-      style J fill:#C8D4DC
+      style B fill:#D4A5A5
+      style J fill:#E8EEF2
   ```
 
   **Commands**:
@@ -509,8 +509,8 @@ system_prompt: |
       J --> K[Break into Stories<br/>By module + priority]
       K --> L[Generate Task List<br/>TSR: 89%, 22K tokens]
 
-      style E fill:#C0CCD8
-      style L fill:#C8D4DC
+      style E fill:#B8D4B8
+      style L fill:#E8EEF2
   ```
 
   **Commands**:
@@ -690,8 +690,8 @@ system_prompt: |
       J --> K[Tier 4: LLM Reasoning<br/>Novel insights]
       K --> L[Generate Remediation<br/>TSR: 86%, 28K tokens]
 
-      style C fill:#9CAAB8
-      style L fill:#C8D4DC
+      style C fill:#D4A5A5
+      style L fill:#E8EEF2
   ```
 
   **Commands**:
@@ -865,8 +865,8 @@ system_prompt: |
       F --> G[Prioritize Refactoring<br/>Impact × Effort matrix]
       G --> H[Generate Task List<br/>TSR: 97.5%, 5K tokens]
 
-      style B fill:#C8D4DC
-      style H fill:#BCC8D4
+      style B fill:#E8EEF2
+      style H fill:#E8EEF2
   ```
 
   **Commands**:
@@ -1014,9 +1014,9 @@ system_prompt: |
       I --> J[Check Test Coverage<br/>WHERE is_test = true]
       J --> K[Generate Review Report<br/>TSR: 94%, 12K tokens]
 
-      style BREAK fill:#9CAAB8
-      style SAFE fill:#C8D4DC
-      style K fill:#B0C4D4
+      style BREAK fill:#D4A5A5
+      style SAFE fill:#E8EEF2
+      style K fill:#E8EEF2
   ```
 
   **Commands**:
