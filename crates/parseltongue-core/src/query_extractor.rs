@@ -29,7 +29,7 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use tree_sitter::{Query, QueryCursor, Tree, Parser, StreamingIterator};
 
-use crate::entities::{Language, DependencyEdge};
+use crate::entities::{Language, DependencyEdge, EdgeType};
 
 /// Parsed code entity representation
 #[derive(Debug, Clone)]
@@ -49,6 +49,7 @@ pub enum EntityType {
     Struct,
     Enum,
     Trait,
+    Interface,  // Swift protocols, Java/C#/TypeScript interfaces
     Impl,
     Module,
     Class,
@@ -60,6 +61,7 @@ pub enum EntityType {
 /// Query-based extractor using .scm query files
 pub struct QueryBasedExtractor {
     queries: HashMap<Language, String>,
+    dependency_queries: HashMap<Language, String>,  // v0.9.0: Dependency extraction
     parsers: HashMap<Language, Parser>,
 }
 
@@ -154,7 +156,58 @@ impl QueryBasedExtractor {
         // NOTE: Kotlin temporarily disabled due to tree-sitter version incompatibility
         // Self::init_parser(&mut parsers, Language::Kotlin, &tree_sitter_kotlin::language())?;
 
-        Ok(Self { queries, parsers })
+        // v0.9.0: Load dependency query files for ALL languages
+        let mut dependency_queries = HashMap::new();
+        dependency_queries.insert(
+            Language::Rust,
+            include_str!("../../../dependency_queries/rust.scm").to_string()
+        );
+        dependency_queries.insert(
+            Language::Python,
+            include_str!("../../../dependency_queries/python.scm").to_string()
+        );
+        dependency_queries.insert(
+            Language::JavaScript,
+            include_str!("../../../dependency_queries/javascript.scm").to_string()
+        );
+        dependency_queries.insert(
+            Language::TypeScript,
+            include_str!("../../../dependency_queries/typescript.scm").to_string()
+        );
+        dependency_queries.insert(
+            Language::Go,
+            include_str!("../../../dependency_queries/go.scm").to_string()
+        );
+        dependency_queries.insert(
+            Language::Java,
+            include_str!("../../../dependency_queries/java.scm").to_string()
+        );
+        dependency_queries.insert(
+            Language::C,
+            include_str!("../../../dependency_queries/c.scm").to_string()
+        );
+        dependency_queries.insert(
+            Language::Cpp,
+            include_str!("../../../dependency_queries/cpp.scm").to_string()
+        );
+        dependency_queries.insert(
+            Language::Ruby,
+            include_str!("../../../dependency_queries/ruby.scm").to_string()
+        );
+        dependency_queries.insert(
+            Language::Php,
+            include_str!("../../../dependency_queries/php.scm").to_string()
+        );
+        dependency_queries.insert(
+            Language::CSharp,
+            include_str!("../../../dependency_queries/c_sharp.scm").to_string()
+        );
+        dependency_queries.insert(
+            Language::Swift,
+            include_str!("../../../dependency_queries/swift.scm").to_string()
+        );
+
+        Ok(Self { queries, dependency_queries, parsers })
     }
 
     fn init_parser(
@@ -218,16 +271,22 @@ impl QueryBasedExtractor {
         let tree = parser.parse(source, None)
             .context("Failed to parse source")?;
 
-        // Get query
+        // Get entity query
         let query_source = self.queries.get(&language)
             .context(format!("No query for language {:?}", language))?;
 
-        // Execute query
+        // Execute entity query
         let entities = self.execute_query(&tree, source, file_path, language, query_source)?;
 
-        // Note: Dependency extraction is planned for Phase 3 (future enhancement)
-        // Currently returns empty vec as per interface contract
-        Ok((entities, vec![]))
+        // v0.9.0: Execute dependency query if available
+        let dependencies = if let Some(dep_query_source) = self.dependency_queries.get(&language) {
+            self.execute_dependency_query(&tree, source, file_path, language, dep_query_source, &entities)?
+        } else {
+            // Graceful degradation: if no dependency query, return empty vec
+            vec![]
+        };
+
+        Ok((entities, dependencies))
     }
 
     fn execute_query(
@@ -309,6 +368,7 @@ impl QueryBasedExtractor {
             "definition.class" => Some(EntityType::Class),
             "definition.enum" => Some(EntityType::Enum),
             "definition.trait" => Some(EntityType::Trait),
+            "definition.interface" => Some(EntityType::Interface),
             "definition.impl" => Some(EntityType::Impl),
             "definition.module" => Some(EntityType::Module),
             "definition.method" => Some(EntityType::Method),
@@ -336,5 +396,166 @@ impl QueryBasedExtractor {
             // Language::Kotlin => tree_sitter_kotlin::language(),
             _ => anyhow::bail!("Unsupported language: {:?}", language),
         })
+    }
+
+    /// Execute dependency query and extract relationships (v0.9.0)
+    ///
+    /// Processes tree-sitter query matches to build DependencyEdge objects.
+    /// Handles three edge types: Calls, Uses, Implements.
+    fn execute_dependency_query(
+        &self,
+        tree: &Tree,
+        source: &str,
+        file_path: &Path,
+        language: Language,
+        dep_query_source: &str,
+        entities: &[ParsedEntity],
+    ) -> Result<Vec<DependencyEdge>> {
+        // Compile query
+        let ts_lang = self.get_ts_language(language)?;
+        let query = Query::new(&ts_lang, dep_query_source)
+            .context("Failed to create dependency query")?;
+
+        // Execute query
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&query, tree.root_node(), source.as_bytes());
+        let mut dependencies = Vec::new();
+
+        while let Some(m) = matches.next() {
+            // Process each match to extract dependency relationship
+            if let Some(edge) = self.process_dependency_match(&m, &query, source, file_path, language, entities) {
+                dependencies.push(edge);
+            }
+        }
+
+        Ok(dependencies)
+    }
+
+    /// Process a single dependency query match
+    fn process_dependency_match<'a>(
+        &self,
+        m: &tree_sitter::QueryMatch<'a, 'a>,
+        query: &Query,
+        source: &str,
+        file_path: &Path,
+        language: Language,
+        entities: &[ParsedEntity],
+    ) -> Option<DependencyEdge> {
+        let mut dependency_type = None;
+        let mut from_entity = None;
+        let mut to_name = None;
+        let mut location = None;
+
+        // Parse captures to identify relationship type and participants
+        for capture in m.captures {
+            let capture_name = &query.capture_names()[capture.index as usize];
+            let node = capture.node;
+            let node_text = &source[node.byte_range()];
+
+            // Identify dependency type
+            if capture_name.starts_with("dependency.") {
+                location = Some(format!("{}:{}", file_path.display(), node.start_position().row + 1));
+
+                if capture_name.contains("call") || capture_name.contains("method_call") {
+                    dependency_type = Some(EdgeType::Calls);
+                    // For calls, find containing function
+                    from_entity = self.find_containing_entity(node, entities);
+                } else if capture_name.contains("use") || capture_name.contains("import") || capture_name.contains("type_ref") {
+                    dependency_type = Some(EdgeType::Uses);
+                } else if capture_name.contains("implement") || capture_name.contains("inherits") {
+                    dependency_type = Some(EdgeType::Implements);
+                }
+            }
+
+            // Extract reference name (what is being called/used/implemented)
+            if capture_name.starts_with("reference.") {
+                to_name = Some(node_text.to_string());
+            }
+
+            // Extract definition name (for impl blocks)
+            if capture_name.starts_with("definition.impl") {
+                from_entity = entities.iter().find(|e| {
+                    e.name == node_text && e.line_range.0 <= node.start_position().row + 1
+                        && e.line_range.1 >= node.end_position().row + 1
+                });
+            }
+        }
+
+        // Build DependencyEdge if we have enough information
+        if let (Some(edge_type), Some(to)) = (dependency_type, to_name) {
+            // For Uses edges (imports, use declarations), create simplified keys
+            if edge_type == EdgeType::Uses {
+                let from_key = format!("{}:file:{}:1-1", language, file_path.display());
+                let to_key = format!("{}:module:{}:0-0", language, to);
+
+                return DependencyEdge::builder()
+                    .from_key(from_key)
+                    .to_key(to_key)
+                    .edge_type(edge_type)
+                    .source_location(location.unwrap_or_default())
+                    .build()
+                    .ok();
+            }
+
+            // For Calls and Implements, we need a from_entity
+            if let Some(from) = from_entity {
+                let from_key = format!(
+                    "{}:{}:{}:{}:{}-{}",
+                    language,
+                    self.entity_type_to_key_component(&from.entity_type),
+                    from.name,
+                    from.file_path,
+                    from.line_range.0,
+                    from.line_range.1
+                );
+
+                let to_key = format!(
+                    "{}:fn:{}:unknown:0-0",
+                    language,
+                    to
+                );
+
+                return DependencyEdge::builder()
+                    .from_key(from_key)
+                    .to_key(to_key)
+                    .edge_type(edge_type)
+                    .source_location(location.unwrap_or_default())
+                    .build()
+                    .ok();
+            }
+        }
+
+        None
+    }
+
+    /// Find the entity that contains a given AST node
+    fn find_containing_entity<'a>(
+        &self,
+        node: tree_sitter::Node<'_>,
+        entities: &'a [ParsedEntity],
+    ) -> Option<&'a ParsedEntity> {
+        let node_line = node.start_position().row + 1;
+
+        // Find entity whose line range contains this node
+        entities.iter().find(|e| {
+            e.line_range.0 <= node_line && node_line <= e.line_range.1
+        })
+    }
+
+    /// Convert EntityType to ISGL1 key component
+    fn entity_type_to_key_component(&self, entity_type: &EntityType) -> &'static str {
+        match entity_type {
+            EntityType::Function => "fn",
+            EntityType::Method => "method",
+            EntityType::Struct => "struct",
+            EntityType::Enum => "enum",
+            EntityType::Trait => "trait",
+            EntityType::Interface => "interface",
+            EntityType::Class => "class",
+            EntityType::Module => "module",
+            EntityType::Impl => "impl",
+            EntityType::Typedef => "typedef",
+            EntityType::Namespace => "namespace",
+        }
     }
 }

@@ -242,10 +242,79 @@ impl Isgl1KeyGeneratorImpl {
             parseltongue_core::query_extractor::EntityType::Struct => EntityType::Struct,
             parseltongue_core::query_extractor::EntityType::Enum => EntityType::Enum,
             parseltongue_core::query_extractor::EntityType::Trait => EntityType::Trait,
+            parseltongue_core::query_extractor::EntityType::Interface => EntityType::Trait,  // Map Interface to Trait (protocols, interfaces)
             parseltongue_core::query_extractor::EntityType::Impl => EntityType::Impl,
             parseltongue_core::query_extractor::EntityType::Module => EntityType::Module,
             parseltongue_core::query_extractor::EntityType::Namespace => EntityType::Namespace,
             parseltongue_core::query_extractor::EntityType::Typedef => EntityType::Typedef,
+        }
+    }
+
+    /// Enrich Rust entities with attribute metadata (#[test], #[tokio::test], etc.)
+    ///
+    /// **v0.9.0 Feature**: Rust-specific attribute parsing layer
+    ///
+    /// **Design Pattern**: Post-processing enrichment
+    /// - QueryBasedExtractor extracts entities (language-agnostic)
+    /// - This method adds Rust-specific metadata (attributes)
+    ///
+    /// **Preconditions**:
+    /// - entities vec populated by QueryBasedExtractor
+    /// - source contains valid Rust code
+    ///
+    /// **Postconditions**:
+    /// - Entities with #[test] have metadata["is_test"] = "true"
+    /// - Entities with #[tokio::test] have metadata["is_test"] = "true"
+    /// - Entities with #[async_test] have metadata["is_test"] = "true"
+    ///
+    /// **Performance**: O(lines * entities) - efficient for typical files
+    fn enrich_rust_entities_with_attributes(
+        &self,
+        entities: &mut [ParsedEntity],
+        source: &str,
+    ) {
+        let lines: Vec<&str> = source.lines().collect();
+
+        // Build map of entity start lines for O(1) lookup
+        let mut entity_lines: std::collections::HashMap<usize, &mut ParsedEntity> =
+            std::collections::HashMap::new();
+
+        for entity in entities.iter_mut() {
+            entity_lines.insert(entity.line_range.0, entity);
+        }
+
+        // Scan source for attributes and match to entities
+        for (idx, line) in lines.iter().enumerate() {
+            let trimmed = line.trim();
+
+            // Check if this line is a test attribute
+            if trimmed == "#[test]" || trimmed == "#[tokio::test]" || trimmed == "#[async_test]" {
+                // Look for entity on next non-attribute line
+                for next_idx in (idx + 1)..lines.len() {
+                    let next_line = lines[next_idx].trim();
+
+                    // Skip more attributes
+                    if next_line.starts_with("#[") {
+                        continue;
+                    }
+
+                    // Check if next line starts a function
+                    if next_line.starts_with("fn ") || next_line.starts_with("async fn ") || next_line.starts_with("pub fn ") || next_line.starts_with("pub async fn ") {
+                        let entity_line = next_idx + 1;
+
+                        // Find entity at this line and mark as test
+                        if let Some(entity) = entity_lines.get_mut(&entity_line) {
+                            entity.metadata.insert("is_test".to_string(), "true".to_string());
+                        }
+                        break;
+                    }
+
+                    // If we hit non-whitespace that's not a function, stop looking
+                    if !next_line.is_empty() {
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -276,7 +345,7 @@ impl Isgl1KeyGeneratorImpl {
         match self.query_extractor.lock() {
             Ok(mut extractor) => {
                 match extractor.parse_source(source, file_path, language) {
-                    Ok((query_entities, _query_deps)) => {
+                    Ok((query_entities, query_deps)) => {
                         // Convert QueryBasedExtractor entities to pt01 ParsedEntity format
                         for query_entity in query_entities {
                             entities.push(ParsedEntity {
@@ -288,6 +357,16 @@ impl Isgl1KeyGeneratorImpl {
                                 metadata: query_entity.metadata,
                             });
                         }
+
+                        // v0.9.0 FEATURE: Rust-specific attribute parsing
+                        // Enrich Rust entities with #[test] metadata after extraction
+                        if language == Language::Rust {
+                            self.enrich_rust_entities_with_attributes(entities, source);
+                        }
+
+                        // v0.9.0 CRITICAL FIX: Use query-based dependency extraction
+                        // This replaces manual tree-walking for dependency extraction
+                        dependencies.extend(query_deps);
                     }
                     Err(e) => {
                         // Graceful degradation: log error but continue
@@ -300,11 +379,12 @@ impl Isgl1KeyGeneratorImpl {
             }
         }
 
-        // Pass 2: Extract dependencies for Rust (manual traversal still needed)
-        if language == Language::Rust {
-            let root_node = tree.root_node();
-            self.extract_dependencies_pass2(&root_node, source, file_path, entities, dependencies);
-        }
+        // v0.8.9: Manual dependency extraction removed in favor of query-based approach
+        // The following code is kept for fallback if needed, but should be removed in REFACTOR phase
+        // if language == Language::Rust {
+        //     let root_node = tree.root_node();
+        //     self.extract_dependencies_pass2(&root_node, source, file_path, entities, dependencies);
+        // }
     }
 
     /// Second pass: Extract dependencies now that all entities are known
@@ -345,7 +425,7 @@ impl Isgl1KeyGeneratorImpl {
             match language {
                 Language::Rust => self.extract_rust_entities(node, source, file_path, entities),
                 Language::Python => {
-                    // TODO: Implement Python entity extraction
+                    // OBSOLETE: Python extraction now handled by QueryBasedExtractor
                 }
                 _ => {}
             }

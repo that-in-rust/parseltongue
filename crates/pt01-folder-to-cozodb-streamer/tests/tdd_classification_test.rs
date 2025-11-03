@@ -7,29 +7,25 @@ use parseltongue_core::entities::EntityClass;
 use parseltongue_core::storage::CozoDbStorage;
 use tempfile::TempDir;
 
-/// RED Phase Test: Verify test functions are classified as TEST_IMPLEMENTATION
+/// TDD RED→GREEN Test: Verify test functions are classified as TEST_IMPLEMENTATION
 ///
-/// **v0.8.9 STATUS**: DEFERRED TO v0.9.0
+/// **v0.9.0 Implementation**: Attribute parsing layer added
 ///
-/// **Rationale**: QueryBasedExtractor (used in v0.8.9 for multi-language support)
-/// does not parse Rust attributes like #[test]. This feature requires custom
-/// attribute parsing which is Rust-specific.
-///
-/// **Trade-off**:
-/// - v0.8.9: Fixes 11 languages (Ruby, Python, JS, etc.) but loses Rust test detection
-/// - v0.9.0: Will add attribute parsing layer on top of QueryBasedExtractor
+/// **Architecture**: Post-process QueryBasedExtractor results to add Rust metadata
+/// - QueryBasedExtractor: Extracts entities (language-agnostic)
+/// - Attribute Parser: Enriches Rust entities with #[test] metadata (Rust-specific)
 ///
 /// Preconditions:
 /// - Rust file with #[test] attribute
-/// - File indexed by Tool 1
+/// - File indexed by Tool 1 with attribute parsing enabled
 ///
 /// Postconditions:
 /// - Entity has entity_class = EntityClass::TestImplementation
+/// - Entity metadata contains is_test = "true"
 ///
 /// Error Conditions:
-/// - Test entity misclassified as CodeImplementation (v0.8.9 known limitation)
+/// - Test entity misclassified as CodeImplementation → FAIL
 #[tokio::test]
-#[ignore = "v0.8.9: Test attribute parsing deferred to v0.9.0 (multi-language priority)"]
 async fn test_function_with_test_attribute_classified_correctly() {
     // Setup: Create temp directory with Rust test file
     let temp_dir = TempDir::new().unwrap();
@@ -101,11 +97,8 @@ fn regular_function() {
     );
 }
 
-/// RED Phase Test: Verify tokio::test functions are classified correctly
-///
-/// **v0.8.9 STATUS**: DEFERRED TO v0.9.0 (same rationale as test above)
+/// TDD RED→GREEN Test: Verify tokio::test functions are classified correctly
 #[tokio::test]
-#[ignore = "v0.8.9: Test attribute parsing deferred to v0.9.0"]
 async fn tokio_test_function_classified_correctly() {
     let temp_dir = TempDir::new().unwrap();
     let test_file = temp_dir.path().join("async_test.rs");

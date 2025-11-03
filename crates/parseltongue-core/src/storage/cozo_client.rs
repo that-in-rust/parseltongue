@@ -513,6 +513,90 @@ impl CozoDbStorage {
         Ok(dependents)
     }
 
+    /// Get all dependency edges from the database.
+    ///
+    /// Returns all dependency edges stored in the DependencyEdges table.
+    /// This is useful for test validation and full graph analysis.
+    ///
+    /// # Returns
+    /// Vector of all DependencyEdge records. Returns empty vector if no edges exist.
+    ///
+    /// # Example
+    /// ```
+    /// use parseltongue_core::storage::CozoDbStorage;
+    /// use parseltongue_core::entities::{DependencyEdge, EdgeType};
+    ///
+    /// # tokio_test::block_on(async {
+    /// let storage = CozoDbStorage::new("mem").await.unwrap();
+    /// storage.create_dependency_edges_schema().await.unwrap();
+    ///
+    /// // Insert edges
+    /// let edges = vec![
+    ///     DependencyEdge::builder()
+    ///         .from_key("rust:fn:A:test_rs:1-5")
+    ///         .to_key("rust:fn:B:test_rs:10-15")
+    ///         .edge_type(EdgeType::Calls)
+    ///         .build().unwrap(),
+    /// ];
+    /// storage.insert_edges_batch(&edges).await.unwrap();
+    ///
+    /// // Query all edges
+    /// let all_deps = storage.get_all_dependencies().await.unwrap();
+    /// assert_eq!(all_deps.len(), 1);
+    /// # });
+    /// ```
+    pub async fn get_all_dependencies(&self) -> Result<Vec<DependencyEdge>> {
+        let query = "?[from_key, to_key, edge_type, source_location] := *DependencyEdges{from_key, to_key, edge_type, source_location}";
+
+        let result = self
+            .db
+            .run_script(query, BTreeMap::new(), ScriptMutability::Immutable)
+            .map_err(|e| ParseltongError::DependencyError {
+                operation: "get_all_dependencies".to_string(),
+                reason: format!("Failed to query all dependencies: {}", e),
+            })?;
+
+        // Parse results into DependencyEdge structs
+        let mut dependencies = Vec::new();
+        for row in result.rows {
+            if row.len() >= 3 {
+                if let (Some(DataValue::Str(from_key)), Some(DataValue::Str(to_key)), Some(DataValue::Str(edge_type_str))) =
+                    (row.get(0), row.get(1), row.get(2))
+                {
+                    let edge_type = match edge_type_str.as_str() {
+                        "Calls" => EdgeType::Calls,
+                        "Uses" => EdgeType::Uses,
+                        "Implements" => EdgeType::Implements,
+                        _ => continue, // Skip unknown edge types
+                    };
+
+                    let source_location = row.get(3).and_then(|v| {
+                        if let DataValue::Str(loc) = v {
+                            Some(loc.to_string())
+                        } else {
+                            None
+                        }
+                    });
+
+                    let edge = DependencyEdge::builder()
+                        .from_key(from_key.to_string())
+                        .to_key(to_key.to_string())
+                        .edge_type(edge_type)
+                        .source_location(source_location.unwrap_or_default())
+                        .build()
+                        .map_err(|e| ParseltongError::DependencyError {
+                            operation: "get_all_dependencies".to_string(),
+                            reason: format!("Failed to build DependencyEdge: {}", e),
+                        })?;
+
+                    dependencies.push(edge);
+                }
+            }
+        }
+
+        Ok(dependencies)
+    }
+
     /// Get transitive closure: all entities reachable from this entity (unbounded).
     ///
     /// Returns ALL entities reachable by recursively following dependency edges,
