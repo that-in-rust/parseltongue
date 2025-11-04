@@ -1,9 +1,0 @@
-Running PT02 Level 0: Pure Edge List Export
-  Database: rocksdb:demo-walkthroughs/v0.8.6-release-testing/test.db
-  WHERE clause: ALL
-  Output: demo-walkthroughs/v0.8.6-release-testing/edges.json
-  Estimated tokens: ~5000
-✓ PT02 Level 0 export completed
-  Output file: demo-walkthroughs/v0.8.6-release-testing/edges.json
-  Edges exported: 148
-  Token estimate: ~5000 tokens

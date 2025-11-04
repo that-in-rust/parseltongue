@@ -1,9 +1,0 @@
-Running Tool 5: pt05-llm-cozodb-to-diff-writer
-  Database: rocksdb:test-v0.8.8.db
-  Output: CodeDiff.json
-✓ CodeDiff.json generated
-  Output file: CodeDiff.json
-  Changes included: 1
-    Creates: 1
-    Edits: 0
-    Deletes: 0
