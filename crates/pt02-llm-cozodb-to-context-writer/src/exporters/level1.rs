@@ -229,17 +229,24 @@ impl LevelExporter for Level1Exporter {
         let json_content = serde_json::to_string_pretty(&code_level1_entities)?;
         std::fs::write(&config.output_path, &json_content)?;
 
-        // TOON: Derive filename and write
+        // TOON: Derive filename and write (handle empty case)
         let toon_path = derive_toon_path(&config.output_path);
-        let toon_encoder = crate::ToonEncoder::new(crate::ToonDelimiter::Tab, "entities");
 
-        // Convert Vec<EntityExportLevel1> to Vec<ToonEntity> for TOON encoding
-        let toon_entities: Vec<ToonEntity> = code_level1_entities
-            .iter()
-            .map(|e| ToonEntity::from_level1(e))
-            .collect();
+        let toon_content = if code_level1_entities.is_empty() {
+            // Empty export: write minimal TOON format
+            "entities[0\\t]{}\n  # No entities found matching filter".to_string()
+        } else {
+            // Normal case: encode entities
+            let toon_encoder = crate::ToonEncoder::new(crate::ToonDelimiter::Tab, "entities");
 
-        let toon_content = toon_encoder.encode(&toon_entities)?;
+            let toon_entities: Vec<ToonEntity> = code_level1_entities
+                .iter()
+                .map(|e| ToonEntity::from_level1(e))
+                .collect();
+
+            toon_encoder.encode(&toon_entities)?
+        };
+
         std::fs::write(&toon_path, &toon_content)?;
 
         // 5. Build metadata with EntityClass information
