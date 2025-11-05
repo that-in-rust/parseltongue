@@ -93,6 +93,7 @@ pub mod export_trait;
 pub mod exporters;
 pub mod models;
 pub mod query_builder;
+pub mod toon_encoder; // v0.10.0: TOON format for 40-70% token reduction
 
 // v0.9.0: EntityClass integration tests (executable specifications)
 #[cfg(test)]
@@ -109,3 +110,4 @@ pub use models::{
     ExportOutput,
 };
 pub use query_builder::*;
+pub use toon_encoder::{ToonConfig, ToonDelimiter, ToonEncoder};
