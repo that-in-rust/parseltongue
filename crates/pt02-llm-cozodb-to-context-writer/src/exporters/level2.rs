@@ -194,8 +194,19 @@ impl LevelExporter for Level2Exporter {
         // 3. Count entities for metadata
         let total_entities = level2_entities.len();
 
-        // 4. Serialize entities to JSON (serde handles null-skipping via attributes)
-        let entities_json = serde_json::to_value(&level2_entities)?;
+        // 4. Write both JSON and TOON formats using core serializers
+        use parseltongue_core::serializers::{Serializer, JsonSerializer, ToonSerializer};
+
+        // JSON serializer
+        let json_serializer = JsonSerializer::new();
+        let json_content = json_serializer.serialize(&level2_entities)?;
+        std::fs::write(&config.output_path, &json_content)?;
+
+        // TOON serializer (automatically handles empty arrays)
+        let toon_serializer = ToonSerializer::new();
+        let toon_path = config.output_path.with_extension(toon_serializer.extension());
+        let toon_content = toon_serializer.serialize(&level2_entities)?;
+        std::fs::write(&toon_path, &toon_content)?;
 
         // 5. Build metadata
         let metadata = ExportMetadata {
@@ -207,10 +218,10 @@ impl LevelExporter for Level2Exporter {
             where_filter: config.where_filter.clone(),
         };
 
-        // 6. Build output
+        // 6. Build output (v0.10.0: dual format support)
         Ok(ExportOutput {
             export_metadata: metadata,
-            entities: Some(entities_json),
+            entities: Some(serde_json::to_value(&level2_entities)?),
             edges: None,  // Level 2 has no edges
         })
     }

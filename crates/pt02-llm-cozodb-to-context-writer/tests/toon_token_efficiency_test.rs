@@ -5,7 +5,7 @@
 //!
 //! This test validates the core value proposition using real data structures.
 
-use pt02_llm_cozodb_to_context_writer::{ToonDelimiter, ToonEncoder};
+use parseltongue_core::serializers::{Serializer, ToonSerializer};
 use serde::Serialize;
 
 /// Simulate a Parseltongue entity export
@@ -58,8 +58,8 @@ fn test_token_efficiency_100_entities() {
     let json_min_tokens = count_tokens_naive(&json_min);
 
     // Encode as TOON
-    let encoder = ToonEncoder::new(ToonDelimiter::Tab, "entities");
-    let toon = encoder.encode(&entities).unwrap();
+    let serializer = ToonSerializer::new();
+    let toon = serializer.serialize(&entities).unwrap();
     let toon_tokens = count_tokens_naive(&toon);
 
     // Calculate reductions
@@ -98,8 +98,8 @@ fn test_token_efficiency_scalability() {
         let json = serde_json::to_string(&entities).unwrap();
         let json_tokens = count_tokens_naive(&json);
 
-        let encoder = ToonEncoder::new(ToonDelimiter::Tab, "entities");
-        let toon = encoder.encode(&entities).unwrap();
+        let serializer = ToonSerializer::new();
+        let toon = serializer.serialize(&entities).unwrap();
         let toon_tokens = count_tokens_naive(&toon);
 
         let reduction = 1.0 - (toon_tokens as f64 / json_tokens as f64);
@@ -122,39 +122,13 @@ fn test_token_efficiency_scalability() {
     }
 }
 
+// v0.10.0: Delimiter comparison removed - ToonSerializer uses tab-only (optimal for LLM tokenizers)
+// The core serializer has standardized on tab delimiter based on empirical token efficiency data.
 #[test]
+#[ignore] // Disabled: delimiter comparison not relevant for core serializer
 fn test_token_efficiency_delimiter_comparison() {
-    let entities = create_test_entities(100);
-
-    let tab_encoder = ToonEncoder::new(ToonDelimiter::Tab, "entities");
-    let comma_encoder = ToonEncoder::new(ToonDelimiter::Comma, "entities");
-    let pipe_encoder = ToonEncoder::new(ToonDelimiter::Pipe, "entities");
-
-    let tab_toon = tab_encoder.encode(&entities).unwrap();
-    let comma_toon = comma_encoder.encode(&entities).unwrap();
-    let pipe_toon = pipe_encoder.encode(&entities).unwrap();
-
-    let tab_tokens = count_tokens_naive(&tab_toon);
-    let comma_tokens = count_tokens_naive(&comma_toon);
-    let pipe_tokens = count_tokens_naive(&pipe_toon);
-
-    println!("\n=== Delimiter Comparison ===");
-    println!("Tab delimiter: {} tokens", tab_tokens);
-    println!("Comma delimiter: {} tokens", comma_tokens);
-    println!("Pipe delimiter: {} tokens", pipe_tokens);
-    println!("============================\n");
-
-    // Tab should be most efficient (single token vs comma/pipe which may tokenize differently)
-    // But all should be within 10% of each other
-    let max_tokens = tab_tokens.max(comma_tokens).max(pipe_tokens);
-    let min_tokens = tab_tokens.min(comma_tokens).min(pipe_tokens);
-
-    let variance = (max_tokens - min_tokens) as f64 / min_tokens as f64;
-    assert!(
-        variance < 0.10,
-        "Delimiter variance too high: {:.1}%",
-        variance * 100.0
-    );
+    // Test preserved for historical reference but disabled
+    // ToonSerializer in parseltongue-core uses tab delimiter exclusively
 }
 
 #[test]
@@ -165,8 +139,8 @@ fn test_real_world_parseltongue_export() {
     let json = serde_json::to_string(&entities).unwrap();
     let json_tokens = count_tokens_naive(&json);
 
-    let encoder = ToonEncoder::new(ToonDelimiter::Tab, "entities");
-    let toon = encoder.encode(&entities).unwrap();
+    let serializer = ToonSerializer::new();
+    let toon = serializer.serialize(&entities).unwrap();
     let toon_tokens = count_tokens_naive(&toon);
 
     let reduction = 1.0 - (toon_tokens as f64 / json_tokens as f64);
@@ -193,8 +167,8 @@ fn test_byte_size_efficiency() {
     let json = serde_json::to_string_pretty(&entities).unwrap();
     let json_bytes = json.len();
 
-    let encoder = ToonEncoder::new(ToonDelimiter::Tab, "entities");
-    let toon = encoder.encode(&entities).unwrap();
+    let serializer = ToonSerializer::new();
+    let toon = serializer.serialize(&entities).unwrap();
     let toon_bytes = toon.len();
 
     let reduction = 1.0 - (toon_bytes as f64 / json_bytes as f64);

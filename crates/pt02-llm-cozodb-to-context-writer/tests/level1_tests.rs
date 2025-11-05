@@ -566,6 +566,7 @@ fn test_level1_entity_struct_clone() {
         file_path: "test.rs".to_string(),
         line_number: 10,
         interface_signature: "pub fn test()".to_string(),
+        entity_class: "CODE".to_string(), // v0.9.0: EntityClass for code/test separation
         doc_comment: None,
     };
 

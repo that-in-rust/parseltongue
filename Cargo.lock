@@ -2185,6 +2185,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "pt07-visual-analytics-terminal"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "console",
+ "parseltongue-core",
+ "tokio",
+]
+
+[[package]]
 name = "quadrature"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

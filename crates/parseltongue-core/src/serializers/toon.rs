@@ -488,3 +488,130 @@ mod tests {
         assert_eq!(toon1, toon2);
     }
 }
+
+// ============================================================================
+// Serializer Trait Implementation
+// ============================================================================
+
+use super::Serializer;
+
+/// TOON serializer implementing the core Serializer trait
+///
+/// # Characteristics
+/// - Tab-delimited format optimized for LLMs
+/// - 30-40% token reduction vs JSON
+/// - Alphabetically sorted fields for determinism
+/// - ~17 tokens per entity (vs ~30 for JSON)
+pub struct ToonSerializer {
+    encoder: ToonEncoder,
+}
+
+impl ToonSerializer {
+    /// Create new TOON serializer with default settings (Tab delimiter)
+    pub fn new() -> Self {
+        Self {
+            encoder: ToonEncoder::new(ToonDelimiter::Tab, "entities"),
+        }
+    }
+
+    /// Create TOON serializer with specific delimiter
+    pub fn with_delimiter(delimiter: ToonDelimiter) -> Self {
+        Self {
+            encoder: ToonEncoder::new(delimiter, "entities"),
+        }
+    }
+
+    /// Create TOON serializer with custom array name
+    pub fn with_name(delimiter: ToonDelimiter, array_name: &str) -> Self {
+        Self {
+            encoder: ToonEncoder::new(delimiter, array_name),
+        }
+    }
+}
+
+impl Default for ToonSerializer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Serializer for ToonSerializer {
+    fn serialize<T: Serialize>(&self, data: &[T]) -> Result<String> {
+        if data.is_empty() {
+            // Handle empty arrays gracefully (TOON spec requires row count)
+            Ok(format!("{}[0\\t]{{}}\n  # No data", self.encoder.config.array_name))
+        } else {
+            self.encoder.encode(data)
+        }
+    }
+
+    fn extension(&self) -> &'static str {
+        "toon"
+    }
+
+    fn estimate_tokens(&self, entity_count: usize) -> usize {
+        // TOON: ~17 tokens per entity (41.9% reduction from JSON's ~30)
+        // Empty array: ~10 tokens for header comment
+        if entity_count == 0 {
+            10
+        } else {
+            // Header overhead (~20 tokens) + (17 tokens * entity_count)
+            20 + (entity_count * 17)
+        }
+    }
+}
+
+#[cfg(test)]
+mod serializer_tests {
+    use super::*;
+
+    #[derive(Serialize)]
+    struct TestEntity {
+        name: String,
+        value: i32,
+    }
+
+    #[test]
+    fn test_toon_serializer_empty() {
+        let serializer = ToonSerializer::new();
+        let data: Vec<TestEntity> = vec![];
+
+        let result = serializer.serialize(&data).unwrap();
+        assert!(result.contains("entities[0\\t]"));
+        assert!(result.contains("# No data"));
+    }
+
+    #[test]
+    fn test_toon_serializer_single_entity() {
+        let serializer = ToonSerializer::new();
+        let data = vec![TestEntity {
+            name: "test".to_string(),
+            value: 42,
+        }];
+
+        let result = serializer.serialize(&data).unwrap();
+        assert!(result.contains("entities[1\\t]"));
+        assert!(result.contains("test"));
+        assert!(result.contains("42"));
+    }
+
+    #[test]
+    fn test_toon_extension() {
+        let serializer = ToonSerializer::new();
+        assert_eq!(serializer.extension(), "toon");
+    }
+
+    #[test]
+    fn test_toon_token_estimation() {
+        let serializer = ToonSerializer::new();
+
+        // Empty array: ~10 tokens
+        assert_eq!(serializer.estimate_tokens(0), 10);
+
+        // Single entity: 20 (header) + 17 (entity) = 37 tokens
+        assert_eq!(serializer.estimate_tokens(1), 37);
+
+        // 100 entities: 20 + (100 * 17) = 1720 tokens
+        assert_eq!(serializer.estimate_tokens(100), 1720);
+    }
+}

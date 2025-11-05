@@ -131,7 +131,21 @@ impl LevelExporter for Level0Exporter {
         // 3. Count edges for metadata
         let total_edges = dependency_edges.len();
 
-        // 4. Build metadata
+        // 4. Write both JSON and TOON formats using core serializers
+        use parseltongue_core::serializers::{Serializer, JsonSerializer, ToonSerializer};
+
+        // JSON serializer
+        let json_serializer = JsonSerializer::new();
+        let json_content = json_serializer.serialize(&dependency_edges)?;
+        std::fs::write(&config.output_path, &json_content)?;
+
+        // TOON serializer (automatically handles empty arrays)
+        let toon_serializer = ToonSerializer::new();
+        let toon_path = config.output_path.with_extension(toon_serializer.extension());
+        let toon_content = toon_serializer.serialize(&dependency_edges)?;
+        std::fs::write(&toon_path, &toon_content)?;
+
+        // 5. Build metadata
         let metadata = ExportMetadata {
             level: 0,
             timestamp: Utc::now().to_rfc3339(),
@@ -141,7 +155,7 @@ impl LevelExporter for Level0Exporter {
             where_filter: config.where_filter.clone(),
         };
 
-        // 5. Build output
+        // 6. Build output (v0.10.0: dual format support)
         Ok(ExportOutput {
             export_metadata: metadata,
             entities: None,                    // Level 0 has no entities

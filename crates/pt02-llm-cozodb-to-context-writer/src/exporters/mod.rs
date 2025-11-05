@@ -13,10 +13,8 @@
 pub mod level0;
 pub mod level1;
 pub mod level2;
-pub mod toon_exporter; // v0.10.0: TOON format (41.9% token reduction)
 
 // Re-export for convenience
 pub use level0::Level0Exporter;
 pub use level1::Level1Exporter;
 pub use level2::Level2Exporter;
-pub use toon_exporter::ToonLevel1Exporter;
