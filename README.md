@@ -1,5 +1,7 @@
 # Parseltongue
 
+> **v0.10.0** - Now with automatic dual-format export: JSON for compatibility + TOON for 30-40% token savings!
+
 ```mermaid
 graph LR
     subgraph PROBLEM["Context Window Problem"]
@@ -38,7 +40,9 @@ graph LR
 
 Code analysis toolkit powered by Interface Signature Graphs (ISG). Parse your codebase into a queryable semantic graph. Export context at different detail levels (2-60K tokens instead of 500K+), giving LLMs the architectural view and metadata needed for reasoning and modifications.
 
-Multi-language support: Query-based entity extraction for 12 languages (Rust, Python, C, C++, Ruby, JavaScript, TypeScript, Go, Java, PHP, C#, Swift) using tree-sitter .scm query files.
+**Multi-language support**: Query-based entity extraction for 12 languages (Rust, Python, C, C++, Ruby, JavaScript, TypeScript, Go, Java, PHP, C#, Swift) using tree-sitter .scm query files.
+
+**Dual-format export**: Every export automatically generates both JSON (for tool compatibility) and TOON (Tab-Oriented Object Notation) formats with 30-40% token reduction—no configuration needed.
 
 ---
 

@@ -1,4 +1,29 @@
 # Parseltongue v0.91 Feature List
+
+|4-Word Feature Name|Harry Potter Theme Name|ELI15 Remarks|
+|---|---|---|
+|Semantic Code Clustering|Pensieve Extraction|Like pulling memories from a magic bowl to sort code into neat groups.|
+|Multi-Signal Affinity Matrix|Patronus Signals|Happy thoughts summoning connections to link code parts strongly.|
+|Louvain Community Detection|Lumos Communities|Lighting up hidden friend groups in a dark code castle.|
+|Eigengap Optimal Clusters|Eigengap Revelio|Spell revealing perfect breaks in a magical code wall.|
+|MDL Boundary Refinement|MDL Elixir|Brewing a potion to perfect code groups without waste.|
+|Hierarchical Code Levels|Sorting Hat Hierarchy|Hat assigning code to "houses" at different detail levels.|
+|InfoMap Flow Clustering|Floo Network Flows|Fireplace travel mapping code's hidden flow paths.|
+|Automatic Cluster Naming|Naming Charm Nominus|Whispering names to make code groups easy to remember.|
+|Dynamic Context Selection|Accio Context|Summoning just the right code bits like calling objects.|
+|LLM-Friendly JSON Export|Portkey Packs|Magic items teleporting you to organized code insights.|
+|Cluster Quality Metrics|Veritaserum Scores|Truth potion forcing code groups to reveal strengths.|
+|Blast Radius Analysis|Expelliarmus Radius|Measuring how far a code "disarm" spell ripples.|
+|Multi-Level Graph Framework|Marauder's Map Layers|Secret map unfolding code views from big to small.|
+|Flow-Aware Code Analytics|Patronus Flows|Guardian animal lighting up code's different paths.|
+|C/C++ Code Extractor|Elder Wand Parser|Powerful wand mastering tricky code languages safely.|
+|Rails Pattern Extractor|Polyjuice Patterns|Potion transforming to spot Rails' hidden magic tricks.|
+|Terminal Code Visualization|Invisibility Cloak Views|Cloak revealing code maps in your computer screen.|
+|Temporal Evolution Mining|Time-Turner Mining|Hourglass digging up code's secret history ties.|
+|Change Impact Prediction|Prophecy Orb|Crystal ball foretelling what code changes might break.|
+|Architectural Constraint Engine|Unbreakable Vow Enforcer|Magical promise binding code to follow strict rules.|
+
+
 ## The Enchanted Codebase Analysis Platform
 
 > *"Parseltongue speaks to code in its natural language, revealing the hidden structure of software through magical graph theory and semantic clustering."*
@@ -534,3 +559,5 @@ let context = ContextSelector::new(budget: 8000)
 **Last Updated**: 2025-01-05
 **Authors**: Parseltongue Core Team
 **Status**: Living Document (updates with implementation progress)
+
+
