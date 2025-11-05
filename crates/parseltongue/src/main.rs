@@ -79,6 +79,8 @@ fn build_create_entity(isgl1_key: &str, future_code: String) -> Result<CodeEntit
             content_hash,
             additional: HashMap::new(),
         },
+        // v0.9.0: Add mandatory entity_class field
+        entity_class: parseltongue_core::EntityClass::CodeImplementation,
     };
 
     Ok(entity)
@@ -584,12 +586,16 @@ async fn run_pt02_level00(matches: &ArgMatches) -> Result<()> {
 
     // Create exporter and config
     let exporter = Level0Exporter::new();
+    let output_path = PathBuf::from(output);
     let config = ExportConfig {
         level: 0,
         include_code: false,
-        where_filter: where_clause.clone(),
-        output_path: PathBuf::from(output),
-        db_path: db.clone(),
+        where_filter: where_clause.to_string(),
+        output_path,
+        // v0.9.0: Dual outputs for code/test separation (handled in level00 binary)
+        code_output_path: None,
+        tests_output_path: None,
+        db_path: matches.get_one::<String>("db").unwrap().clone(),
     };
 
     if verbose {
@@ -644,6 +650,9 @@ async fn run_pt02_level01(matches: &ArgMatches) -> Result<()> {
         include_code: include_code == "1",
         where_filter: where_clause.clone(),
         output_path: PathBuf::from(output),
+        // v0.9.0: Dual outputs for code/test separation (None for level01)
+        code_output_path: None,
+        tests_output_path: None,
         db_path: db.clone(),
     };
 
@@ -703,6 +712,9 @@ async fn run_pt02_level02(matches: &ArgMatches) -> Result<()> {
         include_code: include_code == "1",
         where_filter: where_clause.clone(),
         output_path: PathBuf::from(output),
+        // v0.9.0: Dual outputs for code/test separation (None for level02)
+        code_output_path: None,
+        tests_output_path: None,
         db_path: db.clone(),
     };
 

@@ -19,7 +19,7 @@
 //! - NO configuration complexity
 //! - Hardcoded sensible defaults matching unified binary
 
-use clap::{Arg, Command};
+use clap::{Arg, ArgAction, Command};
 use std::path::PathBuf;
 
 use crate::StreamerConfig;
@@ -68,6 +68,17 @@ impl CliConfig {
                     .action(clap::ArgAction::SetTrue)
                     .conflicts_with("verbose"),
             )
+            .arg(
+                Arg::new("exclude")
+                    .short('e')
+                    .long("exclude")
+                    .value_name("PATTERN")
+                    .help("Exclude pattern (can be specified multiple times)")
+                    .action(ArgAction::Append)
+                    .long_help("Exclude files/directories matching pattern.
+Examples: -e '.ref' -e 'archive' -e 'tmp/**'
+Patterns are simple substring matches (not regex)."),
+            )
     }
 
     /// Parse CLI arguments into StreamerConfig
@@ -75,26 +86,36 @@ impl CliConfig {
     /// Uses hardcoded defaults for internal fields (matching unified binary behavior):
     /// - max_file_size: 100MB (ultra-minimalist: let tree-sitter decide what to parse)
     /// - include_patterns: ALL files (tree-sitter handles unsupported files gracefully)
-    /// - exclude_patterns: Common build/dependency dirs only
+    /// - exclude_patterns: Common build/dependency dirs + user patterns
     /// - parsing_library: "tree-sitter"
     /// - chunking: "ISGL1"
     pub fn parse_config(matches: &clap::ArgMatches) -> StreamerConfig {
+        // Start with default exclusion patterns
+        let mut exclude_patterns = vec![
+            "target".to_string(),      // Rust build
+            "node_modules".to_string(), // Node.js dependencies
+            ".git".to_string(),        // Git metadata
+            "build".to_string(),       // Generic build dir
+            "dist".to_string(),        // Distribution files
+            "__pycache__".to_string(), // Python cache
+            ".venv".to_string(),       // Python virtual env
+            "venv".to_string(),        // Python virtual env
+        ];
+        
+        // Add user-specified exclusion patterns (if any)
+        if let Some(user_excludes) = matches.get_many::<String>("exclude") {
+            for pattern in user_excludes {
+                exclude_patterns.push(pattern.clone());
+            }
+        }
+        
         StreamerConfig {
             root_dir: PathBuf::from(matches.get_one::<String>("directory").unwrap()),
             db_path: matches.get_one::<String>("database").unwrap().clone(),
             // Hardcoded defaults (S01 ultra-minimalist - NO artificial limits)
             max_file_size: 100 * 1024 * 1024,  // 100MB - let tree-sitter decide
             include_patterns: vec!["*".to_string()],  // ALL files - tree-sitter handles it
-            exclude_patterns: vec![
-                "target".to_string(),      // Rust build
-                "node_modules".to_string(), // Node.js dependencies
-                ".git".to_string(),        // Git metadata
-                "build".to_string(),       // Generic build dir
-                "dist".to_string(),        // Distribution files
-                "__pycache__".to_string(), // Python cache
-                ".venv".to_string(),       // Python virtual env
-                "venv".to_string(),        // Python virtual env
-            ],
+            exclude_patterns,
             parsing_library: "tree-sitter".to_string(),
             chunking: "ISGL1".to_string(),
         }
@@ -116,7 +137,7 @@ impl CliConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use clap::Parser;
+    use clap::ArgMatches;
 
     #[test]
     fn test_cli_config_parsing() {
@@ -192,5 +213,57 @@ mod tests {
         // Check hardcoded defaults (S01 ultra-minimalist)
         assert_eq!(config.parsing_library, "tree-sitter");
         assert_eq!(config.chunking, "ISGL1");
+    }
+
+    #[test]
+    fn test_exclusion_patterns_cli_contract() {
+        // Test REQ-V090-001.0: Exclusion patterns CLI support
+        let cli = CliConfig::build_cli();
+        let matches = cli.try_get_matches_from(&[
+            "parseltongue-01",
+            "./src",
+            "-e", ".ref",
+            "-e", "archive",
+            "-e", "tmp/**",
+        ]);
+
+        assert!(matches.is_ok(), "CLI with exclusion patterns should be valid");
+        let matches = matches.unwrap();
+
+        let config = CliConfig::parse_config(&matches);
+        
+        // Verify default patterns are present
+        assert!(config.exclude_patterns.contains(&"target".to_string()));
+        assert!(config.exclude_patterns.contains(&"node_modules".to_string()));
+        assert!(config.exclude_patterns.contains(&".git".to_string()));
+        
+        // Verify user-specified patterns are added
+        assert!(config.exclude_patterns.contains(&".ref".to_string()));
+        assert!(config.exclude_patterns.contains(&"archive".to_string()));
+        assert!(config.exclude_patterns.contains(&"tmp/**".to_string()));
+        
+        // Verify total count (defaults + user patterns)
+        assert_eq!(config.exclude_patterns.len(), 11); // 8 defaults + 3 user
+    }
+
+    #[test]
+    fn test_no_exclusion_patterns_default() {
+        // Test that defaults work when no -e flags specified
+        let cli = CliConfig::build_cli();
+        let matches = cli.try_get_matches_from(&[
+            "parseltongue-01",
+            "./src",
+        ]);
+
+        assert!(matches.is_ok());
+        let matches = matches.unwrap();
+
+        let config = CliConfig::parse_config(&matches);
+        
+        // Should have only default patterns
+        assert_eq!(config.exclude_patterns.len(), 8);
+        assert!(config.exclude_patterns.contains(&"target".to_string()));
+        assert!(config.exclude_patterns.contains(&"node_modules".to_string()));
+        assert!(!config.exclude_patterns.contains(&".ref".to_string()));
     }
 }

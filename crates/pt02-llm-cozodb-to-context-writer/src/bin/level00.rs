@@ -48,6 +48,7 @@ struct Cli {
     /// Output JSON file path
     ///
     /// Default: ISGLevel00.json
+    /// v0.9.0: Creates dual outputs - level00-code.json and level00-tests.json
     #[arg(short, long)]
     output: Option<PathBuf>,
 
@@ -70,13 +71,36 @@ impl Cli {
         }
 
         // Build config
+        let base_output = self.output.clone().unwrap_or_else(|| {
+            PathBuf::from("ISGLevel00.json")
+        });
+        
+        // v0.9.0: Create dual outputs for code vs tests separation
+        let (code_output, tests_output) = if base_output.file_stem() == Some(std::ffi::OsStr::new("ISGLevel00")) {
+            // Default case: create level00-code.json and level00-tests.json
+            (
+                PathBuf::from("level00-code.json"),
+                PathBuf::from("level00-tests.json"),
+            )
+        } else {
+            // Custom case: append -code and -tests to user provided base name
+            let stem = base_output.file_stem().unwrap_or_default();
+            let extension = base_output.extension().and_then(|s| s.to_str()).unwrap_or("json");
+            
+            let code_path = base_output.with_file_name(format!("{}-code.{}", stem.to_string_lossy(), extension));
+            let tests_path = base_output.with_file_name(format!("{}-tests.{}", stem.to_string_lossy(), extension));
+            
+            (code_path, tests_path)
+        };
+
         Ok(ExportConfig {
             level: 0,
             include_code: false,  // N/A for Level 0
             where_filter: self.where_clause.clone(),
-            output_path: self.output.clone().unwrap_or_else(|| {
-                PathBuf::from("ISGLevel00.json")
-            }),
+            output_path: base_output,
+            // v0.9.0: Dual outputs for code/test separation
+            code_output_path: Some(code_output),
+            tests_output_path: Some(tests_output),
             db_path: self.db.clone(),
         })
     }

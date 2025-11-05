@@ -37,6 +37,13 @@ pub struct ExportConfig {
 
     /// Database connection string
     pub db_path: String,
+
+    // v0.9.0: Dual outputs for code/test separation
+    /// Code entities output path (when entity_class filtering is enabled)
+    pub code_output_path: Option<PathBuf>,
+
+    /// Test entities output path (when entity_class filtering is enabled)
+    pub tests_output_path: Option<PathBuf>,
 }
 
 // ============================================================================
@@ -149,6 +156,9 @@ pub struct EntityExportLevel1 {
     pub file_path: String,
     pub line_number: u32,
     pub interface_signature: String,
+    
+    // v0.9.0: EntityClass for code/test separation
+    pub entity_class: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub doc_comment: Option<String>,
@@ -313,6 +323,8 @@ mod tests {
             file_path: "src/lib.rs".to_string(),
             line_number: 10,
             interface_signature: "pub fn test()".to_string(),
+            // v0.9.0: EntityClass for code/test separation
+            entity_class: "CODE".to_string(),
             doc_comment: None,  // Should be skipped
         };
 

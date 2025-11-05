@@ -475,6 +475,9 @@ pub struct CodeEntity {
 
     /// Entity metadata
     pub metadata: EntityMetadata,
+
+    /// Entity classification (v0.9.0: mandatory field)
+    pub entity_class: EntityClass,
 }
 
 /// Entity classification for TDD workflow
@@ -606,6 +609,7 @@ pub struct EntityMetadata {
 impl CodeEntity {
     /// Create new entity (for Tool 1 indexing)
     ///
+    /// v0.9.0: Requires EntityClass for mandatory classification
     /// Initializes with TemporalState::initial() per PRD:
     /// - current_ind: true (exists in current codebase)
     /// - future_ind: false (future state unknown until Tool 2)
@@ -613,6 +617,7 @@ impl CodeEntity {
     pub fn new(
         isgl1_key: String,
         interface_signature: InterfaceSignature,
+        entity_class: EntityClass,
     ) -> Result<Self> {
         let entity = Self {
             temporal_state: TemporalState::initial(),  // Tool 1 initial state: (1,0,None)
@@ -623,6 +628,7 @@ impl CodeEntity {
             lsp_metadata: None,
             metadata: EntityMetadata::new()?,
             isgl1_key,
+            entity_class, // v0.9.0: mandatory classification
         };
 
         Ok(entity)
@@ -1158,6 +1164,8 @@ mod tests {
                     trait_impl: None,
                 }),
             },
+            // v0.9.0: Default to CodeImplementation for tests
+            EntityClass::CodeImplementation,
         ).unwrap();
 
         // Set current_code and future_code to satisfy validation requirements

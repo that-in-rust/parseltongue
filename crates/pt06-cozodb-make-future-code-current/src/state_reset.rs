@@ -116,7 +116,7 @@ mod tests {
             }),
         };
 
-        CodeEntity::new(key.to_string(), signature).unwrap()
+        CodeEntity::new(key.to_string(), signature, parseltongue_core::EntityClass::CodeImplementation).unwrap()
     }
 
     /// Executable Specification: Table deletion must remove ALL entities

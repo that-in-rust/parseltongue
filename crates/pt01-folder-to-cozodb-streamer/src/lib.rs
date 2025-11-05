@@ -30,12 +30,15 @@ pub mod errors;
 pub mod isgl1_generator;
 pub mod lsp_client;
 pub mod streamer;
+pub mod test_detector;
+pub mod v090_specifications;
 
 // Re-export commonly used types
 pub use errors::*;
 pub use isgl1_generator::*;
 pub use lsp_client::*;
 pub use streamer::{FileStreamerImpl, *};
+pub use test_detector::*;
 
 /// Tool metadata and configuration
 #[derive(Debug, Clone)]
@@ -77,7 +80,8 @@ impl ToolFactory {
     /// Create a new file streamer instance with database connection
     pub async fn create_streamer(config: StreamerConfig) -> Result<Arc<FileStreamerImpl>> {
         let generator = Isgl1KeyGeneratorFactory::new();
-        let streamer = FileStreamerImpl::new(config, generator).await?;
+        let test_detector = Arc::new(crate::test_detector::DefaultTestDetector::new());
+        let streamer = FileStreamerImpl::new(config, generator, test_detector).await?;
         Ok(Arc::new(streamer))
     }
 }

@@ -14,6 +14,7 @@ use parseltongue_core::storage::CozoDbStorage;
 use crate::errors::*;
 use crate::isgl1_generator::*;
 use crate::lsp_client::*;
+use crate::test_detector::{TestDetector, DefaultTestDetector, EntityClass};
 use crate::StreamerConfig;
 
 // Import LSP metadata types from parseltongue-core
@@ -64,6 +65,7 @@ pub struct FileStreamerImpl {
     config: StreamerConfig,
     key_generator: Arc<dyn Isgl1KeyGenerator>,
     lsp_client: Arc<dyn RustAnalyzerClient>,
+    test_detector: Arc<dyn TestDetector>,
     db: Arc<CozoDbStorage>,
     stats: std::sync::Mutex<StreamStats>,
 }
@@ -73,6 +75,7 @@ impl FileStreamerImpl {
     pub async fn new(
         config: StreamerConfig,
         key_generator: Arc<dyn Isgl1KeyGenerator>,
+        test_detector: Arc<dyn TestDetector>,
     ) -> Result<Self> {
         // Initialize database connection
         let db = CozoDbStorage::new(&config.db_path)
@@ -95,6 +98,7 @@ impl FileStreamerImpl {
             config,
             key_generator,
             lsp_client: Arc::new(lsp_client),
+            test_detector,
             db: Arc::new(db),
             stats: std::sync::Mutex::new(StreamStats::default()),
         })
@@ -106,6 +110,7 @@ impl FileStreamerImpl {
         config: StreamerConfig,
         key_generator: Arc<dyn Isgl1KeyGenerator>,
         lsp_client: Arc<dyn RustAnalyzerClient>,
+        test_detector: Arc<dyn TestDetector>,
     ) -> Result<Self> {
         // Initialize database connection
         let db = CozoDbStorage::new(&config.db_path)
@@ -125,6 +130,7 @@ impl FileStreamerImpl {
             config,
             key_generator,
             lsp_client,
+            test_detector,
             db: Arc::new(db),
             stats: std::sync::Mutex::new(StreamStats::default()),
         })
@@ -136,6 +142,7 @@ impl FileStreamerImpl {
         parsed: &ParsedEntity,
         isgl1_key: &str,
         source_code: &str,
+        file_path: &Path,
     ) -> std::result::Result<CodeEntity, parseltongue_core::error::ParseltongError> {
         // Create InterfaceSignature
         let interface_signature = InterfaceSignature {
@@ -150,7 +157,19 @@ impl FileStreamerImpl {
         };
 
         // Create CodeEntity with temporal state initialized to "unchanged" (current=true, future=true, action=none)
-        let mut entity = CodeEntity::new(isgl1_key.to_string(), interface_signature)?;
+        // v0.9.0: Include EntityClass classification using test_detector
+        let local_entity_class = self.test_detector.detect_test_from_path_and_name(
+            file_path, 
+            source_code  // Use actual source code for test detection, not entity name
+        );
+        
+        // Convert from local EntityClass to parseltongue_core EntityClass
+        let entity_class = match local_entity_class {
+            EntityClass::Test => parseltongue_core::EntityClass::TestImplementation,
+            EntityClass::Code => parseltongue_core::EntityClass::CodeImplementation,
+        };
+        
+        let mut entity = CodeEntity::new(isgl1_key.to_string(), interface_signature, entity_class)?;
 
         // Extract the code snippet from the source
         let code_snippet = self.extract_code_snippet(source_code, parsed.line_range.0, parsed.line_range.1);
@@ -269,6 +288,11 @@ impl FileStreamerImpl {
     fn should_process_file(&self, file_path: &Path) -> bool {
         let path_str = file_path.to_string_lossy();
 
+        // REQ-V090-002.0: Check for git subdirectories (always-on detection)
+        if self.is_under_git_subdirectory(file_path) {
+            return false;
+        }
+
         // Check exclude patterns
         for pattern in &self.config.exclude_patterns {
             if self.matches_pattern(&path_str, pattern) {
@@ -295,6 +319,39 @@ impl FileStreamerImpl {
         } else {
             path.contains(pattern)
         }
+    }
+
+    /// REQ-V090-002.0: Check if path is under a directory containing .git (but not project root)
+    /// 
+    /// # Performance Contract
+    /// - Completes in <50μs per path
+    /// - Stops traversal at project root boundary
+    /// - Handles permission errors gracefully
+    fn is_under_git_subdirectory(&self, path: &Path) -> bool {
+        let root = &self.config.root_dir;
+        let mut current = path;
+
+        // Walk up parent directories looking for .git
+        while let Some(parent) = current.parent() {
+            // Stop at project root (don't exclude project root itself)
+            if parent == root {
+                break;
+            }
+            
+            // Don't go beyond project root
+            if !parent.starts_with(root) {
+                break;
+            }
+
+            // Check if this parent directory contains .git
+            if parent.join(".git").exists() {
+                return true; // Found nested git repo
+            }
+
+            current = parent;
+        }
+
+        false
     }
 
     /// Read file content with size limit
@@ -436,7 +493,7 @@ impl FileStreamer for FileStreamerImpl {
             let lsp_metadata = self.fetch_lsp_metadata_for_entity(&parsed_entity, file_path).await;
 
             // Convert ParsedEntity to CodeEntity
-            match self.parsed_entity_to_code_entity(&parsed_entity, &isgl1_key, &content) {
+            match self.parsed_entity_to_code_entity(&parsed_entity, &isgl1_key, &content, file_path) {
                 Ok(mut code_entity) => {
                     // Store LSP metadata as JSON string if available
                     if let Some(metadata) = lsp_metadata {

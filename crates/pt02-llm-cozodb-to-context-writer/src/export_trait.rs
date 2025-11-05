@@ -127,6 +127,9 @@ pub struct Entity {
     pub line_number: u32,
     pub interface_signature: String,
     pub doc_comment: Option<String>,
+    
+    // v0.9.0: EntityClass for code/test separation
+    pub entity_class: String, // "CODE" or "TEST"
 
     // Level 2 fields (optional, may not exist in database yet)
     pub return_type: Option<String>,
@@ -193,19 +196,20 @@ mod tests {
             future_code: None,
             current_code: None,
             entity_name: "test".to_string(),
-            entity_type: "fn".to_string(),
+            entity_type: "Function".to_string(),
             file_path: "src/lib.rs".to_string(),
             line_number: 10,
-            interface_signature: "pub fn test()".to_string(),
+            interface_signature: "fn test()".to_string(),
             doc_comment: None,
+            entity_class: "CODE".to_string(),
             return_type: None,
             param_types: None,
             param_names: None,
             generic_constraints: None,
             trait_impls: None,
-            is_public: Some(true),
-            is_async: Some(false),
-            is_unsafe: Some(false),
+            is_public: None,
+            is_async: None,
+            is_unsafe: None,
         };
 
         let debug_str = format!("{:?}", entity);

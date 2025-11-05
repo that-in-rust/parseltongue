@@ -151,6 +151,9 @@ mod tests {
             include_code: false,
             where_filter: "ALL".to_string(),
             output_path: std::path::PathBuf::from("test.json"),
+            // v0.9.0: Dual outputs for code/test separation (None for tests)
+            code_output_path: None,
+            tests_output_path: None,
             db_path: "mem".to_string(),
         };
 

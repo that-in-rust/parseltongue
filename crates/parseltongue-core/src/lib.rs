@@ -9,6 +9,7 @@
 #![allow(missing_docs)]
 
 pub mod entities;
+pub mod entity_class_specifications;
 pub mod error;
 pub mod interfaces;
 pub mod query_extractor;

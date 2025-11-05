@@ -57,6 +57,8 @@ impl IntegrationMockDatabase {
                     line_number: 42,
                     interface_signature: "pub async fn export_level1(config: &ExportConfig) -> Result<ExportOutput>".to_string(),
                     doc_comment: Some("Export Level 1 entities to JSON".to_string()),
+                    // v0.9.0: EntityClass for code/test separation
+                    entity_class: "CODE".to_string(),
                     // Level 2 type fields
                     return_type: Some("Result<ExportOutput>".to_string()),
                     param_types: Some(vec!["&ExportConfig".to_string()]),
@@ -84,6 +86,8 @@ impl IntegrationMockDatabase {
                     line_number: 100,
                     interface_signature: "fn helper() -> bool".to_string(),
                     doc_comment: None,
+                    // v0.9.0: EntityClass for code/test separation
+                    entity_class: "CODE".to_string(),
                     return_type: Some("bool".to_string()),
                     param_types: None,
                     param_names: None,
@@ -110,6 +114,8 @@ impl IntegrationMockDatabase {
                     line_number: 15,
                     interface_signature: "pub struct ExportConfig".to_string(),
                     doc_comment: Some("Configuration for export operations".to_string()),
+                    // v0.9.0: EntityClass for code/test separation
+                    entity_class: "CODE".to_string(),
                     return_type: None,
                     param_types: None,
                     param_names: None,
@@ -218,6 +224,9 @@ fn create_config(level: u8, include_code: bool, where_filter: &str, output_path:
         where_filter: where_filter.to_string(),
         output_path,
         db_path: "mem".to_string(),
+        // v0.9.0: Dual output fields for code/test separation
+        code_output_path: None,
+        tests_output_path: None,
     }
 }
 

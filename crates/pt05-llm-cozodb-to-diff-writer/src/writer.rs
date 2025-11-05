@@ -154,6 +154,8 @@ mod tests {
                 content_hash: "test_hash".to_string(),
                 additional: HashMap::new(),
             },
+            // v0.9.0: Add mandatory entity_class field
+            entity_class: parseltongue_core::EntityClass::CodeImplementation,
         }
     }
 

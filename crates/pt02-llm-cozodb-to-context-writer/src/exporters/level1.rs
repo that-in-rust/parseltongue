@@ -82,6 +82,8 @@ impl Level1Exporter {
             file_path: entity.file_path.clone(),
             line_number: entity.line_number,
             interface_signature: entity.interface_signature.clone(),
+            // v0.9.0: Include entity_class for code/test separation
+            entity_class: entity.entity_class.clone(),
             doc_comment: entity.doc_comment.clone(),
         }
     }
@@ -109,19 +111,54 @@ impl LevelExporter for Level1Exporter {
             db.query_entities(&config.where_filter).await?
         };
 
-        // 2. Convert to Level1 format
-        let level1_entities: Vec<EntityExportLevel1> = entities
+        // v0.9.0: Separate entities by EntityClass for dual output
+        let (code_entities, test_entities): (Vec<_>, Vec<_>) = entities
+            .iter()
+            .partition(|e| e.entity_class == "CODE");
+
+        // 2. Convert to Level1 format (separate for code and tests)
+        let code_level1_entities: Vec<EntityExportLevel1> = code_entities
+            .iter()
+            .map(|e| Self::convert_entity(e, config.include_code))
+            .collect();
+        
+        let test_level1_entities: Vec<EntityExportLevel1> = test_entities
             .iter()
             .map(|e| Self::convert_entity(e, config.include_code))
             .collect();
 
         // 3. Count entities for metadata
-        let total_entities = level1_entities.len();
+        let total_entities = entities.len();
+        let code_entities_count = code_level1_entities.len();
+        let test_entities_count = test_level1_entities.len();
 
-        // 4. Serialize entities to JSON (serde handles null-skipping via attributes)
-        let entities_json = serde_json::to_value(&level1_entities)?;
+        // v0.9.0: Generate dual outputs based on ExportConfig
+        let outputs = if config.code_output_path.is_some() || config.tests_output_path.is_some() {
+            // Dual output mode: separate files for code and tests
+            let mut outputs = std::collections::HashMap::new();
+            
+            // Code output
+            if let Some(code_path) = &config.code_output_path {
+                let code_json = serde_json::to_value(&code_level1_entities)?;
+                outputs.insert(code_path.clone(), code_json);
+            }
+            
+            // Tests output
+            if let Some(tests_path) = &config.tests_output_path {
+                let tests_json = serde_json::to_value(&test_level1_entities)?;
+                outputs.insert(tests_path.clone(), tests_json);
+            }
+            
+            outputs
+        } else {
+            // Legacy mode: single output with all entities
+            let all_entities = serde_json::to_value(&code_level1_entities)?;
+            let mut outputs = std::collections::HashMap::new();
+            outputs.insert(config.output_path.clone(), all_entities);
+            outputs
+        };
 
-        // 5. Build metadata
+        // 4. Build metadata with EntityClass information
         let metadata = ExportMetadata {
             level: 1,
             timestamp: Utc::now().to_rfc3339(),
@@ -131,10 +168,10 @@ impl LevelExporter for Level1Exporter {
             where_filter: config.where_filter.clone(),
         };
 
-        // 6. Build output
+        // 5. Build output (v0.9.0: support dual outputs)
         Ok(ExportOutput {
             export_metadata: metadata,
-            entities: Some(entities_json),
+            entities: Some(serde_json::to_value(&code_level1_entities)?), // Primary output
             edges: None,  // Level 1 has no edges
         })
     }
@@ -214,6 +251,8 @@ mod tests {
             line_number: 10,
             interface_signature: "pub fn test()".to_string(),
             doc_comment: Some("Test function".to_string()),
+            // v0.9.0: EntityClass for code/test separation
+            entity_class: "CODE".to_string(),
             // Level 2 fields (not used in Level 1, but present in Entity)
             return_type: None,
             param_types: None,
@@ -237,6 +276,9 @@ mod tests {
             include_code: false,  // Signatures only
             where_filter: "ALL".to_string(),
             output_path: std::path::PathBuf::from("test.json"),
+            // v0.9.0: Dual outputs for code/test separation (None for tests)
+            code_output_path: None,
+            tests_output_path: None,
             db_path: "mem".to_string(),
         };
 
@@ -268,6 +310,9 @@ mod tests {
             include_code: true,
             where_filter: "ALL".to_string(),
             output_path: std::path::PathBuf::from("test.json"),
+            // v0.9.0: Dual outputs for code/test separation (None for tests)
+            code_output_path: None,
+            tests_output_path: None,
             db_path: "mem".to_string(),
         };
 
@@ -288,6 +333,9 @@ mod tests {
             include_code: false,
             where_filter: "ALL".to_string(),
             output_path: std::path::PathBuf::from("test.json"),
+            // v0.9.0: Dual outputs for code/test separation (None for tests)
+            code_output_path: None,
+            tests_output_path: None,
             db_path: "mem".to_string(),
         };
 

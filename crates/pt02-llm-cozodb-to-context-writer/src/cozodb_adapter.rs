@@ -44,7 +44,7 @@ impl CodeGraphRepository for CozoDbAdapter {
         // Query all entities from CodeGraph
         let query = r#"
             ?[ISGL1_key, interface_signature, entity_type, file_path,
-              Current_Code, Future_Code, current_ind, future_ind, Future_Action] :=
+              Current_Code, Future_Code, current_ind, future_ind, Future_Action, entity_class] :=
             *CodeGraph{
                 ISGL1_key,
                 interface_signature,
@@ -54,7 +54,8 @@ impl CodeGraphRepository for CozoDbAdapter {
                 Future_Code,
                 current_ind,
                 future_ind,
-                Future_Action
+                Future_Action,
+                entity_class
             }
         "#;
 
@@ -75,7 +76,7 @@ impl CodeGraphRepository for CozoDbAdapter {
         let query = format!(
             r#"
             ?[ISGL1_key, interface_signature, entity_type, file_path,
-              Current_Code, Future_Code, current_ind, future_ind, Future_Action] :=
+              Current_Code, Future_Code, current_ind, future_ind, Future_Action, entity_class] :=
             *CodeGraph{{
                 ISGL1_key,
                 interface_signature,
@@ -85,7 +86,8 @@ impl CodeGraphRepository for CozoDbAdapter {
                 Future_Code,
                 current_ind,
                 future_ind,
-                Future_Action
+                Future_Action,
+                entity_class
             }},
             {}
             "#,
@@ -172,6 +174,9 @@ fn parse_entities_from_query_result(result: &cozo::NamedRows) -> Result<Vec<Enti
             forward_deps: Vec::new(),
             reverse_deps: Vec::new(),
             doc_comment: None,
+
+            // v0.9.0: Extract entity_class from database (column 9)
+            entity_class: extract_string(row, 9)?,
 
             // Level 2 fields (not in database yet)
             return_type: None,

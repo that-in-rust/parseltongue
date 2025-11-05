@@ -224,6 +224,8 @@ mod tests {
             line_number: 10,
             interface_signature: "pub async fn test(name: &str) -> Result<()>".to_string(),
             doc_comment: Some("Test function".to_string()),
+            // v0.9.0: EntityClass for code/test separation
+            entity_class: "CODE".to_string(),
             // Level 2 type system fields
             return_type: Some("Result<()>".to_string()),
             param_types: Some(vec!["&str".to_string()]),
@@ -247,6 +249,9 @@ mod tests {
             include_code: false,
             where_filter: "ALL".to_string(),
             output_path: std::path::PathBuf::from("test.json"),
+            // v0.9.0: Dual outputs for code/test separation (None for tests)
+            code_output_path: None,
+            tests_output_path: None,
             db_path: "mem".to_string(),
         };
 
@@ -276,6 +281,9 @@ mod tests {
             include_code: false,
             where_filter: "ALL".to_string(),
             output_path: std::path::PathBuf::from("test.json"),
+            // v0.9.0: Dual outputs for code/test separation (None for tests)
+            code_output_path: None,
+            tests_output_path: None,
             db_path: "mem".to_string(),
         };
 

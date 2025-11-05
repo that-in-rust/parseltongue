@@ -99,6 +99,9 @@ fn create_test_config(level: u8, where_filter: &str) -> ExportConfig {
         where_filter: where_filter.to_string(),
         output_path: PathBuf::from("test.json"),
         db_path: "mem".to_string(),
+        // v0.9.0: Dual output fields for code/test separation
+        code_output_path: None,
+        tests_output_path: None,
     }
 }
 

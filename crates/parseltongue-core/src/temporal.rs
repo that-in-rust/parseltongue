@@ -227,6 +227,8 @@ impl TemporalVersioningManager {
                     trait_impl: None,
                 }),
             },
+            // v0.9.0: Default to CodeImplementation for temporal changes
+            crate::entities::EntityClass::CodeImplementation,
         )?;
 
         // Set initial temporal state based on action
@@ -614,6 +616,8 @@ mod tests {
                     trait_impl: None,
                 }),
             },
+            // v0.9.0: Default to CodeImplementation for tests
+            crate::entities::EntityClass::CodeImplementation,
         ).unwrap();
 
         // Set current_code and future_code to satisfy validation requirements
@@ -703,6 +707,8 @@ mod tests {
                     trait_impl: None,
                 }),
             },
+            // v0.9.0: Default to CodeImplementation for tests
+            crate::entities::EntityClass::CodeImplementation,
         ).unwrap();
 
         invalid_entity.temporal_state.current_ind = true;

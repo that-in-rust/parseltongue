@@ -149,6 +149,9 @@ impl Cli {
             output_path: self.output.clone().unwrap_or_else(|| {
                 PathBuf::from(format!("ISGLevel{:02}.json", self.level))
             }),
+            // v0.9.0: Dual outputs for code/test separation (None for general CLI)
+            code_output_path: None,
+            tests_output_path: None,
             db_path: self.db.clone(),
         })
     }

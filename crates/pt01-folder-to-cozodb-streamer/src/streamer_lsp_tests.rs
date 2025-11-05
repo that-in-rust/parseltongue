@@ -69,6 +69,7 @@ struct Calculator {
             config,
             key_generator,
             std::sync::Arc::new(mock_lsp),
+            std::sync::Arc::new(crate::test_detector::DefaultTestDetector::new()),
         )
         .await
         .unwrap();
@@ -118,6 +119,7 @@ struct Calculator {
             config,
             key_generator,
             std::sync::Arc::new(mock_lsp),
+            std::sync::Arc::new(crate::test_detector::DefaultTestDetector::new()),
         )
         .await
         .unwrap();

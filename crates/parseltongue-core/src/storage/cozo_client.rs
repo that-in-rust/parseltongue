@@ -64,6 +64,7 @@ impl CozoDbStorage {
     /// Create CodeGraph schema
     ///
     /// Implements schema from 01-cozodb-schema.md specification
+    /// v0.9.0 Enhancement: Added entity_class column for test/code separation
     pub async fn create_schema(&self) -> Result<()> {
         let schema = r#"
             :create CodeGraph {
@@ -79,7 +80,8 @@ impl CozoDbStorage {
                 file_path: String,
                 language: String,
                 last_modified: String,
-                entity_type: String
+                entity_type: String,
+                entity_class: String
             }
         "#;
 
@@ -773,16 +775,16 @@ impl CozoDbStorage {
         let query = r#"
             ?[ISGL1_key, Current_Code, Future_Code, interface_signature, TDD_Classification,
               lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
-              last_modified, entity_type] <-
+              last_modified, entity_type, entity_class] <-
             [[$ISGL1_key, $Current_Code, $Future_Code, $interface_signature, $TDD_Classification,
               $lsp_meta_data, $current_ind, $future_ind, $Future_Action, $file_path, $language,
-              $last_modified, $entity_type]]
+              $last_modified, $entity_type, $entity_class]]
 
             :put CodeGraph {
                 ISGL1_key =>
                 Current_Code, Future_Code, interface_signature, TDD_Classification,
                 lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
-                last_modified, entity_type
+                last_modified, entity_type, entity_class
             }
         "#;
 
@@ -803,11 +805,11 @@ impl CozoDbStorage {
         let query = r#"
             ?[ISGL1_key, Current_Code, Future_Code, interface_signature, TDD_Classification,
               lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
-              last_modified, entity_type] :=
+              last_modified, entity_type, entity_class] :=
             *CodeGraph{
                 ISGL1_key, Current_Code, Future_Code, interface_signature, TDD_Classification,
                 lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
-                last_modified, entity_type
+                last_modified, entity_type, entity_class
             },
             ISGL1_key == $key
         "#;
@@ -883,11 +885,11 @@ impl CozoDbStorage {
         let query = r#"
             ?[ISGL1_key, Current_Code, Future_Code, interface_signature, TDD_Classification,
               lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
-              last_modified, entity_type] :=
+              last_modified, entity_type, entity_class] :=
             *CodeGraph{
                 ISGL1_key, Current_Code, Future_Code, interface_signature, TDD_Classification,
                 lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
-                last_modified, entity_type
+                last_modified, entity_type, entity_class
             },
             Future_Action != null
         "#;
@@ -916,11 +918,11 @@ impl CozoDbStorage {
         let query = r#"
             ?[ISGL1_key, Current_Code, Future_Code, interface_signature, TDD_Classification,
               lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
-              last_modified, entity_type] :=
+              last_modified, entity_type, entity_class] :=
             *CodeGraph{
                 ISGL1_key, Current_Code, Future_Code, interface_signature, TDD_Classification,
                 lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
-                last_modified, entity_type
+                last_modified, entity_type, entity_class
             }
         "#;
 
@@ -1084,15 +1086,21 @@ impl CozoDbStorage {
             ),
         );
 
+        // v0.9.0: Add entity_class parameter
+        params.insert(
+            "entity_class".to_string(),
+            DataValue::Str("CODE".into()), // Default to CODE, will be updated by test detection
+        );
+
         Ok(params)
     }
 
     /// Convert CozoDB row to CodeEntity
     fn row_to_entity(&self, row: &[DataValue]) -> Result<CodeEntity> {
-        if row.len() < 13 {
+        if row.len() < 14 {
             return Err(ParseltongError::DatabaseError {
                 operation: "row_to_entity".to_string(),
-                details: format!("Invalid row length: expected 13, got {}", row.len()),
+                details: format!("Invalid row length: expected 14, got {}", row.len()),
             });
         }
 
@@ -1225,8 +1233,28 @@ impl CozoDbStorage {
             future_action,
         };
 
+        // Extract entity_class (v0.9.0) - currently ignored in CodeEntity
+        let _entity_class = match &row[13] {
+            DataValue::Str(s) => s.to_string(),
+            _ => "CODE".to_string(), // Default fallback
+        };
+
         // Build CodeEntity
-        let mut entity = CodeEntity::new(isgl1_key, interface_signature)?;
+        let mut entity = CodeEntity::new(
+            isgl1_key, 
+            interface_signature,
+            // v0.9.0: Extract entity_class from database row
+            match &row[13] {
+                cozo::DataValue::Str(s) => {
+                    if s == "TEST" {
+                        crate::entities::EntityClass::TestImplementation
+                    } else {
+                        crate::entities::EntityClass::CodeImplementation
+                    }
+                },
+                _ => crate::entities::EntityClass::CodeImplementation, // Default fallback
+            }
+        )?;
         entity.current_code = current_code;
         entity.future_code = future_code;
         entity.temporal_state = temporal_state;

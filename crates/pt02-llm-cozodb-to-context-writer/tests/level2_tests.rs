@@ -84,6 +84,8 @@ fn create_typed_entity(isgl1_key: &str) -> Entity {
         line_number: 42,
         interface_signature: "pub fn test_function() -> Result<()>".to_string(),
         doc_comment: Some("Test function".to_string()),
+        // v0.9.0: EntityClass for code/test separation
+        entity_class: "CODE".to_string(),
         // Level 2 fields (type system)
         return_type: Some("Result<()>".to_string()),
         param_types: Some(vec!["&str".to_string(), "i32".to_string()]),
@@ -103,6 +105,9 @@ fn create_test_config(include_code: bool, where_filter: &str) -> ExportConfig {
         where_filter: where_filter.to_string(),
         output_path: PathBuf::from("test.json"),
         db_path: "mem".to_string(),
+        // v0.9.0: Dual output fields for code/test separation
+        code_output_path: None,
+        tests_output_path: None,
     }
 }
 

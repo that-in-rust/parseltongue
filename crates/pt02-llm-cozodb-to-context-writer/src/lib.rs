@@ -94,6 +94,10 @@ pub mod exporters;
 pub mod models;
 pub mod query_builder;
 
+// v0.9.0: EntityClass integration tests (executable specifications)
+#[cfg(test)]
+pub mod entity_class_integration_tests;
+
 // Re-export commonly used types
 pub use cli::Cli;
 pub use cozodb_adapter::CozoDbAdapter;

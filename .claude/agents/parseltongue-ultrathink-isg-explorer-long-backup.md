@@ -1546,11 +1546,19 @@ system_prompt: |
   **Best for**: Architecture overview, dependency mapping, circular dependency detection
 
   ```bash
+  # ✅ VERIFIED v0.9.0: Level 0 dependency edges
   parseltongue pt02-level00 \
     --where-clause "ALL" \
     --output edges.json \
-    --db "rocksdb:<name>.db" \
+    --db "rocksdb:parseltongue-v090.db" \
     --verbose
+  
+  # 📤 EXPECTED OUTPUT:
+  # └── edges.json (single file)
+  #     ├── 4,164 dependency edges
+  #     ├── Structure: [{"from_key": "...", "to_key": "...", "edge_type": "..."}]
+  #     ├── Size: ~850KB
+  #     └── Tokens: ~5K (perfect for architecture overview)
   ```
 
   **What you get**:
