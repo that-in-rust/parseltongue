@@ -160,7 +160,12 @@ async fn main() -> Result<()> {
         if config.include_code { "YES (expensive)" } else { "NO (cheap)" }
     ));
 
-    // Create format-specific exporter
+    // Connect to CozoDB
+    cli.verbose_print("Connecting to CozoDB...");
+    let db = pt02_llm_cozodb_to_context_writer::CozoDbAdapter::connect(&config.db_path).await?;
+    cli.verbose_print("✅ Connected to CozoDB");
+
+    // Create format-specific exporter and export
     if cli.is_toon_format() {
         // TOON format (41.9% token reduction)
         let delimiter = cli.get_toon_delimiter();
@@ -177,10 +182,14 @@ async fn main() -> Result<()> {
         cli.verbose_print(&format!("Delimiter: {:?}", delimiter));
         cli.verbose_print(&format!("Estimated tokens: ~{} (vs ~{} JSON)", estimated, estimated * 2));
 
-        println!("✅ PT02 Level 1 TOON export ready!");
+        // Execute export
+        cli.verbose_print("Exporting entities to TOON format...");
+        let output = exporter.export(&db, &config).await?;
+
+        println!("✅ PT02 Level 1 TOON export completed!");
         println!("   Output: {:?}", config.output_path);
+        println!("   Entities exported: {}", output.export_metadata.total_entities.unwrap_or(0));
         println!("   Token savings: 41.9% vs JSON");
-        println!("\n⚠️  TODO: Connect to CozoDB at {} and export", config.db_path);
     } else {
         // JSON format (default)
         let exporter = Level1Exporter::new();
@@ -195,9 +204,13 @@ async fn main() -> Result<()> {
         cli.verbose_print(&format!("Format: JSON (standard)"));
         cli.verbose_print(&format!("Estimated tokens: ~{}", estimated));
 
-        println!("✅ PT02 Level 1 JSON export ready!");
+        // Execute export
+        cli.verbose_print("Exporting entities to JSON format...");
+        let output = exporter.export(&db, &config).await?;
+
+        println!("✅ PT02 Level 1 JSON export completed!");
         println!("   Output: {:?}", config.output_path);
-        println!("\n⚠️  TODO: Connect to CozoDB at {} and export", config.db_path);
+        println!("   Entities exported: {}", output.export_metadata.total_entities.unwrap_or(0));
     }
 
     Ok(())

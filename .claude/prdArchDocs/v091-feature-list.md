@@ -97,37 +97,79 @@ graph TB
 ## Feature Priority Heat Map
 
 ```mermaid
-quadrantChart
-    title Feature Prioritization Matrix
-    x-axis Low Complexity --> High Complexity
-    y-axis Low ROI --> High ROI
-    quadrant-1 Strategic (P1)
-    quadrant-2 Critical (P0)
-    quadrant-3 Quick Wins (P1)
-    quadrant-4 Defer (P2)
-
-    Pensieve Extraction: [0.85, 0.95]
-    Patronus Signals: [0.75, 0.90]
-    Lumos Communities: [0.50, 0.88]
-    MDL Elixir: [0.70, 0.90]
-    Accio Context: [0.68, 0.98]
-    Portkey Packs: [0.25, 0.92]
-    Marauder's Map: [0.78, 0.95]
-
-    Eigengap Revelio: [0.72, 0.65]
-    Naming Charm: [0.48, 0.60]
-    Veritaserum Scores: [0.52, 0.62]
-    Blast Radius: [0.50, 0.75]
-    Patronus Flows: [0.75, 0.78]
-    Elder Wand Parser: [0.72, 0.58]
-    Invisibility Cloak: [0.55, 0.60]
-    Sorting Hat: [0.58, 0.80]
-    Prophecy Orb: [0.60, 0.75]
-
-    Floo Network: [0.78, 0.55]
-    Polyjuice Patterns: [0.80, 0.52]
-    Time-Turner Mining: [0.82, 0.65]
-    Unbreakable Vow: [0.88, 0.58]
+graph TD
+    subgraph "Feature Prioritization Matrix"
+        style "Feature Prioritization Matrix" fill:none,stroke:none
+        
+        %% High ROI, High Complexity (Strategic P1)
+        PE["Pensieve Extraction<br/>🔥🔥🔥🔥🔥<br/>C:0.85 R:0.95"]:::strategic
+        MM["Marauder's Map<br/>🔥🔥🔥🔥🔥<br/>C:0.78 R:0.95"]:::strategic
+        PF["Patronus Flows<br/>🔥🔥🔥<br/>C:0.75 R:0.78"]:::strategic
+        EW["Elder Wand Parser<br/>🔥🔥<br/>C:0.72 R:0.58"]:::strategic
+        FN["Floo Network<br/>🔥🔥<br/>C:0.78 R:0.55"]:::strategic
+        PP2["Polyjuice Patterns<br/>🔥🔥<br/>C:0.80 R:0.52"]:::strategic
+        TT["Time-Turner Mining<br/>🔥🔥<br/>C:0.82 R:0.65"]:::strategic
+        UV["Unbreakable Vow<br/>🔥🔥<br/>C:0.88 R:0.58"]:::strategic
+        
+        %% High ROI, Low-Medium Complexity (Critical P0)
+        PS["Patronus Signals<br/>🔥🔥🔥🔥🔥<br/>C:0.75 R:0.90"]:::critical
+        ME["MDL Elixir<br/>🔥🔥🔥🔥🔥<br/>C:0.70 R:0.90"]:::critical
+        AC["Accio Context<br/>🔥🔥🔥🔥🔥<br/>C:0.68 R:0.98"]:::critical
+        PP["Portkey Packs<br/>🔥🔥🔥🔥🔥<br/>C:0.25 R:0.92"]:::critical
+        LC["Lumos Communities<br/>🔥🔥🔥🔥🔥<br/>C:0.50 R:0.88"]:::critical
+        
+        %% Medium ROI, Medium Complexity (Quick Wins P1)
+        ER["Eigengap Revelio<br/>🔥🔥<br/>C:0.72 R:0.65"]:::quickwin
+        SH["Sorting Hat<br/>🔥🔥<br/>C:0.58 R:0.80"]:::quickwin
+        PO["Prophecy Orb<br/>🔥🔥<br/>C:0.60 R:0.75"]:::quickwin
+        BR["Blast Radius<br/>🔥🔥<br/>C:0.50 R:0.75"]:::quickwin
+        VS["Veritaserum Scores<br/>🔥<br/>C:0.52 R:0.62"]:::quickwin
+        IC["Invisibility Cloak<br/>🔥<br/>C:0.55 R:0.60"]:::quickwin
+        
+        %% Lower ROI, Various Complexity (Defer P2)
+        NC["Naming Charm<br/>🔥<br/>C:0.48 R:0.60"]:::defer
+    end
+    
+    %% Position nodes roughly by complexity (x) and ROI (y)
+    %% Critical P0 (High ROI, Low-Med Complexity) - Top Left
+    PP~~~PE
+    LC~~~PS
+    PS~~~AC
+    AC~~~ME
+    
+    %% Strategic P1 (High ROI, High Complexity) - Top Right  
+    PE~~~MM
+    MM~~~PF
+    PF~~~EW
+    EW~~~FN
+    FN~~~PP2
+    PP2~~~TT
+    TT~~~UV
+    
+    %% Quick Wins P1 (Med ROI, Med Complexity) - Middle
+    ME~~~ER
+    ER~~~SH
+    SH~~~PO
+    PO~~~BR
+    BR~~~VS
+    VS~~~IC
+    
+    %% Defer P2 (Lower ROI) - Bottom
+    IC~~~NC
+    
+    %% Class definitions
+    classDef critical fill:#ff6b6b,stroke:#c92a2a,color:#fff
+    classDef strategic fill:#4dabf7,stroke:#1971c2,color:#fff  
+    classDef quickwin fill:#69db7c,stroke:#2f9e44,color:#fff
+    classDef defer fill:#ffd43b,stroke:#fab005,color:#000
+    
+    %% Legend
+    subgraph Legend ["Legend"]
+        L1["🔥🔥🔥🔥🔥 Critical (P0)<br/>High ROI, Immediate Value"]:::critical
+        L2["🔥🔥🔥 Strategic (P1)<br/>High ROI, Higher Complexity"]:::strategic  
+        L3["🔥🔥 Quick Wins (P1)<br/>Medium ROI, Medium Complexity"]:::quickwin
+        L4["🔥 Defer (P2)<br/>Lower Priority"]:::defer
+    end
 ```
 
 ---
