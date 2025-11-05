@@ -164,53 +164,57 @@ flowchart LR
 parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:parseltongue-v090.db"
 
 # 📤 EXPECTED OUTPUT:
-# └── edges.json (single file)
-#     ├── 4,164 dependency edges
+# └── edges.json (production code edges)
+#     ├── 4,164 CODE dependency edges
 #     ├── Structure: [{"from_key": "...", "to_key": "...", "edge_type": "..."}]
 #     ├── Size: ~850KB
 #     └── Tokens: ~5K (perfect for architecture overview)
+# └── edges_test.json (test code edges) 
+#     ├── 0 TEST edges (in this codebase)
+#     ├── Same structure as edges.json but for test entities only
+#     └── Tokens: ~0K
 
 # Level 1: All entities with signatures (✅ VERIFIED v0.9.0)
 parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output entities.json --db "rocksdb:parseltongue-v090.db"
 
 # 📤 EXPECTED OUTPUT:
-# └── entities.json (single file)
-#     ├── 1,318 entities total
+# └── entities.json (production code entities)
+#     ├── 1,318 CODE entities 
 #     ├── Structure: {"entities": [...], "export_metadata": {...}}
 #     ├── Fields per entity: 14 (isgl1_key, entity_name, entity_type, entity_class, etc.)
 #     ├── Size: ~1MB
 #     └── Tokens: ~30K (signatures only, no code)
+# └── entities_test.json (test code entities)
+#     ├── 0 TEST entities (in this codebase)
+#     ├── Same structure as entities.json but for test entities only
+#     └── Tokens: ~0K
 
 # Level 1: Filter by entity type (✅ VERIFIED v0.9.0)
 parseltongue pt02-level01 --include-code 0 --where-clause "entity_type = 'function'" --output functions.json --db "rocksdb:parseltongue-v090.db"
 
 # 📤 EXPECTED OUTPUT:
-# └── functions.json (single file)
-#     ├── 457 functions only (filtered from 1,318 total)
+# └── functions.json (production functions)
+#     ├── 457 CODE functions only
 #     ├── Same structure as entities.json but filtered
 #     ├── Size: ~350KB
 #     └── Tokens: ~10K (functions only)
-
-# Level 1: EntityClass filtering (✅ VERIFIED v0.9.0)
-parseltongue pt02-level01 --include-code 0 --where-clause "entity_class = 'CODE'" --output code.json --db "rocksdb:parseltongue-v090.db"
-
-# 📤 EXPECTED OUTPUT:
-# └── code.json (single file)
-#     ├── 1,318 CODE entities (v0.9.0 EntityClass feature)
-#     ├── All entities currently classified as "CODE"
-#     ├── Size: ~1MB
-#     └── Tokens: ~30K (production code only)
+# └── functions_test.json (test functions)
+#     ├── 0 TEST functions (in this codebase)
+#     └── Tokens: ~0K
 
 # Level 2: Full type system (✅ VERIFIED v0.9.0)
 parseltongue pt02-level02 --include-code 0 --where-clause "ALL" --output typed.json --db "rocksdb:parseltongue-v090.db"
 
 # 📤 EXPECTED OUTPUT:
-# └── typed.json (single file)
-#     ├── 1,318 entities with enhanced type information
+# └── typed.json (production with types)
+#     ├── 1,318 CODE entities with enhanced type information
 #     ├── Structure: Same as Level 1 + 8 additional fields
 #     ├── Extra fields: return_type, param_types, trait_impls, is_async, is_unsafe, etc.
 #     ├── Size: ~1.1MB
 #     └── Tokens: ~60K (complete type system)
+# └── typed_test.json (test with types)
+#     ├── 0 TEST entities (in this codebase)
+#     └── Tokens: ~0K
 
 # PT01: Index codebase (✅ VERIFIED v0.9.0)
 parseltongue pt01-folder-to-cozodb-streamer . --db rocksdb:parseltongue-v090.db --verbose
@@ -223,7 +227,7 @@ parseltongue pt01-folder-to-cozodb-streamer . --db rocksdb:parseltongue-v090.db 
 #     └── Creates/updates: parseltongue-v090.db/ (RocksDB directory)
 ```
 
-**🎯 Output Summary**: Each command creates **one JSON file** (except PT01 which creates the database). All exports include `export_metadata` with processing stats and token estimates.
+**🎯 Output Summary**: Each export command now automatically creates **two JSON files** - one for production code (`.json`) and one for test code (`_test.json`). This separation happens automatically, hiding the complexity of entity class filtering from users. All exports include `export_metadata` with processing stats and token estimates.
 
 ---
 
@@ -322,41 +326,50 @@ parseltongue pt01-folder-to-cozodb-streamer . --db "rocksdb:onboard.db" --verbos
 parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:onboard.db" --verbose
 
 # 📤 EXPECTED OUTPUT:
-# └── edges.json (single file)
-#     ├── 4,164 dependency edges
+# └── edges.json (production code edges)
+#     ├── 4,164 CODE dependency edges
 #     ├── Structure: [{"from_key": "rust:...", "to_key": "rust:...", "edge_type": "depends_on"}]
 #     ├── Size: ~850KB
 #     └── Perfect for: Architecture overview, dependency analysis
+# └── edges_test.json (test code edges)
+#     ├── 0 TEST edges (in this codebase)
+#     └── Same structure as edges.json but for test dependencies
 
 # ✅ VERIFIED v0.9.0: Get all functions (Level 1)
 parseltongue pt02-level01 --include-code 0 --where-clause "entity_type = 'function'" --output functions.json --db "rocksdb:onboard.db" --verbose
 
 # 📤 EXPECTED OUTPUT:
-# └── functions.json (single file)
-#     ├── 457 functions (filtered from all entities)
+# └── functions.json (production functions)
+#     ├── 457 CODE functions (filtered from all entities)
 #     ├── Structure: {"entities": [...], "export_metadata": {...}}
 #     ├── Key fields: isgl1_key, entity_name, entity_class, interface_signature
 #     ├── Size: ~350KB
 #     └── Perfect for: API surface analysis, function documentation
+# └── functions_test.json (test functions)
+#     ├── 0 TEST functions (in this codebase)
+#     └── Same structure as functions.json but for test functions
 
-# ✅ VERIFIED v0.9.0: Get code entities only (EntityClass)
-parseltongue pt02-level01 --include-code 0 --where-clause "entity_class = 'CODE'" --output code.json --db "rocksdb:onboard.db" --verbose
+# ✅ VERIFIED v0.9.0: Get code entities only (EntityClass - now automatic)
+parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output code.json --db "rocksdb:onboard.db" --verbose
 
 # 📤 EXPECTED OUTPUT:
-# └── code.json (single file)
-#     ├── 1,318 CODE entities (v0.9.0 EntityClass feature)
-#     ├── Excludes: Test entities (when properly classified)
-#     ├── Structure: Same as functions.json but includes all CODE entity types
+# └── code.json (production code entities - automatic separation)
+#     ├── 1,318 CODE entities (automatically filtered by entity_class)
+#     ├── Excludes: Test entities (automatically separated)
+#     ├── Structure: {"entities": [...], "export_metadata": {...}}
 #     ├── Size: ~1MB
-#     └── Perfect for: Production code analysis, deployment planning
+#     └── Perfect for: Production code analysis, excludes tests automatically
+# └── code_test.json (test code entities - automatic separation)
+#     ├── 0 TEST entities (in this codebase)
+#     └── Perfect for: Test suite analysis, isolated from production code
 ```
 
-**📊 Workflow Output Summary**: WF1 generates **3 JSON files + 1 database**:
+**📊 Workflow Output Summary**: WF1 generates **6 JSON files + 1 database**:
 - `onboard.db/` - Persistent database for all queries
-- `edges.json` - Dependency graph (5K tokens)
-- `functions.json` - Function signatures (10K tokens)  
-- `code.json` - Production code only (30K tokens)
-- **Total**: ~45K tokens vs 500K+ traditional approach
+- `edges.json` + `edges_test.json` - Dependency graphs (5K tokens total)
+- `functions.json` + `functions_test.json` - Function signatures (10K tokens total)  
+- `code.json` + `code_test.json` - Production vs test code (30K tokens total)
+- **Total**: ~45K tokens vs 500K+ traditional approach, with automatic test separation
 
 **Learn**: edges.json → 348 edges, 150 entities with ISGL1 keys. Hubs: Config (47), DatabaseConnection (34). Cycles: AuthService ↔ UserRepo. api.json → 39 public (26%). Spot key → Query Level 1 with that key.
 
@@ -537,7 +550,7 @@ cd .claude/.ref/tree-sitter
 
 ### Invoking the Agent
 
-**⚠️ First-time setup**: After running `parseltongue-install-v089.sh`, you must **EXIT and RESTART Claude Code** to activate the agent. Claude Code loads agents from `.claude/agents/` only on startup.
+**⚠️ First-time setup**: After running `parseltongue-install-v090.sh`, you must **EXIT and RESTART Claude Code** to activate the agent. Claude Code loads agents from `.claude/agents/` only on startup.
 
 **After restart**, invoke the agent in Claude Code:
 
@@ -557,82 +570,62 @@ The agent follows these patterns automatically with additional workflows and res
 
 ```bash
 # Run from your project's git root - Always use the versioned install script
-curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/parseltongue-install-v089.sh | bash
+curl -fsSL https://raw.githubusercontent.com/parseltongue-lang/parseltongue/main/parseltongue-install-v090.sh | bash
 ```
 
 What it does:
-1. Downloads `parseltongue-v0.8.9-macos-arm64` binary
+1. Downloads `parseltongue` binary (v0.9.0 with dual file export)
 2. Creates `.claude/.parseltongue/` and `.claude/agents/` directories
 3. Downloads documentation + Ultrathink ISG Explorer Agent
 4. Verifies installation
 
-**Versioned Install:** Always use `parseltongue-install-v089.sh` (explicit version) to know exactly what you're getting. Next release will be `parseltongue-install-v090.sh`.
+**Versioned Install:** Always use `parseltongue-install-v090.sh` (explicit version) to know exactly what you're getting. Next release will be `parseltongue-install-v091.sh`.
 
 **What you get:**
 ```
 your-project/
-├── parseltongue              # Binary (ready to use)
+├── parseltongue              # Binary (v0.9.0, ready to use)
 └── .claude/
     └── .parseltongue/
-        ├── parseltongue-README.md                          # Full documentation
-        ├── Parseltonge-SOP.md                              # Usage guide & query patterns
-        ├── S01-README-MOSTIMP.md                           # Core principles & TDD
-        ├── S05-tone-style-guide.md                         # Communication standards
-        ├── S06-design101-tdd-architecture-principles.md    # Architecture patterns
-        └── S77-IdiomaticRustPatterns.md                    # Rust best practices
+        ├── README.md                          # Full documentation
+        └── agents/
+            └── parseltongue-ultrathink-isg-explorer.md  # AI agent
 ```
-
-**Steering documents** (S-files) guide LLM reasoning with project principles, TDD methodology, and Rust patterns.
 
 **Manual installation:**
 ```bash
 # If you prefer to see each step
 cd /path/to/your/project
 
-# Download binary
-curl -L https://github.com/that-in-rust/parseltongue/releases/latest/download/parseltongue -o parseltongue
+# Download v0.9.0 binary
+curl -L https://github.com/parseltongue-lang/parseltongue/releases/download/v0.9.0/parseltongue-v0.9.0-macos-arm64 -o parseltongue
 chmod +x parseltongue
 
 # Create directory
 mkdir -p .claude/.parseltongue
+mkdir -p .claude/agents
+
+# Download agent
+curl -L https://raw.githubusercontent.com/parseltongue-lang/parseltongue/main/.claude/agents/parseltongue-ultrathink-isg-explorer.md \
+  -o .claude/agents/parseltongue-ultrathink-isg-explorer.md
 
 # Download docs
-curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/parseltongue-README.md \
-  -o .claude/.parseltongue/parseltongue-README.md
-curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/Parseltonge-SOP.md \
-  -o .claude/.parseltongue/Parseltonge-SOP.md
-
-# Download steering docs
-curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/S01-README-MOSTIMP.md \
-  -o .claude/.parseltongue/S01-README-MOSTIMP.md
-curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/S05-tone-style-guide.md \
-  -o .claude/.parseltongue/S05-tone-style-guide.md
-curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/S06-design101-tdd-architecture-principles.md \
-  -o .claude/.parseltongue/S06-design101-tdd-architecture-principles.md
-curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/.parseltongue/S77-IdiomaticRustPatterns.md \
-  -o .claude/.parseltongue/S77-IdiomaticRustPatterns.md
+curl -L https://raw.githubusercontent.com/parseltongue-lang/parseltongue/main/README.md \
+  -o .claude/.parseltongue/README.md
 ```
 
-### Option 2: Use Binary from Repository
+---
 
-```bash
-# Clone the repo
-git clone https://github.com/that-in-rust/parseltongue
-cd parseltongue
+## Platform Support
 
-# Use the included binary
-./parseltongue --version
+| Platform | Architecture | Status | Binary Name |
+|----------|-------------|--------|-------------|
+| macOS | ARM64 (Apple Silicon) | ✅ Supported | `parseltongue-v0.9.0-macos-arm64` |
+| Linux | x86_64 | ✅ Supported | `parseltongue-v0.9.0-linux-x86_64` |
+| macOS | x86_64 | ❌ Not Supported | - |
+| Windows | - | ❌ Not Supported | - |
 
-# All commands available
-./parseltongue --help
-```
-
-### Option 3: Build from Source
-
-```bash
-cargo build --release
-./target/release/parseltongue --version
-```
+**Note**: Always run the install script from your project's git root directory. This is required for proper ISG analysis functionality.
 
 ---
 

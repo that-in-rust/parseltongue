@@ -62,6 +62,15 @@ pub struct ExportOutput {
     pub entities: Option<serde_json::Value>,
 }
 
+impl ExportOutput {
+    /// Write export output to JSON file with structured error handling
+    pub fn write_to_file<P: AsRef<std::path::Path>>(&self, path: P) -> anyhow::Result<()> {
+        let json_content = serde_json::to_string_pretty(self)?;
+        std::fs::write(path, json_content)?;
+        Ok(())
+    }
+}
+
 /// Export metadata (common across all levels)
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ExportMetadata {

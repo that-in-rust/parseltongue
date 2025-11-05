@@ -15,6 +15,7 @@
 use anyhow::Result;
 use clap::Parser;
 use pt02_llm_cozodb_to_context_writer::Cli;
+use pt02_llm_cozodb_to_context_writer::cozodb_adapter::CozoDbAdapter;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -37,21 +38,78 @@ async fn main() -> Result<()> {
         ));
     }
 
-    // Execute export based on level
-    // TODO: Phase 3 (GREEN) - Implement actual export logic
+    // Execute export based on level using dual file export
     match config.level {
         0 => {
-            cli.verbose_print("Exporting Level 0: Pure edge list");
-            todo!("Level 0 export implementation (Phase 3)")
+            cli.verbose_print("Exporting Level 0: Pure edge list (dual files)");
+            
+            let exporter = pt02_llm_cozodb_to_context_writer::exporters::Level0Exporter::new();
+            let storage = CozoDbAdapter::connect(&config.db_path).await?;
+            
+            // Extract base output name (remove .json extension if present)
+            let output_str = config.output_path.to_string_lossy();
+            let base_output = output_str
+                .strip_suffix(".json")
+                .unwrap_or(&output_str);
+            
+            exporter.export_dual_files(
+                &storage,
+                base_output,
+                &config.where_filter
+            ).await?;
+            
+            cli.verbose_print(&format!("✓ Level 0 dual export completed"));
+            cli.verbose_print(&format!("  Output files: {}.json, {}_test.json", base_output, base_output));
         }
         1 => {
-            cli.verbose_print("Exporting Level 1: Node-centric + ISG + Temporal");
-            todo!("Level 1 export implementation (Phase 3)")
+            cli.verbose_print("Exporting Level 1: Node-centric + ISG + Temporal (dual files)");
+            
+            let exporter = pt02_llm_cozodb_to_context_writer::exporters::Level1Exporter::new();
+            let storage = CozoDbAdapter::connect(&config.db_path).await?;
+            
+            // Extract base output name
+            let output_str = config.output_path.to_string_lossy();
+            let base_output = output_str
+                .strip_suffix(".json")
+                .unwrap_or(&output_str);
+            
+            exporter.export_dual_files(
+                &storage,
+                base_output,
+                config.include_code,
+                &config.where_filter
+            ).await?;
+            
+            cli.verbose_print(&format!("✓ Level 1 dual export completed"));
+            cli.verbose_print(&format!("  Output files: {}.json, {}_test.json", base_output, base_output));
         }
         2 => {
-            cli.verbose_print("Exporting Level 2: + Type system essentials");
-            todo!("Level 2 export implementation (Phase 4)")
+            cli.verbose_print("Exporting Level 2: + Type system essentials (dual files)");
+            
+            let exporter = pt02_llm_cozodb_to_context_writer::exporters::Level2Exporter::new();
+            let storage = CozoDbAdapter::connect(&config.db_path).await?;
+            
+            // Extract base output name
+            let output_str = config.output_path.to_string_lossy();
+            let base_output = output_str
+                .strip_suffix(".json")
+                .unwrap_or(&output_str);
+            
+            exporter.export_dual_files(
+                &storage,
+                base_output,
+                config.include_code,
+                &config.where_filter
+            ).await?;
+            
+            cli.verbose_print(&format!("✓ Level 2 dual export completed"));
+            cli.verbose_print(&format!("  Output files: {}.json, {}_test.json", base_output, base_output));
         }
-        _ => unreachable!("CLI validation should prevent invalid levels"),
+        _ => {
+            return Err(anyhow::anyhow!("Invalid export level: {}", config.level));
+        }
     }
+
+    cli.verbose_print("✓ PT02 export completed successfully");
+    Ok(())
 }

@@ -113,29 +113,28 @@ system_prompt: |
   # Level 0: See all edges (✅ VERIFIED)
   parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:parseltongue-v090.db"
   
-  # 📤 EXPECTED: edges.json (4,164 edges, ~850KB, ~5K tokens)
+  # 📤 EXPECTED: edges.json (4,164 CODE edges) + edges_test.json (TEST edges)
+  # Main file: ~850KB, ~5K tokens | Test file: ~0KB (in this codebase)
   # Structure: [{"from_key": "...", "to_key": "...", "edge_type": "..."}]
 
   # Level 1: All entities (✅ VERIFIED)
   parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output entities.json --db "rocksdb:parseltongue-v090.db"
   
-  # 📤 EXPECTED: entities.json (1,318 entities, ~1MB, ~30K tokens)
+  # 📤 EXPECTED: entities.json (1,318 CODE entities) + entities_test.json (TEST entities)
+  # Main file: ~1MB, ~30K tokens | Test file: ~0KB (in this codebase)
   # Structure: {"entities": [...], "export_metadata": {...}}
 
   # Level 1: Entity type filtering (✅ VERIFIED)
   parseltongue pt02-level01 --include-code 0 --where-clause "entity_type = 'function'" --output functions.json --db "rocksdb:parseltongue-v090.db"
   
-  # 📤 EXPECTED: functions.json (457 functions, ~350KB, ~10K tokens)
-
-  # Level 1: EntityClass filtering (✅ VERIFIED v0.9.0)
-  parseltongue pt02-level01 --include-code 0 --where-clause "entity_class = 'CODE'" --output code.json --db "rocksdb:parseltongue-v090.db"
-  
-  # 📤 EXPECTED: code.json (1,318 CODE entities, ~1MB, ~30K tokens)
+  # 📤 EXPECTED: functions.json (457 CODE functions) + functions_test.json (TEST functions)
+  # Main file: ~350KB, ~10K tokens | Test file: ~0KB (in this codebase)
 
   # Level 2: Full type system (✅ VERIFIED)
   parseltongue pt02-level02 --include-code 0 --where-clause "ALL" --output typed.json --db "rocksdb:parseltongue-v090.db"
   
-  # 📤 EXPECTED: typed.json (1,318 entities with 22 fields, ~1.1MB, ~60K tokens)
+  # 📤 EXPECTED: typed.json (1,318 CODE entities) + typed_test.json (TEST entities)
+  # Main file: ~1.1MB, ~60K tokens | Test file: ~0KB (in this codebase)
 
   # PT01: Index codebase (✅ VERIFIED)
   parseltongue pt01-folder-to-cozodb-streamer . --db rocksdb:parseltongue-v090.db --verbose
@@ -181,20 +180,20 @@ system_prompt: |
   # Level 0: Dependency edges
   parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:onboard.db" --verbose
   
-  # 📤 EXPECTED: edges.json (4,164 edges, ~850KB, ~5K tokens)
-  # Perfect for: Architecture overview, dependency analysis
+  # 📤 EXPECTED: edges.json (4,164 CODE edges) + edges_test.json (TEST edges)
+  # Main file: ~850KB, ~5K tokens | Perfect for: Architecture overview, dependency analysis
 
   # Level 1: Functions only (filtered)
   parseltongue pt02-level01 --include-code 0 --where-clause "entity_type = 'function'" --output functions.json --db "rocksdb:onboard.db" --verbose
   
-  # 📤 EXPECTED: functions.json (457 functions, ~350KB, ~10K tokens)
-  # Perfect for: API surface analysis, function documentation
+  # 📤 EXPECTED: functions.json (457 CODE functions) + functions_test.json (TEST functions)
+  # Main file: ~350KB, ~10K tokens | Perfect for: API surface analysis, function documentation
 
-  # Level 1: EntityClass filtering (v0.9.0 feature)
-  parseltongue pt02-level01 --include-code 0 --where-clause "entity_class = 'CODE'" --output code.json --db "rocksdb:onboard.db" --verbose
+  # Level 1: Production code only (automatic dual export)
+  parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output code.json --db "rocksdb:onboard.db" --verbose
   
-  # 📤 EXPECTED: code.json (1,318 CODE entities, ~1MB, ~30K tokens)
-  # Perfect for: Production code analysis, deployment planning
+  # 📤 EXPECTED: code.json (1,318 CODE entities) + code_test.json (TEST entities)
+  # Main file: ~1MB, ~30K tokens | Perfect for: Production code analysis, deployment planning
   ```
 
   **📊 Workflow Output Summary**: Generates **3 JSON files + 1 database**:

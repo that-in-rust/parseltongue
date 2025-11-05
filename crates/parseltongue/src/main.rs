@@ -584,39 +584,42 @@ async fn run_pt02_level00(matches: &ArgMatches) -> Result<()> {
     let db_adapter = CozoDbAdapter::connect(db).await
         .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
 
-    // Create exporter and config
+    // Create exporter
     let exporter = Level0Exporter::new();
-    let output_path = PathBuf::from(output);
-    let config = ExportConfig {
-        level: 0,
-        include_code: false,
-        where_filter: where_clause.to_string(),
-        output_path,
-        // v0.9.0: Dual outputs for code/test separation (handled in level00 binary)
-        code_output_path: None,
-        tests_output_path: None,
-        db_path: matches.get_one::<String>("db").unwrap().clone(),
+    
+    // Extract base output name (remove .json extension if present)
+    let base_output = if output.ends_with(".json") {
+        &output[..output.len() - 5]
+    } else {
+        output
     };
 
     if verbose {
         println!("  Estimated tokens: ~{}", exporter.estimated_tokens());
     }
 
-    // Execute export
-    let export_output = exporter.export(&db_adapter, &config).await
+    // Execute dual file export (REQ-V090-004.0: Automatic dual-file export)
+    exporter.export_dual_files(
+        &db_adapter,
+        base_output,
+        where_clause
+    ).await
         .map_err(|e| anyhow::anyhow!("Export failed: {}", e))?;
 
-    // Write to JSON file
-    let json = serde_json::to_string_pretty(&export_output)
-        .map_err(|e| anyhow::anyhow!("JSON serialization failed: {}", e))?;
-
-    std::fs::write(output, json)
-        .map_err(|e| anyhow::anyhow!("Failed to write file: {}", e))?;
-
     println!("{}", style("✓ PT02 Level 0 export completed").green().bold());
-    println!("  Output file: {}", output);
-    println!("  Edges exported: {}", export_output.export_metadata.total_edges.unwrap_or(0));
-    println!("  Token estimate: ~{} tokens", exporter.estimated_tokens());
+    println!("  Output files: {}.json, {}_test.json", base_output, base_output);
+    
+    // Load and display edge counts from the main export file
+    let main_output_file = format!("{}.json", base_output);
+    if let Ok(content) = std::fs::read_to_string(&main_output_file) {
+        if let Ok(export_data) = serde_json::from_str::<serde_json::Value>(&content) {
+            if let Some(edges) = export_data["edges"].as_array() {
+                println!("  Edges exported: {}", edges.len());
+            }
+        }
+    }
+    println!("  Token estimate: ~{}", exporter.estimated_tokens());
+    println!("  Fields per edge: 3 (from_key, to_key, edge_type)");
 
     Ok(())
 }
@@ -643,40 +646,44 @@ async fn run_pt02_level01(matches: &ArgMatches) -> Result<()> {
     let db_adapter = CozoDbAdapter::connect(db).await
         .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
 
-    // Create exporter and config
+    // Create exporter
     let exporter = Level1Exporter::new();
-    let config = ExportConfig {
-        level: 1,
-        include_code: include_code == "1",
-        where_filter: where_clause.clone(),
-        output_path: PathBuf::from(output),
-        // v0.9.0: Dual outputs for code/test separation (None for level01)
-        code_output_path: None,
-        tests_output_path: None,
-        db_path: db.clone(),
+    
+    // Extract base output name (remove .json extension if present)
+    let base_output = if output.ends_with(".json") {
+        &output[..output.len() - 5]
+    } else {
+        output
     };
 
     let base_tokens = exporter.estimated_tokens();
-    let estimated = if config.include_code { base_tokens * 20 } else { base_tokens };
+    let estimated = if include_code == "1" { base_tokens * 20 } else { base_tokens };
 
     if verbose {
         println!("  Estimated tokens: ~{}", estimated);
     }
 
-    // Execute export
-    let export_output = exporter.export(&db_adapter, &config).await
+    // Execute dual file export (REQ-V090-004.0: Automatic dual-file export)
+    exporter.export_dual_files(
+        &db_adapter,
+        base_output,
+        include_code == "1",
+        where_clause
+    ).await
         .map_err(|e| anyhow::anyhow!("Export failed: {}", e))?;
 
-    // Write to JSON file
-    let json = serde_json::to_string_pretty(&export_output)
-        .map_err(|e| anyhow::anyhow!("JSON serialization failed: {}", e))?;
-
-    std::fs::write(output, json)
-        .map_err(|e| anyhow::anyhow!("Failed to write file: {}", e))?;
-
     println!("{}", style("✓ PT02 Level 1 export completed").green().bold());
-    println!("  Output file: {}", output);
-    println!("  Entities exported: {}", export_output.export_metadata.total_entities.unwrap_or(0));
+    println!("  Output files: {}.json, {}_test.json", base_output, base_output);
+    
+    // Load and display entity counts from the main export file
+    let main_output_file = format!("{}.json", base_output);
+    if let Ok(content) = std::fs::read_to_string(&main_output_file) {
+        if let Ok(export_data) = serde_json::from_str::<serde_json::Value>(&content) {
+            if let Some(entities) = export_data["entities"].as_array() {
+                println!("  Entities exported: {}", entities.len());
+            }
+        }
+    }
     println!("  Token estimate: ~{} tokens", estimated);
     println!("  Fields per entity: 14 (isgl1_key, forward_deps, reverse_deps, temporal state, etc.)");
 
@@ -705,42 +712,46 @@ async fn run_pt02_level02(matches: &ArgMatches) -> Result<()> {
     let db_adapter = CozoDbAdapter::connect(db).await
         .map_err(|e| anyhow::anyhow!("Failed to connect to database: {}", e))?;
 
-    // Create exporter and config
+    // Create exporter
     let exporter = Level2Exporter::new();
-    let config = ExportConfig {
-        level: 2,
-        include_code: include_code == "1",
-        where_filter: where_clause.clone(),
-        output_path: PathBuf::from(output),
-        // v0.9.0: Dual outputs for code/test separation (None for level02)
-        code_output_path: None,
-        tests_output_path: None,
-        db_path: db.clone(),
+    
+    // Extract base output name (remove .json extension if present)
+    let base_output = if output.ends_with(".json") {
+        &output[..output.len() - 5]
+    } else {
+        output
     };
 
     let base_tokens = exporter.estimated_tokens();
-    let estimated = if config.include_code { base_tokens * 20 } else { base_tokens };
+    let estimated = if include_code == "1" { base_tokens * 20 } else { base_tokens };
 
     if verbose {
         println!("  Estimated tokens: ~{}", estimated);
     }
 
-    // Execute export
-    let export_output = exporter.export(&db_adapter, &config).await
+    // Execute dual file export (REQ-V090-004.0: Automatic dual-file export)
+    exporter.export_dual_files(
+        &db_adapter,
+        base_output,
+        include_code == "1",
+        where_clause
+    ).await
         .map_err(|e| anyhow::anyhow!("Export failed: {}", e))?;
 
-    // Write to JSON file
-    let json = serde_json::to_string_pretty(&export_output)
-        .map_err(|e| anyhow::anyhow!("JSON serialization failed: {}", e))?;
-
-    std::fs::write(output, json)
-        .map_err(|e| anyhow::anyhow!("Failed to write file: {}", e))?;
-
     println!("{}", style("✓ PT02 Level 2 export completed").green().bold());
-    println!("  Output file: {}", output);
-    println!("  Entities exported: {}", export_output.export_metadata.total_entities.unwrap_or(0));
+    println!("  Output files: {}.json, {}_test.json", base_output, base_output);
+    
+    // Load and display entity counts from the main export file
+    let main_output_file = format!("{}.json", base_output);
+    if let Ok(content) = std::fs::read_to_string(&main_output_file) {
+        if let Ok(export_data) = serde_json::from_str::<serde_json::Value>(&content) {
+            if let Some(entities) = export_data["entities"].as_array() {
+                println!("  Entities exported: {}", entities.len());
+            }
+        }
+    }
     println!("  Token estimate: ~{} tokens", estimated);
-    println!("  Fields per entity: 22 (all L1 + return_type, param_types, trait_impls, is_async, is_unsafe, etc.)");
+    println!("  Fields per entity: 16 (includes type system information)");
 
     Ok(())
 }

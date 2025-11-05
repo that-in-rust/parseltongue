@@ -30,6 +30,70 @@ impl Level0Exporter {
     pub fn new() -> Self {
         Self
     }
+
+    /// REQ-V090-004.0: Export dual files (CODE and TEST) from single output name
+    /// 
+    /// Creates two files automatically:
+    /// - {output_name}.json - Contains only CODE entity edges
+    /// - {output_name}_test.json - Contains only TEST entity edges
+    /// 
+    /// # Arguments
+    /// * `repository` - Database repository (dependency injection)
+    /// * `output_name` - Base name for both files
+    /// * `where_clause` - Datalog WHERE clause for filtering
+    /// 
+    /// # Returns
+    /// `Result<()>` - Structured error handling with thiserror
+    pub async fn export_dual_files(
+        &self,
+        repository: &dyn CodeGraphRepository,
+        output_name: &str,
+        where_clause: &str,
+    ) -> anyhow::Result<()> {
+        // Export CODE entity edges (production code)
+        let code_filter = if where_clause == "ALL" {
+            "entity_class = 'CODE'".to_string()
+        } else {
+            format!("entity_class = 'CODE', {}", where_clause)
+        };
+        let code_output = format!("{}.json", output_name);
+        
+        let config = ExportConfig {
+            include_code: false, // Not applicable for Level 0
+            output_path: code_output.clone().into(),
+            where_filter: code_filter,
+            db_path: String::new(), // Will be overridden by repository
+            level: 0,
+            code_output_path: None,
+            tests_output_path: None,
+        };
+        
+        let code_result = self.export(repository, &config).await?;
+        code_result.write_to_file(&code_output)?;
+        
+        // Export TEST entity edges (test code)
+        let test_filter = if where_clause == "ALL" {
+            "entity_class = 'TEST'".to_string()
+        } else {
+            format!("entity_class = 'TEST', {}", where_clause)
+        };
+        let test_output = format!("{}_test.json", output_name);
+        
+        let test_config = ExportConfig {
+            include_code: false, // Not applicable for Level 0
+            output_path: test_output.clone().into(),
+            where_filter: test_filter,
+            db_path: String::new(), // Will be overridden by repository
+            level: 0,
+            code_output_path: None,
+            tests_output_path: None,
+        };
+        
+        let test_result = self.export(repository, &test_config).await?;
+        test_result.write_to_file(&test_output)?;
+        
+        Ok(())
+    }
 }
 
 impl Default for Level0Exporter {
