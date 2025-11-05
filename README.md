@@ -570,7 +570,7 @@ The agent follows these patterns automatically with additional workflows and res
 
 ```bash
 # Run from your project's git root - Always use the versioned install script
-curl -fsSL https://raw.githubusercontent.com/parseltongue-lang/parseltongue/main/parseltongue-install-v090.sh | bash
+curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/parseltongue-install-v090.sh | bash
 ```
 
 What it does:
@@ -598,7 +598,7 @@ your-project/
 cd /path/to/your/project
 
 # Download v0.9.0 binary
-curl -L https://github.com/parseltongue-lang/parseltongue/releases/download/v0.9.0/parseltongue-v0.9.0-macos-arm64 -o parseltongue
+curl -L https://github.com/that-in-rust/parseltongue/releases/download/v0.9.0/parseltongue -o parseltongue
 chmod +x parseltongue
 
 # Create directory
@@ -606,11 +606,11 @@ mkdir -p .claude/.parseltongue
 mkdir -p .claude/agents
 
 # Download agent
-curl -L https://raw.githubusercontent.com/parseltongue-lang/parseltongue/main/.claude/agents/parseltongue-ultrathink-isg-explorer.md \
+curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/agents/parseltongue-ultrathink-isg-explorer.md \
   -o .claude/agents/parseltongue-ultrathink-isg-explorer.md
 
 # Download docs
-curl -L https://raw.githubusercontent.com/parseltongue-lang/parseltongue/main/README.md \
+curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/README.md \
   -o .claude/.parseltongue/README.md
 ```
 
@@ -620,8 +620,8 @@ curl -L https://raw.githubusercontent.com/parseltongue-lang/parseltongue/main/RE
 
 | Platform | Architecture | Status | Binary Name |
 |----------|-------------|--------|-------------|
-| macOS | ARM64 (Apple Silicon) | ✅ Supported | `parseltongue-v0.9.0-macos-arm64` |
-| Linux | x86_64 | ✅ Supported | `parseltongue-v0.9.0-linux-x86_64` |
+| macOS | ARM64 (Apple Silicon) | ✅ Supported | `parseltongue` |
+| Linux | x86_64 | ✅ Supported | `parseltongue` |
 | macOS | x86_64 | ❌ Not Supported | - |
 | Windows | - | ❌ Not Supported | - |
 

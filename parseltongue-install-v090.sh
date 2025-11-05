@@ -24,7 +24,7 @@ ARCH=$(uname -m)
 case $PLATFORM in
     darwin)
         if [ "$ARCH" = "arm64" ]; then
-            BINARY_URL="https://github.com/parseltongue-lang/parseltongue/releases/download/v0.9.0/parseltongue-v0.9.0-macos-arm64"
+            BINARY_URL="https://github.com/that-in-rust/parseltongue/releases/download/v0.9.0/parseltongue"
         else
             echo "❌ Error: macOS x86_64 not supported in this release"
             exit 1
@@ -32,7 +32,7 @@ case $PLATFORM in
         ;;
     linux)
         if [ "$ARCH" = "x86_64" ]; then
-            BINARY_URL="https://github.com/parseltongue-lang/parseltongue/releases/download/v0.9.0/parseltongue-v0.9.0-linux-x86_64"
+            BINARY_URL="https://github.com/that-in-rust/parseltongue/releases/download/v0.9.0/parseltongue"
         else
             echo "❌ Error: Linux ARM64 not supported in this release"
             exit 1
@@ -57,12 +57,12 @@ mkdir -p .claude/agents
 
 # Download agent files
 echo "📥 Installing ISG Explorer agent..."
-curl -L https://raw.githubusercontent.com/parseltongue-lang/parseltongue/main/.claude/agents/parseltongue-ultrathink-isg-explorer.md \
+curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/.claude/agents/parseltongue-ultrathink-isg-explorer.md \
   -o .claude/agents/parseltongue-ultrathink-isg-explorer.md
 
 # Download documentation
 echo "📥 Installing documentation..."
-curl -L https://raw.githubusercontent.com/parseltongue-lang/parseltongue/main/README.md \
+curl -L https://raw.githubusercontent.com/that-in-rust/parseltongue/main/README.md \
   -o .claude/.parseltongue/README.md
 
 # Verify installation
