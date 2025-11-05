@@ -23,7 +23,7 @@
 use anyhow::Result;
 use clap::Parser;
 use pt02_llm_cozodb_to_context_writer::{
-    exporters::{Level1Exporter, ToonLevel1Exporter},
+    exporters::Level1Exporter,
     export_trait::LevelExporter,
     models::ExportConfig,
 };
@@ -68,20 +68,6 @@ struct Cli {
     #[arg(long, default_value = "parseltongue.db")]
     db: String,
 
-    /// Output format: json (default) or toon (41.9% token reduction)
-    ///
-    /// TOON format provides 41.9% token savings for LLM consumption.
-    /// - json: Standard JSON format (compatible with all tools)
-    /// - toon: Tab-delimited format optimized for LLMs
-    #[arg(long, default_value = "json")]
-    format: String,
-
-    /// TOON delimiter: tab (recommended), comma, pipe
-    ///
-    /// Only applicable when --format toon is used.
-    #[arg(long, default_value = "tab")]
-    toon_delimiter: String,
-
     /// Verbose output (show progress, token estimates)
     #[arg(short, long)]
     verbose: bool,
@@ -96,43 +82,19 @@ impl Cli {
             ));
         }
 
-        // Validate format
-        let format_lower = self.format.to_lowercase();
-        if format_lower != "json" && format_lower != "toon" {
-            return Err(anyhow::anyhow!(
-                "Invalid format '{}'. Must be 'json' or 'toon'.",
-                self.format
-            ));
-        }
-
-        // Build config
-        let extension = if format_lower == "toon" { "toon" } else { "json" };
-
+        // Build config (always JSON - TOON is auto-generated with same base name)
         Ok(ExportConfig {
             level: 1,
             include_code: self.include_code == 1,
             where_filter: self.where_clause.clone(),
             output_path: self.output.clone().unwrap_or_else(|| {
-                PathBuf::from(format!("ISGLevel01.{}", extension))
+                PathBuf::from("ISGLevel01.json")
             }),
             // v0.9.0: Dual outputs for code/test separation (None for level01)
             code_output_path: None,
             tests_output_path: None,
             db_path: self.db.clone(),
         })
-    }
-
-    fn is_toon_format(&self) -> bool {
-        self.format.to_lowercase() == "toon"
-    }
-
-    fn get_toon_delimiter(&self) -> pt02_llm_cozodb_to_context_writer::ToonDelimiter {
-        use pt02_llm_cozodb_to_context_writer::ToonDelimiter;
-        match self.toon_delimiter.to_lowercase().as_str() {
-            "comma" => ToonDelimiter::Comma,
-            "pipe" => ToonDelimiter::Pipe,
-            _ => ToonDelimiter::Tab,
-        }
     }
 
     fn verbose_print(&self, message: &str) {
@@ -165,53 +127,30 @@ async fn main() -> Result<()> {
     let db = pt02_llm_cozodb_to_context_writer::CozoDbAdapter::connect(&config.db_path).await?;
     cli.verbose_print("✅ Connected to CozoDB");
 
-    // Create format-specific exporter and export
-    if cli.is_toon_format() {
-        // TOON format (41.9% token reduction)
-        let delimiter = cli.get_toon_delimiter();
-        let exporter = ToonLevel1Exporter::new(delimiter);
+    // Create exporter and export to BOTH formats
+    let exporter = Level1Exporter::new();
 
-        let base_tokens = exporter.estimated_tokens();
-        let estimated = if config.include_code {
-            base_tokens * 20  // Code adds ~20× tokens
-        } else {
-            base_tokens
-        };
-
-        cli.verbose_print(&format!("Format: TOON (41.9% more efficient than JSON)"));
-        cli.verbose_print(&format!("Delimiter: {:?}", delimiter));
-        cli.verbose_print(&format!("Estimated tokens: ~{} (vs ~{} JSON)", estimated, estimated * 2));
-
-        // Execute export
-        cli.verbose_print("Exporting entities to TOON format...");
-        let output = exporter.export(&db, &config).await?;
-
-        println!("✅ PT02 Level 1 TOON export completed!");
-        println!("   Output: {:?}", config.output_path);
-        println!("   Entities exported: {}", output.export_metadata.total_entities.unwrap_or(0));
-        println!("   Token savings: 41.9% vs JSON");
+    let base_tokens = exporter.estimated_tokens();
+    let estimated = if config.include_code {
+        base_tokens * 20
     } else {
-        // JSON format (default)
-        let exporter = Level1Exporter::new();
+        base_tokens
+    };
 
-        let base_tokens = exporter.estimated_tokens();
-        let estimated = if config.include_code {
-            base_tokens * 20
-        } else {
-            base_tokens
-        };
+    cli.verbose_print("Exporting entities to JSON + TOON formats...");
+    cli.verbose_print(&format!("Estimated JSON tokens: ~{}", estimated));
+    cli.verbose_print(&format!("Estimated TOON tokens: ~{} (41.9% smaller)", estimated * 58 / 100));
 
-        cli.verbose_print(&format!("Format: JSON (standard)"));
-        cli.verbose_print(&format!("Estimated tokens: ~{}", estimated));
+    // Execute export (writes both JSON and TOON)
+    let output = exporter.export(&db, &config).await?;
 
-        // Execute export
-        cli.verbose_print("Exporting entities to JSON format...");
-        let output = exporter.export(&db, &config).await?;
+    // Derive TOON path for display
+    let toon_path = config.output_path.with_extension("toon");
 
-        println!("✅ PT02 Level 1 JSON export completed!");
-        println!("   Output: {:?}", config.output_path);
-        println!("   Entities exported: {}", output.export_metadata.total_entities.unwrap_or(0));
-    }
+    println!("✅ PT02 Level 1 export completed!");
+    println!("   JSON output: {:?}", config.output_path);
+    println!("   TOON output: {:?} (41.9% token savings)", toon_path);
+    println!("   Entities exported: {}", output.export_metadata.total_entities.unwrap_or(0));
 
     Ok(())
 }

@@ -99,8 +99,6 @@ graph TB
 ```mermaid
 graph TD
     subgraph "Feature Prioritization Matrix"
-        style "Feature Prioritization Matrix" fill:none,stroke:none
-        
         %% High ROI, High Complexity (Strategic P1)
         PE["Pensieve Extraction<br/>🔥🔥🔥🔥🔥<br/>C:0.85 R:0.95"]:::strategic
         MM["Marauder's Map<br/>🔥🔥🔥🔥🔥<br/>C:0.78 R:0.95"]:::strategic

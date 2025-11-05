@@ -224,7 +224,25 @@ impl LevelExporter for Level1Exporter {
             outputs
         };
 
-        // 4. Build metadata with EntityClass information
+        // 4. Write both JSON and TOON formats
+        // JSON: Write to config.output_path
+        let json_content = serde_json::to_string_pretty(&code_level1_entities)?;
+        std::fs::write(&config.output_path, &json_content)?;
+
+        // TOON: Derive filename and write
+        let toon_path = derive_toon_path(&config.output_path);
+        let toon_encoder = crate::ToonEncoder::new(crate::ToonDelimiter::Tab, "entities");
+
+        // Convert Vec<EntityExportLevel1> to Vec<ToonEntity> for TOON encoding
+        let toon_entities: Vec<ToonEntity> = code_level1_entities
+            .iter()
+            .map(|e| ToonEntity::from_level1(e))
+            .collect();
+
+        let toon_content = toon_encoder.encode(&toon_entities)?;
+        std::fs::write(&toon_path, &toon_content)?;
+
+        // 5. Build metadata with EntityClass information
         let metadata = ExportMetadata {
             level: 1,
             timestamp: Utc::now().to_rfc3339(),
@@ -234,7 +252,7 @@ impl LevelExporter for Level1Exporter {
             where_filter: config.where_filter.clone(),
         };
 
-        // 5. Build output (v0.9.0: support dual outputs)
+        // 6. Build output (v0.9.0: support dual outputs)
         Ok(ExportOutput {
             export_metadata: metadata,
             entities: Some(serde_json::to_value(&code_level1_entities)?), // Primary output
@@ -250,6 +268,67 @@ impl LevelExporter for Level1Exporter {
         // Estimate: ~50 tokens per entity (signatures only)
         // For 590 entities: ~30K tokens
         30_000
+    }
+}
+
+/// Derive TOON filename from JSON filename
+///
+/// Examples:
+/// - "entities.json" → "entities.toon"
+/// - "output.json" → "output.toon"
+/// - "data" → "data.toon"
+fn derive_toon_path(json_path: &std::path::Path) -> std::path::PathBuf {
+    json_path.with_extension("toon")
+}
+
+/// TOON entity representation (simplified for serialization)
+///
+/// Same structure as EntityExportLevel1 but implements traits needed for TOON encoding
+#[derive(Debug, Clone, serde::Serialize)]
+struct ToonEntity {
+    isgl1_key: String,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    forward_deps: Vec<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    reverse_deps: Vec<String>,
+    current_ind: u8,
+    future_ind: u8,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    future_action: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    future_code: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    current_code: Option<String>,
+    entity_name: String,
+    entity_type: String,
+    file_path: String,
+    line_number: u32,
+    interface_signature: String,
+    entity_class: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    doc_comment: Option<String>,
+}
+
+impl ToonEntity {
+    /// Convert from EntityExportLevel1 to ToonEntity
+    fn from_level1(entity: &EntityExportLevel1) -> Self {
+        Self {
+            isgl1_key: entity.isgl1_key.clone(),
+            forward_deps: entity.forward_deps.clone(),
+            reverse_deps: entity.reverse_deps.clone(),
+            current_ind: entity.current_ind,
+            future_ind: entity.future_ind,
+            future_action: entity.future_action.clone(),
+            future_code: entity.future_code.clone(),
+            current_code: entity.current_code.clone(),
+            entity_name: entity.entity_name.clone(),
+            entity_type: entity.entity_type.clone(),
+            file_path: entity.file_path.clone(),
+            line_number: entity.line_number,
+            interface_signature: entity.interface_signature.clone(),
+            entity_class: entity.entity_class.clone(),
+            doc_comment: entity.doc_comment.clone(),
+        }
     }
 }
 

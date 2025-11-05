@@ -90,23 +90,6 @@ pub struct Cli {
     #[arg(long, default_value = "parseltongue.db")]
     pub db: String,
 
-    /// Output format: json (default) or toon (40% token reduction)
-    ///
-    /// TOON format provides 41.9% token savings for LLM consumption.
-    /// - json: Standard JSON format (compatible with all tools)
-    /// - toon: Tab-delimited format optimized for LLMs
-    ///
-    /// Example: --format toon --toon-delimiter tab
-    #[arg(long, default_value = "json")]
-    pub format: String,
-
-    /// TOON delimiter: tab (recommended), comma, pipe
-    ///
-    /// Only applicable when --format toon is used.
-    /// Tab delimiter provides best LLM parsing performance.
-    #[arg(long, default_value = "tab")]
-    pub toon_delimiter: String,
-
     /// Verbose output (show progress, token estimates)
     #[arg(short, long)]
     pub verbose: bool,
@@ -158,53 +141,20 @@ impl Cli {
             ));
         }
 
-        // Validate format
-        let format_lower = self.format.to_lowercase();
-        if format_lower != "json" && format_lower != "toon" {
-            return Err(anyhow!(
-                "Invalid format '{}'. Must be 'json' or 'toon'.",
-                self.format
-            ));
-        }
-
-        // Validate TOON delimiter
-        let delimiter_lower = self.toon_delimiter.to_lowercase();
-        if format_lower == "toon" && !["tab", "comma", "pipe"].contains(&delimiter_lower.as_str()) {
-            return Err(anyhow!(
-                "Invalid TOON delimiter '{}'. Must be 'tab', 'comma', or 'pipe'.",
-                self.toon_delimiter
-            ));
-        }
-
-        // Build config
-        let extension = if format_lower == "toon" { "toon" } else { "json" };
+        // Build config (always JSON - TOON is auto-generated)
 
         Ok(ExportConfig {
             level: self.level,
             include_code: self.include_code.map(|v| v == 1).unwrap_or(false),
             where_filter: self.where_clause.clone(),
             output_path: self.output.clone().unwrap_or_else(|| {
-                PathBuf::from(format!("ISGLevel{:02}.{}", self.level, extension))
+                PathBuf::from(format!("ISGLevel{:02}.json", self.level))
             }),
             // v0.9.0: Dual outputs for code/test separation (None for general CLI)
             code_output_path: None,
             tests_output_path: None,
             db_path: self.db.clone(),
         })
-    }
-
-    /// Get TOON delimiter from CLI argument
-    pub fn get_toon_delimiter(&self) -> crate::ToonDelimiter {
-        match self.toon_delimiter.to_lowercase().as_str() {
-            "comma" => crate::ToonDelimiter::Comma,
-            "pipe" => crate::ToonDelimiter::Pipe,
-            _ => crate::ToonDelimiter::Tab, // Default to tab
-        }
-    }
-
-    /// Check if TOON format is selected
-    pub fn is_toon_format(&self) -> bool {
-        self.format.to_lowercase() == "toon"
     }
 
     /// Print verbose output if enabled
