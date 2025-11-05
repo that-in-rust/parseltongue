@@ -2193,6 +2193,7 @@ dependencies = [
  "clap",
  "console",
  "parseltongue-core",
+ "tempfile",
  "tokio",
 ]
 
