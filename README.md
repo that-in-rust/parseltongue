@@ -1,6 +1,6 @@
 # Parseltongue
 
-> **v0.9.0** - Now with automatic dual-format export: JSON for compatibility + TOON for 30-40% token savings!
+> **v0.9.2** - Now with automatic dual-format export: JSON for compatibility + TOON for 30-40% token savings!
 
 ```mermaid
 graph LR
@@ -164,7 +164,7 @@ flowchart LR
 ### Basic Queries
 
 ```bash
-# Level 0: See all edges (✅ VERIFIED v0.9.0)
+# Level 0: See all edges (✅ VERIFIED v0.9.2)
 parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:parseltongue-v090.db"
 
 # 📤 EXPECTED OUTPUT:
@@ -178,7 +178,7 @@ parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb
 #     ├── Same structure as edges.json but for test entities only
 #     └── Tokens: ~0K
 
-# Level 1: All entities with signatures (✅ VERIFIED v0.9.0)
+# Level 1: All entities with signatures (✅ VERIFIED v0.9.2)
 parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output entities.json --db "rocksdb:parseltongue-v090.db"
 
 # 📤 EXPECTED OUTPUT:
@@ -193,7 +193,7 @@ parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output entitie
 #     ├── Same structure as entities.json but for test entities only
 #     └── Tokens: ~0K
 
-# Level 1: Filter by entity type (✅ VERIFIED v0.9.0)
+# Level 1: Filter by entity type (✅ VERIFIED v0.9.2)
 parseltongue pt02-level01 --include-code 0 --where-clause "entity_type = 'function'" --output functions.json --db "rocksdb:parseltongue-v090.db"
 
 # 📤 EXPECTED OUTPUT:
@@ -206,7 +206,7 @@ parseltongue pt02-level01 --include-code 0 --where-clause "entity_type = 'functi
 #     ├── 0 TEST functions (in this codebase)
 #     └── Tokens: ~0K
 
-# Level 2: Full type system (✅ VERIFIED v0.9.0)
+# Level 2: Full type system (✅ VERIFIED v0.9.2)
 parseltongue pt02-level02 --include-code 0 --where-clause "ALL" --output typed.json --db "rocksdb:parseltongue-v090.db"
 
 # 📤 EXPECTED OUTPUT:
@@ -220,7 +220,7 @@ parseltongue pt02-level02 --include-code 0 --where-clause "ALL" --output typed.j
 #     ├── 0 TEST entities (in this codebase)
 #     └── Tokens: ~0K
 
-# PT01: Index codebase (✅ VERIFIED v0.9.0)
+# PT01: Index codebase (✅ VERIFIED v0.9.2)
 parseltongue pt01-folder-to-cozodb-streamer . --db rocksdb:parseltongue-v090.db --verbose
 
 # 📤 EXPECTED OUTPUT:
@@ -258,7 +258,7 @@ parseltongue pt01-folder-to-cozodb-streamer . --db rocksdb:parseltongue-v090.db 
 | `isgl1_key` | Unique entity identifier | `rust:function:process_payment:src_payment_rs:145-167` |
 | `entity_name` | Function/struct name | `process_payment` |
 | `entity_type` | Type of entity | `function`, `struct`, `trait`, `enum` |
-| `entity_class` | v0.9.0 classification | `CODE`, `TEST` |
+| `entity_class` | v0.9.2 classification | `CODE`, `TEST` |
 | `file_path` | Source file location | `./src/payment.rs` |
 | `interface_signature` | Function signature | `pub fn process_payment(amount: u64) -> Result<bool>` |
 | `forward_deps` | Dependencies this entity uses | `["rust:fn:validate_card", "rust:fn:check_balance"]` |
@@ -281,7 +281,7 @@ parseltongue pt01-folder-to-cozodb-streamer . --db rocksdb:parseltongue-v090.db 
 
 ---
 
-**v0.9.0 Updates**: All commands verified with EntityClass integration. Progressive disclosure working: 5K → 30K → 60K tokens.
+**v0.9.2 Updates**: All commands verified with EntityClass integration. Progressive disclosure working: 5K → 30K → 60K tokens.
 
 **Query Status**: 
 - ✅ `ALL` queries work perfectly
@@ -316,7 +316,7 @@ flowchart TD
 
 **Commands**:
 ```bash
-# ✅ VERIFIED v0.9.0: Index codebase
+# ✅ VERIFIED v0.9.2: Index codebase
 parseltongue pt01-folder-to-cozodb-streamer . --db "rocksdb:onboard.db" --verbose
 
 # 📤 EXPECTED OUTPUT:
@@ -326,7 +326,7 @@ parseltongue pt01-folder-to-cozodb-streamer . --db "rocksdb:onboard.db" --verbos
 #     ├── "Duration: ~3 seconds" (performance varies)
 #     └── Creates: onboard.db/ (RocksDB directory for subsequent queries)
 
-# ✅ VERIFIED v0.9.0: Get dependency edges (Level 0)
+# ✅ VERIFIED v0.9.2: Get dependency edges (Level 0)
 parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb:onboard.db" --verbose
 
 # 📤 EXPECTED OUTPUT:
@@ -339,7 +339,7 @@ parseltongue pt02-level00 --where-clause "ALL" --output edges.json --db "rocksdb
 #     ├── 0 TEST edges (in this codebase)
 #     └── Same structure as edges.json but for test dependencies
 
-# ✅ VERIFIED v0.9.0: Get all functions (Level 1)
+# ✅ VERIFIED v0.9.2: Get all functions (Level 1)
 parseltongue pt02-level01 --include-code 0 --where-clause "entity_type = 'function'" --output functions.json --db "rocksdb:onboard.db" --verbose
 
 # 📤 EXPECTED OUTPUT:
@@ -353,7 +353,7 @@ parseltongue pt02-level01 --include-code 0 --where-clause "entity_type = 'functi
 #     ├── 0 TEST functions (in this codebase)
 #     └── Same structure as functions.json but for test functions
 
-# ✅ VERIFIED v0.9.0: Get code entities only (EntityClass - now automatic)
+# ✅ VERIFIED v0.9.2: Get code entities only (EntityClass - now automatic)
 parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output code.json --db "rocksdb:onboard.db" --verbose
 
 # 📤 EXPECTED OUTPUT:
@@ -578,7 +578,7 @@ curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/pars
 ```
 
 What it does:
-1. Downloads `parseltongue` binary (v0.9.0 with dual file export)
+1. Downloads `parseltongue` binary (v0.9.2 with dual file export)
 2. Creates `.claude/.parseltongue/` and `.claude/agents/` directories
 3. Downloads documentation + Ultrathink ISG Explorer Agent
 4. Verifies installation
@@ -588,7 +588,7 @@ What it does:
 **What you get:**
 ```
 your-project/
-├── parseltongue              # Binary (v0.9.0, ready to use)
+├── parseltongue              # Binary (v0.9.2, ready to use)
 └── .claude/
     └── .parseltongue/
         ├── README.md                          # Full documentation
@@ -601,8 +601,8 @@ your-project/
 # If you prefer to see each step
 cd /path/to/your/project
 
-# Download v0.9.0 binary
-curl -L https://github.com/that-in-rust/parseltongue/releases/download/v0.9.0/parseltongue -o parseltongue
+# Download v0.9.2 binary
+curl -L https://github.com/that-in-rust/parseltongue/releases/download/v0.9.2/parseltongue -o parseltongue
 chmod +x parseltongue
 
 # Create directory
