@@ -1771,6 +1771,7 @@ dependencies = [
  "pt04-syntax-preflight-validator",
  "pt05-llm-cozodb-to-diff-writer",
  "pt06-cozodb-make-future-code-current",
+ "pt07-visual-analytics-terminal",
  "serde_json",
  "tokio",
 ]
