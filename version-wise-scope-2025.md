@@ -81,12 +81,12 @@
 
 ## Summary
 
-| Feature | Progress | Status |
-|---------|----------|--------|
-| **TOON Serialization** | 100% | ✅ Complete |
-| **pt07 Foundation** | 60% | ✅ Complete |
-| **pt07 CozoDB Integration** | 0% | ⏳ Next Sprint |
-| **pt07 Real-world Testing** | 0% | ⏳ Pending |
+| Feature (4-Word Convention) | Progress | Status |
+|-----------------------------|----------|--------|
+| **TOON Dual Format Export** | 100% | ✅ Complete |
+| **pt07 Core Infrastructure Built** | 60% | ✅ Complete |
+| **pt07 Database Query Integration** | 0% | ⏳ Next Sprint |
+| **pt07 Production Testing Complete** | 0% | ⏳ Pending |
 
 **Overall v0.9.1 Progress: ~80%**
 
