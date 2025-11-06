@@ -173,6 +173,9 @@ async fn main() -> Result<()> {
         Some(("pt06-cozodb-make-future-code-current", sub_matches)) => {
             run_cozodb_make_future_code_current(sub_matches).await
         }
+        Some(("pt07", sub_matches)) => {
+            run_pt07(sub_matches).await
+        }
         _ => {
             println!("{}", style("Parseltongue CLI Toolkit").blue().bold());
             println!("{}", style("Ultra-minimalist code analysis and modification toolkit").blue());
@@ -191,6 +194,7 @@ async fn main() -> Result<()> {
             println!("  pt04-syntax-preflight-validator      - Validate syntax of proposed changes (Tool 4: Validate)");
             println!("  pt05-llm-cozodb-to-diff-writer       - Generate CodeDiff.json (Tool 5: Diff)");
             println!("  pt06-cozodb-make-future-code-current - Reset database state (Tool 6: Reset)");
+            println!("  pt07                                 - Visual analytics (Tool 7: Visualize)");
             Ok(())
         }
     }
@@ -424,6 +428,43 @@ fn build_cli() -> Command {
                         .long("db")
                         .help("Database file path")
                         .default_value("parseltongue.db"),
+                ),
+        )
+        .subcommand(
+            Command::new("pt07")
+                .about("Tool 7: Visual analytics for code graphs")
+                .subcommand_required(true)
+                .subcommand(
+                    Command::new("entity-count")
+                        .about("Entity count bar chart visualization")
+                        .arg(
+                            Arg::new("db")
+                                .long("db")
+                                .help("Database file path")
+                                .required(true),
+                        )
+                        .arg(
+                            Arg::new("include-tests")
+                                .long("include-tests")
+                                .help("Include test entities (default: implementation-only)")
+                                .action(clap::ArgAction::SetTrue),
+                        ),
+                )
+                .subcommand(
+                    Command::new("cycles")
+                        .about("Circular dependency detection visualization")
+                        .arg(
+                            Arg::new("db")
+                                .long("db")
+                                .help("Database file path")
+                                .required(true),
+                        )
+                        .arg(
+                            Arg::new("include-tests")
+                                .long("include-tests")
+                                .help("Include test entities (default: implementation-only)")
+                                .action(clap::ArgAction::SetTrue),
+                        ),
                 ),
         )
 }
@@ -946,6 +987,46 @@ async fn run_cozodb_make_future_code_current(matches: &ArgMatches) -> Result<()>
     Ok(())
 }
 
+async fn run_pt07(matches: &ArgMatches) -> Result<()> {
+    use pt07_visual_analytics_terminal::visualizations::{
+        render_entity_count_bar_chart_visualization,
+        render_dependency_cycle_warning_list_visualization,
+    };
+
+    println!("{}", style("Running Tool 7: Visual Analytics").cyan());
+
+    match matches.subcommand() {
+        Some(("entity-count", sub_matches)) => {
+            let db = sub_matches.get_one::<String>("db").unwrap();
+            let include_tests = sub_matches.get_flag("include-tests");
+
+            println!("📊 Generating entity count visualization...");
+            let output = render_entity_count_bar_chart_visualization(db, include_tests).await?;
+            println!("{}", output);
+
+            Ok(())
+        }
+        Some(("cycles", sub_matches)) => {
+            let db = sub_matches.get_one::<String>("db").unwrap();
+            let include_tests = sub_matches.get_flag("include-tests");
+
+            println!("🔄 Detecting circular dependencies...");
+            let output = render_dependency_cycle_warning_list_visualization(db, include_tests).await?;
+            println!("{}", output);
+
+            Ok(())
+        }
+        _ => {
+            println!("Usage: parseltongue pt07 <SUBCOMMAND>");
+            println!();
+            println!("Subcommands:");
+            println!("  entity-count  - Entity count bar chart");
+            println!("  cycles        - Circular dependency detection");
+            Ok(())
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -953,15 +1034,16 @@ mod tests {
     #[test]
     fn test_cli_builds() {
         let cli = build_cli();
-        // Verify all subcommands are present (v0.8.5: PT02 progressive disclosure)
+        // Verify all subcommands are present (v0.9.2: Added PT07 visual analytics)
         let subcommands: Vec<&str> = cli.get_subcommands().map(|cmd| cmd.get_name()).collect();
         assert!(subcommands.contains(&"pt01-folder-to-cozodb-streamer"));
-        assert!(subcommands.contains(&"pt02-level00")); // NEW: Progressive disclosure
-        assert!(subcommands.contains(&"pt02-level01")); // NEW: Progressive disclosure
-        assert!(subcommands.contains(&"pt02-level02")); // NEW: Progressive disclosure
+        assert!(subcommands.contains(&"pt02-level00")); // Progressive disclosure
+        assert!(subcommands.contains(&"pt02-level01")); // Progressive disclosure
+        assert!(subcommands.contains(&"pt02-level02")); // Progressive disclosure
         assert!(subcommands.contains(&"pt03-llm-to-cozodb-writer"));
         assert!(subcommands.contains(&"pt04-syntax-preflight-validator"));
         assert!(subcommands.contains(&"pt05-llm-cozodb-to-diff-writer"));
         assert!(subcommands.contains(&"pt06-cozodb-make-future-code-current"));
+        assert!(subcommands.contains(&"pt07")); // NEW v0.9.2: Visual analytics
     }
 }

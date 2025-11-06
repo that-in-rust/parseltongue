@@ -24,6 +24,7 @@ pt03-llm-to-cozodb-writer = { path = "../pt03-llm-to-cozodb-writer" }
 pt04-syntax-preflight-validator = { path = "../pt04-syntax-preflight-validator" }
 pt05-llm-cozodb-to-diff-writer = { path = "../pt05-llm-cozodb-to-diff-writer" }
 pt06-cozodb-make-future-code-current = { path = "../pt06-cozodb-make-future-code-current" }
+pt07-visual-analytics-terminal = { path = "../pt07-visual-analytics-terminal" }
 
 # Core dependencies
 anyhow = { workspace = true }
