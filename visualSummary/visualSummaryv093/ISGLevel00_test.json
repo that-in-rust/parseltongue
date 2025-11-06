@@ -1,0 +1,9 @@
+{
+  "export_metadata": {
+    "level": 0,
+    "timestamp": "2025-11-06T07:46:37.443133+00:00",
+    "total_edges": 0,
+    "where_filter": "entity_class = 'TEST', entity_class = 'CODE'"
+  },
+  "edges": []
+}
