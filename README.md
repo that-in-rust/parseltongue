@@ -1,6 +1,6 @@
 # Parseltongue
 
-> **v0.10.0** - Now with automatic dual-format export: JSON for compatibility + TOON for 30-40% token savings!
+> **v0.9.0** - Now with automatic dual-format export: JSON for compatibility + TOON for 30-40% token savings!
 
 ```mermaid
 graph LR
@@ -937,7 +937,7 @@ parseltongue pt02-level00 --where-clause "edge_type = 'depends_on'" --output dep
 **What it does:** Exports dependency edges only (from_key, to_key, edge_type). Best for dependency analysis and graph visualization.
 
 **Arguments:**
-- `--where` - Datalog WHERE clause (MANDATORY, use `"ALL"` for everything)
+- `--where-clause` - Datalog WHERE clause (MANDATORY, use `"ALL"` for everything)
 - `--output` - Output JSON file path
 - `--db` - Database path [default: `parseltongue.db`]
 - `--verbose` - Show progress and token estimates
@@ -964,7 +964,7 @@ parseltongue pt02-level01 --include-code 1 --where-clause "ALL" --output entitie
 
 **Arguments (BOTH MANDATORY):**
 - `--include-code <0|1>` - 0=signatures only (~30K tokens), 1=with code (~500-700K tokens)
-- `--where` - Datalog WHERE clause (use `"ALL"` for everything)
+- `--where-clause` - Datalog WHERE clause (use `"ALL"` for everything)
 - `--output` - Output JSON file path
 - `--db` - Database path [default: `parseltongue.db`]
 - `--verbose` - Show progress and token estimates
@@ -991,7 +991,7 @@ parseltongue pt02-level02 --include-code 0 --where-clause "is_public = true" --o
 
 **Arguments (BOTH MANDATORY):**
 - `--include-code <0|1>` - 0=signatures only (~60K tokens), 1=with code (~500-700K tokens)
-- `--where` - Datalog WHERE clause
+- `--where-clause` - Datalog WHERE clause
 - `--output` - Output JSON file path
 - `--db` - Database path [default: `parseltongue.db`]
 - `--verbose` - Show progress and token estimates

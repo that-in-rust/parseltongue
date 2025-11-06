@@ -26,11 +26,12 @@
 
 use anyhow::Result;
 use clap::Parser;
-use parseltongue_core::entities::{CodeEntity, EntityType};
+use parseltongue_core::entities::CodeEntity;
 use pt07_visual_analytics_terminal::core::{
     filter_implementation_entities_only,
     filter_include_all_entity_types,
 };
+use pt07_visual_analytics_terminal::database::Pt07DbAdapter;
 use pt07_visual_analytics_terminal::save_visualization_output_to_file;
 use std::collections::HashMap;
 
@@ -58,9 +59,9 @@ async fn main() -> Result<()> {
         format!("--db {}", args.db)
     };
 
-    // TODO: Query entities from CozoDB
-    // For now, using stub data to demonstrate the visualization structure
-    let all_entities: Vec<CodeEntity> = vec![]; // Will be populated from CozoDB query
+    // Query entities from CozoDB using Pt07DbAdapter
+    let adapter = Pt07DbAdapter::connect_to_database_from_path(&args.db).await?;
+    let all_entities = adapter.query_all_entities_from_database().await?;
 
     // Apply filter based on --include-tests flag
     let filtered_entities = if args.include_tests {

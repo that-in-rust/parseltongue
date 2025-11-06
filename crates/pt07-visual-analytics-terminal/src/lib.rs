@@ -14,6 +14,8 @@ use std::fs;
 
 pub mod core;
 pub mod primitives;
+pub mod database;
+pub mod visualizations;
 
 /// Save visualization output to both stdout and timestamped txt file
 ///

@@ -1,0 +1,9 @@
+Command: pt07-render-entity-count-bar-chart --db rocksdb:parseltongue.db
+
+╔═══════════════════════════════════════════╗
+║     Entity Count by Type (Impl Only)      ║
+╠═══════════════════════════════════════════╣
+║  No entities found in database            ║
+╚═══════════════════════════════════════════╝
+
+Total Implementation Entities: 0

@@ -1,0 +1,8 @@
+[PT02-L0] Starting PT02 Level 0 export (Pure Edge List)
+[PT02-L0] Database: rocksdb:../../pt07-integration-test/parseltongue.db
+[PT02-L0] Output: "edges.json"
+[PT02-L0] WHERE filter: ALL
+[PT02-L0] Estimated tokens: ~5000
+PT02 Level 0 binary created successfully!
+TODO: Connect to CozoDB at rocksdb:../../pt07-integration-test/parseltongue.db
+TODO: Export edges to "edges.json"

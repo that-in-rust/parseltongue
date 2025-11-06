@@ -8,7 +8,7 @@
 //! - **Postcondition**: Returns only edges where BOTH from_key AND to_key are in impl_keys
 //! - **Error Conditions**: None (filtering is infallible)
 
-use parseltongue_core::entities::DependencyEdge;
+use pt02_llm_cozodb_to_context_writer::DependencyEdge;
 use std::collections::HashSet;
 
 /// Filter edges to only keep implementation-to-implementation dependencies
@@ -67,15 +67,14 @@ pub fn filter_include_all_edge_types(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use parseltongue_core::entities::{DependencyEdge, EdgeType};
+    use pt02_llm_cozodb_to_context_writer::DependencyEdge;
 
-    fn create_test_edge(from: &str, to: &str, edge_type: EdgeType) -> DependencyEdge {
-        DependencyEdge::new(
-            from,
-            to,
-            edge_type,
-            None,
-        ).unwrap()
+    fn create_test_edge(from: &str, to: &str, edge_type: &str) -> DependencyEdge {
+        DependencyEdge {
+            from_key: from.to_string(),
+            to_key: to.to_string(),
+            edge_type: edge_type.to_string(),
+        }
     }
 
     #[test]
@@ -88,10 +87,10 @@ mod tests {
 
         // Create edges (mix of impl-impl, test-test, impl-test)
         let edges = vec![
-            create_test_edge("rust:fn:prod_a", "rust:fn:prod_b", EdgeType::Calls),     // Keep
-            create_test_edge("rust:fn:test_a", "rust:fn:test_b", EdgeType::Calls),     // Filter
-            create_test_edge("rust:fn:prod_a", "rust:fn:test_a", EdgeType::Calls),     // Filter (impl->test)
-            create_test_edge("rust:fn:test_b", "rust:fn:prod_b", EdgeType::Calls),     // Filter (test->impl)
+            create_test_edge("rust:fn:prod_a", "rust:fn:prod_b", "calls"),     // Keep
+            create_test_edge("rust:fn:test_a", "rust:fn:test_b", "calls"),     // Filter
+            create_test_edge("rust:fn:prod_a", "rust:fn:test_a", "calls"),     // Filter (impl->test)
+            create_test_edge("rust:fn:test_b", "rust:fn:prod_b", "calls"),     // Filter (test->impl)
         ];
 
         // Act
@@ -99,8 +98,8 @@ mod tests {
 
         // Assert: Only 1 edge remains (impl-impl)
         assert_eq!(result.len(), 1);
-        assert_eq!(result[0].from_key.as_str(), "rust:fn:prod_a");
-        assert_eq!(result[0].to_key.as_str(), "rust:fn:prod_b");
+        assert_eq!(result[0].from_key, "rust:fn:prod_a");
+        assert_eq!(result[0].to_key, "rust:fn:prod_b");
     }
 
     #[test]
@@ -121,7 +120,7 @@ mod tests {
         // Arrange: Edges exist but no impl keys
         let impl_keys: HashSet<String> = HashSet::new();
         let edges = vec![
-            create_test_edge("rust:fn:a", "rust:fn:b", EdgeType::Calls),
+            create_test_edge("rust:fn:a", "rust:fn:b", "calls"),
         ];
 
         // Act: Should filter out all edges (no impl keys to match)
@@ -141,9 +140,9 @@ mod tests {
         ].iter().map(|s| s.to_string()).collect();
 
         let edges = vec![
-            create_test_edge("rust:fn:a", "rust:fn:b", EdgeType::Calls),
-            create_test_edge("rust:fn:b", "rust:fn:c", EdgeType::Uses),
-            create_test_edge("rust:fn:c", "rust:fn:a", EdgeType::Implements),
+            create_test_edge("rust:fn:a", "rust:fn:b", "calls"),
+            create_test_edge("rust:fn:b", "rust:fn:c", "uses"),
+            create_test_edge("rust:fn:c", "rust:fn:a", "implements"),
         ];
 
         // Act
@@ -151,9 +150,9 @@ mod tests {
 
         // Assert: All preserved with correct types
         assert_eq!(result.len(), 3);
-        assert_eq!(result[0].edge_type, EdgeType::Calls);
-        assert_eq!(result[1].edge_type, EdgeType::Uses);
-        assert_eq!(result[2].edge_type, EdgeType::Implements);
+        assert_eq!(result[0].edge_type, "calls");
+        assert_eq!(result[1].edge_type, "uses");
+        assert_eq!(result[2].edge_type, "implements");
     }
 
     #[test]
@@ -161,8 +160,8 @@ mod tests {
         // Arrange
         let all_keys: HashSet<String> = HashSet::new();  // Unused
         let edges = vec![
-            create_test_edge("rust:fn:test_a", "rust:fn:test_b", EdgeType::Calls),
-            create_test_edge("rust:fn:prod_a", "rust:fn:prod_b", EdgeType::Calls),
+            create_test_edge("rust:fn:test_a", "rust:fn:test_b", "calls"),
+            create_test_edge("rust:fn:prod_a", "rust:fn:prod_b", "calls"),
         ];
         let original_count = edges.len();
 
@@ -181,7 +180,7 @@ mod tests {
         ].iter().map(|s| s.to_string()).collect();
 
         let edges = vec![
-            create_test_edge("rust:fn:recursive", "rust:fn:recursive", EdgeType::Calls),
+            create_test_edge("rust:fn:recursive", "rust:fn:recursive", "calls"),
         ];
 
         // Act

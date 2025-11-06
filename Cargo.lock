@@ -2193,6 +2193,7 @@ dependencies = [
  "clap",
  "console",
  "parseltongue-core",
+ "pt02-llm-cozodb-to-context-writer",
  "tempfile",
  "tokio",
 ]

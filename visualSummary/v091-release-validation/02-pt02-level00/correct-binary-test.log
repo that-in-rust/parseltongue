@@ -1,0 +1,10 @@
+Running PT02 Level 0: Pure Edge List Export
+  Database: rocksdb:../../pt07-integration-test/parseltongue.db
+  WHERE clause: ALL
+  Output: edges.json
+  Estimated tokens: ~5000
+✓ PT02 Level 0 export completed
+  Output files: edges.json, edges_test.json
+  Edges exported: 4706
+  Token estimate: ~5000
+  Fields per edge: 3 (from_key, to_key, edge_type)

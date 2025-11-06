@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 parseltongue-core = { path = "../parseltongue-core" }
+pt02-llm-cozodb-to-context-writer = { path = "../pt02-llm-cozodb-to-context-writer" }
 clap = { workspace = true, features = ["derive"] }
 tokio = { workspace = true, features = ["full"] }
 anyhow = { workspace = true }

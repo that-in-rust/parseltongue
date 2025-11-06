@@ -1,78 +1,104 @@
-//! Visualization Binary 2: Dependency Cycle Warning List
+//! Visualization implementations
 //!
-//! Detects and renders warnings for circular dependencies in the codebase.
-//! By default, filters to implementation-only (Pareto principle).
-//!
-//! ## Usage
-//! ```bash
-//! pt07-render-dependency-cycle-warning-list --db parseltongue.db
-//! pt07-render-dependency-cycle-warning-list --db parseltongue.db --include-tests
-//! ```
-//!
-//! ## Output Example
-//! ```text
-//! ╔═══════════════════════════════════════════════╗
-//! ║    Circular Dependency Warnings (Impl Only)  ║
-//! ╠═══════════════════════════════════════════════╣
-//! ║ ⚠️  CYCLE DETECTED (length: 3)                ║
-//! ║    rust:fn:parse -> rust:fn:validate ->      ║
-//! ║    rust:fn:format -> rust:fn:parse           ║
-//! ╠═══════════════════════════════════════════════╣
-//! ║ ⚠️  CYCLE DETECTED (length: 2)                ║
-//! ║    rust:fn:read -> rust:fn:write ->          ║
-//! ║    rust:fn:read                               ║
-//! ╚═══════════════════════════════════════════════╝
-//!
-//! Total Cycles Found: 2
-//! ✅ Recommendation: Refactor to eliminate circular dependencies
-//! ```
+//! This module contains the core visualization logic extracted from binaries.
+//! All visualizations can be called directly from the unified pt07 binary.
 
 use anyhow::Result;
-use clap::Parser;
 use parseltongue_core::entities::CodeEntity;
 use pt02_llm_cozodb_to_context_writer::DependencyEdge;
-use pt07_visual_analytics_terminal::core::{
+use crate::core::{
     detect_cycles_in_dependency_graph,
     filter_implementation_edges_only,
     filter_implementation_entities_only,
     filter_include_all_edge_types,
     filter_include_all_entity_types,
 };
-use pt07_visual_analytics_terminal::database::Pt07DbAdapter;
-use pt07_visual_analytics_terminal::save_visualization_output_to_file;
-use std::collections::HashSet;
+use crate::database::Pt07DbAdapter;
+use std::collections::{HashMap, HashSet};
 
-#[derive(Parser, Debug)]
-#[command(name = "pt07-render-dependency-cycle-warning-list")]
-#[command(about = "Detect and render circular dependency warnings")]
-struct Args {
-    /// Path to CozoDB database file
-    #[arg(long)]
-    db: String,
-
-    /// Include test entities (default: implementation-only)
-    #[arg(long, default_value_t = false)]
+/// Render entity count bar chart visualization
+///
+/// Returns the visualization as a string for display/saving.
+pub async fn render_entity_count_bar_chart_visualization(
+    db_path: &str,
     include_tests: bool,
-}
+) -> Result<String> {
+    // Query entities from CozoDB
+    let adapter = Pt07DbAdapter::connect_to_database_from_path(db_path).await?;
+    let all_entities = adapter.query_all_entities_from_database().await?;
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    let args = Args::parse();
-
-    // Build command args string for auto-save
-    let command_args = if args.include_tests {
-        format!("--db {} --include-tests", args.db)
+    // Apply filter based on include_tests flag
+    let filtered_entities = if include_tests {
+        filter_include_all_entity_types(all_entities)
     } else {
-        format!("--db {}", args.db)
+        filter_implementation_entities_only(all_entities)
     };
 
-    // Query entities and edges from CozoDB using Pt07DbAdapter
-    let adapter = Pt07DbAdapter::connect_to_database_from_path(&args.db).await?;
+    // Count entities by type
+    let mut counts: HashMap<String, usize> = HashMap::new();
+    for entity in &filtered_entities {
+        let type_name = format!("{:?}", entity.interface_signature.entity_type);
+        *counts.entry(type_name).or_insert(0) += 1;
+    }
+
+    // Calculate total
+    let total: usize = counts.values().sum();
+
+    // Build visualization output
+    let title = if include_tests {
+        "Entity Count by Type (All)"
+    } else {
+        "Entity Count by Type (Impl Only)"
+    };
+
+    let mut output = String::new();
+    output.push_str("╔═══════════════════════════════════════════╗\n");
+    output.push_str(&format!("║ {:^41} ║\n", title));
+    output.push_str("╠═══════════════════════════════════════════╣\n");
+
+    if total == 0 {
+        output.push_str("║  No entities found in database            ║\n");
+    } else {
+        // Sort by count descending
+        let mut sorted_counts: Vec<_> = counts.iter().collect();
+        sorted_counts.sort_by(|a, b| b.1.cmp(a.1));
+
+        for (entity_type, count) in sorted_counts {
+            let percentage = (*count as f64 / total as f64 * 100.0) as usize;
+            let bar_length = (percentage as f64 / 100.0 * 14.0) as usize;
+            let filled = "█".repeat(bar_length);
+            let empty = "░".repeat(14 - bar_length);
+
+            output.push_str(&format!(
+                "║ {:10} [{}{}] {:3}  ({:2}%)  ║\n",
+                entity_type, filled, empty, count, percentage
+            ));
+        }
+    }
+
+    output.push_str("╚═══════════════════════════════════════════╝\n");
+    output.push_str(&format!("\nTotal {} Entities: {}\n",
+        if include_tests { "All" } else { "Implementation" },
+        total
+    ));
+
+    Ok(output)
+}
+
+/// Render dependency cycle warning list visualization
+///
+/// Returns the visualization as a string for display/saving.
+pub async fn render_dependency_cycle_warning_list_visualization(
+    db_path: &str,
+    include_tests: bool,
+) -> Result<String> {
+    // Query entities and edges from CozoDB
+    let adapter = Pt07DbAdapter::connect_to_database_from_path(db_path).await?;
     let all_entities = adapter.query_all_entities_from_database().await?;
     let all_edges = adapter.query_all_edges_from_database().await?;
 
-    // Apply filter based on --include-tests flag
-    let filtered_entities = if args.include_tests {
+    // Apply filter based on include_tests flag
+    let filtered_entities = if include_tests {
         filter_include_all_entity_types(all_entities)
     } else {
         filter_implementation_entities_only(all_entities)
@@ -85,7 +111,7 @@ async fn main() -> Result<()> {
         .collect();
 
     // Filter edges
-    let filtered_edges = if args.include_tests {
+    let filtered_edges = if include_tests {
         filter_include_all_edge_types(all_edges, &impl_keys)
     } else {
         filter_implementation_edges_only(all_edges, &impl_keys)
@@ -95,7 +121,7 @@ async fn main() -> Result<()> {
     let cycles = detect_cycles_in_dependency_graph(&filtered_edges);
 
     // Build visualization output
-    let title = if args.include_tests {
+    let title = if include_tests {
         "Circular Dependency Warnings (All)"
     } else {
         "Circular Dependency Warnings (Impl Only)"
@@ -155,12 +181,5 @@ async fn main() -> Result<()> {
         output.push_str("✅ Recommendation: Refactor to eliminate circular dependencies\n");
     }
 
-    // Auto-save to timestamped file and print to stdout
-    save_visualization_output_to_file(
-        "pt07-render-dependency-cycle-warning-list",
-        &command_args,
-        &output,
-    )?;
-
-    Ok(())
+    Ok(output)
 }

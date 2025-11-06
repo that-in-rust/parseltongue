@@ -1,79 +1,102 @@
-//! Wrapper Binary: pt07-visual-analytics-terminal
+//! Unified pt07 Binary: Visual Analytics Terminal
 //!
-//! Orchestrates all visualization binaries and runs them in sequence.
-//! This is the main entry point spawned by pt01 after code ingestion.
+//! Industry standard single-binary CLI with subcommands.
+//! Follows patterns from cargo, git, ripgrep.
 //!
 //! ## Usage
 //! ```bash
-//! pt07-visual-analytics-terminal --db parseltongue.db
-//! pt07-visual-analytics-terminal --db parseltongue.db --include-tests
-//! ```
+//! # Run all visualizations (default)
+//! pt07-visual-analytics-terminal --db code.db
 //!
-//! ## Configurable Defaults
-//! The DEFAULT_VISUALIZATIONS const defines which visualizations run.
-//! Add/remove/reorder visualizations by editing this array.
+//! # Run all with test entities
+//! pt07-visual-analytics-terminal --db code.db --include-tests
+//!
+//! # Run specific visualization
+//! pt07-visual-analytics-terminal --db code.db entity-count
+//! pt07-visual-analytics-terminal --db code.db cycles
+//! ```
 
-use anyhow::{Context, Result};
-use clap::Parser;
-use std::process::Stdio;
-use tokio::process::Command;
+use anyhow::Result;
+use clap::{Parser, Subcommand};
+use pt07_visual_analytics_terminal::save_visualization_output_to_file;
+use pt07_visual_analytics_terminal::visualizations::{
+    render_entity_count_bar_chart_visualization,
+    render_dependency_cycle_warning_list_visualization,
+};
 
 #[derive(Parser, Debug)]
 #[command(name = "pt07-visual-analytics-terminal")]
-#[command(about = "Run all visual analytics on CozoDB after code ingestion")]
-struct Args {
-    /// Path to CozoDB database file
+#[command(about = "Visual analytics for code graphs")]
+#[command(version)]
+struct Cli {
+    /// Path to CozoDB database
     #[arg(long)]
     db: String,
 
     /// Include test entities (default: implementation-only)
     #[arg(long, default_value_t = false)]
     include_tests: bool,
+
+    /// Specific visualization to run (default: all)
+    #[command(subcommand)]
+    command: Option<Commands>,
 }
 
-/// Configurable default visualizations
-///
-/// Each entry is the binary name (without path).
-/// Add/remove/reorder to customize which visualizations run by default.
-const DEFAULT_VISUALIZATIONS: &[&str] = &[
-    "pt07-render-entity-count-bar-chart",
-    "pt07-render-dependency-cycle-warning-list",
-];
+#[derive(Subcommand, Debug)]
+enum Commands {
+    /// Entity count bar chart
+    EntityCount,
+    /// Circular dependency warnings
+    Cycles,
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args = Args::parse();
+    let cli = Cli::parse();
 
-    eprintln!("🚀 Running Parseltongue Visual Analytics...\n");
+    // Build command args string for auto-save
+    let command_args = if cli.include_tests {
+        format!("--db {} --include-tests", cli.db)
+    } else {
+        format!("--db {}", cli.db)
+    };
 
-    // Build common arguments for all visualization binaries
-    let mut common_args = vec!["--db".to_string(), args.db.clone()];
-    if args.include_tests {
-        common_args.push("--include-tests".to_string());
+    // Determine which visualizations to run
+    let run_all = cli.command.is_none();
+
+    // Run entity count visualization
+    if run_all || matches!(cli.command, Some(Commands::EntityCount)) {
+        eprintln!("📊 Running entity count visualization...");
+
+        let output = render_entity_count_bar_chart_visualization(
+            &cli.db,
+            cli.include_tests
+        ).await?;
+
+        save_visualization_output_to_file(
+            "pt07-entity-count",
+            &command_args,
+            &output,
+        )?;
     }
 
-    // Run each visualization in sequence
-    for (idx, viz_name) in DEFAULT_VISUALIZATIONS.iter().enumerate() {
-        eprintln!("[{}/{}] Running {}...", idx + 1, DEFAULT_VISUALIZATIONS.len(), viz_name);
+    // Run cycle detection visualization
+    if run_all || matches!(cli.command, Some(Commands::Cycles)) {
+        eprintln!("🔄 Running cycle detection visualization...");
 
-        // Spawn visualization binary
-        let output = Command::new(viz_name)
-            .args(&common_args)
-            .stdout(Stdio::inherit())  // Inherit stdout to show visualization
-            .stderr(Stdio::inherit())  // Inherit stderr to show save confirmations
-            .output()
-            .await
-            .context(format!("Failed to execute {}", viz_name))?;
+        let output = render_dependency_cycle_warning_list_visualization(
+            &cli.db,
+            cli.include_tests
+        ).await?;
 
-        if !output.status.success() {
-            eprintln!("⚠️  Warning: {} exited with status {}", viz_name, output.status);
-        }
-
-        eprintln!(); // Blank line between visualizations
+        save_visualization_output_to_file(
+            "pt07-cycles",
+            &command_args,
+            &output,
+        )?;
     }
 
-    eprintln!("✅ All visualizations complete!");
-    eprintln!("📊 Check timestamped .txt files in current directory for results.");
+    eprintln!("\n✅ Visualization complete!");
 
     Ok(())
 }
