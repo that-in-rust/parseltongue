@@ -57,6 +57,8 @@ pub struct FileResult {
 pub struct StreamStats {
     pub files_processed: usize,
     pub entities_created: usize,
+    pub code_entities_created: usize,  // v0.9.3: Track CODE entities separately
+    pub test_entities_created: usize,  // v0.9.3: Track TEST entities separately
     pub errors_encountered: usize,
 }
 
@@ -389,11 +391,13 @@ impl FileStreamerImpl {
         Ok(content)
     }
 
-    /// Update streaming statistics
-    fn update_stats(&self, entities_created: usize, had_error: bool) {
+    /// Update streaming statistics (v0.9.3: track CODE/TEST separately)
+    fn update_stats(&self, entities_created: usize, code_count: usize, test_count: usize, had_error: bool) {
         if let Ok(mut stats) = self.stats.lock() {
             stats.files_processed += 1;
             stats.entities_created += entities_created;
+            stats.code_entities_created += code_count;
+            stats.test_entities_created += test_count;
             if had_error {
                 stats.errors_encountered += 1;
             }
@@ -445,7 +449,7 @@ impl FileStreamer for FileStreamerImpl {
                         let error_msg = format!("{}: {}", path.display(), e);
                         errors.push(error_msg.clone());
                         pb.println(format!("{} {}", style("⚠").yellow().for_stderr(), error_msg));
-                        self.update_stats(0, true);
+                        self.update_stats(0, 0, 0, true);  // v0.9.3: No entities created on error
                     }
                 }
             }
@@ -455,11 +459,16 @@ impl FileStreamer for FileStreamerImpl {
 
         let duration = start_time.elapsed();
 
+        // Get final stats for CODE/TEST breakdown
+        let final_stats = self.get_stats();
+
         // Print summary
         println!("\n{}", style("Streaming Summary:").green().bold());
         println!("Total files found: {}", total_files);
         println!("Files processed: {}", processed_files);
         println!("Entities created: {}", entities_created);
+        println!("  └─ CODE entities: {}", style(final_stats.code_entities_created).cyan());
+        println!("  └─ TEST entities: {}", style(final_stats.test_entities_created).yellow());
         println!("Errors encountered: {}", errors.len());
         println!("Duration: {:?}", duration);
 
@@ -482,6 +491,8 @@ impl FileStreamer for FileStreamerImpl {
         let (parsed_entities, dependencies) = self.key_generator.parse_source(&content, file_path)?;
 
         let mut entities_created = 0;
+        let mut code_count = 0;  // v0.9.3: Track CODE entities
+        let mut test_count = 0;  // v0.9.3: Track TEST entities
         let mut errors: Vec<String> = Vec::new();
 
         // Process each parsed entity
@@ -500,10 +511,18 @@ impl FileStreamer for FileStreamerImpl {
                         code_entity.lsp_metadata = Some(metadata);
                     }
 
+                    // v0.9.3: Track entity_class for stats
+                    let entity_class = code_entity.entity_class;
+
                     // Store in real database
                     match self.db.insert_entity(&code_entity).await {
                         Ok(_) => {
                             entities_created += 1;
+                            // v0.9.3: Increment CODE or TEST counter based on entity_class
+                            match entity_class {
+                                parseltongue_core::EntityClass::CodeImplementation => code_count += 1,
+                                parseltongue_core::EntityClass::TestImplementation => test_count += 1,
+                            }
                         }
                         Err(e) => {
                             let error_msg = format!("Failed to insert entity {}: {}", isgl1_key, e);
@@ -541,7 +560,7 @@ impl FileStreamer for FileStreamerImpl {
             }
         }
 
-        self.update_stats(entities_created, !errors.is_empty());
+        self.update_stats(entities_created, code_count, test_count, !errors.is_empty());
 
         Ok(FileResult {
             file_path: file_path_str,

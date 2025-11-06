@@ -1086,10 +1086,16 @@ impl CozoDbStorage {
             ),
         );
 
-        // v0.9.0: Add entity_class parameter
+        // v0.9.3 FIX: Use actual entity_class from entity (was hardcoded to "CODE")
         params.insert(
             "entity_class".to_string(),
-            DataValue::Str("CODE".into()), // Default to CODE, will be updated by test detection
+            DataValue::Str(
+                match entity.entity_class {
+                    EntityClass::TestImplementation => "TEST",
+                    EntityClass::CodeImplementation => "CODE",
+                }
+                .into(),
+            ),
         );
 
         Ok(params)
