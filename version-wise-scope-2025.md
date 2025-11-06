@@ -294,26 +294,43 @@
 
 ## v0.9.8 - Triple Export System for Clusters (PLANNED)
 
-### ONE FEATURE: Export clusters in CozoDB + JSON + TOON formats
+### ONE FEATURE: Export clusters in CozoDB + JSON + TOON formats with timestamped folders
 
-**Goal:** Export PT08 clusters using all three formats with timestamps.
+**Goal:** Export PT08 clusters using all three formats in standardized timestamped subfolders.
 
 #### Feature Scope ✅ ONE COMPLETE FEATURE
 - ⏳ CozoDB format (native storage)
 - ⏳ JSON format (structured data)
 - ⏳ TOON format (token-optimized)
-- ⏳ Timestamped export folders: `cluster_export_<timestamp>/`
-- ⏳ PT02 integration: `--export-clusters` flag
+- ⏳ **Standardized folder naming**: `parseltongueYYYYMMDDHHMMSS/`
+  - Example: `parseltongue20251106143022/` (Nov 6, 2025, 14:30:22)
+  - All exports go into timestamped subfolder
+  - Applies to: cluster exports, entity exports, edge exports
+- ⏳ PT02 integration: Update existing exports to use new folder pattern
+- ⏳ Backward compatibility: Old exports still readable
+
+#### Implementation Details
+**Folder Structure:**
+```
+parseltongue20251106143022/
+├── clusters.cozodb
+├── clusters.json
+├── clusters.toon
+├── entities.json
+├── entities.toon
+└── export_metadata.json
+```
 
 #### END TO END Criteria ✅
 - ✅ All three formats work
-- ✅ Timestamped folders created
-- ✅ All tests passing
-- ✅ Documentation complete
+- ✅ Timestamped folders created with `parseltongueYYYYMMDDHHMMSS/` pattern
+- ✅ PT02 exports use new folder structure
+- ✅ All tests passing (folder creation, naming, contents)
+- ✅ Documentation complete (README shows folder pattern)
 - ✅ Zero stubs
 
 **Estimated Effort:** 2-3 days
-**Priority:** HIGH (completes export workflow)
+**Priority:** HIGH (completes export workflow + standardizes output)
 
 ---
 
