@@ -1,6 +1,6 @@
 # Version-Wise Scope 2025
 
-## v0.9.1 - TOON & Basic Analytics
+## v0.9.0 - TOON & Basic Analytics (RELEASED 2025-11-06)
 
 ### 1. TOON (Token-Optimized Object Notation)
 
@@ -75,20 +75,32 @@
   - ⏳ Add `--visualize` flag to pt01
   - ⏳ Auto-spawn pt07 after successful ingestion
 
-#### Status: **Foundation Complete (60%)** - CozoDB Integration Next
+#### Status: **100% Complete** ✅
+
+**PT07 Completed**:
+- ✅ Database query integration (Pt07DbAdapter wrapper)
+- ✅ Cycle detection algorithm (DFS O(V+E))
+- ✅ Unified binary with subcommands (entity-count, cycles)
+- ✅ 44 tests passing (31 unit + 8 integration + 5 doc)
+- ✅ Real data validation (1505 entities from parseltongue codebase)
+- ✅ TDD state documented
+
+**Stub Binaries Deleted**:
+- ✅ Removed pt02-level00/01/02 standalone binaries (confusion source)
+- ✅ Single `parseltongue` binary architecture enforced
 
 ---
 
 ## Summary
 
-| Feature (4-Word Convention) | Progress | Status |
-|-----------------------------|----------|--------|
+| Feature | Progress | Status |
+|---------|----------|--------|
 | **TOON Dual Format Export** | 100% | ✅ Complete |
-| **pt07 Core Infrastructure Built** | 60% | ✅ Complete |
-| **pt07 Database Query Integration** | 0% | ⏳ Next Sprint |
-| **pt07 Production Testing Complete** | 0% | ⏳ Pending |
+| **pt07 Visual Analytics** | 100% | ✅ Complete |
+| **Stub Binary Cleanup** | 100% | ✅ Complete |
+| **v0.9.0 Validation** | 100% | ✅ Complete |
 
-**Overall v0.9.1 Progress: ~80%**
+**Overall v0.9.0 Progress: 100%** ✅ RELEASED 2025-11-06
 
 ---
 
