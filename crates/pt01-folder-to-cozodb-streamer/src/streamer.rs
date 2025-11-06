@@ -14,7 +14,7 @@ use parseltongue_core::storage::CozoDbStorage;
 use crate::errors::*;
 use crate::isgl1_generator::*;
 use crate::lsp_client::*;
-use crate::test_detector::{TestDetector, DefaultTestDetector, EntityClass};
+use crate::test_detector::{TestDetector, EntityClass};
 use crate::StreamerConfig;
 
 // Import LSP metadata types from parseltongue-core

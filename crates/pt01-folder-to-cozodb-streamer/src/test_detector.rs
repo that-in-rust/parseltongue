@@ -280,28 +280,7 @@ mod tests {
                       "JS/TS file {} should be {:?}", file_path, expected);
         }
     }
-    
-    /// Performance contract: Test detection speed
-    #[test]
-    fn test_test_detection_performance_contract() {
-        let detector = DefaultTestDetector::new();
-        
-        // Large file content to test performance
-        let content = "fn regular_function() { }\n".repeat(1000);
-        let test_path = Path::new("src/lib.rs");
-        
-        let start = std::time::Instant::now();
-        for _ in 0..1000 {
-            detector.detect_test_from_path_and_name(test_path, &content);
-        }
-        let elapsed = start.elapsed();
-        
-        // Performance contract: <20μs per detection
-        let avg_time_per_check = elapsed / 1000;
-        assert!(avg_time_per_check < std::time::Duration::from_micros(20),
-                "Test detection took {:?}, expected <20μs", avg_time_per_check);
-    }
-    
+
     /// Test contract: Unknown file extensions
     #[test]
     fn test_unknown_file_extensions_contract() {

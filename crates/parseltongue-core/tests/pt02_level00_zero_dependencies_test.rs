@@ -99,7 +99,7 @@ async fn test_pt02_level00_with_zero_dependencies_should_succeed() {
 
     let isgl1_key = format!("rust:fn:standalone:{}:3-5", test_file.file_name().unwrap().to_str().unwrap().replace('.', "_"));
 
-    let mut entity1 = CodeEntity::new(isgl1_key, signature).unwrap();
+    let mut entity1 = CodeEntity::new(isgl1_key, signature, EntityClass::CodeImplementation).unwrap();
     entity1.current_code = Some("pub fn standalone() -> i32 {\n    42\n}".to_string());
     entity1.tdd_classification.entity_class = EntityClass::CodeImplementation;
 

@@ -606,8 +606,7 @@ async fn run_llm_to_cozodb_writer(matches: &ArgMatches) -> Result<()> {
 }
 
 async fn run_pt02_level00(matches: &ArgMatches) -> Result<()> {
-    use pt02_llm_cozodb_to_context_writer::{CozoDbAdapter, Level0Exporter, LevelExporter, ExportConfig};
-    use std::path::PathBuf;
+    use pt02_llm_cozodb_to_context_writer::{CozoDbAdapter, Level0Exporter, LevelExporter};
 
     let where_clause = matches.get_one::<String>("where-clause").unwrap();
     let output = matches.get_one::<String>("output").unwrap();
@@ -666,8 +665,7 @@ async fn run_pt02_level00(matches: &ArgMatches) -> Result<()> {
 }
 
 async fn run_pt02_level01(matches: &ArgMatches) -> Result<()> {
-    use pt02_llm_cozodb_to_context_writer::{CozoDbAdapter, Level1Exporter, LevelExporter, ExportConfig};
-    use std::path::PathBuf;
+    use pt02_llm_cozodb_to_context_writer::{CozoDbAdapter, Level1Exporter, LevelExporter};
 
     let include_code = matches.get_one::<String>("include-code").unwrap();
     let where_clause = matches.get_one::<String>("where-clause").unwrap();
@@ -732,8 +730,7 @@ async fn run_pt02_level01(matches: &ArgMatches) -> Result<()> {
 }
 
 async fn run_pt02_level02(matches: &ArgMatches) -> Result<()> {
-    use pt02_llm_cozodb_to_context_writer::{CozoDbAdapter, Level2Exporter, LevelExporter, ExportConfig};
-    use std::path::PathBuf;
+    use pt02_llm_cozodb_to_context_writer::{CozoDbAdapter, Level2Exporter, LevelExporter};
 
     let include_code = matches.get_one::<String>("include-code").unwrap();
     let where_clause = matches.get_one::<String>("where-clause").unwrap();

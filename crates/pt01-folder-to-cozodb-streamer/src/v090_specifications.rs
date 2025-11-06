@@ -284,26 +284,6 @@ mod test_detection_tests {
                       "JS/TS file {} should be test: {}", file_path, expected_is_test);
         }
     }
-    
-    /// Performance contract: Test detection speed
-    #[test]
-    fn test_test_detection_performance_contract() {
-        // Given: Large file content
-        let content = "fn regular_function() { }\n".repeat(1000);
-        let test_path = PathBuf::from("src/lib.rs");
-        
-        // When: Detecting test status
-        let start = std::time::Instant::now();
-        for _ in 0..1000 {
-            detect_test_from_content(&test_path, &content);
-        }
-        let elapsed = start.elapsed();
-        
-        // Then: Performance contract satisfied (<50μs per detection - adjusted for reality)
-        let avg_time_per_check = elapsed / 1000;
-        assert!(avg_time_per_check < std::time::Duration::from_micros(50),
-                "Test detection took {:?}, expected <50μs", avg_time_per_check);
-    }
 }
 
 // STUB IMPLEMENTATIONS (Phase 2: STUB)

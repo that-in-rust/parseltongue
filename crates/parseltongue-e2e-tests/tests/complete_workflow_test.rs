@@ -14,7 +14,7 @@
 
 use anyhow::Result;
 use parseltongue_core::{
-    entities::{CodeEntity, EntityType, TemporalAction, TemporalState, Visibility},
+    entities::{CodeEntity, EntityClass, EntityType, TemporalAction, TemporalState, Visibility},
     storage::CozoDbStorage,
     interfaces::CodeGraphRepository,
 };
@@ -272,7 +272,7 @@ fn create_indexed_entity_from_project(project: &TempDir) -> Result<CodeEntity> {
 
     let current_code = std::fs::read_to_string(project.path().join("src/lib.rs"))?;
 
-    let mut entity = CodeEntity::new("src-lib-rs-add".to_string(), signature)?;
+    let mut entity = CodeEntity::new("src-lib-rs-add".to_string(), signature, EntityClass::CodeImplementation)?;
     entity.current_code = Some(current_code);
     entity.future_code = Some("".to_string());  // Will be filled by Tool 2
     entity.temporal_state = TemporalState::unchanged();
@@ -356,7 +356,7 @@ fn create_simple_test_entity(key: &str) -> CodeEntity {
         }),
     };
 
-    let mut entity = CodeEntity::new(key.to_string(), signature).unwrap();
+    let mut entity = CodeEntity::new(key.to_string(), signature, EntityClass::TestImplementation).unwrap();
     entity.current_code = Some("fn test() {}".to_string());
     entity.future_code = Some("".to_string());
     entity.temporal_state = TemporalState::unchanged();

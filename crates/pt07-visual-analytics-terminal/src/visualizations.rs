@@ -4,8 +4,6 @@
 //! All visualizations can be called directly from the unified pt07 binary.
 
 use anyhow::Result;
-use parseltongue_core::entities::CodeEntity;
-use pt02_llm_cozodb_to_context_writer::DependencyEdge;
 use crate::core::{
     detect_cycles_in_dependency_graph,
     filter_implementation_edges_only,

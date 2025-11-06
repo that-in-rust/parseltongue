@@ -420,6 +420,7 @@ fn create_test_entity(
             critical_path: false,
             change_risk: RiskLevel::Low,
         },
+        entity_class: EntityClass::CodeImplementation,
         lsp_metadata: None,
         temporal_state,
         metadata: EntityMetadata::new().unwrap(),

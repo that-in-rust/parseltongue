@@ -28,6 +28,8 @@
 
 #### Status: **100% Complete** ✅
 
+**Overall v0.9.2 Status: ✅ RELEASED 2025-11-06**
+
 ---
 
 ### 2. Basic Analytics (pt07-visual-analytics-terminal)
@@ -104,12 +106,205 @@
 
 ---
 
+## v0.9.3 - Critical Bug Fix: Entity Classification (RELEASED 2025-11-06)
 
-# 
+### Goal: Fix hardcoded entity_class bug preventing CODE/TEST filtering
+
+#### Completed ✅
+- ✅ Critical bug fixed: `entity_class` was hardcoded to `"CODE"` in `cozo_client.rs:1094`
+- ✅ Pattern match on `entity.entity_class` (TEST vs CODE) now working
+- ✅ CODE/TEST breakdown added to pt01 ingestion output
+- ✅ Version bumped to 0.9.3
+- ✅ Release documentation added
+
+**Impact of Bug Fix:**
+- Before: All 1,494 entities misclassified as CODE
+- After: Proper CODE/TEST classification enables token savings via filtering
+- Query now works: `--where-clause "entity_class = 'TEST'"`
+
+#### Status: 🚨 **PARTIALLY BROKEN**
+
+**Critical Issue:**
+- ❌ 3 test files FAIL compilation (7 call sites need updating)
+- ❌ API change: Added mandatory `entity_class: EntityClass` parameter to `CodeEntity::new()`
+- ❌ Old test code uses 2-argument signature, needs 3 arguments
+
+**Affected Files:**
+1. `crates/parseltongue-core/tests/tool2_temporal_operations.rs` (lines 41, 184, 289)
+2. `crates/parseltongue-core/tests/end_to_end_workflow.rs` (lines 179, 367)
+3. `crates/parseltongue-core/tests/pt02_level00_zero_dependencies_test.rs` (line 102)
+4. `crates/parseltongue-core/tests/cozo_storage_integration_tests.rs` (line 33)
+
+**Current State:**
+- ✅ `cargo build --release` succeeds (6 warnings)
+- ❌ `cargo test --package parseltongue-core` fails
+- ✅ Binary works for production use
+- ❌ Test suite broken (regression risk)
+
+**Blocker for Production:** Tests must pass before v0.9.4 release
+
+---
+
+## v0.9.4 - Test Suite Fix + Warning Cleanup (PLANNED)
+
+### Goal: Restore working state after v0.9.3 API change
+
+#### Tasks ⏳
+- ⏳ Fix 7 `CodeEntity::new()` calls to use 3-argument signature
+  - Add `EntityClass::CodeImplementation` as third parameter
+  - Files: `tool2_temporal_operations.rs`, `end_to_end_workflow.rs`, `pt02_level00_zero_dependencies_test.rs`, `cozo_storage_integration_tests.rs`
+- ⏳ Remove 6 unused imports in `parseltongue/src/main.rs`
+- ⏳ Mark or remove 4 unused stub functions in `pt01/src/v090_specifications.rs`
+- ⏳ Verify end-to-end workflow works
+- ⏳ Run full test suite: `cargo test --all`
+- ⏳ Validate entity classification query: `--where-clause "entity_class = 'TEST'"`
+
+#### Acceptance Criteria
+- ✅ `cargo test --all` passes (0 failures)
+- ✅ `cargo build --release` passes (0 warnings)
+- ✅ Entity classification filtering works correctly
+- ✅ All integration tests pass
+
+**Estimated Effort:** 1-2 hours
+**Priority:** CRITICAL (blocks further development)
+
+---
+
+## v0.10.0 - Multi-Language Test Detection + LSP MVP (PLANNED 2025-11)
+
+### Goal: Technical debt reduction and quality improvements
+
+#### Features ⏳
+1. **Multi-Language Test Detection** (3-4 days)
+   - ⏳ Implement `detect_test_from_content()` for Python, JavaScript, Go, Java
+   - ⏳ Test patterns per language:
+     - Python: `import unittest`, `import pytest`, `def test_`
+     - JavaScript: `describe(`, `it(`, `test(`, `*.test.js`
+     - Go: `func Test`, `_test.go`
+     - Java: `@Test`, `*Test.java`
+   - ⏳ Integration tests with multi-language fixtures
+   - ⏳ Update pt01 to call test detection logic
+
+2. **LSP Integration MVP** (5-7 days)
+   - ⏳ Implement LSP client process spawning (rust-analyzer first)
+   - ⏳ Implement hover requests for type information
+   - ⏳ Store LSP metadata in entities (type info, docs)
+   - ⏳ Test with parseltongue codebase itself
+   - ⏳ Graceful degradation when LSP unavailable
+
+3. **Advanced Glob Pattern Matching** (2 days)
+   - ⏳ Use `globset` crate for proper glob support
+   - ⏳ Support `**` recursive wildcards
+   - ⏳ Support `{a,b}` alternatives
+   - ⏳ Integration tests for complex patterns
+
+4. **Documentation Audit** (2-3 days)
+   - ⏳ Add README.md to each crate explaining purpose
+   - ⏳ Document PT02 progressive disclosure strategy
+   - ⏳ Add `examples/` directory with real-world workflows
+   - ⏳ Update main README.md with v0.9.3 features
+
+#### Acceptance Criteria
+- ✅ Non-Rust tests properly classified as TEST entities
+- ✅ LSP hover requests working for at least Rust
+- ✅ Complex glob patterns work (e.g., `src/**/*.{rs,toml}`)
+- ✅ All 9 crates have README.md files
+- ✅ Examples directory with 3+ real-world workflows
+
+**Estimated Effort:** 2-3 weeks
+**Priority:** HIGH (enables real-world multi-language use)
+
+---
+
+## v0.11.0 - Tool Pipeline Expansion (PLANNED 2025-12)
+
+### Goal: Expand functionality of PT04-PT07 tools
+
+#### Features ⏳
+1. **PT04 Enhancement - Full Validation Pipeline**
+   - ⏳ Type checking via LSP or `cargo check`
+   - ⏳ Test execution validation
+   - ⏳ Linting integration (clippy, eslint)
+   - ⏳ 3-level validation hierarchy
+
+2. **PT07 Analytics Expansion**
+   - ⏳ Complexity metrics visualization (cyclomatic complexity)
+   - ⏳ Dependency graph visualization (Mermaid export)
+   - ⏳ Public API surface analysis
+   - ⏳ Test coverage heatmap
+
+3. **Temporal Workflow Polish**
+   - ⏳ Batch operations (multiple entities)
+   - ⏳ Conflict detection (concurrent edits)
+   - ⏳ Preview mode (show what will change)
+   - ⏳ PT06: Rollback capability (snapshot before reset)
+
+4. **Performance Optimization**
+   - ⏳ PT01: Parallel file processing
+   - ⏳ PT02: Streaming export for large codebases (>10K entities)
+   - ⏳ CozoDB: Query optimization (add indices)
+   - ⏳ Benchmark suite with large repos
+
+**Estimated Effort:** 4-6 weeks
+**Priority:** MEDIUM (improves user experience)
+
+---
+
+# Summary - Active Versions
+
+| Version | Status | Release Date | Progress |
+|---------|--------|--------------|----------|
+| **v0.9.2** | ✅ Complete | 2025-11-06 | 100% |
+| **v0.9.3** | 🚨 Partially Broken | 2025-11-06 | 90% (tests fail) |
+| **v0.9.4** | ⏳ Planned | TBD | 0% |
+| **v0.10.0** | ⏳ Planned | 2025-11 | 0% |
+| **v0.11.0** | ⏳ Planned | 2025-12 | 0% |
+
+---
 
 # Backlog 2025
 
+## High Priority (Blocking Real-World Use)
+- [ ] **PT04 Full Validation Pipeline** - Type checking + test execution + linting
+- [ ] **PT07 Analytics Expansion** - Complexity metrics, dependency graphs, API surface analysis
+- [ ] **Temporal Workflow Polish** - Batch operations, preview mode, rollback capability
+- [ ] **Performance Optimization** - Parallel processing, streaming export, query indices
+- [ ] **Query Language Accessibility** - Builder UI, examples library, autocomplete
+- [ ] **Error Message Improvement** - Actionable recovery steps, troubleshooting guide
+
+## Medium Priority (Nice-to-Have)
+- [ ] **Large Codebase Testing** - Validate with 100K+ entity repos (e.g., Linux kernel)
+- [ ] **Kotlin Language Support** - Fix ABI incompatibility with tree-sitter-kotlin
+- [ ] **Additional Export Formats** - Protobuf, Parquet, GraphML/GEXF
+- [ ] **Progressive Disclosure Documentation** - Tutorial, decision tree, when to use Level 0/1/2
+
+## Low Priority (Future Enhancement)
+- [ ] **Natural Language Query Translation** - Plain English → Datalog WHERE clauses
+- [ ] **Color-Coded PT07 Visualizations** - Interactive terminal UI with color
+- [ ] **API Boundary Definition** - Clear public/private separation in crates
+- [ ] **Property-Based Testing** - Roundtrip invariants for serializers
+
+---
+
 # Backlog 2026
 
-*Last Updated: 2025-11-06*
-*Branch: main (361ea98)*
+## Ecosystem Integration
+- [ ] **Git Integration** - Temporal state per commit/branch
+- [ ] **Editor Plugins** - VSCode extension for PT07 visualizations
+- [ ] **CI/CD Templates** - GitHub Actions workflow templates
+- [ ] **LLM Integration** - Claude/GPT-4 prompt templates for code analysis
+
+## Language Expansion
+- [ ] **Additional Tree-sitter Parsers** - Elixir, Haskell, OCaml
+- [ ] **Language-Specific Refactoring Rules** - Per-language code transformation patterns
+
+## Advanced Features
+- [ ] **GraphQL-Style Query Language** - Alternative to Datalog for easier queries
+- [ ] **Query Builder UI** - TUI or web interface for building queries
+- [ ] **Real-Time Monitoring** - Watch mode for continuous ingestion
+
+---
+
+*Last Updated: 2025-11-06 (post-ultrathink analysis)*
+*Branch: main*
+*Current Version: v0.9.3 (tests broken - awaiting v0.9.4 fix)*

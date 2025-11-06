@@ -195,11 +195,11 @@ impl LevelExporter for Level1Exporter {
 
         // 3. Count entities for metadata
         let total_entities = entities.len();
-        let code_entities_count = code_level1_entities.len();
-        let test_entities_count = test_level1_entities.len();
+        let _code_entities_count = code_level1_entities.len();
+        let _test_entities_count = test_level1_entities.len();
 
         // v0.9.0: Generate dual outputs based on ExportConfig
-        let outputs = if config.code_output_path.is_some() || config.tests_output_path.is_some() {
+        let _outputs = if config.code_output_path.is_some() || config.tests_output_path.is_some() {
             // Dual output mode: separate files for code and tests
             let mut outputs = std::collections::HashMap::new();
             

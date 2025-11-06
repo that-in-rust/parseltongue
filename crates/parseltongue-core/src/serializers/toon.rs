@@ -31,7 +31,6 @@
 use anyhow::{Context, Result};
 use serde::Serialize;
 use serde_json::Value;
-use std::collections::BTreeMap;
 
 /// TOON delimiter options
 ///

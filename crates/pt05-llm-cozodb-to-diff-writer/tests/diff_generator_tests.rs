@@ -254,6 +254,7 @@ fn create_test_entity(isgl1_key: &str, future_code: Option<&str>, action: Tempor
             critical_path: false,
             change_risk: RiskLevel::Low,
         },
+        entity_class: EntityClass::CodeImplementation,
         lsp_metadata: None,
         temporal_state: match action {
             TemporalAction::Create => TemporalState::create(),

@@ -100,21 +100,21 @@ impl SimpleUpdateConfig {
         let (current_ind, future_ind, action_str) = self.action.to_temporal_state();
         let future_code_value = self.escape_future_code();
 
-        // Generate Datalog matching actual CodeGraph schema (13 fields)
+        // Generate Datalog matching actual CodeGraph schema (14 fields - includes entity_class)
         // Note: ISGL1_key => indicates primary key in :put syntax
         format!(
             r#"?[ISGL1_key, Current_Code, Future_Code, interface_signature, TDD_Classification,
               lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
-              last_modified, entity_type] <-
+              last_modified, entity_type, entity_class] <-
             [["{}", null, {}, "", "",
               null, {}, {}, "{}", "",
-              "", "", ""]]
+              "", "", "", "CODE"]]
 
             :put CodeGraph {{
                 ISGL1_key =>
                 Current_Code, Future_Code, interface_signature, TDD_Classification,
                 lsp_meta_data, current_ind, future_ind, Future_Action, file_path, language,
-                last_modified, entity_type
+                last_modified, entity_type, entity_class
             }}"#,
             self.entity_key, future_code_value, current_ind, future_ind, action_str
         )

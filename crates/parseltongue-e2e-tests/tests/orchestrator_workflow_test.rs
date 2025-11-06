@@ -21,7 +21,7 @@
 
 use anyhow::Result;
 use parseltongue_core::{
-    entities::{CodeEntity, EntityType, TemporalAction, TemporalState, Visibility},
+    entities::{CodeEntity, EntityClass, EntityType, TemporalAction, TemporalState, Visibility},
     storage::CozoDbStorage,
     interfaces::CodeGraphRepository,
 };
@@ -280,7 +280,7 @@ async fn simulate_tool1_indexing(
     };
 
     let current_code = std::fs::read_to_string(project_path.join("src/lib.rs"))?;
-    let mut add_entity = CodeEntity::new("src-lib-rs-add".to_string(), add_signature)?;
+    let mut add_entity = CodeEntity::new("src-lib-rs-add".to_string(), add_signature, EntityClass::CodeImplementation)?;
     add_entity.current_code = Some(current_code.clone());
     add_entity.future_code = Some("".to_string());
     add_entity.temporal_state = TemporalState::unchanged();
@@ -306,7 +306,7 @@ async fn simulate_tool1_indexing(
         }),
     };
 
-    let mut test_entity = CodeEntity::new("src-lib-rs-tests".to_string(), test_signature)?;
+    let mut test_entity = CodeEntity::new("src-lib-rs-tests".to_string(), test_signature, EntityClass::TestImplementation)?;
     test_entity.current_code = Some(current_code);
     test_entity.future_code = Some("".to_string());
     test_entity.temporal_state = TemporalState::unchanged();

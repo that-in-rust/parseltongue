@@ -75,6 +75,7 @@ async fn demo_5_line_code_change() {
             critical_path: false,
             change_risk: RiskLevel::Low,
         },
+        entity_class: EntityClass::CodeImplementation,
         lsp_metadata: None,
         temporal_state: TemporalState::edit(),
         metadata: EntityMetadata::new().unwrap(),

@@ -1,2 +1,2 @@
-entities[1\t]{current_ind,doc_comment,entity_class,entity_name,entity_type,file_path,forward_deps,future_ind,interface_signature,isgl1_key,line_number}:
-  1	Test function	CODE	test	fn	src/lib.rs	["rust:fn:helper:src_lib_rs:20"]	0	pub fn test()	"rust:fn:test:src_lib_rs:10"	10
+entities[1\t]{current_ind,doc_comment,entity_name,entity_type,file_path,future_ind,generic_constraints,interface_signature,is_async,is_public,is_unsafe,isgl1_key,line_number,param_names,param_types,return_type,trait_impls}:
+  1	Test function	test_function	fn	src/lib.rs	0	["T: Clone"]	pub unsafe fn unsafe_test()	false	true	true	"rust:fn:unsafe_test:src_lib_rs:10"	42	[name,count]	[&str,i32]	Result<()>	[Debug,Clone]

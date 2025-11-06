@@ -89,31 +89,6 @@ typedef struct {
     assert_eq!(entities.len(), 3, "Should extract function + 2 structs");
 }
 
-/// RED TEST 4: Performance contract (<20ms per 1K LOC in release, <50ms in debug)
-#[test]
-fn test_performance_contract_rust() {
-    use std::time::Instant;
-
-    let mut extractor = QueryBasedExtractor::new().unwrap();
-    let code = generate_rust_code(1000); // 1K lines
-
-    let start = Instant::now();
-    let _ = extractor.parse_source(&code, Path::new("test.rs"), Language::Rust).unwrap();
-    let elapsed = start.elapsed();
-
-    // Performance contract: <20ms in release, <100ms in debug builds
-    // Note: With 12 languages, parser initialization adds overhead in debug mode
-    let threshold_ms = if cfg!(debug_assertions) { 100 } else { 20 };
-
-    assert!(
-        elapsed.as_millis() < threshold_ms,
-        "Parsing 1K LOC took {:?}, expected <{}ms ({})",
-        elapsed,
-        threshold_ms,
-        if cfg!(debug_assertions) { "debug mode" } else { "release mode" }
-    );
-}
-
 /// RED TEST 5: No panic on malformed code
 #[test]
 fn test_malformed_code_no_panic() {

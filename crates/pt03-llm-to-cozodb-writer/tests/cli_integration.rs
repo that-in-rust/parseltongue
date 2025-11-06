@@ -9,7 +9,7 @@
 use pt03_llm_to_cozodb_writer::{cli::CliConfig, LlmWriterConfig};
 use parseltongue_core::{
     entities::{
-        CodeEntity, EntityType, InterfaceSignature, LanguageSpecificSignature,
+        CodeEntity, EntityClass, EntityType, InterfaceSignature, LanguageSpecificSignature,
         LineRange, RustSignature, Visibility,
     },
     storage::CozoDbStorage,
@@ -38,7 +38,7 @@ fn create_test_entity(name: &str, file: &str, lines: (u32, u32)) -> CodeEntity {
 
     let isgl1_key = format!("rust:fn:{}:{}:{}-{}", name, file.replace('/', "_"), lines.0, lines.1);
 
-    let mut entity = CodeEntity::new(isgl1_key, signature).unwrap();
+    let mut entity = CodeEntity::new(isgl1_key, signature, EntityClass::CodeImplementation).unwrap();
     entity.current_code = Some(format!("fn {}() {{\n    // Original code\n}}", name));
 
     entity

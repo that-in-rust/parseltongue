@@ -8,7 +8,7 @@
 
 use parseltongue_core::{
     entities::{
-        CodeEntity, EntityType, InterfaceSignature, LanguageSpecificSignature,
+        CodeEntity, EntityClass, EntityType, InterfaceSignature, LanguageSpecificSignature,
         LineRange, RustSignature, TemporalAction, Visibility,
     },
     interfaces::CodeGraphRepository,
@@ -38,7 +38,7 @@ fn create_test_entity(name: &str, file: &str, lines: (u32, u32)) -> CodeEntity {
 
     let isgl1_key = format!("rust:fn:{}:{}:{}-{}", name, file.replace('/', "_"), lines.0, lines.1);
 
-    let mut entity = CodeEntity::new(isgl1_key, signature).unwrap();
+    let mut entity = CodeEntity::new(isgl1_key, signature, EntityClass::CodeImplementation).unwrap();
     entity.current_code = Some(format!("fn {}() {{\n    // Original code\n}}", name));
 
     entity
@@ -181,7 +181,7 @@ async fn test_tool2_create_operation_with_hash_key() {
         }),
     };
 
-    let mut new_entity = CodeEntity::new(hash_key.clone(), signature).unwrap();
+    let mut new_entity = CodeEntity::new(hash_key.clone(), signature, EntityClass::CodeImplementation).unwrap();
 
     // Set Create state manually (simulating Tool 2 logic)
     new_entity.temporal_state.current_ind = false;
@@ -286,7 +286,7 @@ async fn test_tool1_tool2_integration() {
         }),
     };
 
-    let mut new_entity = CodeEntity::new(new_key.clone(), signature).unwrap();
+    let mut new_entity = CodeEntity::new(new_key.clone(), signature, EntityClass::CodeImplementation).unwrap();
     new_entity.temporal_state.current_ind = false;
     new_entity.temporal_state.future_ind = true;
     new_entity.temporal_state.future_action = Some(TemporalAction::Create);

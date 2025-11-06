@@ -30,7 +30,7 @@ fn create_test_entity_with_key(key: &str) -> CodeEntity {
         }),
     };
 
-    let mut entity = CodeEntity::new(key.to_string(), signature).unwrap();
+    let mut entity = CodeEntity::new(key.to_string(), signature, EntityClass::CodeImplementation).unwrap();
 
     // Set code to satisfy validation requirements
     entity.current_code = Some("struct TestStruct {}".to_string());

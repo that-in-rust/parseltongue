@@ -13,7 +13,7 @@
 /// ║ Content goes here ║
 /// ╚═══════════════════╝
 /// ```
-pub fn render_box_with_title_unicode(title: &str, content: &str, width: usize) -> String {
+pub fn render_box_with_title_unicode(_title: &str, content: &str, _width: usize) -> String {
     // STUB implementation - will be properly implemented with tests
     format!("╔═══╗\n║ {} ║\n╚═══╝", content)
 }

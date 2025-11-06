@@ -13,7 +13,7 @@
 pub fn render_progress_bar_with_percentage_horizontal(
     current: usize,
     total: usize,
-    width: usize,
+    _width: usize,
 ) -> String {
     // STUB implementation - will be properly implemented with tests
     let percentage = if total > 0 {

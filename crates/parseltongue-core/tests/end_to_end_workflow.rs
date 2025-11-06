@@ -176,7 +176,7 @@ async fn test_end_to_end_tool1_tool2_tool3_pipeline() {
         }),
     };
 
-    let mut new_entity = CodeEntity::new(new_key.clone(), signature).unwrap();
+    let mut new_entity = CodeEntity::new(new_key.clone(), signature, EntityClass::CodeImplementation).unwrap();
     new_entity.temporal_state.current_ind = false;
     new_entity.temporal_state.future_ind = true;
     new_entity.temporal_state.future_action = Some(TemporalAction::Create);
@@ -364,7 +364,7 @@ fn create_indexed_entity(
         lines.1
     );
 
-    let mut entity = CodeEntity::new(isgl1_key, signature).unwrap();
+    let mut entity = CodeEntity::new(isgl1_key, signature, entity_class).unwrap();
     entity.current_code = Some(format!("fn {}() {{\n    // Original code\n}}", name));
     entity.tdd_classification.entity_class = entity_class;
 
