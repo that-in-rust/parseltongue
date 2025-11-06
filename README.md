@@ -574,7 +574,7 @@ The agent follows these patterns automatically with additional workflows and res
 
 ```bash
 # Run from your project's git root - Always use the versioned install script
-curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/parseltongue-install-v090.sh | bash
+curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/parseltongue-install-v092.sh | bash
 ```
 
 What it does:
@@ -583,7 +583,7 @@ What it does:
 3. Downloads documentation + Ultrathink ISG Explorer Agent
 4. Verifies installation
 
-**Versioned Install:** Always use `parseltongue-install-v090.sh` (explicit version) to know exactly what you're getting. Next release will be `parseltongue-install-v091.sh`.
+**Versioned Install:** Always use `parseltongue-install-v092.sh` (explicit version) to know exactly what you're getting. Next release will be `parseltongue-install-v093.sh`.
 
 **What you get:**
 ```
