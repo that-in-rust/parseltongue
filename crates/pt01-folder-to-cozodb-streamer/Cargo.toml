@@ -51,10 +51,6 @@ tempfile.workspace = true
 tokio-test.workspace = true
 async-trait.workspace = true
 
-[[bin]]
-name = "pt01-folder-to-cozodb-streamer"
-path = "src/main.rs"
-
 [lib]
 name = "pt01_folder_to_cozodb_streamer"
 path = "src/lib.rs"

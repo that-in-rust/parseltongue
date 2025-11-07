@@ -31,10 +31,6 @@ async-trait.workspace = true
 tempfile.workspace = true
 tokio-test.workspace = true
 
-[[bin]]
-name = "pt06-cozodb-make-future-code-current"
-path = "src/main.rs"
-
 [lib]
 name = "pt06_cozodb_make_future_code_current"
 path = "src/lib.rs"

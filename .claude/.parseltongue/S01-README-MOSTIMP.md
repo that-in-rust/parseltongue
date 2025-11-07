@@ -5,6 +5,33 @@ Constantly do cargo clean etc so that unnecessary files do not messs up your con
 
 Test-First Development: I should be writing tests FIRST, following the STUB → RED → GREEN → REFACTOR cycle
 
+# CRITICAL: FOUR-WORD NAMING CONVENTION (LLM Optimization)
+
+**ALL function names: EXACTLY 4 words** (underscores separate)
+**ALL crate names: EXACTLY 4 words** (hyphens separate)
+**ALL folder names: EXACTLY 4 words** (hyphens separate)
+**ALL commands: EXACTLY 4 words** (hyphens separate)
+
+**Why**: LLMs parse by tokenizing. 4 words = optimal semantic density for understanding and recall.
+
+**Pattern**: `verb_constraint_target_qualifier()`
+- Verb: `filter`, `render`, `detect`, `save`, `create`, `process`
+- Constraint: `implementation`, `box_with_title`, `visualization_output`
+- Target: `entities`, `unicode`, `file`, `database`
+- Qualifier: `only`, `to`, `in`, `from`, `with`
+
+**Examples**:
+```rust
+✅ filter_implementation_entities_only()
+✅ render_box_with_title_unicode()
+✅ save_visualization_output_to_file()
+✅ pt01-folder-to-cozodb-streamer
+
+❌ filter_entities()                    // Too short (2)
+❌ detect_cycles_in_dependency_graph()  // Too long (5)
+```
+
+**Make this a ritual** - check every function/folder/command name before committing.
 
 # Product thinking for us
 Think like Shreyas Doshi  - the famous product leader - his minimalism - user journeys mindset

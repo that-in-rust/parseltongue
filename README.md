@@ -1,6 +1,6 @@
 # Parseltongue
 
-> **v0.9.2** - Now with automatic dual-format export: JSON for compatibility + TOON for 30-40% token savings!
+> **v0.9.6** - Test exclusion (90% token reduction) + single-binary architecture (80% disk reduction)
 
 ```mermaid
 graph LR
@@ -554,7 +554,7 @@ cd .claude/.ref/tree-sitter
 
 ### Invoking the Agent
 
-**⚠️ First-time setup**: After running `parseltongue-install-v090.sh`, you must **EXIT and RESTART Claude Code** to activate the agent. Claude Code loads agents from `.claude/agents/` only on startup.
+**⚠️ First-time setup**: After running `parseltongue-install-v096.sh`, you must **EXIT and RESTART Claude Code** to activate the agent. Claude Code loads agents from `.claude/agents/` only on startup.
 
 **After restart**, invoke the agent in Claude Code:
 
@@ -574,21 +574,21 @@ The agent follows these patterns automatically with additional workflows and res
 
 ```bash
 # Run from your project's git root - Always use the versioned install script
-curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/parseltongue-install-v092.sh | bash
+curl -fsSL https://raw.githubusercontent.com/that-in-rust/parseltongue/main/parseltongue-install-v096.sh | bash
 ```
 
 What it does:
-1. Downloads `parseltongue` binary (v0.9.2 with dual file export)
+1. Downloads `parseltongue` binary (v0.9.6 with test exclusion + single-binary architecture)
 2. Creates `.claude/.parseltongue/` and `.claude/agents/` directories
 3. Downloads documentation + Ultrathink ISG Explorer Agent
 4. Verifies installation
 
-**Versioned Install:** Always use `parseltongue-install-v092.sh` (explicit version) to know exactly what you're getting. Next release will be `parseltongue-install-v093.sh`.
+**Versioned Install:** Always use `parseltongue-install-v096.sh` (explicit version) to know exactly what you're getting. Next release will be `parseltongue-install-v097.sh`.
 
 **What you get:**
 ```
 your-project/
-├── parseltongue              # Binary (v0.9.2, ready to use)
+├── parseltongue              # Binary (v0.9.6, ready to use)
 └── .claude/
     └── .parseltongue/
         ├── README.md                          # Full documentation
@@ -601,8 +601,8 @@ your-project/
 # If you prefer to see each step
 cd /path/to/your/project
 
-# Download v0.9.2 binary
-curl -L https://github.com/that-in-rust/parseltongue/releases/download/v0.9.2/parseltongue -o parseltongue
+# Download v0.9.6 binary
+curl -L https://github.com/that-in-rust/parseltongue/releases/download/v0.9.6/parseltongue-v0.9.6-macos-arm64 -o parseltongue
 chmod +x parseltongue
 
 # Create directory

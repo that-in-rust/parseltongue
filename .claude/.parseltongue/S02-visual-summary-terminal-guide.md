@@ -6,6 +6,30 @@
 
 ---
 
+## CRITICAL: FOUR-WORD NAMING CONVENTION
+
+**ALL function names: EXACTLY 4 words** (underscores: `_`)
+**ALL crate/folder/command names: EXACTLY 4 words** (hyphens: `-`)
+
+Pattern: `verb_constraint_target_qualifier()`
+
+Examples:
+```rust
+✅ render_entity_count_bar_chart()
+✅ filter_implementation_entities_only()
+✅ save_visualization_output_to_file()
+
+❌ render_chart()           // Too short (2)
+❌ render_entity_chart()    // Too short (3)
+❌ render_entity_count_bar_chart_with_colors()  // Too long (6)
+```
+
+**Why**: 4 words = optimal LLM tokenization and semantic density.
+
+Make this a ritual before every commit.
+
+---
+
 ## Executive Summary
 
 After Parseltongue completes codebase ingestion into CozoDB, we can immediately generate beautiful, informative visualizations using Unicode box-drawing characters and emojis. These provide instant insights without requiring expensive computation, as all data is already in the database.

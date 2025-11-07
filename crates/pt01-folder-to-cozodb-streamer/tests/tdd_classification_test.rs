@@ -7,40 +7,53 @@ use parseltongue_core::entities::EntityClass;
 use parseltongue_core::storage::CozoDbStorage;
 use tempfile::TempDir;
 
-/// TDD RED→GREEN Test: Verify test functions are classified as TEST_IMPLEMENTATION
+/// TDD RED→GREEN Test: Verify test functions are EXCLUDED from ingestion
 ///
-/// **v0.9.0 Implementation**: Attribute parsing layer added
+/// **v0.9.6 Implementation**: Test exclusion at ingestion layer
 ///
-/// **Architecture**: Post-process QueryBasedExtractor results to add Rust metadata
+/// **Architecture**: Post-classification filtering
 /// - QueryBasedExtractor: Extracts entities (language-agnostic)
 /// - Attribute Parser: Enriches Rust entities with #[test] metadata (Rust-specific)
+/// - **NEW**: Streamer filters out TestImplementation entities before database insertion
 ///
 /// Preconditions:
-/// - Rust file with #[test] attribute
-/// - File indexed by Tool 1 with attribute parsing enabled
+/// - Rust file with #[test] attribute and regular function
+/// - File indexed by Tool 1 with test exclusion enabled
 ///
 /// Postconditions:
-/// - Entity has entity_class = EntityClass::TestImplementation
-/// - Entity metadata contains is_test = "true"
+/// - Test entities are detected but NOT inserted into database
+/// - Only CODE entities are in database (regular_function)
+/// - Database contains exactly 1 entity (not 2)
 ///
 /// Error Conditions:
-/// - Test entity misclassified as CodeImplementation → FAIL
+/// - Test entity found in database → FAIL (should be excluded)
 #[tokio::test]
 async fn test_function_with_test_attribute_classified_correctly() {
-    // Setup: Create temp directory with Rust test file
+    // Setup: Create temp directory with separate test and code files
     let temp_dir = TempDir::new().unwrap();
-    let test_file = temp_dir.path().join("test.rs");
 
+    // File 1: Pure code file with regular function
+    let code_file = temp_dir.path().join("lib.rs");
+    std::fs::write(
+        &code_file,
+        r#"
+fn regular_function() {
+    println!("Not a test");
+}
+"#,
+    )
+    .unwrap();
+
+    // File 2: Test file with test attribute
+    let tests_dir = temp_dir.path().join("tests");
+    std::fs::create_dir(&tests_dir).unwrap();
+    let test_file = tests_dir.join("unit.rs");
     std::fs::write(
         &test_file,
         r#"
 #[test]
 fn test_example() {
     assert_eq!(1 + 1, 2);
-}
-
-fn regular_function() {
-    println!("Not a test");
 }
 "#,
     )
@@ -68,27 +81,21 @@ fn regular_function() {
     let storage = CozoDbStorage::new(&config.db_path).await.unwrap();
     let entities = storage.get_all_entities().await.unwrap();
 
-    // Should have 2 entities: 1 test, 1 code
-    assert_eq!(entities.len(), 2, "Should have exactly 2 entities");
+    // ✅ v0.9.6: Should have only 1 entity (test excluded, only regular_function)
+    assert_eq!(entities.len(), 1, "Should have exactly 1 entity (test excluded)");
 
-    // Find test function
+    // Verify test entity is NOT in database
     let test_entity = entities
         .iter()
-        .find(|e| e.interface_signature.name == "test_example")
-        .expect("Should find test_example function");
+        .find(|e| e.interface_signature.name == "test_example");
+    assert!(test_entity.is_none(), "test_example should be EXCLUDED from database");
 
-    // RED: This will fail with current implementation
+    // Find regular function (should be the only entity)
+    let code_entity = &entities[0];
     assert_eq!(
-        test_entity.tdd_classification.entity_class,
-        EntityClass::TestImplementation,
-        "Test function should be classified as TEST_IMPLEMENTATION"
+        code_entity.interface_signature.name, "regular_function",
+        "Only regular_function should be in database"
     );
-
-    // Find regular function
-    let code_entity = entities
-        .iter()
-        .find(|e| e.interface_signature.name == "regular_function")
-        .expect("Should find regular_function");
 
     assert_eq!(
         code_entity.tdd_classification.entity_class,
@@ -97,11 +104,13 @@ fn regular_function() {
     );
 }
 
-/// TDD RED→GREEN Test: Verify tokio::test functions are classified correctly
+/// TDD RED→GREEN Test: Verify tokio::test functions are EXCLUDED from ingestion
+///
+/// **v0.9.6**: Async test functions with #[tokio::test] are also excluded
 #[tokio::test]
 async fn tokio_test_function_classified_correctly() {
     let temp_dir = TempDir::new().unwrap();
-    let test_file = temp_dir.path().join("async_test.rs");
+    let test_file = temp_dir.path().join("async_lib.rs"); // ✅ v0.9.6: Use non-test filename to avoid path-based detection
 
     std::fs::write(
         &test_file,
@@ -133,13 +142,6 @@ async fn test_async_function() {
     let storage = CozoDbStorage::new(&config.db_path).await.unwrap();
     let entities = storage.get_all_entities().await.unwrap();
 
-    assert_eq!(entities.len(), 1);
-    let test_entity = &entities[0];
-
-    // RED: Will fail with current implementation
-    assert_eq!(
-        test_entity.tdd_classification.entity_class,
-        EntityClass::TestImplementation,
-        "#[tokio::test] function should be classified as TEST_IMPLEMENTATION"
-    );
+    // ✅ v0.9.6: Should have ZERO entities (tokio test excluded)
+    assert_eq!(entities.len(), 0, "tokio::test should be EXCLUDED from database");
 }

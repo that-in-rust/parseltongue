@@ -18,18 +18,3 @@ tempfile = { workspace = true }
 [lib]
 name = "pt07_visual_analytics_terminal"
 path = "src/lib.rs"
-
-# Standalone visualization binary 1: Entity count bar chart
-[[bin]]
-name = "pt07-render-entity-count-bar-chart"
-path = "src/bin/render_entity_count_bar_chart.rs"
-
-# Standalone visualization binary 2: Dependency cycle warnings
-[[bin]]
-name = "pt07-render-dependency-cycle-warning-list"
-path = "src/bin/render_dependency_cycle_warning_list.rs"
-
-# Wrapper binary: Runs all default visualizations
-[[bin]]
-name = "pt07-visual-analytics-terminal"
-path = "src/bin/pt07_visual_analytics_terminal.rs"

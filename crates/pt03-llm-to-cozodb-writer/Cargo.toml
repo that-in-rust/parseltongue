@@ -38,10 +38,6 @@ tempfile.workspace = true
 tokio-test.workspace = true
 async-trait.workspace = true
 
-[[bin]]
-name = "pt03-llm-to-cozodb-writer"
-path = "src/main.rs"
-
 [lib]
 name = "pt03_llm_to_cozodb_writer"
 path = "src/lib.rs"

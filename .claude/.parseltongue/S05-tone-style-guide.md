@@ -2,6 +2,28 @@
 
 This document defines the voice and communication style for Parseltongue project, based on @amuldotexe's low-drama, understated approach.
 
+## CRITICAL: FOUR-WORD NAMING CONVENTION
+
+**ALL function names: EXACTLY 4 words** (underscores: `_`)
+**ALL crate/folder/command names: EXACTLY 4 words** (hyphens: `-`)
+
+Pattern: `verb_constraint_target_qualifier()`
+
+**Why**: 4 words = optimal LLM tokenization. This is non-negotiable.
+
+Examples:
+```rust
+✅ parse_code_to_graph_structure()
+✅ export_analysis_results_to_json()
+✅ pt01-folder-to-cozodb-streamer
+
+❌ parse()               // Too short (1)
+❌ parse_code()          // Too short (2)
+❌ parse_code_and_export_to_database()  // Too long (5)
+```
+
+**Pre-commit ritual**: Count words in every name. Fix before committing.
+
 ## Core Principles
 
 ### Low Drama Style

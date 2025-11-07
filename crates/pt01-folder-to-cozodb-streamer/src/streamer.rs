@@ -466,11 +466,21 @@ impl FileStreamer for FileStreamerImpl {
         println!("\n{}", style("Streaming Summary:").green().bold());
         println!("Total files found: {}", total_files);
         println!("Files processed: {}", processed_files);
-        println!("Entities created: {}", entities_created);
+        println!("Entities created: {} (CODE only)", style(entities_created).cyan().bold());
         println!("  └─ CODE entities: {}", style(final_stats.code_entities_created).cyan());
-        println!("  └─ TEST entities: {}", style(final_stats.test_entities_created).yellow());
+        println!("  └─ TEST entities: {} {}",
+            style(final_stats.test_entities_created).yellow(),
+            style("(excluded for optimal LLM context)").dim()
+        );
         println!("Errors encountered: {}", errors.len());
         println!("Duration: {:?}", duration);
+
+        // ✅ v0.9.6: Clear message about test exclusion
+        if final_stats.test_entities_created > 0 {
+            println!("\n{} Tests intentionally excluded from ingestion for optimal LLM context",
+                style("✓").green().bold()
+            );
+        }
 
         Ok(StreamResult {
             total_files,
@@ -514,15 +524,17 @@ impl FileStreamer for FileStreamerImpl {
                     // v0.9.3: Track entity_class for stats
                     let entity_class = code_entity.entity_class;
 
-                    // Store in real database
+                    // ✅ v0.9.6: Skip test entities - they pollute LLM context
+                    if matches!(entity_class, parseltongue_core::EntityClass::TestImplementation) {
+                        test_count += 1;
+                        continue; // Don't insert tests into database
+                    }
+
+                    // Store in real database (CODE entities only)
                     match self.db.insert_entity(&code_entity).await {
                         Ok(_) => {
                             entities_created += 1;
-                            // v0.9.3: Increment CODE or TEST counter based on entity_class
-                            match entity_class {
-                                parseltongue_core::EntityClass::CodeImplementation => code_count += 1,
-                                parseltongue_core::EntityClass::TestImplementation => test_count += 1,
-                            }
+                            code_count += 1; // v0.9.6: Only CODE entities reach here
                         }
                         Err(e) => {
                             let error_msg = format!("Failed to insert entity {}: {}", isgl1_key, e);

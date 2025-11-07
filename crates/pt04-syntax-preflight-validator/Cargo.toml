@@ -55,10 +55,6 @@ tempfile.workspace = true
 tokio-test.workspace = true
 async-trait.workspace = true
 
-[[bin]]
-name = "pt04-syntax-preflight-validator"
-path = "src/main.rs"
-
 [lib]
 name = "pt04_syntax_preflight_validator"
 path = "src/lib.rs"

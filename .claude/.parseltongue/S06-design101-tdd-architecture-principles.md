@@ -1,4 +1,30 @@
 # Design101: TDD-First Architecture Principles
+
+## CRITICAL: FOUR-WORD NAMING CONVENTION (LLM Optimization)
+
+**ALL function names: EXACTLY 4 words** (underscores separate)
+**ALL crate names: EXACTLY 4 words** (hyphens separate)
+**ALL folder names: EXACTLY 4 words** (hyphens separate)
+**ALL commands: EXACTLY 4 words** (hyphens separate)
+
+**Why**: LLMs parse by tokenizing. 4 words = optimal semantic density for understanding and recall.
+
+**Naming Pattern**: `verb_constraint_target_qualifier()`
+
+Examples:
+```rust
+✅ filter_implementation_entities_only()
+✅ render_box_with_title_unicode()
+✅ save_visualization_output_to_file()
+✅ create_database_connection_pool_async()
+
+❌ filter()                              // Too short (1)
+❌ filter_entities()                     // Too short (2)
+❌ detect_cycles_in_dependency_graph()   // Too long (5)
+```
+
+**Make this a pre-commit ritual**: Count words in every new function/folder/command name.
+
 ## IMPORTANT FOR VISUALS AND DIAGRAMS
 
 ALL DIAGRAMS WILL BE IN MERMAID ONLY TO ENSURE EASE WITH GITHUB - DO NOT SKIP THAT
