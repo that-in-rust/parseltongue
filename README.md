@@ -15,7 +15,7 @@ graph LR
         I1["Parse codebase<br/>into graph"]
         I2["Unique IDs<br/>Dependencies<br/>Metadata<br/>Relationships"]
         I1 --> I2
-    ends
+    end
 
     subgraph LEVELS["Progressive Disclosure"]
         L0["Level 0<br/>Pure Edges<br/>2-5K tokens<br/>RECOMMENDED"]
@@ -34,8 +34,6 @@ graph LR
     PROBLEM ==> ISG
     ISG ==> LEVELS
     LEVELS ==> OUTCOME
-
-    style L0 stroke-width:3px
 ```
 
 Code analysis toolkit powered by Interface Signature Graphs (ISG). Parse your codebase into a queryable semantic graph. Export context at different detail levels (2-60K tokens instead of 500K+), giving LLMs the architectural view and metadata needed for reasoning and modifications.
