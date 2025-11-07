@@ -34,9 +34,31 @@ cat .gitignore | grep -E "parseltongue$|parseltongue-v"
 # If missing, add:
 echo "parseltongue" >> .gitignore
 echo "parseltongue-v*" >> .gitignore
+
+# Also exclude test databases (but NOT query directories!)
+echo "*.db/" >> .gitignore
 ```
 
 **Critical**: This prevents accidentally committing binaries (we did this in v0.9.6).
+
+**⚠️ IMPORTANT - DO NOT DELETE OR .GITIGNORE THESE DIRECTORIES**:
+```bash
+entity_queries/       # ← Required: .scm files compiled into binary via include_str!()
+dependency_queries/   # ← Required: .scm files compiled into binary via include_str!()
+```
+
+These contain tree-sitter `.scm` query files for 12 languages. The code uses:
+```rust
+include_str!("../../../entity_queries/rust.scm")
+include_str!("../../../dependency_queries/rust.scm")
+```
+
+**If you delete these directories, compilation will fail with "file not found" errors.**
+
+**What you CAN delete**:
+- Test database directories: `*.db/` (parseltongue-demo.db, temp-analysis.db, etc.)
+- Old install scripts: `parseltongue-install-v*.sh` (keep only latest)
+- Binaries in root: `parseltongue`, `parseltongue-v*-macos-arm64`
 
 ---
 
@@ -107,6 +129,41 @@ mkdir -p docs/vXYZ
 git mv ARCHITECTURE_vX.Y.Z.md docs/vXYZ/
 git mv PRD_vX.Y.Z.md docs/vXYZ/
 git mv RoadmapVXYZtoVABC.md docs/vXYZ/
+
+# Clean test databases (safe to delete)
+rm -rf *.db/
+
+# Remove old install scripts (keep only latest vXYZ)
+git rm parseltongue-install-v*.sh  # Remove old versions
+# (Keep only parseltongue-install-vXYZ.sh for current release)
+```
+
+**⚠️ CRITICAL - NEVER DELETE THESE**:
+```bash
+entity_queries/       # Required for compilation
+dependency_queries/   # Required for compilation
+crates/              # Source code
+target/              # Build artifacts (can clean with cargo clean)
+```
+
+**Root directory structure should be**:
+```
+parseltongue/
+├── README.md                         ✅ Keep
+├── RELEASE_CHECKLIST.md              ✅ Keep
+├── Cargo.toml                        ✅ Keep
+├── Cargo.lock                        ✅ Keep
+├── parseltongue-install-vXYZ.sh      ✅ Keep (latest only)
+├── .gitignore                        ✅ Keep
+├── crates/                           ✅ Keep (source code)
+├── entity_queries/                   ✅ Keep (REQUIRED - compiled into binary)
+├── dependency_queries/               ✅ Keep (REQUIRED - compiled into binary)
+├── docs/                             ✅ Keep (documentation)
+├── target/                           ✅ Keep (build artifacts)
+├── *.db/                             ❌ Delete (test databases)
+├── parseltongue                      ❌ Delete (should be .gitignored)
+├── parseltongue-v*-macos-arm64       ❌ Delete (should be .gitignored)
+└── parseltongue-install-vOLD.sh      ❌ Delete (old versions)
 ```
 
 ---
