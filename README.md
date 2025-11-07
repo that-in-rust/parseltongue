@@ -15,7 +15,7 @@ graph LR
         I1["Parse codebase<br/>into graph"]
         I2["Unique IDs<br/>Dependencies<br/>Metadata<br/>Relationships"]
         I1 --> I2
-    end
+    ends
 
     subgraph LEVELS["Progressive Disclosure"]
         L0["Level 0<br/>Pure Edges<br/>2-5K tokens<br/>RECOMMENDED"]
