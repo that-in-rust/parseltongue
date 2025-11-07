@@ -92,6 +92,50 @@ Duration: 2.1s
 - **Ingestion time**: 2.1 seconds
 - **Query time**: < 50μs (microseconds!)
 
+### Visual: How Parseltongue Works
+
+```mermaid
+graph LR
+    subgraph INPUT["Your Codebase"]
+        C1["50,000 LOC<br/>150 files<br/>12 languages"]
+    end
+
+    subgraph PARSE["PT01: Index"]
+        P1["tree-sitter<br/>parse"]
+        P2["Extract<br/>entities"]
+        P3["Build<br/>graph"]
+        P1 --> P2 --> P3
+    end
+
+    subgraph DATABASE["CozoDB Graph"]
+        D1["Functions<br/>Structs<br/>Traits"]
+        D2["Caller→Callee<br/>relationships"]
+        D3["Type info<br/>Signatures"]
+        D1 -.-> D2 -.-> D3
+    end
+
+    subgraph QUERY["PT02: Export"]
+        Q1["Level 0<br/>2-5K tokens"]
+        Q2["Level 1<br/>30K tokens"]
+        Q3["Level 2<br/>60K tokens"]
+    end
+
+    subgraph OUTPUT["LLM Context"]
+        O1["Architecture<br/>understanding"]
+        O2["Precise<br/>reasoning"]
+    end
+
+    INPUT ==> PARSE
+    PARSE ==> DATABASE
+    DATABASE ==> QUERY
+    QUERY ==> OUTPUT
+
+    style Q1 fill:#90EE90
+    style DATABASE fill:#87CEEB
+```
+
+**Visual flow**: Parse codebase once → Query graph many times → Get exactly what you need
+
 ---
 
 ## 📊 Progressive Disclosure: Choose Your Detail Level
@@ -136,6 +180,35 @@ Get exactly the context you need—nothing more, nothing less.
 **Best for**: Deep type analysis, generic bounds, trait implementations
 
 **Output**: Everything from Level 1 + type parameters, where clauses, trait bounds
+
+### Visual: Progressive Disclosure Levels
+
+```mermaid
+graph TB
+    subgraph L0["🎯 Level 0: Pure Edges (2-5K tokens)"]
+        L0A["caller_id → callee_id<br/>relationship_type"]
+        L0B["Example: 487 dependencies<br/>Use: Architecture overview"]
+    end
+
+    subgraph L1["📋 Level 1: Entity Signatures (30K tokens)"]
+        L1A["+ Function signatures<br/>+ Struct definitions<br/>+ File paths"]
+        L1B["Example: 1,247 entities<br/>Use: Interface understanding"]
+    end
+
+    subgraph L2["🔬 Level 2: Full Type System (60K tokens)"]
+        L2A["+ Type parameters<br/>+ Generic bounds<br/>+ Where clauses"]
+        L2B["Example: Complete type info<br/>Use: Deep analysis"]
+    end
+
+    L0 -.->|Add signatures| L1
+    L1 -.->|Add type system| L2
+
+    style L0 fill:#90EE90
+    style L1 fill:#FFE4B5
+    style L2 fill:#FFB6C1
+```
+
+**Choose based on need**: Start with Level 0 (fastest, lowest token count), move up only if you need more detail.
 
 ---
 
@@ -211,6 +284,51 @@ Feed `arch.json` + `entry.json` to Claude/GPT:
 - "What's the critical path for user requests?"
 
 **Context used**: 8K tokens (not 500K). LLM gives accurate architectural answers.
+
+### Visual: Complete 5-Phase Workflow
+
+```mermaid
+graph LR
+    subgraph PHASE1["Phase 1: Index"]
+        P1["PT01<br/>folder-to-cozodb-streamer"]
+        P1A["Parse all code<br/>Build graph database"]
+    end
+
+    subgraph PHASE2["Phase 2: Export"]
+        P2["PT02<br/>level00/01/02"]
+        P2A["Query graph<br/>Export JSON"]
+    end
+
+    subgraph PHASE3["Phase 3: Edit"]
+        P3["PT03<br/>llm-to-cozodb-writer"]
+        P3A["LLM proposes changes<br/>Mark as 'future' state"]
+    end
+
+    subgraph PHASE4["Phase 4: Validate"]
+        P4A["PT04: Syntax check"]
+        P4B["PT05: Generate diff"]
+        P4A --> P4B
+    end
+
+    subgraph PHASE5["Phase 5: Apply"]
+        P5["PT06<br/>make-future-current"]
+        P5A["Update ISG state<br/>Reset temporal markers"]
+    end
+
+    PHASE1 --> PHASE2
+    PHASE2 --> PHASE3
+    PHASE3 --> PHASE4
+    PHASE4 -->|Valid| PHASE5
+    PHASE4 -.->|Invalid| PHASE3
+
+    style PHASE1 fill:#90EE90
+    style PHASE2 fill:#87CEEB
+    style PHASE4 fill:#FFB6C1
+```
+
+**Typical usage**: Phase 1 once → Phase 2 many times (as needed for different queries)
+
+**Advanced usage**: Phase 1-5 for LLM-driven code modifications with validation
 
 ---
 
@@ -467,6 +585,32 @@ graph LR
 ---
 
 ## 🎯 Use Cases
+
+### Visual: Pick Your Use Case
+
+```mermaid
+graph TB
+    START{What do you<br/>need to do?}
+
+    START -->|Understand new codebase| UC1[Level 0 Export<br/>2-5K tokens<br/>Architecture overview]
+    START -->|Find specific function| UC2[Level 1 Export<br/>Filter by name<br/>Get signature]
+    START -->|What calls this?| UC3[Level 0 Export<br/>Filter caller_id<br/>Reverse dependencies]
+    START -->|What's the public API?| UC4[Level 1 Export<br/>Filter 'pub'<br/>API surface]
+    START -->|Deep type analysis| UC5[Level 2 Export<br/>Full type system<br/>Generic bounds]
+    START -->|Visualize dependencies| UC6[PT07<br/>Terminal analytics<br/>Bar charts]
+
+    UC1 -->|Time| T1[42 seconds]
+    UC2 -->|Time| T2[< 1 second]
+    UC3 -->|Time| T3[< 1 second]
+    UC4 -->|Time| T4[< 1 second]
+    UC5 -->|Time| T5[< 1 second]
+    UC6 -->|Time| T6[< 1 second]
+
+    style UC1 fill:#90EE90
+    style T1 fill:#FFE4B5
+```
+
+**Quick decision**: If unsure, start with Level 0 (2-5K tokens, architecture overview).
 
 ### 1. New Codebase Onboarding
 **Problem**: 150K lines of unfamiliar code
