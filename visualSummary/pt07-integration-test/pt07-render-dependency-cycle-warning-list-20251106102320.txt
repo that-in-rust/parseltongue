@@ -1,9 +1,0 @@
-Command: pt07-render-dependency-cycle-warning-list --db rocksdb:parseltongue.db
-
-╔═══════════════════════════════════════════════╗
-║   Circular Dependency Warnings (Impl Only)    ║
-╠═══════════════════════════════════════════════╣
-║ ✅ No circular dependencies detected!        ║
-╚═══════════════════════════════════════════════╝
-
-Total Cycles Found: 0

@@ -6,6 +6,72 @@ Based on v0.9.6 release experience. Covers edge cases, binary naming, verificati
 
 ## Pre-Flight Checks (Before Starting)
 
+### 0. Version Development Workflow (Branch Protection)
+
+**Rule**: Always create a version branch for experimental work. This protects `main` from incomplete features.
+
+```bash
+# Create and switch to version branch
+git checkout -b v0XY  # e.g., v097 for v0.9.7
+
+# Verify you're on the version branch
+git branch --show-current
+# Should show: v0XY (not main)
+```
+
+**Why this matters**:
+- **Protection**: `main` stays stable while you experiment
+- **Isolation**: Breaking changes, failed experiments, and WIP commits stay in the branch
+- **Rollback**: Easy to discard entire branch if approach doesn't work
+- **Parallel work**: Can have multiple version branches (v097, v098-experimental)
+
+**Workflow**:
+1. **Start version work**: `git checkout -b v097`
+2. **Experiment freely**: Make commits, break things, try approaches
+3. **When ready for release**: Merge to main via PR or direct merge
+4. **After release**: Delete version branch or keep for reference
+
+**Branch naming**:
+- Format: `vXYZ` (lowercase, no dots)
+- Examples: `v097`, `v098`, `v100`
+- NOT: `v0.9.7`, `version-097`, `feature-v097`
+
+**Merge strategy** (when features are ready):
+```bash
+# Option A: Direct merge (if all changes are good)
+git checkout main
+git merge v097
+git push origin main
+git branch -d v097  # Delete local branch
+
+# Option B: Cherry-pick specific commits (if some experiments failed)
+git checkout main
+git cherry-pick <commit-hash>
+git push origin main
+```
+
+**Remote branching** (optional - for collaboration or backup):
+```bash
+# Push version branch to remote (like "ultrathink" pattern)
+git push origin v097
+
+# Others can checkout and continue work
+git fetch origin
+git checkout v097
+```
+
+**Edge case - Uncommitted changes when creating branch**:
+```bash
+# If you have uncommitted changes and want to move them to version branch
+git stash
+git checkout -b v097
+git stash pop
+
+# Now changes are in the version branch
+```
+
+---
+
 ### 1. Clean Working State
 ```bash
 # Verify no uncommitted changes
