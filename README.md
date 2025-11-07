@@ -600,7 +600,7 @@ your-project/
 cd /path/to/your/project
 
 # Download v0.9.6 binary
-curl -L https://github.com/that-in-rust/parseltongue/releases/download/v0.9.6/parseltongue-v0.9.6-macos-arm64 -o parseltongue
+curl -L https://github.com/that-in-rust/parseltongue/releases/download/v0.9.6/parseltongue -o parseltongue
 chmod +x parseltongue
 
 # Create directory

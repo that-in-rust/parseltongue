@@ -24,7 +24,7 @@ ARCH=$(uname -m)
 case $PLATFORM in
     darwin)
         if [ "$ARCH" = "arm64" ]; then
-            BINARY_URL="https://github.com/that-in-rust/parseltongue/releases/download/v0.9.6/parseltongue-v0.9.6-macos-arm64"
+            BINARY_URL="https://github.com/that-in-rust/parseltongue/releases/download/v0.9.6/parseltongue"
         else
             echo "❌ Error: macOS x86_64 not supported in this release"
             exit 1

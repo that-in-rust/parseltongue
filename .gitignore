@@ -25,3 +25,4 @@ contexts/
 demo-walkthroughs/*/step*.json
 demo-walkthroughs/*/*.db/
 demo-walkthroughs/*/contexts/
+parseltongue-v*-macos-arm64
