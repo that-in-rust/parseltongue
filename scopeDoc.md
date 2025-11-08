@@ -8,7 +8,7 @@
 ===
 
 # For v097
-- [ ] toon export should be a default part of the json export, working for each and every we're looking for each and every command which exports to JSON. As long as it exports to JSON automatically, it should export to.toon as well
+- [ ] toon export should be a default part of the json export, working for each and every we're looking for each and every command which exports to JSON. As long as it exports to JSON automatically, it should export to .toon as well
 - [ ] 
 
 
