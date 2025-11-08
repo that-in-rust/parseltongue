@@ -1,0 +1,124 @@
+# Example Map: Rust CLI Tools Reference Architecture
+# This map indexes 5 popular Rust CLI tools to learn patterns
+
+workspace:
+  name: "rust-cli-tools"
+  description: "Reference implementations of CLI tools in Rust"
+  created: "2025-11-08"
+  base_dir: ".parseltongue-explorer"
+
+repositories:
+  # Fast grep alternative
+  - name: "ripgrep"
+    url: "https://github.com/BurntSushi/ripgrep.git"
+    branch: "master"
+    database: "ripgrep.db"
+    languages: ["rust"]
+    exclude_patterns:
+      - "tests/**"
+      - "benchmarks/**"
+
+  # Fast find alternative
+  - name: "fd"
+    url: "https://github.com/sharkdp/fd.git"
+    branch: "master"
+    database: "fd.db"
+    languages: ["rust"]
+    exclude_patterns:
+      - "tests/**"
+
+  # Better cat with syntax highlighting
+  - name: "bat"
+    url: "https://github.com/sharkdp/bat.git"
+    branch: "master"
+    database: "bat.db"
+    languages: ["rust"]
+    exclude_patterns:
+      - "tests/**"
+
+  # Fast du alternative
+  - name: "dust"
+    url: "https://github.com/bootandy/dust.git"
+    branch: "master"
+    database: "dust.db"
+    languages: ["rust"]
+    exclude_patterns:
+      - "tests/**"
+
+  # Modern ls alternative
+  - name: "exa"
+    url: "https://github.com/ogham/exa.git"
+    branch: "master"
+    database: "exa.db"
+    languages: ["rust"]
+    exclude_patterns:
+      - "tests/**"
+
+# Pre-defined search strategies
+strategies:
+  - name: "find-cli-parsing"
+    description: "How do these tools parse command-line arguments?"
+    databases: ["ripgrep.db", "fd.db", "bat.db", "dust.db", "exa.db"]
+    queries:
+      - type: "entity-search"
+        where: "entity_name CONTAINS 'cli' OR entity_name CONTAINS 'parse' OR entity_name CONTAINS 'args'"
+        export_level: "level01"
+
+  - name: "find-main-functions"
+    description: "Entry points for all CLI tools"
+    databases: ["ripgrep.db", "fd.db", "bat.db", "dust.db", "exa.db"]
+    queries:
+      - type: "entity-search"
+        where: "entity_name = 'main'"
+        export_level: "level02"
+
+  - name: "find-error-handling"
+    description: "How do these tools handle errors?"
+    databases: ["ripgrep.db", "fd.db", "bat.db", "dust.db", "exa.db"]
+    queries:
+      - type: "entity-search"
+        where: "interface_signature CONTAINS 'Result<' OR entity_name CONTAINS 'error'"
+        export_level: "level01"
+
+  - name: "find-parallel-processing"
+    description: "How do these tools use parallelism?"
+    databases: ["ripgrep.db", "fd.db", "dust.db"]
+    queries:
+      - type: "entity-search"
+        where: "interface_signature CONTAINS 'thread' OR interface_signature CONTAINS 'parallel' OR current_code CONTAINS 'rayon'"
+        export_level: "level01"
+
+  - name: "find-config-loading"
+    description: "Configuration file parsing patterns"
+    databases: ["ripgrep.db", "bat.db", "exa.db"]
+    queries:
+      - type: "entity-search"
+        where: "entity_name CONTAINS 'config' OR entity_name CONTAINS 'settings'"
+        export_level: "level01"
+
+# Output configuration
+outputs:
+  base_folder: "outputs/{{date}}_{{strategy_name}}/"
+  formats: ["json", "toon", "markdown"]
+  include_metadata: true
+
+  # LLM context ordering
+  llm_context:
+    order_by: "relevance"
+    max_tokens: 100000
+    prioritize:
+      - "main function"
+      - "public API surface"
+      - "error handling"
+      - "configuration"
+
+# Optional: Web research to complement code analysis
+web_research:
+  - name: "rust-cli-best-practices"
+    search_query: "Rust CLI best practices 2025"
+    max_results: 3
+    store_in: "web-research/rust-cli-patterns/"
+
+  - name: "clap-documentation"
+    url: "https://docs.rs/clap/latest/clap/"
+    store_in: "web-research/clap-docs/"
