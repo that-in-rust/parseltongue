@@ -21,6 +21,9 @@ contexts/
 .refGitHubRepo/
 *.refGitHubRepo/
 
+# Research artifacts (cloned repos, test databases)
+cpp-compiler-research/
+
 # Demo outputs (preserve committed demos in demo-walkthroughs/)
 demo-walkthroughs/*/step*.json
 demo-walkthroughs/*/*.db/
