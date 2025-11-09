@@ -8,9 +8,24 @@
 ===
 
 # For v097
-- [ ] toon export should be a default part of the json export, working for each and every we're looking for each and every command which exports to JSON. As long as it exports to JSON automatically, it should export to .toon as well
-- [ ] 
-
+- [ ] Binary change : toon export should be a default part of the json export
+   - [ ] working for each and every we're looking for each and every command which exports to JSON. As long as it exports to JSON automatically, it should export to .toon as well
+- [ ] Agent Change: SEARCH ONLY GRAPH not the actual codebase
+   - [ ] 0 Pure ISG-Native: Successfully eliminated grep fallback
+      - [ ] Clear Rules: Strong guardrails against filesystem tools
+   - [ ] Pyramid level strategy, you increase depth of the map as needed like a pyramid   - [ ] ⚠️ Gaps
+- [ ] As soon ingestion happens a lot of visuals which insightful should appear from analytics of
+   - Dependency Graph
+   - Code Graph
+   - TEST DATA WILL NOT BE INGESTED at the ingestion phase itself
+- [ ] Clustering enhancements
+   - [ ] Semantic Clustering, clustering based
+- [ ] Flow enhancements
+   - [ ] Control Flow
+   - [ ] Data Flow
+- [ ] MoonShot Ideas
+   - [ ] Sub-agent driven LLM-meta-data for each interface
+   - [ ] Sub-agent driven LLM-meta-data for each interface-edge-interface
 
 
 
@@ -18,6 +33,17 @@
 ===
 
 # Random Ideas 
+
+
+## Long notes
+
+
+      - [ ] Strategy 5 (Semantic Search) - Documented but not implemented
+         - [ ] Line 487: "Status: Future enhancement (clustering not yet implemented)"
+         - [ ] No pt07-query-cluster tool available
+         - [ ] No semantic cluster discovery
+
+
 
 Okay here is the idea that I am having: Half the time we want to understand what is already there but in order for us to prove that the architecture might work we need inspiration from other open source libraries who might have done it. And there is always something somebody who has done. Generally in fact to build something we use help from very very fundamental libraries. The problem with all of it is we cannot. So we put them in subfolders but we index them and all that indexing cannot happen together. So what we need truly is a way to document all of these codebases together. There'll be two classes of codebases:
 1. The GitHub repo and then it shouldn't have a lot of subfolders
