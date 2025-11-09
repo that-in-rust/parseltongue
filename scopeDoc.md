@@ -18,6 +18,26 @@
    - Dependency Graph
    - Code Graph
    - TEST DATA WILL NOT BE INGESTED at the ingestion phase itself
+- [ ] As soon as ingestion happens, we should have a parseltongue folder in root
+   - [ ] Main folder with all cozoDB and json or toon files for the root git folder
+      - Main folder will refresh each time codebase is committed
+   - [ ] Subfolder with all gitclones and research documents with cozoDBs and research MD,txts, jsons, toons etc.
+- [] reasoningBetterEnhancements
+   - [ ] FIX current dependency graph, L01, L02 as base only for reading, and reset only when code is commited
+   - 2 Stage system per commit
+      - [ ] Stage 1: the protector of previous truth when micro-PRD was thought of 
+      - [ ] Stage 2: the explorer of convergence with micro-PRD
+         - [ ] Alway query Stage for what exists in dependency graphs in base
+         - [ ] As soon as it makes a change in the code, it will reingest the whole dependency graph L01 and L02 in Stage 2 area
+         - [ ] Dependency Graphs of Stage 1 & Stage 2 will be compared AND Stage 2 which is current codebase situation will be compiled, and tested by humans
+            - If it successfully compiles and tests then it will be moved then make a commit and Stage 1 is reingested
+            - If it fails then
+               - make a json of failures
+               - make a json of success
+               - make a json of possible useful patterns
+               - after this move the head of code back to Stage 1 commit and reingest it
+            - go back to solving the problem from commit-base but with learnings of previous attempts
+
 - [ ] Clustering enhancements
    - [ ] Semantic Clustering, clustering based
 - [ ] Flow enhancements
@@ -54,10 +74,12 @@ graph TD
    ContextBase --> ContextAdequacyTest[**Does the LLM feel it needs more context?**]
    ContextAdequacyTest-- NO --> MicroPRDs[Time to break down PRD into N parts, how many micro PRDS]
    ContextAdequacyTest-- YES --> DomainTypes[API or Pattern or Deep research Requirements]
-   DomainTypes --> APIOriginGitRepos[**APIs* <br> LLMs clone repos libraries which they are dependent on for APIs **]
+   DomainTypes --> APIOriginGitRepos[**APIs** <br> LLMs clone repos libraries which they are dependent on for APIs **]
    DomainTypes --> APIPatternGitRepos[**Use Patterns** <br> LLMs clone repos libraries which they are dependent on for Patterns of usage for specific APIs **]
    DomainTypes --> PredenceRequirements[**Similar Problems** <br> LLMs clone repos libraries which might be solving similar problems **]
    DomainTypes --> AbstractResearchRequirements[**Abstract Research** <br> LLMs assimilate research from the mathematical or physics or scientific papers or blogs or social media posts from the internet which do not have code precendence but the patterns match some how **]
+
+
 
 
 ```
