@@ -54,10 +54,10 @@ graph TD
    ContextBase --> ContextAdequacyTest[**Does the LLM feel it needs more context?**]
    ContextAdequacyTest-- NO --> MicroPRDs[Time to break down PRD into N parts, how many micro PRDS]
    ContextAdequacyTest-- YES --> DomainTypes[API or Pattern or Deep research Requirements]
-   DomainTypes --> APIOriginGitRepos[**LLMs clone repos libraries which they are dependent on for APIs **]
-   DomainTypes --> APIPatternGitRepos[**LLMs clone repos libraries which they are dependent on for Patterns of usage for specific APIs **]
-   DomainTypes --> PredenceRequirements[**LLMs clone repos libraries which might be solving similar problems **]
-   DomainTypes --> AbstractResearchRequirements[**LLMs assimilate research from the mathematical or physics or scientific papers or blogs or social media posts from the internet which do not have code precendence but the patterns match some how **]
+   DomainTypes --> APIOriginGitRepos[**APIs* <br> LLMs clone repos libraries which they are dependent on for APIs **]
+   DomainTypes --> APIPatternGitRepos[**Use Patterns** <br> LLMs clone repos libraries which they are dependent on for Patterns of usage for specific APIs **]
+   DomainTypes --> PredenceRequirements[**Similar Problems** <br> LLMs clone repos libraries which might be solving similar problems **]
+   DomainTypes --> AbstractResearchRequirements[**Abstract Research** <br> LLMs assimilate research from the mathematical or physics or scientific papers or blogs or social media posts from the internet which do not have code precendence but the patterns match some how **]
 
 
 ```
