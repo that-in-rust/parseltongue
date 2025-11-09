@@ -54,9 +54,9 @@ graph TD
    G --> K[We did the gitclone and collected docs, ingested the code in cozoDB]
    H --> K[We did the gitclone, ingested the code in cozoDB]
    I --> K[We did the gitclone, ingested the code in cozoDB]
-   K --> L [Is the current information level ready for a PRD refinement?]
-   L --> M [Yes current domain knowledge is enough]
-   L --> N [No current domain knowldge is not enough]
+   K --> L[Is the current information level ready for a PRD refinement?]
+   L --> M[No current domain knowldge is not enough]
+   L --> N[Yes current domain knowledge is enough]
    M --> F
    N --> J
 
