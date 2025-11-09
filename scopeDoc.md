@@ -15,7 +15,13 @@
 
 
 
+===
 
+# Random Ideas 
+
+Okay here is the idea that I am having: Half the time we want to understand what is already there but in order for us to prove that the architecture might work we need inspiration from other open source libraries who might have done it. And there is always something somebody who has done. Generally in fact to build something we use help from very very fundamental libraries. The problem with all of it is we cannot. So we put them in subfolders but we index them and all that indexing cannot happen together. So what we need truly is a way to document all of these codebases together. There'll be two classes of codebases:
+1. The GitHub repo and then it shouldn't have a lot of subfolders
+2. A list of GitHub repos which will be in the same area but they will be inside  Think of 10 GitHub repos which we have just taken inside the reference folder which will also should be converted into CosaDB because we want to get their JSON and this is something that is often not considered. For example all the API calls you want or internals you want to know from using TreeCity then TreeCity library would be better being in a codebase as a sub. You get cloned. We won't touch it, we won't change it but we want to learn from it. We want to find its intricate details and this is a humongous hack. The problem is you're not ready to have this hack. And if you can have this hack then actually you can code far better because this is one and saying is whatever you want to search on the code you got damn better search it. This particular folder that makes sense. Oh these are my initial thoughts and then you can. I don't know what you can do with this information but think about it. We right now only in just one Git folder but this can be way beyond that.
 
 
 ===
