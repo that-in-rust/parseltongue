@@ -41,24 +41,24 @@
 
 ``` mermaid
 graph TD
-   A[Parseltongue Agent] --> B[Ingestion of Codebase]
-   B --> C[Read Dependency Graph]
-   B --> D[Read PRD]
-   C --> E[Is the PRD ready for Architecure building?]
-   D --> E[Is the PRD ready for Architecture building?]
-   E --> F[what is the PRD lacking?]
-   F --> G[Does it require API and other OSS tools info which can be learnt by gitclones?]
-   F --> H[Doest it require similar public patterns from the other OSS github repos which can be git clones and studied?]
-   F --> I[Does it require deeper thinking that external LLMs can provide as MD files? because no git repos even if cloned can provide this info, maybe because it is in latest mathematical unimplemented database or reseach thesis residing in the brains of latest LLMs]
-   F --> J[It feels ready to be ideated upon but just needs more breaking down into smaller parts?]
-   G --> K[We did the gitclone and collected docs, ingested the code in cozoDB]
-   H --> K[We did the gitclone, ingested the code in cozoDB]
-   I --> K[We did the gitclone, ingested the code in cozoDB]
-   K --> L[Is the current information level ready for a PRD refinement?]
-   L --> M[No current domain knowldge is not enough]
-   L --> N[Yes current domain knowledge is enough]
-   M --> F
-   N --> J
+   Agent[**Parseltongue Agent**] --> Ingestion[**Ingestion of Codebase** <br> Will exclude all test interfaces]
+   Ingestion --> DependencyGraph[**LLMs reads Dependency Graph** <br> via expor to json or toon using pt02]
+   DependencyGraph --> GraphType1[**Type 1 interface-relationship graph**: <br>Simplest form of e.g. fn-edge-fn]
+   DependencyGraph --> GraphType2[**Type 2 interface-relationship graph**: <br> First interface -- First edge -- Second interface -- Second edge -- Third interface]
+
+   PRD --> PRDjson[**LLM Reads PRD**]
+   PRDjson -->ContextBase[**Combined Context with LLMs**: <br> LLMs combines the context of PRD, Dependency Graph 1, Dependency Graph2]
+   GraphType1 -->ContextBase
+   GraphType2 -->ContextBase
+
+   ContextBase --> ContextAdequacyTest[**Does the LLM feel it needs more context?**]
+   ContextAdequacyTest-- NO --> MicroPRDs[Time to break down PRD into N parts, how many micro PRDS]
+   ContextAdequacyTest-- YES --> DomainTypes[API or Pattern or Deep research Requirements]
+   DomainTypes --> APIOriginGitRepos[**LLMs clone repos libraries which they are dependent on for APIs **]
+   DomainTypes --> APIPatternGitRepos[**LLMs clone repos libraries which they are dependent on for Patterns of usage for specific APIs **]
+   DomainTypes --> PredenceRequirements[**LLMs clone repos libraries which might be solving similar problems **]
+   DomainTypes --> AbstractResearchRequirements[**LLMs assimilate research from the mathematical or physics or scientific papers or blogs or social media posts from the internet which do not have code precendence but the patterns match some how **]
+
 
 ```
 
