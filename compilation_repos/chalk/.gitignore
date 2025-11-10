@@ -1,0 +1,20 @@
+*.o
+*.so
+*.rlib
+*.dll
+*.exe
+TAGS
+/*/Cargo.lock
+/*/target/
+*~
+target
+chalk-parse/src/parser.rs
+
+## IDE files
+/.idea/
+/.vscode/
+
+## Files used in changelog generation
+package.json
+package-lock.json
+node_modules

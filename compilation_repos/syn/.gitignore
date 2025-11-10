@@ -1,0 +1,4 @@
+target/
+Cargo.lock
+/tests/rust/*
+/tests/*.pending-snap

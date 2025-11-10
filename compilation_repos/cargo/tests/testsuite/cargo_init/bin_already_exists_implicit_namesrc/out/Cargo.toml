@@ -1,0 +1,10 @@
+[package]
+name = "case"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[[bin]]
+name = "case"
+path = "src/case.rs"

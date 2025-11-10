@@ -1,0 +1,41 @@
+[package]
+name = "rustc-main"
+version = "0.0.0"
+edition = "2024"
+
+[dependencies]
+# tidy-alphabetical-start
+
+# Make sure rustc_codegen_ssa ends up in the sysroot, because this
+# crate is intended to be used by codegen backends, which may not be in-tree.
+rustc_codegen_ssa = { path = "../rustc_codegen_ssa" }
+
+rustc_driver = { path = "../rustc_driver" }
+rustc_driver_impl = { path = "../rustc_driver_impl" }
+
+rustc_public = { path = "../rustc_public" }
+
+# Make sure rustc_public_bridge ends up in the sysroot, because this
+# crate is intended to be used by stable MIR consumers, which are not in-tree.
+rustc_public_bridge = { path = "../rustc_public_bridge" }
+# tidy-alphabetical-end
+
+[dependencies.tikv-jemalloc-sys]
+version = "0.6.0"
+optional = true
+features = ['unprefixed_malloc_on_supported_platforms']
+
+[features]
+# tidy-alphabetical-start
+check_only = ['rustc_driver_impl/check_only']
+jemalloc = ['dep:tikv-jemalloc-sys']
+llvm = ['rustc_driver_impl/llvm']
+llvm_enzyme = ['rustc_driver_impl/llvm_enzyme']
+max_level_info = ['rustc_driver_impl/max_level_info']
+rustc_randomized_layouts = ['rustc_driver_impl/rustc_randomized_layouts']
+# tidy-alphabetical-end
+
+[build-dependencies]
+# tidy-alphabetical-start
+rustc_windows_rc = { path = "../rustc_windows_rc" }
+# tidy-alphabetical-end

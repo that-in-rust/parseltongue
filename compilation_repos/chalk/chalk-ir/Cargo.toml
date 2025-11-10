@@ -1,0 +1,14 @@
+[package]
+name = "chalk-ir"
+version = "0.105.0-dev.0"
+description = "Chalk's internal representation of types, goals, and clauses"
+license = "MIT OR Apache-2.0"
+authors = ["Rust Compiler Team", "Chalk developers"]
+repository = "https://github.com/rust-lang/chalk"
+readme = "README.md"
+keywords = ["compiler", "traits", "prolog"]
+edition = "2018"
+
+[dependencies]
+bitflags = "2.4.1"
+chalk-derive = { version = "0.105.0-dev.0", path = "../chalk-derive" }

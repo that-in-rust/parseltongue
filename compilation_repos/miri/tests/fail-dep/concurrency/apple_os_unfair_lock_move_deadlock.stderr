@@ -1,0 +1,10 @@
+error: the evaluated program deadlocked
+  --> tests/fail-dep/concurrency/apple_os_unfair_lock_move_deadlock.rs:LL:CC
+   |
+LL |     unsafe { libc::os_unfair_lock_lock(lock.get()) };
+   |                                                  ^ this thread got stuck here
+
+note: some details are omitted, run with `MIRIFLAGS=-Zmiri-backtrace=full` for a verbose backtrace
+
+error: aborting due to 1 previous error
+

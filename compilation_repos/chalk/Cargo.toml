@@ -1,0 +1,39 @@
+[package]
+name = "chalk"
+version = "0.105.0-dev.0"
+description = "Model of the Rust trait system"
+license = "MIT OR Apache-2.0"
+authors = ["Rust Compiler Team", "Chalk developers"]
+repository = "https://github.com/rust-lang/chalk"
+readme = "README.md"
+keywords = ["compiler", "traits", "prolog"]
+edition = "2018"
+publish = false
+
+[features]
+bench = []
+
+[dependencies]
+docopt = "1.1.0"
+itertools = "0.12.0"
+rustyline = { version = "12.0.0", default-features = false }
+salsa = "0.16.0"
+serde = "1.0"
+serde_derive = "1.0"
+
+chalk-derive = { version = "0.105.0-dev.0", path = "chalk-derive" }
+chalk-engine = { version = "0.105.0-dev.0", path = "chalk-engine" }
+chalk-ir = { version = "0.105.0-dev.0", path = "chalk-ir" }
+chalk-solve = { version = "0.105.0-dev.0", path = "chalk-solve" }
+chalk-recursive = { version = "0.105.0-dev.0", path = "chalk-recursive" }
+chalk-parse = { version = "0.105.0-dev.0", path = "chalk-parse" }
+chalk-integration = { version = "0.105.0-dev.0", path = "chalk-integration" }
+
+[workspace]
+
+[dev-dependencies]
+# used for program_writer test errors
+diff = "0.1"
+expect-test = "1.4.1"
+pretty_assertions = "1.4.0"
+regex = "1"

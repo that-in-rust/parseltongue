@@ -1,0 +1,31 @@
+[package]
+name = "chalk-solve"
+version = "0.105.0-dev.0"
+description = "Combines the chalk-engine with chalk-ir"
+license = "MIT OR Apache-2.0"
+authors = ["Rust Compiler Team", "Chalk developers"]
+repository = "https://github.com/rust-lang/chalk"
+readme = "README.md"
+keywords = ["compiler", "traits", "prolog"]
+edition = "2018"
+
+[dependencies]
+ena = "0.14.0"
+itertools = "0.12.0"
+petgraph = "0.6.4"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", optional = true, features = ["env-filter"] }
+tracing-tree = { version = "0.3", optional = true }
+rustc-hash = { version = "1.1.0" }
+
+chalk-derive = { version = "0.105.0-dev.0", path = "../chalk-derive" }
+chalk-ir = { version = "0.105.0-dev.0", path = "../chalk-ir" }
+indexmap = "2"
+
+[dev-dependencies]
+chalk-integration = { path = "../chalk-integration" }
+
+[features]
+default = ["tracing-full"]
+
+tracing-full = ["tracing-subscriber", "tracing-tree"]

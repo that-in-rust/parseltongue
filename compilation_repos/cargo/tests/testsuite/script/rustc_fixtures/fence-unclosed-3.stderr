@@ -1,0 +1,7 @@
+[ERROR] unclosed frontmatter; expected `----`
+  --> script:16:47
+   |
+ 1 | ----cargo
+...
+16 | //~^ ERROR: unexpected closing delimiter: `}`
+   |                                              ^

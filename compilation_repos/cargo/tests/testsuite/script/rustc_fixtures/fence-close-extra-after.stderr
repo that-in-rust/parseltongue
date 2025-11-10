@@ -1,0 +1,6 @@
+[ERROR] unexpected characters after frontmatter close
+ --> script:2:4
+  |
+1 | ---
+2 | ---cargo
+  |    ^^^^^

@@ -1,0 +1,32 @@
+[package]
+name = "proc-macro-srv-cli"
+version = "0.0.0"
+repository.workspace = true
+description = "A standalone binary for the `proc-macro-srv` crate of rust-analyzer."
+
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+proc-macro-srv.workspace = true
+proc-macro-api.workspace = true
+tt.workspace = true
+clap = {version = "4.5.42", default-features = false, features = ["std"]}
+postcard = { version = "1.1.3", optional = true }
+
+[features]
+default = ["postcard"]
+sysroot-abi = ["proc-macro-srv/sysroot-abi"]
+in-rust-tree = ["proc-macro-srv/in-rust-tree", "sysroot-abi"]
+postcard = ["dep:postcard"]
+
+
+[[bin]]
+name = "rust-analyzer-proc-macro-srv"
+path = "src/main.rs"
+
+[lints]
+workspace = true
