@@ -38,11 +38,22 @@
                - after this move the head of code back to Stage 1 commit and reingest it
             - go back to solving the problem from commit-base but with learnings of previous attempts
 
+# For v098
+
 - [ ] Clustering enhancements
    - [ ] Semantic Clustering, clustering based
+
+# For v099
+
 - [ ] Flow enhancements
    - [ ] Control Flow
    - [ ] Data Flow
+
+
+
+# For v100
+
+# long term backlog
 - [ ] Next-Leap Ideas
    - [ ] Sub-agent driven LLM-meta-data for each interface
       - [ ] In natural language what does this function do
