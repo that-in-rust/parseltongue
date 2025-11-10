@@ -43,11 +43,15 @@
 - [ ] Flow enhancements
    - [ ] Control Flow
    - [ ] Data Flow
-- [ ] MoonShot Ideas
+- [ ] Next-Leap Ideas
    - [ ] Sub-agent driven LLM-meta-data for each interface
+      - [ ] In natural language what does this function do
    - [ ] Sub-agent driven LLM-meta-data for each interface-edge-interface
+      - [ ] In natural language this fn to fn interaction mean something
    - [ ] Sub-agent driven LLM-meta-data for each interface-edge-interface-edge-interface
-      - nth order effect
+      - [ ] In natural language this fn to fn interaction mean something
+   - 
+
 
 
 # PRD to implementation flow using Parseltongue
