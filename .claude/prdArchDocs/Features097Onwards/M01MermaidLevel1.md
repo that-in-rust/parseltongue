@@ -28,6 +28,8 @@ Similar analogy
     - Can we approximate which city
     - Can we approximate which neighbourhood?
 
+# Objective
+With minimal context spent we give highest amount of signal to an LLM to reason throught the codebase
 
 ## Definitions
 - Define interfaces : struct i.e. class, type; functions or generics ; statements; libraries which are basically functions; modules which are basically functions; files behave as modules;
@@ -41,7 +43,10 @@ Similar analogy
     - Level 2 - ingest code in graphdatabase - run a faster x higher quality compiler to check what the agent did or you did almost like a REPL
     - Level 3 - before final binary run a traditional proven existing compiler
 
+
+
 ## Why lines are the addresses of functions in a file?
+
 
 
 # User Journey
