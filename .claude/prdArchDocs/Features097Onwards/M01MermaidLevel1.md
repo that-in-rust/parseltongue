@@ -57,13 +57,32 @@ Other types of interfaces can be ADDRESS01-<interface-name>-... - problem is lin
     - it can grow in size
     - it can shrink in size
 - preceding interfaces
-- 
+- succeding interfaces - MAYBE ?
 
 e.g. 
        "key": "rust:struct:Cli:__crates_pt06-cozodb-make-future-code-current_src_cli_rs:7-23",
        "file": "./crates/pt06-cozodb-make-future-code-current/src/cli.rs"
 
 Especially in context of storing it in a database?
+
+
+## Solutions
+
+### Solution 01
+
+Define an address of a code block
+- file-path
+    -  file-name
+        - interface-array-index-number
+            - a text value
+
+parseltongue-src-main.rs-[0] = "use clap::{Arg, ArgMatches, Command};"
+parseltongue-src-main.rs-[1] = "use console::style;"
+parseltongue-src-main.rs-[2] = "use anyhow::{Result, Context};"
+parseltongue-src-main.rs-[3] = "use std::path::PathBuf;"
+parseltongue-src-main.rs-[4] = "use std::collections::HashMap;"
+
+parseltongue-src-main.rs-[5]= "use pt01_folder_to_cozodb_streamer::streamer::FileStreamer;"
 
 
 
