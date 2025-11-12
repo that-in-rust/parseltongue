@@ -41,11 +41,23 @@ With minimal context spent we give highest amount of signal to an LLM to reason 
 - An incremental way to think of it is, for the sake of humans, keep the files in tree lije filesystems, but to run a compiler immediately ingest them into a a graphdatabase for faster higher quality compilation
     - Level 1 - write code in filesystem - CURRENT SYTEM
     - Level 2 - ingest code in graphdatabase - run a faster x higher quality compiler to check what the agent did or you did almost like a REPL
-    - Level 3 - before final binary run a traditional proven existing compiler
+    - Level 3 - before final binary run a traditional proven existing compile
 
 
 
-## Why lines are the addresses of functions in a file?
+## Why lines are the addresses of functions in a file? And should they be so?
+
+
+### Assignment of Primary Key
+
+What are the biggest disadvantages of a <filepath>->fil-name>-<interface-name>-<interface-type>-<line-start>-<line-end>?
+
+e.g. 
+       "key": "rust:struct:Cli:__crates_pt06-cozodb-make-future-code-current_src_cli_rs:7-23",
+       "file": "./crates/pt06-cozodb-make-future-code-current/src/cli.rs"
+
+Especially in context of storing it in a database?
+
 
 
 
