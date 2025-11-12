@@ -78,23 +78,26 @@ Define an address of a code block
 
 parseltongue-src-main.rs-[0] = `use clap::{Arg, ArgMatches, Command};`
 parseltongue-src-main.rs-[1] = `use console::style;`
-parseltongue-src-main.rs-[2] = `use anyhow::{Result, Context};"
-parseltongue-src-main.rs-[3] = `use std::path::PathBuf;"
-parseltongue-src-main.rs-[4] = `use std::collections::HashMap;"
-parseltongue-src-main.rs-[5]= `use pt01_folder_to_cozodb_streamer::streamer::FileStreamer;"
-parseltongue-src-main.rs-[6]-`use parseltongue_core::entities`= "use parseltongue_core::entities::{
+parseltongue-src-main.rs-[2] = `use anyhow::{Result, Context};`
+parseltongue-src-main.rs-[3] = `use std::path::PathBuf;`
+parseltongue-src-main.rs-[4] = `use std::collections::HashMap;`
+parseltongue-src-main.rs-[5]= `use pt01_folder_to_cozodb_streamer::streamer::FileStreamer;`
+parseltongue-src-main.rs-[6]-`use parseltongue_core::entities`= `use parseltongue_core::entities::{
     CodeEntity, TemporalState, InterfaceSignature, EntityType, Visibility,
     LineRange, Language, LanguageSpecificSignature, RustSignature,
     TddClassification, EntityClass, TestabilityLevel, ComplexityLevel, RiskLevel,
     EntityMetadata,
-};"
-
-
-
+};`
 
 
 Simulations
-- Can we add more information about interfaces to post-array-number- 
+- If a particular array cell expands in text, then it can likely accommodate the whole code inside it
+- If a particular array cell shrinks in text, then it can likely accommodate the whole code inside it
+- If a particular array cell is deleted, then we just keep it empty
+- If a particular array cell is added, then we have 2 options
+    - either insdert it in the middle of the array list
+    - we insert it in the end of the array list in the files
+
 
 
 # User Journey
