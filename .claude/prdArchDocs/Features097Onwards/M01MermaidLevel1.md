@@ -50,7 +50,14 @@ With minimal context spent we give highest amount of signal to an LLM to reason 
 
 ### Assignment of Primary Key
 
-What are the biggest disadvantages of a <filepath>->fil-name>-<interface-name>-<interface-type>-<line-start>-<line-end>?
+What are the biggest disadvantages of a <filepath>-<file-name>-<interface-name>-<interface-type>-<line-start>-<line-end> = ADDRESS01?
+
+Other types of interfaces can be ADDRESS01-<interface-name>-... - problem is line-start AND line-end IS DEPENDENT ON THE CONTENT OF THE 3 things
+- current interface whose address you are looking at
+    - it can grow in size
+    - it can shrink in size
+- preceding interfaces
+- 
 
 e.g. 
        "key": "rust:struct:Cli:__crates_pt06-cozodb-make-future-code-current_src_cli_rs:7-23",
