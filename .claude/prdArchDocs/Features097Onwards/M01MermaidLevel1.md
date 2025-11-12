@@ -8,7 +8,25 @@ You canNOT reason properly with such context length
 imagine if your ceo asked for insights of last 1 week of data which at granular level exists at 1 minute intervals = 1 x 60 x 24 x  7 = 10080 data points
 - do you show him each 10080 data points for insights to help him take decisions
 - you can show him it to be aggregated percentile distribution or mean or sum of
-    - 168 data points 
+    - 10080 data points at minute basis
+    - 168 data points at hourly basis
+    - 7 data points at day basis
+
+RCA
+- If CEO think some problem is there on Tuesday - does he start with 10800 data points OR does he first pick the day on which the issue might have happened?
+- Then goes to hour
+- then goes to minute
+
+
+Similar analogy
+- Map of India has 25 states
+- Each State 20 cities
+- Each City 50 key neighbourhoods
+- We see 1 video of a neighbourhood of something thing wrong
+- Do we run all the video clips of 25 x 20 x 50 = 50000 videos ?
+    - Can we approximate which state
+    - Can we approximate which city
+    - Can we approximate which neighbourhood?
 
 
 ## Definitions
