@@ -1,8 +1,0 @@
-[ERROR] unsupported frontmatter infostring `-toml`; specify `cargo` for embedding a manifest
- --> script:1:5
-  |
-1 | --- -toml
-  |     ^^^^^
-2 | //~^ ERROR: invalid infostring for frontmatter
-3 | ---
-  |

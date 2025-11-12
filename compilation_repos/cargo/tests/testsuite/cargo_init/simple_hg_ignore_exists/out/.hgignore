@@ -1,5 +1,0 @@
-^/somefile
-
-# Added by cargo
-
-^target$
