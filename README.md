@@ -1,6 +1,6 @@
 # Parseltongue
 
-> **v0.9.6** - Test exclusion (90% token reduction) + single-binary architecture (80% disk reduction)
+> **v0.9.7** - Agent query helpers (<100ms JSON traversal) + test exclusion (90% token reduction) + single-binary architecture (80% disk reduction)
 
 Parse your codebase into a queryable graph database. Get 2-5K token summaries instead of 500K+ token dumps. Query dependencies, find functions, analyze architecture—all without reading every file.
 
@@ -236,6 +236,93 @@ graph TB
   --where-clause "interface_signature CONTAINS 'pub'" \
   --output public_api.json \
   --db "rocksdb:mycode.db"
+```
+
+---
+
+## 🤖 v0.9.7: Agent Query Helpers
+
+**NEW**: After exporting JSON, agents can query it programmatically with type-safe, performant helper functions.
+
+### Why Query Helpers?
+
+**The Problem**: You have a JSON export and want to answer architectural questions without re-querying the database.
+
+**The Solution**: 4 helper functions for common graph traversal patterns.
+
+### 4 Query Patterns
+
+| Function | Purpose | Example Question |
+|----------|---------|------------------|
+| `find_reverse_dependencies_by_key()` | Blast radius | "What breaks if I change this?" |
+| `build_call_chain_from_root()` | Execution paths | "Show call chain from `main()`" |
+| `filter_edges_by_type_only()` | Edge filtering | "Show all `Implements` edges" |
+| `collect_entities_in_file_path()` | File search | "What's in `auth.rs`?" |
+
+### Example Usage (Rust)
+
+```rust
+use parseltongue_core::{
+    find_reverse_dependencies_by_key,
+    build_call_chain_from_root,
+};
+use serde_json::Value;
+
+// Load JSON export
+let json: Value = serde_json::from_str(&export_content)?;
+
+// Query 1: Blast radius - what depends on this function?
+let affected = find_reverse_dependencies_by_key(
+    &json,
+    "rust:fn:validate_payment:src_payment_rs:89-112"
+)?;
+
+println!("⚠️  Changing validate_payment() affects {} functions:", affected.len());
+for caller in affected {
+    println!("  - {}", caller);
+}
+
+// Query 2: Execution path from main
+let call_chain = build_call_chain_from_root(
+    &json,
+    "rust:fn:main:src_main_rs:1-10"
+)?;
+
+println!("📞 Call chain from main():");
+for (i, func) in call_chain.iter().enumerate() {
+    println!("  {}. {}", i+1, func);
+}
+```
+
+### Performance
+
+- **< 100ms** for 1,500 entities (release builds)
+- **< 150ms** for debug builds
+- Type-safe error handling (no panics)
+- Validated by contract tests
+
+### When to Use
+
+✅ **Use query helpers when**:
+- You have a JSON export already
+- You want to traverse it differently (blast radius, call chains)
+- You need sub-100ms performance
+
+❌ **Query the database when**:
+- You need different entities than the export contains
+- First-time data extraction
+
+**Visual**:
+```mermaid
+graph TD
+    A[Need architectural data?] --> B{Have JSON export?}
+    B -->|No| C[Query database: pt02-level00/01]
+    B -->|Yes| D{Need different entities?}
+    D -->|Yes| C
+    D -->|No| E[Use query helpers on JSON]
+
+    style C fill:#99C899
+    style E fill:#9DB4C8
 ```
 
 ---

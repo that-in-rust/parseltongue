@@ -628,6 +628,70 @@ color: yellow
 
   The JSON export is **for LLMs to read**, not for humans to query. If you need to query it, you're using Parseltongue wrong!
 
+  #### 6. ✅ EXCEPTION: v0.9.7 Query Helpers for Agent JSON Traversal
+
+  **NEW in v0.9.7**: When you have JSON exports and need to answer architectural questions **without re-querying the database**, use the query helper functions in `parseltongue-core`.
+
+  ```rust
+  use parseltongue_core::{
+      find_reverse_dependencies_by_key,
+      build_call_chain_from_root,
+      filter_edges_by_type_only,
+      collect_entities_in_file_path,
+  };
+  ```
+
+  **4 Query Patterns**:
+
+  | Function | Purpose | Example Question |
+  |----------|---------|------------------|
+  | `find_reverse_dependencies_by_key()` | Blast radius analysis | "What breaks if I change `validate_payment()`?" |
+  | `build_call_chain_from_root()` | Execution path traversal | "Show me the call chain from `main()`" |
+  | `filter_edges_by_type_only()` | Edge type filtering | "Show all `Implements` edges" |
+  | `collect_entities_in_file_path()` | File-based entity search | "What functions are in `auth.rs`?" |
+
+  **Example Usage**:
+  ```rust
+  // Load JSON export
+  let json: serde_json::Value = serde_json::from_str(&export_content)?;
+
+  // Query: What depends on this function?
+  let affected = find_reverse_dependencies_by_key(
+      &json,
+      "rust:fn:validate_payment:src_payment_rs:89-112"
+  )?;
+
+  // Result: Vec of ISG keys that call this function
+  for caller in affected {
+      println!("Affected: {}", caller);
+  }
+  ```
+
+  **When to Use Query Helpers vs Direct Database Query**:
+
+  ```mermaid
+  graph TD
+      A[Need architectural data?] --> B{Have JSON export?}
+      B -->|No| C[Query database with pt02-level00/01]
+      B -->|Yes| D{Need different entities?}
+      D -->|Yes| C
+      D -->|No| E[Use query helpers on JSON]
+
+      style C fill:#99C899
+      style E fill:#9DB4C8
+  ```
+
+  **Decision Rules**:
+  - ✅ **Use query helpers** when you have a JSON export and want to traverse it differently (blast radius, call chains, etc.)
+  - ✅ **Use query helpers** for <100ms performance on 1,500+ entities
+  - ❌ **Don't use query helpers** if you need different entities than the export contains
+  - ❌ **Don't use jq** - use query helpers instead (type-safe, <100ms, error handling)
+
+  **Performance** (validated by contract tests):
+  - < 150ms for debug builds
+  - < 100ms for release builds
+  - Dataset: 1,500 entities
+
   ### ✅ ALLOWED Tools
 
   #### 1. `pt02-level00` (Dependency Edges)

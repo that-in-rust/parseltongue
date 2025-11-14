@@ -23,11 +23,11 @@ use serde::Serialize;
 use std::path::{Path, PathBuf};
 
 pub mod json;
-pub mod mermaid;
+// pub mod mermaid; // v0.9.8+: Deferred per user request (agent queryability first)
 pub mod toon;
 
 pub use json::JsonSerializer;
-pub use mermaid::{render_graph_as_mermaid, MermaidConfig};
+// pub use mermaid::{render_graph_as_mermaid, MermaidConfig}; // v0.9.8+
 pub use toon::{ToonDelimiter, ToonSerializer};
 
 /// Core serialization trait for data export formats

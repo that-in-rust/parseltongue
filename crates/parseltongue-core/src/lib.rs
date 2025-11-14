@@ -13,6 +13,8 @@ pub mod entity_class_specifications;
 pub mod error;
 pub mod interfaces;
 pub mod query_extractor;
+pub mod query_json_graph_errors; // v0.9.7: Agent query error types
+pub mod query_json_graph_helpers; // v0.9.7: Agent JSON graph traversal
 pub mod serializers; // v0.10.0: Core serialization (JSON, TOON)
 pub mod storage;
 pub mod temporal;
@@ -21,6 +23,8 @@ pub mod temporal;
 pub use entities::*;
 pub use error::*;
 pub use interfaces::*;
+pub use query_json_graph_errors::*; // v0.9.7: Query error types
+pub use query_json_graph_helpers::*; // v0.9.7: Agent query functions
 pub use serializers::*; // Export Serializer trait + implementations
 pub use storage::*;
 pub use temporal::*;
