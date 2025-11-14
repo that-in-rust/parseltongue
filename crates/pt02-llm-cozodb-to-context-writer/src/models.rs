@@ -44,6 +44,11 @@ pub struct ExportConfig {
 
     /// Test entities output path (when entity_class filtering is enabled)
     pub tests_output_path: Option<PathBuf>,
+
+    // v0.9.7: Timestamped folder creation
+    /// Session start timestamp for timestamped folder creation
+    /// If None, uses current timestamp. If Some, all outputs go to same timestamped folder.
+    pub session_timestamp: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 // ============================================================================

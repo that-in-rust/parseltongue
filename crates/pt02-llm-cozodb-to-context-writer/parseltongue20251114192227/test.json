@@ -1,0 +1,7 @@
+[
+  {
+    "from_key": "rust:fn:foo:src_lib_rs:10",
+    "to_key": "rust:fn:bar:src_lib_rs:20",
+    "edge_type": "depends_on"
+  }
+]

@@ -12,6 +12,7 @@ pub mod entities;
 pub mod entity_class_specifications;
 pub mod error;
 pub mod interfaces;
+pub mod output_path_resolver; // v0.9.7: Timestamped folder creation
 pub mod query_extractor;
 pub mod query_json_graph_errors; // v0.9.7: Agent query error types
 pub mod query_json_graph_helpers; // v0.9.7: Agent JSON graph traversal

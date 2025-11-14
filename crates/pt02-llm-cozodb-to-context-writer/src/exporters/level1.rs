@@ -90,11 +90,13 @@ impl Level1Exporter {
             level: 1,
             code_output_path: None,
             tests_output_path: None,
+            // v0.9.7: Timestamped folder creation (None = use current timestamp)
+            session_timestamp: None,
         };
-        
+
         let code_result = self.export(repository, &config).await?;
         code_result.write_to_file(&code_output)?;
-        
+
         // Export TEST entities (test code)
         let test_filter = if where_clause == "ALL" {
             "entity_class = 'TEST'".to_string()
@@ -102,7 +104,7 @@ impl Level1Exporter {
             format!("entity_class = 'TEST', {}", where_clause)
         };
         let test_output = format!("{}_test.json", output_name);
-        
+
         let test_config = ExportConfig {
             include_code,
             output_path: test_output.clone().into(),
@@ -111,6 +113,8 @@ impl Level1Exporter {
             level: 1,
             code_output_path: None,
             tests_output_path: None,
+            // v0.9.7: Timestamped folder creation (None = use current timestamp)
+            session_timestamp: None,
         };
         
         let test_result = self.export(repository, &test_config).await?;
@@ -226,17 +230,33 @@ impl LevelExporter for Level1Exporter {
 
         // 4. Write both JSON and TOON formats using core serializers
         use parseltongue_core::serializers::{Serializer, JsonSerializer, ToonSerializer};
+        use parseltongue_core::output_path_resolver::{
+            resolve_output_path_with_timestamp, create_timestamped_output_directory,
+            get_current_session_start_timestamp,
+        };
+
+        // v0.9.7: Resolve output path with timestamped folder
+        let session_timestamp = config.session_timestamp
+            .unwrap_or_else(|| get_current_session_start_timestamp());
+        let timestamped_json_path = resolve_output_path_with_timestamp(
+            &config.output_path,
+            &session_timestamp
+        )?;
+        let timestamped_toon_path = timestamped_json_path
+            .with_extension("toon");
+
+        // Create timestamped directory
+        create_timestamped_output_directory(&timestamped_json_path)?;
 
         // JSON serializer
         let json_serializer = JsonSerializer::new();
         let json_content = json_serializer.serialize(&code_level1_entities)?;
-        std::fs::write(&config.output_path, &json_content)?;
+        std::fs::write(&timestamped_json_path, &json_content)?;
 
         // TOON serializer (automatically handles empty arrays)
         let toon_serializer = ToonSerializer::new();
-        let toon_path = config.output_path.with_extension(toon_serializer.extension());
         let toon_content = toon_serializer.serialize(&code_level1_entities)?;
-        std::fs::write(&toon_path, &toon_content)?;
+        std::fs::write(&timestamped_toon_path, &toon_content)?;
 
         // 5. Build metadata with EntityClass information
         let metadata = ExportMetadata {
@@ -360,6 +380,8 @@ mod tests {
             code_output_path: None,
             tests_output_path: None,
             db_path: "mem".to_string(),
+            // v0.9.7: Timestamped folder creation (None for tests)
+            session_timestamp: None,
         };
 
         let exporter = Level1Exporter::new();
@@ -394,6 +416,8 @@ mod tests {
             code_output_path: None,
             tests_output_path: None,
             db_path: "mem".to_string(),
+            // v0.9.7: Timestamped folder creation (None for tests)
+            session_timestamp: None,
         };
 
         let exporter = Level1Exporter::new();
@@ -417,6 +441,8 @@ mod tests {
             code_output_path: None,
             tests_output_path: None,
             db_path: "mem".to_string(),
+            // v0.9.7: Timestamped folder creation (None for tests)
+            session_timestamp: None,
         };
 
         let output2 = exporter.export(&db2, &config_no_code).await.unwrap();

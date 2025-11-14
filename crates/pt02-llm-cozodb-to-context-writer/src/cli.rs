@@ -154,6 +154,8 @@ impl Cli {
             code_output_path: None,
             tests_output_path: None,
             db_path: self.db.clone(),
+            // v0.9.7: Timestamped folder creation (None = use current timestamp)
+            session_timestamp: None,
         })
     }
 

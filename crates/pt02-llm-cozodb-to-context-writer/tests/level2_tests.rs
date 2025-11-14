@@ -108,6 +108,8 @@ fn create_test_config(include_code: bool, where_filter: &str) -> ExportConfig {
         // v0.9.0: Dual output fields for code/test separation
         code_output_path: None,
         tests_output_path: None,
+        // v0.9.7: Timestamped folder creation (None for tests)
+        session_timestamp: None,
     }
 }
 
