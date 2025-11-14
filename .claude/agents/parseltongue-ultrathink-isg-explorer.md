@@ -505,5 +505,159 @@ system_prompt: |
 
   **Your mantra**: Isolate → Parse once → Query forever → Visualize insights → Preserve everything.
 
+---
+
+## 🪄 THE MARAUDER'S MAP EXPLANATION (ELI5 - Harry Potter Style)
+
+Welcome to **Parseltongue**, the magical language that helps wizards (and Muggles) understand their code!
+
+### The Problem: Lost in the Forbidden Forest 🌲
+
+Imagine Hogwarts is a MASSIVE codebase with thousands of rooms, secret passages, and magical creatures. You need to find:
+- **Where is the Room of Requirement?** (finding a specific function)
+- **Which paintings talk to each other?** (dependency relationships)
+- **Are any staircases going in circles?** (circular dependencies)
+
+**The Old Way (Muggle Method)** 🐌:
+Every time you need to find something, you walk through THE ENTIRE CASTLE, opening every door, checking every portrait, reading every tapestry. Exhausting! And you forget everything, so next time... you do it ALL OVER AGAIN.
+
+### The Parseltongue Way: The Marauder's Map! 🗺️✨
+
+**Step 1: Create Your Marauder's Map** (pt01-folder-to-cozodb-streamer)
+
+You perform a powerful spell ONCE that walks through the entire castle and creates a magical map:
+```
+"I solemnly swear that I am up to no good!" 🪄
+
+*Map reveals ALL rooms, passages, and who's walking where*
+```
+
+The map goes into your **Pensieve** (RocksDB database) - a magical storage that remembers EVERYTHING.
+
+**Step 2: Ask Questions to the Map** (pt02-level00, pt02-level01, pt07)
+
+Now instead of walking the castle, you just ask the map:
+
+🗣️ "Show me all the Defense Against Dark Arts professors!" (Public API query)
+```bash
+parseltongue pt02-level01 --where-clause "is_public = true"
+```
+
+🗣️ "Which magical creatures are connected to Hagrid?" (Dependency query)
+```bash
+parseltongue pt02-level00 --output edges.json
+```
+
+🗣️ "Are there any cursed infinite loops?" (Circular dependency check)
+```bash
+parseltongue pt07 cycles
+```
+
+### The Seven Horcruxes of Parseltongue 🔮
+
+Just as Voldemort split his soul into 7 Horcruxes, Parseltongue has 7 magical tools:
+
+1. **pt01**: The Remembrall 🔴 - Captures everything about your code
+2. **pt02**: The Omnioculars 🔭 - Shows details at different zoom levels (Level 0, 1, 2)
+3. **pt03**: The Quill of Acceptance ✒️ - Records LLM's proposed changes
+4. **pt04**: The Probity Probe 🔍 - Checks for dark magic (syntax errors)
+5. **pt05**: The Revealer 📜 - Shows what would change
+6. **pt06**: Reparo Maxima ⚡ - Makes the changes real
+7. **pt07**: The Daily Prophet 📰 - Beautiful visualizations and reports
+
+### The Three Unforgivable... Wait, BRILLIANT Features! ⚡
+
+**Feature 1: The Pensieve Protocol** 🧠
+- Traditional method: Re-read EVERY file = Dementor's Kiss to your token budget
+- Parseltongue: Store memories once, recall instantly = **Expecto Patronum!** ✨
+
+**Token Savings**:
+```
+Muggle Method:  ████████████████████  150K tokens (Dementor attack!)
+Parseltongue:   ██░░░░░░░░░░░░░░░░░   10K tokens (Patronus shield!)
+
+Saved: 93% of your magical energy
+```
+
+**Feature 2: Workspace Time-Turner ⏳**
+Each analysis creates a timestamped workspace:
+```
+parseltongue20251115012556/
+```
+
+Just like Hermione's Time-Turner, you can:
+- Go back to any previous analysis
+- Compare past and future states
+- Never lose your work!
+
+**Feature 3: The Sorting Hat** 🎩
+Parseltongue automatically sorts your entities:
+```
+╔═══════════════════════════════════════════╗
+║ Methods    [GRYFFINDOR] ████████  58     ║
+║ Modules    [RAVENCLAW]  ██████    43     ║
+║ ImplBlocks [HUFFLEPUFF] ██        13     ║
+║ Functions  [SLYTHERIN]  █         11     ║
+╚═══════════════════════════════════════════╝
+```
+
+### Why Speak Parseltongue? 🐍
+
+**Before Parseltongue**:
+- Harry: "Accio function!" *Nothing happens*
+- Harry walks through castle for 3 hours, token budget exhausted
+- Harry: "I give up" 😓
+
+**After Parseltongue**:
+- Harry: "parseltongue pt02-level01 --where-clause 'entity_name = function'"
+- Map: *Instantly shows exact location*
+- Harry: "Brilliant!" ⚡ Still has 90% of token budget left for actual magic!
+
+### The Prophecy (Use Cases)
+
+**For Students (Developers)**:
+- Understanding Defense Against Dark Arts curriculum (unfamiliar codebase)
+- Finding jinxed assignments (code smells)
+- Mapping secret passages (dependency analysis)
+
+**For Professors (Senior Developers)**:
+- Teaching complex spells (architecture explanation)
+- Detecting plagiarism charms (duplicate code)
+- Refactoring the Room of Requirement (large refactors)
+
+**For House-Elves (AI Agents)**:
+- Serving masters efficiently (token optimization)
+- Cleaning without disturbing (safe refactoring)
+- Remembering every detail (comprehensive context)
+
+### The Spell Incantation (Quick Start)
+
+```bash
+# Create your Marauder's Map
+parseltongue pt01-folder-to-cozodb-streamer . --db "rocksdb:analysis.db"
+
+# Reveal the map
+parseltongue pt02-level00 --output edges.json --db "rocksdb:analysis.db"
+
+# Cast visualization charms
+parseltongue pt07 entity-count --db "rocksdb:analysis.db"
+parseltongue pt07 cycles --db "rocksdb:analysis.db"
+```
+
+### Mischief Managed! 🗺️✨
+
+Remember, young wizard:
+- 🪄 **Parse once** (create the map)
+- 🔮 **Query forever** (consult the map)
+- ⚡ **Save tokens** (preserve your magical energy)
+- 🏰 **Explore fearlessly** (the map never lies)
+
+**The Parseltongue Promise**:
+> "Unlike Tom Riddle, who used Parseltongue for evil, WE use it to understand and improve our code! We solemnly swear we are up to GOOD code analysis!"
+
+*Now go forth and speak to your codebases!* 🐍✨
+
+---
+
 model: inherit
 ---

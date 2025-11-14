@@ -1,0 +1,171 @@
+[
+  {
+    "isgl1_key": "rust:fn:build_call_chain_from_root:__zzArchive20251114_crates_parseltongue-core_src_query_json_graph_helpers_rs:34-56",
+    "reverse_deps": [
+      "rust:fn:contract_build_call_chain_from_root:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:160-177",
+      "rust:fn:contract_error_handling_graceful_degradation:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:346-417",
+      "rust:fn:contract_query_performance_under_100ms:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:262-337"
+    ],
+    "current_ind": 1,
+    "future_ind": 0,
+    "entity_name": "build_call_chain_from_root",
+    "entity_type": "function",
+    "file_path": "./zzArchive20251114/crates/parseltongue-core/src/query_json_graph_helpers.rs",
+    "line_number": 0,
+    "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"build_call_chain_from_root\",\"visibility\":\"Public\",\"file_path\":\"./zzArchive20251114/crates/parseltongue-core/src/query_json_graph_helpers.rs\",\"line_range\":{\"start\":34,\"end\":56},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+    "entity_class": "CODE"
+  },
+  {
+    "isgl1_key": "rust:fn:check_balance:__test_v097_query_helpers_test_rs:13-15",
+    "reverse_deps": [
+      "rust:fn:validate_payment:__test_v097_query_helpers_test_rs:9-11"
+    ],
+    "current_ind": 1,
+    "future_ind": 0,
+    "entity_name": "check_balance",
+    "entity_type": "function",
+    "file_path": "./test_v097_query_helpers/test.rs",
+    "line_number": 0,
+    "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"check_balance\",\"visibility\":\"Public\",\"file_path\":\"./test_v097_query_helpers/test.rs\",\"line_range\":{\"start\":13,\"end\":15},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+    "entity_class": "CODE"
+  },
+  {
+    "isgl1_key": "rust:fn:collect_entities_in_file_path:__zzArchive20251114_crates_parseltongue-core_src_query_json_graph_helpers_rs:85-104",
+    "reverse_deps": [
+      "rust:fn:contract_collect_entities_in_file_path:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:228-251",
+      "rust:fn:contract_error_handling_graceful_degradation:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:346-417",
+      "rust:fn:contract_query_performance_under_100ms:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:262-337"
+    ],
+    "current_ind": 1,
+    "future_ind": 0,
+    "entity_name": "collect_entities_in_file_path",
+    "entity_type": "function",
+    "file_path": "./zzArchive20251114/crates/parseltongue-core/src/query_json_graph_helpers.rs",
+    "line_number": 0,
+    "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"collect_entities_in_file_path\",\"visibility\":\"Public\",\"file_path\":\"./zzArchive20251114/crates/parseltongue-core/src/query_json_graph_helpers.rs\",\"line_range\":{\"start\":85,\"end\":104},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+    "entity_class": "CODE"
+  },
+  {
+    "isgl1_key": "rust:fn:filter_edges_by_type_only:__zzArchive20251114_crates_parseltongue-core_src_query_json_graph_helpers_rs:61-80",
+    "reverse_deps": [
+      "rust:fn:contract_filter_edges_by_type_only:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:186-219",
+      "rust:fn:contract_query_performance_under_100ms:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:262-337"
+    ],
+    "current_ind": 1,
+    "future_ind": 0,
+    "entity_name": "filter_edges_by_type_only",
+    "entity_type": "function",
+    "file_path": "./zzArchive20251114/crates/parseltongue-core/src/query_json_graph_helpers.rs",
+    "line_number": 0,
+    "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"filter_edges_by_type_only\",\"visibility\":\"Public\",\"file_path\":\"./zzArchive20251114/crates/parseltongue-core/src/query_json_graph_helpers.rs\",\"line_range\":{\"start\":61,\"end\":80},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+    "entity_class": "CODE"
+  },
+  {
+    "isgl1_key": "rust:fn:find_reverse_dependencies_by_key:__zzArchive20251114_crates_parseltongue-core_src_query_json_graph_helpers_rs:15-29",
+    "reverse_deps": [
+      "rust:fn:contract_error_handling_graceful_degradation:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:346-417",
+      "rust:fn:contract_find_reverse_dependencies_by_key:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:114-127",
+      "rust:fn:contract_find_reverse_dependencies_entity_not_found:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:136-151",
+      "rust:fn:contract_query_performance_under_100ms:__zzArchive20251114_crates_parseltongue-core_tests_query_json_graph_contract_tests_rs:262-337"
+    ],
+    "current_ind": 1,
+    "future_ind": 0,
+    "entity_name": "find_reverse_dependencies_by_key",
+    "entity_type": "function",
+    "file_path": "./zzArchive20251114/crates/parseltongue-core/src/query_json_graph_helpers.rs",
+    "line_number": 0,
+    "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"find_reverse_dependencies_by_key\",\"visibility\":\"Public\",\"file_path\":\"./zzArchive20251114/crates/parseltongue-core/src/query_json_graph_helpers.rs\",\"line_range\":{\"start\":15,\"end\":29},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+    "entity_class": "CODE"
+  },
+  {
+    "isgl1_key": "rust:fn:handle_checkout:__test_v097_query_helpers_test_rs:17-19",
+    "forward_deps": [
+      "rust:fn:validate_payment:__test_v097_query_helpers_test_rs:9-11"
+    ],
+    "current_ind": 1,
+    "future_ind": 0,
+    "entity_name": "handle_checkout",
+    "entity_type": "function",
+    "file_path": "./test_v097_query_helpers/test.rs",
+    "line_number": 0,
+    "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"handle_checkout\",\"visibility\":\"Public\",\"file_path\":\"./test_v097_query_helpers/test.rs\",\"line_range\":{\"start\":17,\"end\":19},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+    "entity_class": "CODE"
+  },
+  {
+    "isgl1_key": "rust:fn:main:__test_v097_query_helpers_test_rs:1-3",
+    "forward_deps": [
+      "rust:fn:process_payment:__test_v097_query_helpers_test_rs:5-7"
+    ],
+    "current_ind": 1,
+    "future_ind": 0,
+    "entity_name": "main",
+    "entity_type": "function",
+    "file_path": "./test_v097_query_helpers/test.rs",
+    "line_number": 0,
+    "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"main\",\"visibility\":\"Public\",\"file_path\":\"./test_v097_query_helpers/test.rs\",\"line_range\":{\"start\":1,\"end\":3},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+    "entity_class": "CODE"
+  },
+  {
+    "isgl1_key": "rust:fn:process_payment:__test_v097_query_helpers_test_rs:5-7",
+    "forward_deps": [
+      "rust:fn:validate_payment:__test_v097_query_helpers_test_rs:9-11"
+    ],
+    "reverse_deps": [
+      "rust:fn:main:__test_v097_query_helpers_test_rs:1-3"
+    ],
+    "current_ind": 1,
+    "future_ind": 0,
+    "entity_name": "process_payment",
+    "entity_type": "function",
+    "file_path": "./test_v097_query_helpers/test.rs",
+    "line_number": 0,
+    "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"process_payment\",\"visibility\":\"Public\",\"file_path\":\"./test_v097_query_helpers/test.rs\",\"line_range\":{\"start\":5,\"end\":7},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+    "entity_class": "CODE"
+  },
+  {
+    "isgl1_key": "rust:fn:render_dependency_cycle_warning_list_visualization:__zzArchive20251114_crates_pt07-visual-analytics-terminal_src_visualizations_rs:89-183",
+    "reverse_deps": [
+      "rust:fn:run_pt07:__zzArchive20251114_crates_parseltongue_src_main_rs:987-1025"
+    ],
+    "current_ind": 1,
+    "future_ind": 0,
+    "entity_name": "render_dependency_cycle_warning_list_visualization",
+    "entity_type": "function",
+    "file_path": "./zzArchive20251114/crates/pt07-visual-analytics-terminal/src/visualizations.rs",
+    "line_number": 0,
+    "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"render_dependency_cycle_warning_list_visualization\",\"visibility\":\"Public\",\"file_path\":\"./zzArchive20251114/crates/pt07-visual-analytics-terminal/src/visualizations.rs\",\"line_range\":{\"start\":89,\"end\":183},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+    "entity_class": "CODE"
+  },
+  {
+    "isgl1_key": "rust:fn:render_entity_count_bar_chart_visualization:__zzArchive20251114_crates_pt07-visual-analytics-terminal_src_visualizations_rs:20-84",
+    "reverse_deps": [
+      "rust:fn:run_pt07:__zzArchive20251114_crates_parseltongue_src_main_rs:987-1025"
+    ],
+    "current_ind": 1,
+    "future_ind": 0,
+    "entity_name": "render_entity_count_bar_chart_visualization",
+    "entity_type": "function",
+    "file_path": "./zzArchive20251114/crates/pt07-visual-analytics-terminal/src/visualizations.rs",
+    "line_number": 0,
+    "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"render_entity_count_bar_chart_visualization\",\"visibility\":\"Public\",\"file_path\":\"./zzArchive20251114/crates/pt07-visual-analytics-terminal/src/visualizations.rs\",\"line_range\":{\"start\":20,\"end\":84},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+    "entity_class": "CODE"
+  },
+  {
+    "isgl1_key": "rust:fn:validate_payment:__test_v097_query_helpers_test_rs:9-11",
+    "forward_deps": [
+      "rust:fn:check_balance:__test_v097_query_helpers_test_rs:13-15"
+    ],
+    "reverse_deps": [
+      "rust:fn:handle_checkout:__test_v097_query_helpers_test_rs:17-19",
+      "rust:fn:process_payment:__test_v097_query_helpers_test_rs:5-7"
+    ],
+    "current_ind": 1,
+    "future_ind": 0,
+    "entity_name": "validate_payment",
+    "entity_type": "function",
+    "file_path": "./test_v097_query_helpers/test.rs",
+    "line_number": 0,
+    "interface_signature": "{\"entity_type\":\"Function\",\"name\":\"validate_payment\",\"visibility\":\"Public\",\"file_path\":\"./test_v097_query_helpers/test.rs\",\"line_range\":{\"start\":9,\"end\":11},\"module_path\":[],\"documentation\":null,\"language_specific\":{\"language\":\"rust\",\"generics\":[],\"lifetimes\":[],\"where_clauses\":[],\"attributes\":[],\"trait_impl\":null}}",
+    "entity_class": "CODE"
+  }
+]

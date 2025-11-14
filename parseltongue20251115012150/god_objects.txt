@@ -1,0 +1,15 @@
+ 399 rust:fn:new:unknown:0-0
+ 298 rust:fn:unwrap:unknown:0-0
+ 224 rust:fn:to_string:unknown:0-0
+ 180 rust:fn:Ok:unknown:0-0
+ 114 rust:fn:Some:unknown:0-0
+  88 rust:fn:clone:unknown:0-0
+  76 rust:fn:join:unknown:0-0
+  72 rust:fn:collect:unknown:0-0
+  71 rust:fn:from:unknown:0-0
+  68 rust:fn:iter:unknown:0-0
+  64 rust:fn:path:unknown:0-0
+  58 rust:fn:export:unknown:0-0
+  55 rust:fn:contains:unknown:0-0
+  46 rust:fn:len:unknown:0-0
+  46 rust:fn:create_schema:unknown:0-0
