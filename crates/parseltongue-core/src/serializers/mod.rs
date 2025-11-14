@@ -16,15 +16,18 @@
 //!
 //! - **JSON**: Standard format for tool compatibility
 //! - **TOON**: Tab-Oriented Object Notation for 30-40% token reduction
+//! - **Mermaid**: GitHub-native graph visualization with semantic edge directionality
 
 use anyhow::Result;
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 
 pub mod json;
+pub mod mermaid;
 pub mod toon;
 
 pub use json::JsonSerializer;
+pub use mermaid::{render_graph_as_mermaid, MermaidConfig};
 pub use toon::{ToonDelimiter, ToonSerializer};
 
 /// Core serialization trait for data export formats
