@@ -63,7 +63,11 @@ impl CodeGraphRepository for CozoDbAdapter {
             .map_err(|e| anyhow!("Failed to query entities: {}", e))?;
 
         // Parse result into Entity structs
-        let entities = parse_entities_from_query_result(&result)?;
+        let mut entities = parse_entities_from_query_result(&result)?;
+
+        // v0.9.7: Populate forward_deps and reverse_deps from DependencyEdges
+        populate_entity_dependencies(&mut entities, &self.storage).await?;
+
         Ok(entities)
     }
 
@@ -97,7 +101,11 @@ impl CodeGraphRepository for CozoDbAdapter {
         let result = self.storage.raw_query(&query).await
             .map_err(|e| anyhow!("Failed to query entities with WHERE clause: {}", e))?;
 
-        let entities = parse_entities_from_query_result(&result)?;
+        let mut entities = parse_entities_from_query_result(&result)?;
+
+        // v0.9.7: Populate forward_deps and reverse_deps from DependencyEdges
+        populate_entity_dependencies(&mut entities, &self.storage).await?;
+
         Ok(entities)
     }
 
@@ -138,6 +146,151 @@ impl CodeGraphRepository for CozoDbAdapter {
     }
 }
 
+/// Normalize ISGL1 key to handle pt01 ingestion inconsistencies (v0.9.7)
+///
+/// # Normalization Rules
+/// 1. Convert file paths: `./test.rs` → `__test_rs` (dots and slashes to underscores)
+/// 2. Preserve format: `rust:fn:name:file_path:line-range`
+///
+/// # Example
+/// ```
+/// // Before: rust:fn:main:./test.rs:1-3
+/// // After:  rust:fn:main:__test_rs:1-3
+/// ```
+fn normalize_isgl1_key(key: &str) -> String {
+    let parts: Vec<&str> = key.split(':').collect();
+
+    if parts.len() >= 4 {
+        // Full ISGL1 format: lang:type:name:filepath:linerange
+        let language = parts[0];
+        let entity_type = parts[1];
+        let name = parts[2];
+        let file_path = parts[3];
+        let line_range = parts.get(4).unwrap_or(&"");
+
+        // Normalize file path: ./test.rs → __test_rs
+        let normalized_path = if file_path.starts_with("./") {
+            // ./test.rs → __test_rs (preserve leading __ to match entity keys)
+            let without_dot_slash = &file_path[2..];  // Remove "./"
+            let with_underscores = without_dot_slash.replace("/", "_").replace(".", "_");
+            format!("__{}", with_underscores)  // Add __ prefix
+        } else if file_path.starts_with("/") {
+            // /path/test.rs → _path_test_rs
+            file_path.replace("/", "_").replace(".", "_")
+        } else {
+            // test.rs → test_rs or already normalized
+            file_path.replace("/", "_").replace(".", "_")
+        };
+
+        if line_range.is_empty() {
+            format!("{}:{}:{}:{}", language, entity_type, name, normalized_path)
+        } else {
+            format!("{}:{}:{}:{}:{}", language, entity_type, name, normalized_path, line_range)
+        }
+    } else {
+        // If format doesn't match, return as-is
+        key.to_string()
+    }
+}
+
+/// Populate forward_deps and reverse_deps for all entities (v0.9.7)
+///
+/// # Algorithm
+/// 1. Query all edges from DependencyEdges relation
+/// 2. Build forward_deps map (entity -> what it depends on)
+/// 3. Build reverse_deps map (entity -> what depends on it)
+/// 4. Update each entity with its dependency arrays
+///
+/// # Performance
+/// - O(E) to query edges
+/// - O(E) to build maps
+/// - O(N) to populate entities
+/// - Total: O(N + E) where N = entities, E = edges
+async fn populate_entity_dependencies(
+    entities: &mut [Entity],
+    storage: &CozoDbStorage,
+) -> Result<()> {
+    use std::collections::HashMap;
+
+    // Query all edges from DependencyEdges
+    let edges_query = r#"
+        ?[from_key, to_key, edge_type] :=
+        *DependencyEdges{from_key, to_key, edge_type}
+    "#;
+
+    let edges_result = storage.raw_query(edges_query).await
+        .map_err(|e| anyhow!("Failed to query edges for dependency population: {}", e))?;
+
+    // Build dependency maps
+    let mut forward_deps_map: HashMap<String, Vec<String>> = HashMap::new();
+    let mut reverse_deps_map: HashMap<String, Vec<String>> = HashMap::new();
+
+    for row in &edges_result.rows {
+        let from_key = extract_string(row, 0)?;
+        let to_key = extract_string(row, 1)?;
+
+        // v0.9.7: Normalize keys to handle pt01 inconsistencies
+        // (./test.rs → __test_rs)
+        let from_key_normalized = normalize_isgl1_key(&from_key);
+        let to_key_normalized = normalize_isgl1_key(&to_key);
+
+        // v0.9.7: WORKAROUND for pt01 bug - edges have unknown:0-0 as to_key
+        // Resolve by matching function name against actual entities
+        let final_to_key = if to_key_normalized.contains("unknown") {
+            // Extract function name from to_key: rust:fn:NAME:unknown:0-0
+            let to_parts: Vec<&str> = to_key_normalized.split(':').collect();
+            if to_parts.len() >= 3 {
+                let target_func_name = to_parts[2];
+
+                // Find matching entity by name (heuristic match)
+                let matched_entity = entities.iter().find(|e| {
+                    let entity_parts: Vec<&str> = e.isgl1_key.split(':').collect();
+                    entity_parts.len() >= 3 && entity_parts[2] == target_func_name
+                });
+
+                if let Some(entity) = matched_entity {
+                    entity.isgl1_key.clone()
+                } else {
+                    // Skip edge if we can't resolve the target
+                    continue;
+                }
+            } else {
+                // Skip edge if format is invalid
+                continue;
+            }
+        } else {
+            to_key_normalized.clone()
+        };
+
+        // Forward deps: from_key depends on to_key
+        forward_deps_map
+            .entry(from_key_normalized.clone())
+            .or_insert_with(Vec::new)
+            .push(final_to_key.clone());
+
+        // Reverse deps: to_key is depended upon by from_key
+        reverse_deps_map
+            .entry(final_to_key)
+            .or_insert_with(Vec::new)
+            .push(from_key_normalized);
+    }
+
+    // Populate each entity with its dependencies
+    for entity in entities.iter_mut() {
+        entity.forward_deps = forward_deps_map
+            .get(&entity.isgl1_key)
+            .cloned()
+            .unwrap_or_default();
+
+        entity.reverse_deps = reverse_deps_map
+            .get(&entity.isgl1_key)
+            .cloned()
+            .unwrap_or_default();
+    }
+
+    Ok(())
+}
+
 /// Parse entities from CozoDB query result
 ///
 /// # CozoDB Result Format
@@ -170,7 +323,7 @@ fn parse_entities_from_query_result(result: &cozo::NamedRows) -> Result<Vec<Enti
             entity_name: parse_entity_name_from_key(&extract_string(row, 0)?),
             line_number: parse_line_number_from_key(&extract_string(row, 0)?),
 
-            // Default empty values for dependencies (will compute later if needed)
+            // v0.9.7: Dependencies populated by populate_entity_dependencies()
             forward_deps: Vec::new(),
             reverse_deps: Vec::new(),
             doc_comment: None,

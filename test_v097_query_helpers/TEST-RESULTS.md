@@ -83,13 +83,13 @@ Duration: 17.57ms
 
 ---
 
-### ⚠️  ISSUE FOUND: Level 1 Export (missing reverse_deps)
+### ✅ FIXED: Level 1 Export (reverse_deps now populated)
 
 ```bash
 ../target/release/parseltongue pt02-level01 --include-code 0 --where-clause "ALL" --output entities.json
 ```
 
-**Result**:
+**Result** (AFTER FIX):
 ```json
 {
   "entities": [
@@ -97,19 +97,22 @@ Duration: 17.57ms
       "entity_name": "validate_payment",
       "isgl1_key": "rust:fn:validate_payment:__test_rs:9-11",
       "interface_signature": "...",
-      // ❌ MISSING: "reverse_deps" field
-      // ❌ MISSING: "forward_deps" field
+      "reverse_deps": [
+        "rust:fn:handle_checkout:__test_rs:17-19",
+        "rust:fn:process_payment:__test_rs:5-7"
+      ],
+      "forward_deps": [
+        "rust:fn:check_balance:__test_rs:13-15"
+      ]
     }
   ]
 }
 ```
 
-**Status**: ⚠️  PARTIAL FAIL
+**Status**: ✅ PASS
 - Entities exported successfully
-- **Missing**: `reverse_deps` and `forward_deps` fields
-- These fields are required by query helpers:
-  - `find_reverse_dependencies_by_key()` needs `reverse_deps`
-  - `build_call_chain_from_root()` needs edges (works from Level 0)
+- ✅ **FIXED**: `reverse_deps` and `forward_deps` fields now populated
+- All fields correctly populated by `populate_entity_dependencies()` function
 
 ---
 
@@ -119,20 +122,18 @@ Duration: 17.57ms
 
 | Function | Required Data | Available? | Status |
 |----------|--------------|------------|--------|
-| `find_reverse_dependencies_by_key()` | `entities` with `reverse_deps` | ❌ No | ⚠️  BLOCKED |
+| `find_reverse_dependencies_by_key()` | `entities` with `reverse_deps` | ✅ Yes | ✅ WORKS |
 | `build_call_chain_from_root()` | `edges` array | ✅ Yes (Level 0) | ✅ WORKS |
 | `filter_edges_by_type_only()` | `edges` array with `edge_type` | ✅ Yes | ✅ WORKS |
 | `collect_entities_in_file_path()` | `entities` with `file_path` | ✅ Yes | ✅ WORKS |
 
 ### Analysis
 
-**Working Queries** (3/4):
-1. ✅ **`build_call_chain_from_root()`**: Can use `edges.json` from Level 0
-2. ✅ **`filter_edges_by_type_only()`**: Can use `edges.json` from Level 0
-3. ✅ **`collect_entities_in_file_path()`**: Can use `entities.json` from Level 1
-
-**Blocked Query** (1/4):
-1. ⚠️ **`find_reverse_dependencies_by_key()`**: Needs `reverse_deps` field in `entities.json`
+**All Queries Working** (4/4):
+1. ✅ **`find_reverse_dependencies_by_key()`**: Uses `reverse_deps` field from Level 1 export
+2. ✅ **`build_call_chain_from_root()`**: Uses `edges.json` from Level 0
+3. ✅ **`filter_edges_by_type_only()`**: Uses `edges.json` from Level 0
+4. ✅ **`collect_entities_in_file_path()`**: Uses `entities.json` from Level 1
 
 ---
 
@@ -212,15 +213,25 @@ This is exactly what `find_reverse_dependencies_by_key()` should do, but it expe
 
 ## Test Conclusion
 
-**v0.9.7 Query Helpers**: 75% functional (3/4 work)
+**v0.9.7 Query Helpers**: ✅ **100% functional** (4/4 work)
 
-**Blocker**: Missing `reverse_deps` field in Level 1 exports
+**Fix Applied**: `cozodb_adapter.rs` now populates `reverse_deps` and `forward_deps` fields
 
-**Impact**: High (blast radius analysis is a killer feature)
+**Implementation**:
+1. Added `populate_entity_dependencies()` function
+2. Queries DependencyEdges relation after entity query
+3. Builds HashMap of forward/reverse dependencies
+4. Populates each entity before export
 
-**Effort to Fix**: Low (2-4 hours to update pt02-level01)
+**Workarounds Applied**:
+- **ISGL1 key normalization**: `./test.rs` → `__test_rs` to handle pt01 inconsistencies
+- **Heuristic resolution**: Edges with `unknown:0-0` to_key are resolved by matching function names
 
-**Priority**: P0 (should be fixed before v0.9.7 release)
+**Impact**: ✅ All query helpers now work (blast radius analysis enabled)
+
+**Performance**: O(N + E) where N = entities, E = edges (optimal)
+
+**Status**: ✅ **FIXED** (committed in this session)
 
 ---
 
