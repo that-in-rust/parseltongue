@@ -1,0 +1,5 @@
+entities[4\t]{edge_type,from_key,to_key}:
+  Calls	"rust:fn:handle_checkout:./test.rs:17-19"	"rust:fn:validate_payment:unknown:0-0"
+  Calls	"rust:fn:main:./test.rs:1-3"	"rust:fn:process_payment:unknown:0-0"
+  Calls	"rust:fn:process_payment:./test.rs:5-7"	"rust:fn:validate_payment:unknown:0-0"
+  Calls	"rust:fn:validate_payment:./test.rs:9-11"	"rust:fn:check_balance:unknown:0-0"
