@@ -1773,7 +1773,7 @@ dependencies = [
 
 [[package]]
 name = "parseltongue"
-version = "0.9.6"
+version = "0.9.7"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1793,7 +1793,7 @@ dependencies = [
 
 [[package]]
 name = "parseltongue-core"
-version = "0.9.6"
+version = "0.9.7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1826,7 +1826,7 @@ dependencies = [
 
 [[package]]
 name = "parseltongue-e2e-tests"
-version = "0.9.6"
+version = "0.9.7"
 dependencies = [
  "anyhow",
  "parseltongue-core",
@@ -2057,7 +2057,7 @@ dependencies = [
 
 [[package]]
 name = "pt01-folder-to-cozodb-streamer"
-version = "0.9.6"
+version = "0.9.7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2094,7 +2094,7 @@ dependencies = [
 
 [[package]]
 name = "pt02-llm-cozodb-to-context-writer"
-version = "0.9.6"
+version = "0.9.7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2113,7 +2113,7 @@ dependencies = [
 
 [[package]]
 name = "pt03-llm-to-cozodb-writer"
-version = "0.9.6"
+version = "0.9.7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2137,7 +2137,7 @@ dependencies = [
 
 [[package]]
 name = "pt04-syntax-preflight-validator"
-version = "0.9.6"
+version = "0.9.7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2174,7 +2174,7 @@ dependencies = [
 
 [[package]]
 name = "pt05-llm-cozodb-to-diff-writer"
-version = "0.9.6"
+version = "0.9.7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2195,7 +2195,7 @@ dependencies = [
 
 [[package]]
 name = "pt06-cozodb-make-future-code-current"
-version = "0.9.6"
+version = "0.9.7"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2226,7 +2226,7 @@ dependencies = [
 
 [[package]]
 name = "pt08-semantic-atom-cluster-builder"
-version = "0.9.6"
+version = "0.9.7"
 dependencies = [
  "chrono",
  "criterion",

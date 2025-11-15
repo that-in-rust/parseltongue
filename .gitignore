@@ -27,3 +27,9 @@ demo-walkthroughs/*/*.db/
 demo-walkthroughs/*/contexts/
 parseltongue-v*-macos-arm64
 parseltongue
+
+# Workspace directories (timestamped analysis outputs)
+parseltongue20*/
+
+# Organized artifacts (preserved in artifacts/ directory)
+artifacts/
