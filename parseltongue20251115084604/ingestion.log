@@ -1,0 +1,17 @@
+Running Tool 1: folder-to-cozodb-streamer
+Starting directory streaming...
+
+Streaming Summary:
+Total files found: 260
+Files processed: 105
+Entities created: 127 (CODE only)
+  └─ CODE entities: 127
+  └─ TEST entities: 1151 (excluded for optimal LLM context)
+Errors encountered: 155
+Duration: 1.496342208s
+
+✓ Tests intentionally excluded from ingestion for optimal LLM context
+✓ Indexing completed
+  Files processed: 105
+  Entities created: 127
+  Duration: 1.496342208s
